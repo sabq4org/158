@@ -78,6 +78,8 @@ app.post("/api/lookup", async (req, res) => {
 });
 
 app.get("/healthz", (req, res) => res.send("ok"));
+app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js")));
+app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js")));
 app.use(express.static(path.join(__dirname, "public")));
 
 const port = process.env.PORT || 3000;
