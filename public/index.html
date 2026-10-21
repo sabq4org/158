@@ -177,7 +177,7 @@ h1 {
 .ring-val small { font-size: 11.5px; color: var(--muted); }
 
 .metrics {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
   padding: 0 24px 24px;
 }
 .metric {
@@ -196,6 +196,20 @@ h1 {
 .pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .pill.low  { color: var(--low);  background: color-mix(in srgb, var(--low) 14%, transparent); }
 
+.tests { padding: 0 24px 16px; }
+.tests-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.tests-title { font-weight: 700; font-size: 16px; }
+.tests-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-2);
+}
+.t-cell { padding: 14px 10px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.t-cell + .t-cell { border-inline-start: 1px solid var(--line); }
+.t-label { font-size: 13px; color: var(--muted); }
+.t-val { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.t-val small { font-size: 13px; color: var(--muted); font-weight: 500; }
+.t-cell.key { background: var(--accent-soft); }
+.t-cell.key .t-val { color: var(--accent); }
 .section { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; gap: 16px; align-items: center; }
 .section > div { min-width: 0; }
 .style-icon {
@@ -237,6 +251,10 @@ h1 {
   .wrap { padding-block: 24px 40px; }
   .lookup, .r-head, .praise { padding-inline: 18px; }
   .metrics { padding-inline: 18px; grid-template-columns: minmax(0, 1fr); }
+  .tests { padding-inline: 18px; }
+  .tests-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-cell:nth-child(3) { border-inline-start: 0; }
+  .t-cell:nth-child(n+3) { border-top: 1px solid var(--line); }
   .section, .sign { padding-inline: 18px; }
   .r-head { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
   .tags { justify-content: center; }
@@ -362,8 +380,16 @@ function render(r) {
         <div class="ring-val"><b>${pct}%</b><small>${fmt(total)} من ${maxTotal}</small></div>
       </div>
     </div>
+    <div class="tests">
+      <div class="tests-head"><span class="tests-title">الاختبارات</span>${(() => { const [c, t] = level(test / MAX.test); return `<span class="pill ${c}">${t}</span>`; })()}</div>
+      <div class="tests-grid">
+        <div class="t-cell"><span class="t-label">الاختبار الأول</span><span class="t-val">${fmt(Number(t1))} <small>/ ${MAX.test}</small></span></div>
+        <div class="t-cell"><span class="t-label">الاختبار الثاني</span><span class="t-val">${fmt(Number(t2))} <small>/ ${MAX.test}</small></span></div>
+        <div class="t-cell"><span class="t-label">المجموع</span><span class="t-val">${fmt(Number(t1) + Number(t2))} <small>/ ${MAX.test * 2}</small></span></div>
+        <div class="t-cell key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(test)} <small>/ ${MAX.test}</small></span></div>
+      </div>
+    </div>
     <div class="metrics">
-      ${metric("الاختبار (متوسط الأول والثاني)", test, MAX.test, `الأول ${fmt(t1)} · الثاني ${fmt(t2)}`)}
       ${metric("المشاركة", Number(part), MAX.participation)}
       ${metric("المشاريع والمهام", Number(proj), MAX.projects)}
       ${lateMetric(late)}
