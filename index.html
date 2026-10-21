@@ -1,0 +1,430 @@
+<title>استعلام نتائج الطالبات</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one calm column. A lookup slip on top; the result opens beneath it as a report card with a score ring, four measure tiles, learning style and signatures. */
+:root {
+  --bg: #eef4f2;
+  --surface: #ffffff;
+  --surface-2: #f5f9f8;
+  --ink: #142a2e;
+  --muted: #5b7277;
+  --line: #d7e4e1;
+  --accent: #0d6e6a;
+  --accent-soft: #d6ece9;
+  --gold: #b9800f;
+  --gold-soft: #fbefd3;
+  --good: #1f8a4c;
+  --warn: #b86a00;
+  --low: #b43c3c;
+  --pattern: rgba(13, 110, 106, 0.07);
+  --shadow: 0 1px 2px rgba(20, 42, 46, 0.06), 0 12px 32px -12px rgba(20, 42, 46, 0.18);
+  --font-display: "Reem Kufi", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
+    --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
+    --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
+  --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
+  --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--pattern) 1.5px, transparent 0);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.masthead { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.seal {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--surface);
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  margin-bottom: 8px;
+}
+.seal svg { width: 32px; height: 32px; }
+.eyebrow { color: var(--accent); font-weight: 600; font-size: 14px; letter-spacing: .02em; }
+h1 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(28px, 6vw, 40px); line-height: 1.3; margin: 0;
+  text-wrap: balance;
+}
+.sub { color: var(--muted); margin: 0; font-size: 15px; }
+
+/* Lookup */
+.lookup {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.lookup label { font-weight: 600; font-size: 15px; }
+.field { display: flex; gap: 10px; flex-wrap: wrap; }
+.field input {
+  flex: 1 1 220px; min-width: 0;
+  font: inherit; font-size: 20px; letter-spacing: .12em;
+  font-variant-numeric: tabular-nums;
+  direction: ltr; text-align: center;
+  padding: 12px 16px;
+  border: 2px solid var(--line); border-radius: 14px;
+  background: var(--surface-2); color: var(--ink);
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input::placeholder { letter-spacing: .04em; color: var(--muted); opacity: .7; }
+.field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.btn {
+  font: inherit; font-weight: 700; font-size: 16px;
+  padding: 12px 28px; border-radius: 14px; border: 0; cursor: pointer;
+  background: var(--accent); color: var(--surface);
+  transition: transform .1s, filter .15s;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .7; cursor: wait; }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible, .chip:focus-visible, .ghost:focus-visible, .copy:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.hint { color: var(--muted); font-size: 13px; margin: 0; }
+.error {
+  margin: 0; padding: 10px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--low) 12%, transparent); color: var(--low);
+  font-weight: 500; font-size: 14px;
+}
+.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); padding-top: 4px; border-top: 1px dashed var(--line); }
+.chip {
+  font: inherit; font-size: 13px; direction: ltr; font-variant-numeric: tabular-nums;
+  padding: 4px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Result card */
+.result {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: rise .45s ease-out both;
+}
+@keyframes rise { from { transform: translateY(12px); opacity: .4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .result, .ring-fg { animation: none !important; transition: none !important; } }
+
+.praise {
+  display: flex; gap: 14px; align-items: center;
+  padding: 16px 24px;
+  background: var(--gold-soft); color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+.praise .star { flex: none; width: 40px; height: 40px; color: var(--gold); }
+.praise strong { font-family: var(--font-display); font-size: 19px; display: block; line-height: 1.4; color: var(--gold); }
+.praise span { font-size: 14.5px; }
+.praise.calm { background: var(--accent-soft); }
+.praise.calm strong, .praise.calm .star { color: var(--accent); }
+
+.r-head {
+  display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;
+  padding: 24px;
+}
+.r-head > div { min-width: 0; }
+.r-label { color: var(--muted); font-size: 13px; }
+.r-name { font-family: var(--font-display); font-size: clamp(24px, 5vw, 30px); line-height: 1.35; margin: 2px 0 10px; text-wrap: balance; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { font-size: 13px; padding: 3px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tag.id { background: var(--surface-2); color: var(--muted); direction: ltr; font-variant-numeric: tabular-nums; font-weight: 500; border: 1px solid var(--line); }
+
+.ring { position: relative; width: 116px; height: 116px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--surface-2); stroke-width: 10; }
+.ring-fg { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+.ring-val { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.1; }
+.ring-val b { font-size: 28px; font-variant-numeric: tabular-nums; }
+.ring-val small { font-size: 11.5px; color: var(--muted); }
+
+.metrics {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  padding: 0 24px 24px;
+}
+.metric {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.m-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.m-name { font-size: 14px; color: var(--muted); font-weight: 500; }
+.m-val { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.m-val small { font-size: 13px; color: var(--muted); font-weight: 500; }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.m-note { font-size: 12.5px; color: var(--muted); }
+.pill { font-size: 12px; font-weight: 600; padding: 1px 10px; border-radius: 99px; }
+.pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.pill.low  { color: var(--low);  background: color-mix(in srgb, var(--low) 14%, transparent); }
+
+.section { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; gap: 16px; align-items: center; }
+.section > div { min-width: 0; }
+.style-icon {
+  flex: none; width: 52px; height: 52px; border-radius: 16px;
+  display: grid; place-items: center; background: var(--accent-soft); color: var(--accent);
+}
+.style-icon svg { width: 28px; height: 28px; }
+.s-title { font-weight: 700; font-size: 17px; }
+.s-text { color: var(--muted); font-size: 14px; margin: 0; }
+
+.email-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.email { direction: ltr; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 14.5px; overflow-wrap: anywhere; user-select: all; }
+.copy {
+  font: inherit; font-size: 12.5px; padding: 3px 12px; border-radius: 99px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--accent); font-weight: 600;
+}
+
+.signs {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line); background: var(--surface-2);
+}
+.sign { padding: 18px 24px; text-align: center; }
+.sign + .sign { border-inline-start: 1px solid var(--line); }
+.sign .r-label { display: block; }
+.sign b { font-family: var(--font-display); font-weight: 500; font-size: 17px; }
+
+.actions { display: flex; justify-content: center; }
+.ghost {
+  font: inherit; font-weight: 600; font-size: 15px; cursor: pointer;
+  background: transparent; color: var(--accent); border: 1.5px solid var(--accent);
+  padding: 8px 22px; border-radius: 12px;
+}
+.ghost:hover { background: var(--accent-soft); }
+
+.foot { text-align: center; color: var(--muted); font-size: 12.5px; }
+.sample-note { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); font-weight: 600; }
+
+@media (max-width: 520px) {
+  .wrap { padding-block: 24px 40px; }
+  .lookup, .r-head, .praise { padding-inline: 18px; }
+  .metrics { padding-inline: 18px; grid-template-columns: minmax(0, 1fr); }
+  .section, .sign { padding-inline: 18px; }
+  .r-head { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .tags { justify-content: center; }
+  .btn { flex: 1 1 100%; }
+}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="seal" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/></svg>
+    </div>
+    <div class="eyebrow">الصف الثاني</div>
+    <h1>استعلام نتائج الطالبات</h1>
+    <p class="sub">اكتبي رقم الهوية لتظهر بطاقة النتيجة كاملة</p>
+  </header>
+
+  <form class="lookup" id="lookupForm" novalidate>
+    <label for="nid">رقم الهوية الوطنية</label>
+    <div class="field">
+      <input id="nid" name="nid" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="١٠ أرقام" aria-describedby="nidHint">
+      <button class="btn" type="submit">استعلام</button>
+    </div>
+    <p class="hint" id="nidHint">رقم الهوية مكوّن من 10 أرقام</p>
+    <p class="error" id="err" role="alert" hidden></p>
+  </form>
+
+  <section id="result" aria-live="polite" hidden></section>
+
+  <footer class="foot">
+    المعلمة: فائزة محمد جبوع · المديرة: د. حنان المطيري
+  </footer>
+</div>
+
+<script>
+// ===== إعدادات الدرجات =====
+const MAX = { test: 20, participation: 10, projects: 10 };
+
+// ===== بيانات الطالبات (64 طالبة) =====
+// كل سجل مشفّر برقم هوية صاحبته، فلا يظهر اسم أو رقم أو إيميل في كود الصفحة.
+// السجل بعد فك التشفير: [رقم الهوية, الاسم, الفصل, الاختبار الأول, الاختبار الثاني, معدل الاختبار, المشاركة, المشاريع والمهام, التأخير, نمط التعلم, الإيميل الوزاري]
+const VAULT = {"salt": "mhX8OtvtNCy6l+rwrbo2pg==", "it": 200000, "rows": {"c59b2ea4500da6c013b8c4199e95749a": "aWKiY0gbdETohDxPQpGCXcC4JTS0z3JdnMPZnbqCYwP1QPK8kzfS5yxG201PVApIW3xxWUGYwmOznCCCfdK7XatDjWwFy9Rm3C4jlbH/SA9Yy0yWBUjXvuKpksa3mkuEcQgKt+ASBf5Svkctl3lLlQh74SWnCl6qPlbGuMeVTK4CoPSGZ9JueS27RHH7qs1YEfoQsJUUqCRPlAe8+DFhQfC/myo=", "947c508d0850e35de9678586d9efb452": "6sXqNUFVXEqChHkl8fTy9wImzdg7aG4cxIh/fTz/pChKIQLBLRLuFdZOpJEnPwAV5CZn87pYblHFjpDtAwlEjkFB15hivAmu/rOvxoTyXgpIWqjxFN20VuNY0TV92RWGQ7WBm6JT+Dly1tXe0qsU/VSW0agS/sHsFqzPZYqUrfE8vPdgLaX1eAUh0QJwbY+4Nmp8Q5aIvmM=", "adf7829c0be31df87bdd1cd62808b0a6": "jRmXjXZyqt8EFwKujjB0sAcNWQAtEe0zwO+8eRCR0wurYJ2J7eggRpICi62vDjPhw7N/1QJ1kX2IVhYSFaa20Q+ic6e+bDo83RFcEzACsJPCb0gF3xwpauVEI3SLI1Q+PhD/E88yJA9zFgxFguxuwN7N/g87rFOQgUn/pw7Cm8LIkL5A6sKYBO1zMyn2CWl8Ktf2PQAjh38wUZ6N", "6a578221cc63f0230c95281e375b6185": "6Z/2C4jMgOGMMfyjX+N2p/A/iEyynLsIu+MYbb1bBbmFEHBRy7xaak2xEz8gyuSlWf9ExksIFeXYLJnMQE4s2MoYSFpfhxfjrRn58S6/W8phZno8pGcVErkn2/t0xwUEvYfBwBA3gSu0wNxxMz7qV7lUu9B4mpPmTSp/FI/94Pn9pKiBfUlIcdgzbePn0HoKXjUPaOX7WdotKp7DBwR2", "ada7748b1381df12484fd41aeb848894": "IDykIhOwZO0I5FVHnltMBYj9xgMlhRLdGJs3QKTeONfE3rJPu8dGIMYPip4Shboy0wDDBy4HqRXes5i9NwquWQAfGBLVQyLmt5th21FxZEUxh/kTJ0gl6mNebXquaeRQuNu78JZQ7gC/KC6Vrt4bKzLmRsGahb2tLUHuqm0TgrALBmq8NTbzfUCJx0DNw9unLGyRc5STjk1z+A==", "37cee8ff2acd866ff9a79552131bc059": "/hbLPm5hZja6ORkuChDP+3ySmQMRjMbAy8yUB1KOVEXScKdpeWYd866nlsZVRXO1EgB6LYQeZAMgO1KE9IlGrfR3ZSVbWDjeOcTkXTb2mNt/5eOCdVxrliPUhrdOlsi0+ohKCicmPcTuiuqNaiudS86kBkAB3Mc2fCd6N5fe+y30kWBuy0fVpTMht74JEKPSlsz1SNQCrz/dH8MVvbEWVD2/cPcWeqzN", "213152416acfaf99d5a10413654e3505": "7Vw70YRDq/2D0BVqq2h+Y3ZMmLOspNn7NXVa4Mhobk6lY6Aiwys9h+BDKQ9y5LuR+QgMrWb5Y7XTMcQFU8C75JrEffQXgWrMuDobxkHAmYgrlpgA7jSnKNNGkhCzm8HAHFdpTsscVSi7S8AuWg5yWMp0kzLT2PGEmPnluKdTbBDXPY5hULyN", "f3d41dd2b649f9fd6f61f1304996a722": "d8LfCwTU/DtbXnNdX0Y4bdHUJCebqNDU6VPYnMQk8N9YWvwMfQ4UKR183sugJ/MJVdezRNzOO9PfwnixBnSFI01bvdXhLPf837h+iqQ5iHw0ftYRqyL9ITgDT5En93GZvVtzMLcuxblHDBJfu0iRBss8SMF76xEDqJoxKEJqKFpwg+YhojmpRzbMr0ey8+1D+iHAnDjYw9MsnEoT/hDMYg==", "45940fdb560d6357ad4e07297cc47d66": "t/hnrhAkHN1GGDSmkb2SHIzjMmIE9SC558RKFLl9uaUuZgrZlX+pG7yvUfu70TnmlSypkiU2gq/klAOOCpvgA8MLiPecvHtlq1GkJE4zyDIRpi6N2ZbLsxo4hQLvHQeuc49wq9DAzQyBuhWsMN1hicUuaIC3Ddwzo0T/NP+lvcjcR1yTBZhB4DBEThoXq1g=", "586a0d97e5a251e93ceb1bd830e85900": "8x35eiZBP3SHrhjxT4D3SQv97xnXlU25yCIHeyVej4QqNukMSRehsfDY8NqeK/Ft/CLaRc0ordPPXfN2TI8pMk32k05h3jvdNkvbDpeXYxeK34I6S9z6Jj7vG1OlRADTe+6UfqxWAyp+qbUccF2RuLtEmdbjE41bYF4ExfoDqzq404VTG54w2aunit6xlC/Yk2AMNn2nv4uQ6ahL3l4=", "b9ca6233c3bf12b30f286be44146f702": "rCaz0MfrKDg8cr+Q0PGfYYRIx5SOLKLK5wCBBeOJSq1DR1MNQvcIScjLi3AYjKhoGVMaQlc1c9QDu2zHA1rUNufA/+C+Qa6dd8ZsTF/rMjVZ65rwdQtEjSwyNTqASTcgjFAQqNQOXDv1xpZ7uByu7199JmS/S7HozK+SJ+7ujMseX+86c4OfJEbtBkqo3MyaTw==", "4147e36893b871d646c0dff469325d2d": "8Alk4zjN5D882IIjauo1i/zPwGITnThpgkhkOCSfAEJ8TynXZBMmro5uz4lQSEWQlUZYidK4iHFoT1qK4U82sxIhycNi50mYF1nHD/xcJly42KalbFAqx5RudixbR5tnA4Pf+5bfe6iJgYmJOgYAovng+PuW9JQEYUNVWCwkWU4jfeHOHU3I1kY2LgGdXIGJHh8+Igjl4ljTJVZ3um5auA6N", "9ce5dc446df59ed46ceed7e03a2a79fb": "cWyUHTM+uwrFQ2RSo0cQhg8KOX65tUsGhvH4oNfZj6EGa9z1a9HNBgcjzxr3ejUxxfLUMk1iNa+91oz/fvSEcGiCUL5YDEDrJRuKkIwVKCJDQi1LD5rRtvj5mqYe6dYss8CmLs8oxn54Sfe30xySUadaaxdut3IbK3/5Lq0ZfzPcRkRTk8PAAtbDHSc=", "5734ec678da0e85b678bdb6dfdad6e75": "QS6rGYjMBvmdN8YDhzXde4zvQVsd+Cnb+LtzCO5k7kDT3CBZIgFNlzEB3fNoBF+Pc/aqBpqCXT2jsTa801vjU3Qxpa8uxXwwpXqKunQNbXWoJ5+VIhsIlg0bKP8Ry2wIKjmBDq59qJKj1Xqivn9JQUXPXU1U5okQY6oG4kuoAwswHntGk5vZ/fgZa1EDkuWE", "0da63c6489164f528d51e8718d75d2e1": "ke/9DLruUuL1bA7CXKtOjTlb0dzShg4QwwRGY7rgu5dwJsmK7yNoqZu/MXnmlkMqDNXxHMG0HuhkTJSpRlGQCoTSCd4JpDZUTL24OLLQv3oc4HtDcZmCq1K44NSnzsoUfUWR2vDrLbVABaq2fESiZcyasV8deeQQLQp4AphoXLypMa2ZzUzR5NpygS70RRzEy8ubjg==", "e9816adab519b83587d66088a84087a6": "Jd9NC9DOPUhdRS7U4K0a6qWcWoGYbN9wQ4xTUYZN1UZjevQ1AXZTfW734oI2joE+FB8R4Wg4ifymoY/59nUsW9NwZAdmfrxFllSb62YZC66qOuhL0qjlysgle+/TOGb6S9bYmYEkUzFkh7G2oHeGDYDArifBP5yINxkfXBBtp6Q=", "38db6db9fb43d1fb8c9625bfa7e579f7": "E5j0ncRf3jjGQmzHJvm4yu0UD9056bqtJj7nNOyu9uzdPxe4EO/k77MdJxr37YrBC/7sCwaHMuWukOuRNGisvL8efAcpJGi1UBKtjm4ymTGGD2YLCrthN0dDX7ULhDSbVDz/ieMH3TvGPzmvfEQUxFy4QC1La0TBMTb9SvecDPwr0Kr6ASFCGKZj1llI4/P8yEaHVvnsvjzNBma4", "f891b74aa36b88c9cfb1da9b0c96991a": "koUo4R+I+LJYsJjf4k8yILajYNUeTCOwAXtGWTQRksVuwiROHlF/Af041MZE/OhkNHEds1sdHA6gNFJXScoTRuKLkDAzZlRLOzR7c6X6Nx1JUop2CB6L/Gjz2dpSMAsm+EsFpDaTdP1Vek+AIOzomemeSkfMzGyDOMlvkfa4JHcy9p6+7/nI6LrJAvVz5Q==", "631c6596a0a47f0e2a7ce09e353c5c8c": "hhC9PxCWEyteY2PL1Ojh2/G6wdF4LTF5boFpBNWTmaDxqwVkKjgbQDxx1yyUjSyq4XMYLPOuJOVrxM+A5f1D1Z41TTPZai2SAPIcoDOyai1cnUc2yUJS0Dljlh3DVEd3HnhNMp3QzJnbd833/AXL525XILSia7n7aMQFY+5ShQyKiE3IgrSiIzU=", "26005c0d715b464ec6dfaf12548bfc4c": "lEfjGCwxzQhF4xJKzHletnPVsMvjQgsCQ3oizIAvQfF6qrLINpgTCyQVG+2frM8Fvs/qCeR4rSIzz5Pn19APb4YcssrfPK5xdURmRlA1C+OHCDhmSVH2VaWs8ciYmSCgUI1P6fTd8J3Udb2pCnQCJUSfP1SwvMQI8f6eaz2pyJ9tKE5uWlqh8P/nHiQ4", "a58576048352183df4366bddd9b6063c": "eqqrvMW1hc9Ef5+8i6zYKS3losqi+C6XWOtXSgm+5330ZIdG4tcnjRkJZmSFvs26a7pSMNIoVzruYcpV+lpeHu4jmisuoK1hlj52BmxV95gJkVoidjsOe6fWSfVLtW2XddtyqozXgFE4gpxUWAu8TCSKnBrpywPEuK1w+9xd58W+sOBD+FVVnlVixjcfeGmzGZp/rQ==", "173e79a03620e4f8b0db0805d803b595": "NqbRLWXYxsjGjQ6NF3Ck7fjm5jdv6a7ivkDDB3+zBuWhxisu+FVGKJ9vLpi1T8ToC3c5pKDskmUanKIB22IUgXvhcFIkxYvC51apY5mDQi6xRkmICsmVVzdCdP1HpTCNDKA/wdg9xQErhvEsOphn9PncmUbFh86XBaZ6t15t561mCQwo/rA2IOUbKmyPEQljMGDV", "b25eb9e09ce1fe0fe41aaf631d5fcc54": "ROEzi18SSssIHnmDE3Lr9kHZdLmjoAOGlgPWdTh/VJRhdhUu0yqu7tRbX57unEKnAm3s8wIckjgysHlU3AMVAxVV2KXc2bkuKkK+26nDldWRFOJnMUcbB599lxuUSRDtZO5v2deRd+4JxafFRfWkM9rKYcCmmKVUz8oycriMUehpO8A=", "1b831760eea41f93863df56ee9c0683d": "GT29hvFJEYtEWxczNIJePzYXOMgzdliiVZnHmB4eHjseDCeT3jJaqbtOeVt0jamUtGKzBQIHGx90oloj7o+KpTTBXvdbLsuBa0wTVKgaTRiIlYzehrmOcSox4m3/cr+z5BALsx4Eq6YQH/u2WCIlIPjUPt/eBVVHF9RdNdsLp6C+sVol5R2I0nbby9PngnUDDmO9ZnZz", "669d9ae898269fc7d82dc0c320caedb9": "rbdEL6Qg/GtcdFirgQthyrr5tGz9Y1JS2+BQnkmHnztzIqNnzTuBYiAHF+W5sQ+pPWphZm1Gx1ygl1lBYWTRU3xvSg2+h+dBOYYya9yt2CN6ktEu+hrAQTvSQIBX4cTNACMtFW7fMFstG1hfAJ/FwkWwx3kMdXLSjaZ4r9SFX5hmawaddNmilCR2utsqRG1KQ92m7YQ=", "212a7b27f501a09b3ae585b9a557eb2f": "NLjC1vG1cCmM4msXsRVioKBMZNxCkWD6IIquzCwK4z6KD5MmGiDEyywlfKABpknv5f/2pCfgpPz/inQgmc8ApZX0xVj9ps1caUbGVN7h6dn1b5/CpYcYKOBLJksIEOk1LaBJUmG4Y+PiJ8gzWSFZ7CD5rHg3mJ2f9hxKQ/1YfMBS1hKmg3SXaOtlnkptdRUODKAP+LZg", "9a61193b0b37235a229bbb647b098643": "V9abVzts4BISorMyh0mEkOJbWfNpffGZqOAuWSZrYcziKKQN50UN3yyWoXAOH/G1nKbdIvCTjVZwh3k4rLQ2xDkcluWdX/luTVo58N/bdpn++NVg6lkAuktwtY+K7RdOC5+L2kAUu0ssn3V+VFzbTY7Ps0st3fn/BtPC5dzs4xFgzvMQzAgzZN/ubcMlS1/PQWMFVg==", "f55f9b99eaba6b293621b0a254b3b5d0": "nk5cLAZ36wRjfdkMDgKhDC0GHgBO1pc7OPTWHq+QJDLf5QArDxSzarLiM2dyI0F3ogYCXE+Mc1Z3w2tULEfG3fKtjWo3KvDEU8LTh6Em0HlavwJI8rJDO9CoKN3Z5a6qBglB/3mTlM8kpI/86/3WXc4/sm5iISajOx3OhIKAkemoL2mngXrpr2DwvnD6FRRrTv5pTtg7Vc+B", "c57347153f933cbe357a3cd97beb9194": "DyD9wsOeam+mqSC3hEEJAyFqzvTnFoISzwQgLGGco8gFFIkkAxovpAXGUPG3QXVlSvcSVPwPEaJxBHsdmjaOAwOU2CS7Vx8miu4TC7M3QqXoDnBs3DBPLTvDwoS8yjVRcdSi1jWrY+JuHqTgGFunzixd/9E9YVEtQFBOTno3uLInXmKKymH0", "cf738a896335420b8eff2d46b9e22be3": "aYbmhSn2VtfL8/kNEJgLEBBlw+GT9P7wiHQRJlSZaJZjqj58BHpnnxGiM5RiheqLuMxp6coxvCZ0V0H7wq4oJfHlxNkFcLtaCtX8oyLxe0DcVORgPxYl1uebR4Ekh4cUZSKeOsDzl39PAy/TK4OL/ORKB3oZVsDEm3SsKg6QAH8lNnkC4GsF5lIDDZz8SgDHxme5", "44b8cb63f58a207fe54ca5f87e4b337d": "SY84KAh5bLLirqPnCr0rrz+hK5tUaXgAlO6cKzoTqnF0wCDbxLd1mDNMkjxQHKyRT3SUFD1h/82WaiQa6SkSvdk2rjPSH3WDmj/Gh87GBcN7Y1JziLeoPrwYL9c5K3CdAn1TQZbhJcH8WIcWRCM8+M0F991fkYNrFh2wIgEwWoGHnxSbAp39WJ2USYs=", "710e493c38468a99c6ef55ca63b9ca88": "68KK7k+iFy4Q/V5hUJ6a4/JXp83JWpHOFfjUY4fp2J6kZKJYGAesHZgnfk5eMEjepKmF657iZVvPJsKBPfAy+rBPG44QooOlPm/gMI7I73v4d6ILgzgYNpllCBsjlqAHJojneMrhXwswoRoFAcswSo/7aRMHeHIqjIBIWGi3heGR3mfQMphRd6eaPiYeGdStkNGAzEQpwE438gXWBvtJmjSnWw==", "e3fd62b5fb068f8a1b49f776148c8f5e": "Ft3YQjUTDG6W1Vzjub0ee2JhkQ2KqsrsLDC/ogdmO+BzAdS94hC2mQ0OBJkytP6nUqRbhZ781TPbX6Uq0OJpgUknzQWWS2nvumJjV8vfNt2rxXFJRKoWyygqZ4Svtuj1fq1/TfCi8ZNOiluv9UO4uSdSFuda4B18Wqjdn8e7zBUZK4IM09jLzMab6AUf82K6JI/E5ktaHvM=", "8159e2f5819c9808c183df0d894f84e7": "G0aOlRhcMkWsvXf13nV8CS81Oh0S/FP2E7g5Ijo+07gaaft/J52I5sYh2UUDU7/WycWfOQNO8LO0H4+6HBWJG/XEH20twmbIm+3EdsbvsSWYcuobpDU3O1L03RWEJqSsvDtRBwuHNB/57OVtvPP2CqdaegU9HOo+pFJ2UQ1gQ6t8NPgqf9zhUNqsvADx3Piohdqtq2kHtxfTF6yVcDDgS2rC", "7ce40d5e7138f27429c18f093188dea8": "466YbZ/uJ6RHF0WrLtWjLTgP1sXmSb4fNs1X8B7/R+vkSs+GGXLL4BSfw//2Ych+ocazynkTXbvRb+IzpBJAUCohT0X+kw7EOzHQNyqekUWoD10xYDz/ls4W8gxlxjk+mGe5r4Jm5ufqQmGGdGrrlGzduqgWcrBt1cQRQJADKIq6nHaTXxXb4rZTh4SOlOD3F7c60nEJ/c2aq4tR", "ccc300d8644eb36f91e908ff8e588496": "+GaBpebMIQuKmB6ZuPJ5n20TJRT/IwyYgGWJkthjueQTKRtHy1MqK7xdwjc0ZtCTbTapzxjbLmzClb8VfupN8ZymN+s8W9U40bWlfxYo2eWwLTckrl61ZHX15Jp5+P6f2Wjqsfd9uG55cDTNCOtEuvPtrFrKCaMJaezdxOZH7xeC/osbQOlpEWgDHDiE64wMyQ==", "087fafdf670f385dba59ce6944b24353": "Pe7m9nHl5aC+WcotXudEYVrzUzHC+2RgAPietFgQ9lf3i13kNaLoqc5seicc+VkjgEJA1W6qk1VL637V6QZoIxiI3MS4e1Pr7YXrf+pFMtbeS5ZBToDvQL+v8RMLv5M1sDgpWp180Zte02j895cXmOe+KXOu8be6GgCzMKE0JgFfo06/iiv8", "83715c17f578fc298a6275dfca846659": "Y0T18keVICnH8+TpIxjbd046FHUh0hd44XfnWsbfT1o97/wB6oQthssevdfCJQjuIS4Sgaab+vIJa2Mn9qnPzl6bJXHGY0qO5j5C8y7cW1AKYjLIFFurF6ge3SPWl7zmdgjdTwNrQ8szfkEcwE5praiTiH3hVVnD9MIlNGHhbrQdvIn1MBwgOHGVK9MnfuEGZBkjs7YiEIBSDcd+/y3e/+3bCCM=", "9d127ae5548b777d1d29d922a46efbdc": "E4GAwWr1NwIXkxuxsbVLJTf/2iqmuZN0WBN+YI3xEBSPJkYm2M9HLCescvLbFMqyYeNht4mmswBa1Nqw+lF7IKwf1ez+aVDxYcMOgGBFf3JJp4jOK/YR286mtCKFETJj2HYrLE7qpE41KE2ZvtcHiNs5ChdV2d/EceMRsYLbpyOQCPBu9PiU9uExhSBDytflo+xNIA==", "665f109ca42ee5a6b11c7208786c8bd2": "XHmsMRLqRxX1OUMsVFJQh8PFC5gAwHgABWDMT8Qf2OsUAiN5s8zWOT8hI3d5eDuq6yvZRkbB72Q+d92FYH6Jghr26e17ZfzrBVRcuY7EhwIiZ53qwO9JBL2/WM8qYG0oeRKgoSTMTIRndDW7O9RWoOE6ZzbA5rQrxi78OT5g941ZHRuLHu/WS8bL8LBMgMoxMIyfQK2MFw==", "27a37a6bff04f0859438f6b47d8c9013": "5P3JBoOs9RW9UPG0tmL4LoLZ/vInyWlfRK2vsO7bICZ+elps7SD6IaIzUiZsec94X4ID66iHs30YHq/oZwayGUUhNydPxjrXRya4Lwgex3Y4jUFLLB66UBvyzZ84dud7g95vqPkJLRLsL0bViZXjNv3XTnpvimdEyVTJPCFqRZJ4P26kKI3i7zYgE2L3cVj51Q==", "c7306740fee4d913e93dc068799b720b": "Bi4I1iVRfqKWlpyTDolF65JvmDw8NYxc0GDv4htA/YAxVekQ9CsYzFcBt0OoG/hXUnvv6ah6mUOEqIGMCDqVm05aqBhGvu6J8fUdRJ8a3yqoe+ptcrslL7MFSBg8noMUl/kEeJKpPW3PolamD/3vZn/1fDz2Zs8OoMc/IU5oH2Vt+94Ic6pfJ9K47QJsYrdUjhntHJI=", "8165716e043dce5a4a0757e52cedeb7f": "ngXyvwLExnm0Q+KRGPDb4E0Su0L6S3tkjS6TEheqlOXW5kMdAreJadj73igvPF0q2j6TRwrcsLPN5VdvQDwPp05Ohbf+wyHXTgxIrosWV/sGAwPbwrOyyKooBYf1ty0OKkoPBud6gZad58DppPGBYaFcYU8dW99JiLFvjAB2xn4mit4m/FRqv7Vmq/fgwYeiCw==", "aa891a30b38ddc14c83439e07adf188c": "SZVjUukXoTNE9xtiuqlaogZ4SprXS1hQXXPejqYXpHs4t3JVpbZYbGGAkG1gSpg1allQYPKrzQK5N4FL5TOeOukb/GoSb2hlTlxze7hltaiGDw/GNs6HVdiIbGsSfmnr3iOzydMVTpmRYL7RYlhk8GuutFPKy5pgzjVjtHjco8UuWg6bPAYElbJ1vFzp3ZzLj58h", "b243c546dd43b26bef2a0e9710564b3d": "qaNsqlkHQiVfMfJ/IYulIjA1I8d5iNjpkPfN7lyGa/E3Yt5E2YBEkMuUuWVVTIhfssrbpxA2efsDkb3+M/oVSYMLcLhuTo+3/b4kks9W5DU8bQpb1cINmxWNJ4QzWHEgQOpP4BCpC4AJTyWgzuh5/muYEigbiGPz62C1cSi7IizN8uH+9A==", "5717c0dcab5382ba55817c574f988584": "XdOb6O2tpqP6UIO9eICV0wavKYujng5/OoVWFU354GzoNIJkeBg7IKONZZWwKMoxPGOnCChcMBbzyY6L67pMy7OYn46czhKW89m+C3H2BPV7JWpPUxSTlmh9UGWmQ0vEqEtt9lgeokD7UrCQjSJTfH0tu/36II2znD3wXJZ34upbsyuTg1ZISWsLDjJtDvVG6SM5WA==", "27dfca02de329a8bf802b32b838eff6c": "VyheuMxgA2VGnZawdYr6uRCs+87BABbOlky8ApAmMy4sBgmkHM4Azh8fGH7bMiDErBhyx/Tq+zw8gG00Es+n9n4FeJQcHndM2H7QhsNYZ/UO9uLXyP21iq/vkY2Jrv+nCQd675lNiOAvk5iFs4kEOSrvZFjm0Ebr9IyknLZ3nhfyte+Ksnl8m8C9fRSjx8nfdRz0Zw==", "a8b52ae87bda36e87a8fe78719332248": "Eu/cuwT2z/dqWlL4cEH/Ltb34c7AlNft88wGg27FhDW5Gh8ekzxWrPW4zo2pQm0pkvk7uZUG/n0itUzIMJiZ8UjLdpcIA4GvcqkRxH6jp8os2xldlkbnd9swhAL529dIP9e5rg0GwDSJoQB5QBvlrBcqTewTAAq3Q0ZyICvmA9fC7p9d36HuvhULwBLQx7ejiD/t", "55d43e339a0e1776aa1f0e28ad468d5f": "CPf79kmEpoHhvTl++Qc9RsrJ6mGUleXy5P4wRzNvu7yr9e2/55KvfVrFqK777nL3pb709clPdxZMC5AZFzr09KEXDu8JgCmPw9BtyAyv0HU+c2Cgecio983j2HlK6cbOd2Kqi0Y+P/27rJyfD+4PhuqpGcl+jevw10yexpYG60hM0z0bcmSPeUcFTh8P5ZTGhmTCx5OcOrUkIb8=", "6f48232440fb3ed8a0b29e75c03d84b0": "jbiKHytf+TWaKEdhV9JRbmzelQk/gLWHSxNBcOfPzDUp3Z018ZT0RpyVT8RFVL89Jfi0bs1Upj9A3js9mqNmL/9uB9OJPObjAdmcZvxdFXoODWYj3mDGclaf1s9kllFaL603BIhvb3djZKi7sVXWI9QvEV43fZ2N13D7aQqDGqlyaBx17sR1od42jghzAeVH0d+UK8LBkfHjYDUx4yXzE9If", "319f907d898f26e1995e4a8f233c3943": "afz0zdKaAP0oCG4uNFrMJXCm5/RVFjCs2rq3jYPMyy+I6UobQhY2PXTZ1kv/hZYTw6hRNHYeJkW0gurQOmB1tFnTUKytd77Gu/TpfPPEMgBhp3e6AczhzvO24KVOGSHJPXIT3eZBTsyN0f6PgI/FV1gc4tpnYNepDEp4GxL2gWzyCQ90hIm70FPf269f", "15986608208c005ee48e427d4c1687bf": "QokQUlrsQf0WPWeTpTx+mYe7bnKRwOagL38uFm+iFGBolchSpAiI2/1fQJTUkKgSbppVYuJw8d/Uaj/bdWZjYA1UHpR1dpdEzseXo6S92kJrILp6yAPJ6/Yv04sKMdry4ufoqMizDefxQOdrqOyMStQDB020KaQiSu1Rmj5WupVbA3xKcivpuqCzCuoxUxe1xlTTL1TW8LI=", "4f12ca54a113068470a5a0d516cd7dd0": "9iQTMARCiSqnthdmgzBUQKx595qruLk2RJycwi12Ooaa7bIKseVGgFBSkcqmlWNSADL0LQ5WMe48t6nc958wBe/btDhLKD+9x7dh4AiWOXq9shYf63A3KU8W1mFTcoRLbJ1mbiRVMjSJ6voBbMt1pn8RgSPFdOQ1IVePfvQkFaEDMG7WkKXydViaP+oQBeJshwfdYZQ=", "8de211cec8b828f778a2e5e4fedb6153": "oN8HBAQ+2MCOXPuoJDoCqdzR5UvcC4uMGsk7jrIrB0hAwVokfnbTY17AlnLhRZQmoIZx5cF8KVe8b3/RSbUIYV/pHVF/pcUkIY5nizcGS5T7ThjYgrCpZ+Q4T5H5AI1dhRv4SNdsZoGzZmh9bmkQRwYkpw4R3Ke2DF02cpE/Lx3Brv3CyKZW5ioNago/1uhRwU/UDRyT1VHpOmkbtQ==", "3a24e0d874d3387d93dde1a6c5294d70": "Ms86+RBTQFxExOi+HKZkxWbTQg/c6baNqexhjDbbpmFMuX4nLbuIVrJn5bVXlKXEvi7ZANVWPp9Kfcd8MgUxlua4bWo8QNyj3EZdcmF580twGq+2w0V4ZgjycjRk62BqNKe03wkLhMEH3N1B9GkW7TMExoYyQgVbVY8kEjeJzglLob3BDo7vWHTv", "647e9dc517af039a2037c0b04094c259": "jLqXPG+DysoeoAoqS2xEA7PxIz4sv3TC5g/1DlTGgfVo+xW2WAQxWTaJ58Pr9XbKFyeTKvnCOmei3eQ02/RftBUKAaYg4TOnK5aTjh3D7X94X3NleHORTZtIY6mmQZUvsHbDcf5pC6u0tViGIxVfoaQnRH51YNZIEt6SiWZZ5uhsOt/qeao0/igRFCs=", "45199018d2841b99acec0c1403e64c02": "r6cXJodcuCsb1jySMxc5Kc6BYsAbVYIVxCrGeTJLvRuZTC5Kd5hp8fgEC1786lW3nPMPX0Ghhf3wfXHRLMKM4bQJBvWwtE0r74st1Z4ID7QO7ITDb6rBNCiMbitt+uLsl9BrgSqexjIdfx16aJUqHdL938XjDQZT1FhBn0TPnLVe+sIQ968c6AP2G8LTBPbRJZLr", "8744bd2d423f97defaa442f2b279356b": "TVeRlU4FH7/ZlRuls67lxxza9WdmzgrPHW/XP+uBrPgnNOqxwcFpUagtkH0bfqjPpyVNWfxt6qlkpDq8XZY7MJGpms1NYWRIpJzxkrMw3UAnC/c8VXz9eFLsKvJyw5C1+tVkG7wVTMSuUByfOvqqc3cU5J0iGfHLIcFl2uen9wccUrxc2AKukjkpLA==", "5da8a58eac0aebf3e152764390916c7d": "w/qiAYy+uZryJ85nNS7X/XprYogGaBVola6MT+tiyvRYSrWGhbbLAVAIcY4TxGcad0iJVAUZrMJVUIfyzwyjfj6rbYEGHjDGCeAFsP4DpjRGHc8KsdDocIL0MKO8mueypYMMLlDaWItLa5fVlDK1uHJY7y9IdkE5al6wuUWF44LlQu/g/fH7NYlM68s=", "7e95947c96b90b7db310e4daf8fbd273": "yzLoCw24tiSgf5JElm4Ksbi72GhMXVPR77s4FsD/6QN6d6oAu+AQyu4VZah/iPNavpQ/+neIEj0pD1BbWkE2hgR/K4sfioUucXo4ltEe3xw84jyuFO845tyVW4G6wEBQ1YJ7KatVQsThJMke4uFTcckhdTvjNWTi8wC1FnbMbyTLYgzw/fjQJpObYMR+Ii/Y2CL1lV2D", "1b806cf5f5786c4d66da711e5e9cac0c": "bs7nWR0F+CjuseAsp7dxdgM7IFZIvrqZNYApxvALyK0KYM+9hhHJ2pVtDN5wcatCTuEeKJoN3Ym3ndcrk1ZaJTREsqV+hpmGFnpePAp8a1Dn4EhUKw4eLRCYb2X2p5jWddKeH7WKKOpTr+jN0GXoBDyftfP5RIx5EJrJ0bybrmIeZW0=", "410ad2f03a17a5f0e0d62ee3dc77b077": "atwZMCRwH3DsHKnK+I/zTgM8TTxPKaTJJA4sBR+tGv92KjdgZ3FjmW/HXqfxpdVBEXfJSU0fYM/InShKGsxTC14MQ0qacwvgnUfp4+cIiaiTgm3bqYXBmp5/HfjM4ljEHAkSzSCLfGOAhezOTMMGbVPUKRSJxD9EaBxGvgdGvhAl26CogkorBfMiajJXBw==", "e311d3e579681c5e4336fe0907657cbd": "LDGmBVJJvQ7GSMwKntFLg7YiH0iDqrVslRhQC+bhTwONoEwMgiu7n3YFtIC41rLFCEhT+8WTe1i4jxDWzslT66v45n48ybsOGq5keil6LhncYBMynP27nKpcJrZQbjuIKGCgIWQ9iVIqWv4e+RFL1NPthqETzvimn97+sR2r6hPZ7IVxTFENYuwMlPcoFBwm9uaLRQg8zvB8xxCMNwM=", "26573620898ac155411d2691395a94f5": "rgFTQ9b8i//DBWmbYlAqeJYRQvOP2hTqjCuR0rYCywCZWer/4HshhiJE37vj+rhJUGoHbeBrgEzMcnGKX8oIxOSrIYIvz9trCsuFGSQXX7g3GlDvw6lsEhxooiUFBj8pdPGXLye6BXazewvTzDk99NKRvILqxjUI5iGhg/FLE3BsXJgyB83H3x4jyPErGFIqDbCgdNyF7Bod2C3I2ypL8V0="}};
+
+const STYLES = {
+  "بصري":  { tip: "تتعلم أفضل بالصور والخرائط الذهنية والألوان والمخططات.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>' },
+  "سمعي":  { tip: "تتعلم أفضل بالاستماع والنقاش والشرح الصوتي والتكرار بصوت مسموع.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3 3 0 0 1-6 0"/><path d="M9.5 8.5a2.5 2.5 0 0 1 5 0"/></svg>' },
+  "حركي":  { tip: "تتعلم أفضل بالتجربة والأنشطة العملية والحركة ولعب الأدوار.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg>' },
+  "كتابي": { tip: "تتعلم أفضل بالقراءة وتدوين الملاحظات والتلخيص والكتابة.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' }
+};
+
+const STAR = '<svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+const SPROUT = '<svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V11"/><path d="M12 11C12 6 8 4 3 4c0 5 3 7 9 7z"/><path d="M12 14c0-4 3-6 9-6 0 4-3 6-9 6z"/></svg>';
+
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = u => Array.from(u, x => x.toString(16).padStart(2, "0")).join("");
+async function findStudent(id) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(id), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64(VAULT.salt), iterations: VAULT.it }, base, 384));
+  const blob = VAULT.rows[hex(bits.slice(0, 16))];
+  if (!blob) return null;
+  const raw = b64(blob);
+  const key = await crypto.subtle.importKey("raw", bits.slice(16), "AES-GCM", false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: raw.slice(0, 12) }, key, raw.slice(12));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+const $ = s => document.querySelector(s);
+const fmt = n => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function toLatin(s) {
+  return s.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, "");
+}
+
+function praiseFor(pct, first) {
+  if (pct >= 95) return { cls: "", icon: STAR, title: `ما شاء الله يا ${first}! أداء متميز`, text: "نتيجتك تدل على اجتهاد وإصرار. أنتِ قدوة لزميلاتك، فاستمري على هذا التألق." };
+  if (pct >= 90) return { cls: "", icon: STAR, title: `أحسنتِ يا ${first}، نتيجة ممتازة`, text: "جهدك واضح ومثمر. خطوة صغيرة بعد وتصلين للقمة." };
+  if (pct >= 80) return { cls: "", icon: STAR, title: `رائعة يا ${first}، أنتِ على الطريق الصحيح`, text: "مستواك جميل جداً، ومع قليل من المراجعة ستكونين من المتفوقات." };
+  if (pct >= 65) return { cls: "calm", icon: SPROUT, title: `بداية طيبة يا ${first}`, text: "عندك قدرات جميلة، وبالمراجعة المنتظمة ستلاحظين الفرق بسرعة." };
+  return { cls: "calm", icon: SPROUT, title: `نثق بكِ يا ${first}`, text: "كل خطوة تقدّم تُحسب لك. معلمتك بجانبك، وبالتدريب المستمر تتحسن النتائج." };
+}
+
+function level(p) { return p >= 0.9 ? ["good", "ممتاز"] : p >= 0.75 ? ["good", "جيد جداً"] : p >= 0.6 ? ["warn", "جيد"] : ["low", "يحتاج دعم"]; }
+
+function metric(name, val, max, note) {
+  const p = Math.max(0, Math.min(1, val / max));
+  const [c, t] = level(p);
+  return `<div class="metric">
+    <div class="m-top"><span class="m-name">${name}</span><span class="pill ${c}">${t}</span></div>
+    <div class="m-val">${fmt(val)} <small>/ ${max}</small></div>
+    <div class="bar" role="img" aria-label="${Math.round(p * 100)}%"><i style="width:${p * 100}%"></i></div>
+    ${note ? `<div class="m-note">${note}</div>` : ""}
+  </div>`;
+}
+
+function lateMetric(n) {
+  const [c, t] = n === 0 ? ["good", "منضبطة"] : n <= 2 ? ["warn", "قليل"] : ["low", "متكرر"];
+  return `<div class="metric">
+    <div class="m-top"><span class="m-name">التأخير</span><span class="pill ${c}">${t}</span></div>
+    <div class="m-val">${n === 0 ? "لا يوجد" : fmt(n)} <small>${n === 0 ? "" : n === 1 ? "مرة" : n === 2 ? "مرتان" : n >= 3 && n <= 10 ? "مرات" : "مرة"}</small></div>
+    <div class="m-note">${n === 0 ? "لا يوجد تأخير، شكراً على انضباطك" : "الحضور المبكر يساعدك على الاستفادة من بداية الحصة"}</div>
+  </div>`;
+}
+
+function render(r) {
+  const [id, name, cls, t1, t2, avg, part, proj, lateRaw, style, email] = r;
+  const test = avg != null ? Number(avg) : (Number(t1) + Number(t2)) / 2;
+  const late = Number(lateRaw) || 0;
+  const total = test + Number(part) + Number(proj);
+  const maxTotal = MAX.test + MAX.participation + MAX.projects;
+  const pct = Math.round((total / maxTotal) * 100);
+  const first = name.split(" ")[0];
+  const pr = praiseFor(pct, first);
+  const st = STYLES[style] || { tip: "سيُحدَّد نمط التعلم بعد استكمال المعلمة للتقييم.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2"/></svg>' };
+  const C = 2 * Math.PI * 48;
+
+  $("#result").innerHTML = `
+  <article class="result">
+    <div class="praise ${pr.cls}">${pr.icon}<div><strong>${esc(pr.title)}</strong><span>${esc(pr.text)}</span></div></div>
+    <div class="r-head">
+      <div>
+        <div class="r-label">اسم الطالبة</div>
+        <div class="r-name">${esc(name)}</div>
+        <div class="tags"><span class="tag">الصف الثاني · الفصل ${esc(cls)}</span><span class="tag id">${esc(id)}</span></div>
+      </div>
+      <div class="ring" role="img" aria-label="المجموع ${pct}%">
+        <svg viewBox="0 0 116 116"><circle class="ring-bg" cx="58" cy="58" r="48"/><circle class="ring-fg" id="ringFg" cx="58" cy="58" r="48" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
+        <div class="ring-val"><b>${pct}%</b><small>${fmt(total)} من ${maxTotal}</small></div>
+      </div>
+    </div>
+    <div class="metrics">
+      ${metric("الاختبار (متوسط الأول والثاني)", test, MAX.test, `الأول ${fmt(t1)} · الثاني ${fmt(t2)}`)}
+      ${metric("المشاركة", Number(part), MAX.participation)}
+      ${metric("المشاريع والمهام", Number(proj), MAX.projects)}
+      ${lateMetric(late)}
+    </div>
+    <div class="section">
+      <div class="style-icon" aria-hidden="true">${st.icon}</div>
+      <div><div class="r-label">نمط التعلم</div><div class="s-title">${esc(style || "لم يُحدَّد بعد")}</div><p class="s-text">${esc(st.tip)}</p></div>
+    </div>
+    <div class="section">
+      <div class="style-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <div><div class="r-label">الإيميل الوزاري</div><div class="email-row"><span class="email" id="emailText">${esc(email)}</span><button class="copy" type="button" id="copyBtn">نسخ</button></div></div>
+    </div>
+    <div class="signs">
+      <div class="sign"><span class="r-label">المعلمة</span><b>فائزة محمد جبوع</b></div>
+      <div class="sign"><span class="r-label">المديرة</span><b>د. حنان المطيري</b></div>
+    </div>
+  </article>
+  <div class="actions" style="margin-top:16px"><button class="ghost" type="button" id="again">استعلام عن طالبة أخرى</button></div>`;
+
+  $("#result").hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ring = $("#ringFg");
+    ring.style.stroke = pct >= 80 ? "var(--gold)" : "var(--accent)";
+    ring.style.strokeDashoffset = C * (1 - Math.min(pct, 100) / 100);
+  }));
+
+  $("#copyBtn").addEventListener("click", e => {
+    const b = e.currentTarget;
+    navigator.clipboard?.writeText(email).then(() => { b.textContent = "تم النسخ"; setTimeout(() => b.textContent = "نسخ", 1600); })
+      .catch(() => { const range = document.createRange(); range.selectNodeContents($("#emailText")); const s = getSelection(); s.removeAllRanges(); s.addRange(range); });
+  });
+  $("#again").addEventListener("click", () => {
+    $("#result").hidden = true; $("#result").innerHTML = "";
+    $("#nid").value = ""; $("#nid").focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function showError(msg) { const e = $("#err"); e.textContent = msg; e.hidden = false; $("#result").hidden = true; }
+
+$("#nid").addEventListener("input", e => {
+  const v = toLatin(e.target.value).slice(0, 10);
+  if (e.target.value !== v) e.target.value = v;
+  $("#err").hidden = true;
+});
+
+$("#lookupForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const v = toLatin($("#nid").value);
+  if (v.length < 9) return showError("تأكدي من رقم الهوية: يجب أن يكون 10 أرقام.");
+  const btn = $("#lookupForm .btn");
+  btn.disabled = true; btn.textContent = "جارٍ البحث…";
+  try {
+    const r = await findStudent(v);
+    if (!r) return showError("لم نجد طالبة بهذا الرقم. راجعي الرقم أو تواصلي مع المعلمة.");
+    $("#err").hidden = true;
+    render(r);
+  } catch (err) {
+    showError("تعذّر البحث في هذا المتصفح. جرّبي فتح الصفحة من متصفح آخر.");
+  } finally {
+    btn.disabled = false; btn.textContent = "استعلام";
+  }
+});
+
+</script>
