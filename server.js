@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const { Pool } = require("pg");
+const mountAdmin = require("./admin");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -82,7 +83,9 @@ app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve
 app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js")));
 app.use(express.static(path.join(__dirname, "public")));
 
+const adminReady = pool.query(SCHEMA).then(() => mountAdmin(app, pool));
+
 const port = process.env.PORT || 3000;
-pool.query(SCHEMA)
+adminReady
   .then(() => app.listen(port, () => console.log(`Listening on ${port}`)))
   .catch(err => { console.error("Database setup failed", err); process.exit(1); });

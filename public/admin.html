@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>لوحة تحكم المعلمة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a navy top bar with the two logos, three tabs (students, Excel upload, backups), and a wide working area. */
+:root {
+  --bg: #f1f5f4;
+  --surface: #ffffff;
+  --surface-2: #f6f9f8;
+  --ink: #18242b;
+  --muted: #5f7277;
+  --line: #dbe5e2;
+  --navy: #2b2765;
+  --accent: #0d6e6a;
+  --accent-soft: #d8ece9;
+  --mint: #8fc3ad;
+  --good: #1f7a45; --good-soft: #e1f3e8;
+  --warn: #9a5a00; --warn-soft: #fcefd9;
+  --low: #a83636; --low-soft: #fbe3e3;
+  --shadow: 0 1px 2px rgba(24,36,43,.06), 0 10px 28px -14px rgba(24,36,43,.22);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1a1c; --surface: #152528; --surface-2: #1a2e32; --ink: #e5efed; --muted: #94abaf; --line: #284240;
+    --navy: #232052; --accent: #4fc2b8; --accent-soft: #173b3b; --mint: #6fa892;
+    --good: #66d095; --good-soft: #163a27; --warn: #f0a540; --warn-soft: #3b2c12; --low: #f08a8a; --low-soft: #3d1c1c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -14px rgba(0,0,0,.6); color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.65; min-height: 100vh; }
+button, input, select { font: inherit; }
+[hidden] { display: none !important; }
+
+.topbar { background: var(--navy); color: #fff; }
+.topbar-in { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+.logos { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 12px; padding: 6px 12px; }
+.logos img { height: 36px; width: auto; display: block; }
+.brand { flex: 1; min-width: 0; }
+.brand b { display: block; font-size: 17px; }
+.brand span { font-size: 13px; opacity: .8; }
+.topbar .link { color: #fff; background: rgba(255,255,255,.12); border: 0; border-radius: 10px; padding: 6px 14px; cursor: pointer; text-decoration: none; font-size: 14px; }
+.topbar .link:hover { background: rgba(255,255,255,.2); }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 16px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+.login { max-width: 400px; margin: 48px auto; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+.login h1 { margin: 0; font-size: 22px; }
+.login p { margin: 0; color: var(--muted); }
+
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
+input.in, select.in { border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 8px 12px; font-size: 15px; min-width: 0; width: 100%; }
+input.in:focus, select.in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+input.ltr { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+
+.btn { border: 0; border-radius: 10px; padding: 8px 18px; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.btn:hover { filter: brightness(1.07); }
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn.quiet { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+.btn.danger { background: var(--low); }
+.btn.sm { padding: 4px 12px; font-size: 13px; border-radius: 8px; }
+.btn svg { width: 16px; height: 16px; }
+:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+
+.msg { margin: 0; padding: 10px 14px; border-radius: 10px; font-size: 14px; }
+.msg.err { background: var(--low-soft); color: var(--low); }
+.msg.ok { background: var(--good-soft); color: var(--good); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { border: 0; background: none; color: var(--muted); padding: 10px 16px; cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.stat { padding: 14px 16px; }
+.stat .k { color: var(--muted); font-size: 13px; }
+.stat .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.stat .v small { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px; }
+.toolbar .grow { flex: 1 1 220px; }
+.toolbar select.in { width: auto; }
+
+.table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: right; font-weight: 600; color: var(--muted); font-size: 12.5px; padding: 10px 10px; background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr:hover td { background: var(--surface-2); }
+td.name { font-weight: 600; white-space: normal; min-width: 180px; }
+td.num { text-align: center; }
+th.num { text-align: center; }
+td.ltr { direction: ltr; text-align: right; }
+td.muted { color: var(--muted); }
+.pill { font-size: 12px; font-weight: 600; padding: 1px 10px; border-radius: 99px; display: inline-block; }
+.pill.good { color: var(--good); background: var(--good-soft); }
+.pill.warn { color: var(--warn); background: var(--warn-soft); }
+.pill.low { color: var(--low); background: var(--low-soft); }
+.pill.none { color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+
+.drop { margin: 16px; border: 2px dashed var(--line); border-radius: 14px; padding: 32px 16px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; cursor: pointer; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop b { font-size: 17px; }
+.drop span { color: var(--muted); font-size: 14px; }
+.help { padding: 0 16px 16px; color: var(--muted); font-size: 13.5px; }
+.help ul { margin: 6px 0 0; padding-inline-start: 20px; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; align-items: center; }
+.summary .file { flex: 1 1 100%; font-weight: 600; }
+.sec { padding: 0 16px 16px; }
+.sec h3 { font-size: 15px; margin: 8px 0; display: flex; align-items: center; gap: 8px; }
+.change { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; background: var(--surface-2); }
+.change b { min-width: 180px; }
+.change .d { font-size: 13.5px; }
+.change .d s { color: var(--low); }
+.change .d ins { color: var(--good); text-decoration: none; font-weight: 600; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 16px 16px; }
+
+dialog { border: 0; border-radius: 18px; padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); box-shadow: 0 30px 60px -20px rgba(0,0,0,.4); }
+dialog::backdrop { background: rgba(14,26,28,.45); }
+.dlg { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.dlg h2 { margin: 0; font-size: 19px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid2 .full { grid-column: 1 / -1; }
+.dlg .row { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; }
+.note { font-size: 13px; color: var(--muted); }
+
+.toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 10px 18px; border-radius: 12px; font-weight: 600; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
+
+@media (max-width: 760px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .brand span { display: none; }
+  .logos img { height: 28px; }
+  .logos { padding: 5px 8px; gap: 6px; }
+  .topbar-in { gap: 8px; }
+  .brand b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hide-sm { display: none; }
+  .topbar .link { padding-inline: 10px; font-size: 13px; white-space: nowrap; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <div class="brand"><b>لوحة تحكم المعلمة</b><span>فائزة محمد جبوع · الصف الثاني</span></div>
+    <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
+    <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Login -->
+  <form class="card login" id="loginForm" hidden novalidate>
+    <h1>تسجيل الدخول</h1>
+    <p>اكتبي كلمة المرور للدخول إلى لوحة التحكم.</p>
+    <label class="f" for="pw">كلمة المرور<input class="in" id="pw" type="password" autocomplete="current-password" required></label>
+    <p class="msg err" id="loginErr" hidden></p>
+    <button class="btn" type="submit">دخول</button>
+  </form>
+
+  <!-- App -->
+  <section id="app" hidden>
+    <div class="stats" id="stats"></div>
+
+    <nav class="tabs" role="tablist" style="margin-top:16px">
+      <button class="tab" role="tab" aria-selected="true" data-tab="students" id="tab-students">الطالبات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import">رفع ملف إكسل</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups">النسخ الاحتياطية</button>
+    </nav>
+
+    <!-- Students -->
+    <div class="card" data-panel="students" style="margin-top:16px">
+      <div class="toolbar">
+        <input class="in grow" id="search" type="search" placeholder="ابحثي بالاسم أو رقم الهوية">
+        <select class="in" id="classFilter" aria-label="الفصل"><option value="">كل الفصول</option></select>
+        <select class="in" id="levelFilter" aria-label="المستوى">
+          <option value="">كل المستويات</option>
+          <option value="support">يحتجن دعم</option>
+          <option value="nostyle">بدون نمط تعلم</option>
+        </select>
+        <button class="btn" type="button" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة طالبة</button>
+        <a class="btn quiet" href="/api/admin/export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>اسم الطالبة</th><th>رقم الهوية</th><th class="num">الفصل</th>
+            <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
+            <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">التأخير</th>
+            <th>نمط التعلم</th><th class="num">النسبة</th><th></th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="noRows" hidden>لا توجد طالبات مطابقة للبحث.</div>
+    </div>
+
+    <!-- Import -->
+    <div class="card" data-panel="import" style="margin-top:16px" hidden>
+      <div id="importStart">
+        <label class="drop" id="drop" for="fileIn">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13l2 2 4-4"/></svg>
+          <b>اسحبي ملف الإكسل هنا أو اضغطي للاختيار</b>
+          <span>يقبل ملف النتائج الحالي، أو ملف تنزّلينه من زر "تنزيل إكسل"</span>
+          <input type="file" id="fileIn" accept=".xlsx" hidden>
+        </label>
+        <div class="help">
+          ما يتغيّر شي قبل ما تراجعين المعاينة وتضغطين "اعتماد".
+          <ul>
+            <li>الطالبات يتطابقن برقم الهوية.</li>
+            <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
+            <li>الطالبة اللي مو موجودة في الملف ما تنحذف، تظهر لك في المعاينة فقط.</li>
+            <li>قبل الاعتماد تنحفظ نسخة احتياطية تقدرين ترجعين لها.</li>
+          </ul>
+        </div>
+        <p class="msg err" id="importErr" hidden style="margin:0 16px 16px"></p>
+      </div>
+      <div id="preview" hidden></div>
+    </div>
+
+    <!-- Backups -->
+    <div class="card" data-panel="backups" style="margin-top:16px" hidden>
+      <div class="help" style="padding-top:16px">تنحفظ نسخة تلقائياً قبل كل رفع ملف وقبل كل استرجاع. الاسترجاع يرجّع بيانات كل الطالبات كما كانت وقت النسخة.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>التاريخ</th><th>السبب</th><th class="num">عدد الطالبات</th><th></th></tr></thead>
+          <tbody id="backupRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="noBackups" hidden>لا توجد نسخ احتياطية بعد. أول نسخة تنحفظ عند أول رفع لملف إكسل.</div>
+    </div>
+  </section>
+</main>
+
+<!-- Edit / add dialog -->
+<dialog id="editDlg">
+  <form class="dlg" id="editForm" method="dialog" novalidate>
+    <h2 id="editTitle">تعديل بيانات الطالبة</h2>
+    <div class="grid2">
+      <label class="f full" for="e_name">اسم الطالبة<input class="in" id="e_name" name="name" required></label>
+      <label class="f" for="e_id">رقم الهوية<input class="in ltr" id="e_id" name="national_id" inputmode="numeric" maxlength="10" required></label>
+      <label class="f" for="e_class">الفصل<input class="in" id="e_class" name="class"></label>
+      <label class="f" for="e_t1">الاختبار الأول (من 20)<input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
+      <label class="f" for="e_t2">الاختبار الثاني (من 20)<input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
+      <label class="f" for="e_part">المشاركة (من 10)<input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
+      <label class="f" for="e_proj">المشاريع والمهام (من 10)<input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
+      <label class="f" for="e_late">التأخير (عدد المرات)<input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
+      <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
+      <label class="f full" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
+    </div>
+    <p class="note" id="avgNote"></p>
+    <p class="msg err" id="editErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit" id="saveBtn">حفظ</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Confirm dialog -->
+<dialog id="confirmDlg">
+  <div class="dlg">
+    <h2 id="confirmTitle"></h2>
+    <p id="confirmText" style="margin:0"></p>
+    <div class="row">
+      <button class="btn danger" type="button" id="confirmYes"></button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => n == null || n === "" ? "—" : (Math.round(Number(n) * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const MAX = { test: 20, participation: 10, projects: 10 };
+
+let students = [];
+let editing = null;
+
+async function api(path, opts = {}) {
+  const res = await fetch("/api/admin" + path, {
+    method: opts.method || "GET",
+    headers: opts.body && !(opts.body instanceof FormData) ? { "Content-Type": "application/json" } : undefined,
+    body: opts.body instanceof FormData ? opts.body : opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (res.status === 401 && path !== "/login") { showLogin(); throw Object.assign(new Error("unauthorized"), { data }); }
+  if (!res.ok) throw Object.assign(new Error(data?.error || "error"), { status: res.status, data });
+  return data;
+}
+
+function toast(text) {
+  const t = $("#toast"); t.textContent = text; t.hidden = false;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => (t.hidden = true), 2600);
+}
+
+function confirmBox(title, text, yes) {
+  return new Promise(resolve => {
+    $("#confirmTitle").textContent = title; $("#confirmText").textContent = text; $("#confirmYes").textContent = yes;
+    const d = $("#confirmDlg");
+    const done = v => { d.close(); $("#confirmYes").onclick = null; resolve(v); };
+    $("#confirmYes").onclick = () => done(true);
+    d.querySelector("[data-close]").onclick = () => done(false);
+    d.oncancel = () => resolve(false);
+    d.showModal();
+  });
+}
+
+// ---------- Session ----------
+function showLogin() {
+  $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#loginForm").hidden = false;
+  setTimeout(() => $("#pw").focus(), 50);
+}
+async function showApp() {
+  $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
+  await loadStudents();
+}
+
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#loginErr"); err.hidden = true;
+  const btn = e.submitter || $("#loginForm .btn"); btn.disabled = true;
+  try {
+    await api("/login", { method: "POST", body: { password: $("#pw").value } });
+    $("#pw").value = "";
+    await showApp();
+  } catch (x) {
+    err.textContent = x.message === "locked" ? "محاولات كثيرة. انتظري 15 دقيقة ثم حاولي مرة أخرى."
+      : x.message === "wrong_password" ? `كلمة المرور غير صحيحة. باقي ${x.data?.left ?? 0} محاولات.`
+      : x.message === "disabled" ? "لوحة التحكم غير مفعّلة بعد. يجب ضبط كلمة المرور في إعدادات الخادم."
+      : "تعذّر الدخول. حاولي مرة أخرى.";
+    err.hidden = false;
+  } finally { btn.disabled = false; }
+});
+
+$("#logoutBtn").addEventListener("click", async () => { await api("/logout", { method: "POST" }).catch(() => {}); showLogin(); });
+
+// ---------- Students ----------
+const pctOf = s => {
+  const test = s.test_avg ?? (s.test1 != null && s.test2 != null ? (s.test1 + s.test2) / 2 : null);
+  if (test == null) return null;
+  return Math.round(((test + (s.participation || 0) + (s.projects || 0)) / (MAX.test + MAX.participation + MAX.projects)) * 100);
+};
+const levelPill = p => p == null ? '<span class="pill none">—</span>'
+  : `<span class="pill ${p >= 80 ? "good" : p >= 65 ? "warn" : "low"}">${p}%</span>`;
+
+async function loadStudents() {
+  students = await api("/students");
+  const classes = [...new Set(students.map(s => s.class).filter(Boolean))].sort();
+  const sel = $("#classFilter"), cur = sel.value;
+  sel.innerHTML = '<option value="">كل الفصول</option>' + classes.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
+  sel.value = classes.includes(cur) ? cur : "";
+  renderStats(); renderRows();
+}
+
+function renderStats() {
+  const n = students.length;
+  const pcts = students.map(pctOf).filter(p => p != null);
+  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+  const support = pcts.filter(p => p < 65).length;
+  const noStyle = students.filter(s => !s.learning_style).length;
+  $("#stats").innerHTML = [
+    ["عدد الطالبات", n, ""],
+    ["متوسط الصف", avg, "%"],
+    ["يحتجن دعم (أقل من 65%)", support, ""],
+    ["بدون نمط تعلم", noStyle, ""],
+  ].map(([k, v, u]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div></div>`).join("");
+}
+
+function renderRows() {
+  const q = $("#search").value.trim();
+  const cls = $("#classFilter").value, lvl = $("#levelFilter").value;
+  const list = students.filter(s =>
+    (!q || s.name.includes(q) || s.national_id.includes(q)) &&
+    (!cls || s.class === cls) &&
+    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 65 : !s.learning_style)));
+  $("#rows").innerHTML = list.map(s => `<tr>
+    <td class="name">${esc(s.name)}</td><td class="ltr">${esc(s.national_id)}</td><td class="num">${esc(s.class ?? "—")}</td>
+    <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
+    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
+    <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
+    <td class="num">${levelPill(pctOf(s))}</td>
+    <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">تعديل</button></td>
+  </tr>`).join("");
+  $("#noRows").hidden = list.length > 0;
+}
+
+["#search", "#classFilter", "#levelFilter"].forEach(s => $(s).addEventListener("input", renderRows));
+$("#rows").addEventListener("click", e => {
+  const id = e.target.closest("[data-edit]")?.dataset.edit;
+  if (id) openEdit(students.find(s => s.national_id === id));
+});
+$("#addBtn").addEventListener("click", () => openEdit(null));
+
+function openEdit(s) {
+  editing = s;
+  $("#editTitle").textContent = s ? "تعديل بيانات الطالبة" : "إضافة طالبة";
+  const f = $("#editForm");
+  for (const el of f.elements) if (el.name) el.value = s?.[el.name] ?? "";
+  $("#editErr").hidden = true;
+  updateAvg();
+  let del = f.querySelector("[data-delete]");
+  if (s && !del) {
+    del = document.createElement("button");
+    del.type = "button"; del.className = "btn ghost"; del.dataset.delete = "1"; del.textContent = "حذف الطالبة";
+    del.style.marginInlineStart = "auto"; del.style.color = "var(--low)"; del.style.borderColor = "var(--low)";
+    f.querySelector(".row").appendChild(del);
+    del.addEventListener("click", deleteCurrent);
+  }
+  if (del) del.hidden = !s;
+  $("#editDlg").showModal();
+}
+
+function updateAvg() {
+  const t1 = parseFloat($("#e_t1").value), t2 = parseFloat($("#e_t2").value);
+  $("#avgNote").textContent = Number.isFinite(t1) && Number.isFinite(t2) ? `المتوسط يُحسب تلقائياً: ${fmt((t1 + t2) / 2)} من 20` : "المتوسط يُحسب تلقائياً من الاختبارين.";
+}
+["#e_t1", "#e_t2"].forEach(s => $(s).addEventListener("input", updateAvg));
+document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
+
+$("#editForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData($("#editForm")));
+  const btn = $("#saveBtn"); btn.disabled = true;
+  try {
+    if (editing) await api("/students/" + encodeURIComponent(editing.national_id), { method: "PUT", body });
+    else await api("/students", { method: "POST", body });
+    $("#editDlg").close();
+    toast(editing ? "تم حفظ التعديل" : "تمت إضافة الطالبة");
+    await loadStudents();
+  } catch (x) {
+    $("#editErr").innerHTML = (x.data?.errors || ["تعذّر الحفظ. حاولي مرة أخرى."]).map(esc).join("<br>");
+    $("#editErr").hidden = false;
+  } finally { btn.disabled = false; }
+});
+
+async function deleteCurrent() {
+  const s = editing;
+  $("#editDlg").close();
+  if (!(await confirmBox("حذف الطالبة", `سيتم حذف ${s.name} (${s.national_id}) ولن تظهر نتيجتها في صفحة الاستعلام.`, "حذف"))) return;
+  await api("/students/" + encodeURIComponent(s.national_id), { method: "DELETE" });
+  toast("تم حذف الطالبة");
+  await loadStudents();
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t ? "true" : "false"));
+  document.querySelectorAll("[data-panel]").forEach(p => (p.hidden = p.dataset.panel !== t.dataset.tab));
+  if (t.dataset.tab === "backups") loadBackups();
+}));
+
+// ---------- Import ----------
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) uploadFile(f); });
+$("#fileIn").addEventListener("change", e => { const f = e.target.files[0]; if (f) uploadFile(f); e.target.value = ""; });
+
+async function uploadFile(file) {
+  const err = $("#importErr"); err.hidden = true;
+  if (!/\.xlsx$/i.test(file.name)) { err.textContent = "الملف لازم يكون بصيغة xlsx."; err.hidden = false; return; }
+  drop.querySelector("b").textContent = "جارٍ قراءة الملف…";
+  const fd = new FormData(); fd.append("file", file);
+  try {
+    const p = await api("/import", { method: "POST", body: fd });
+    renderPreview(p, file.name);
+  } catch (x) {
+    err.textContent = x.message === "no_table" ? "ما لقيت جدول الطالبات في الملف. تأكدي إن فيه عمود \"الهوية\" وعمود \"اسم الطالبة\"."
+      : x.message === "too_large" ? "حجم الملف كبير جداً."
+      : x.message === "unreadable" ? "تعذّر قراءة الملف. تأكدي إنه ملف إكسل سليم."
+      : "تعذّر رفع الملف. حاولي مرة أخرى.";
+    err.hidden = false;
+  } finally { drop.querySelector("b").textContent = "اسحبي ملف الإكسل هنا أو اضغطي للاختيار"; }
+}
+
+function renderPreview(p, name) {
+  const pv = $("#preview");
+  const total = p.added.length + p.changed.length;
+  const val = v => v == null || v === "" ? "فاضي" : esc(v);
+  pv.innerHTML = `
+    <div class="summary">
+      <div class="file">${esc(name)} · ${p.totalRows} صف</div>
+      <span class="pill good">${p.added.length} جديدة</span>
+      <span class="pill warn">${p.changed.length} تغيّرت</span>
+      <span class="pill none">${p.unchanged} بدون تغيير</span>
+      ${p.errors.length ? `<span class="pill low">${p.errors.length} فيها أخطاء</span>` : ""}
+      ${p.missing.length ? `<span class="pill none">${p.missing.length} غير موجودة في الملف</span>` : ""}
+    </div>
+    ${p.changed.length ? `<div class="sec"><h3>الطالبات اللي تغيّرت بياناتهن</h3>${p.changed.map(c => `
+      <div class="change"><b>${esc(c.student.name)}</b>${c.changes.map(x => `<span class="d">${esc(x.label)}: <s>${val(x.from)}</s> ← <ins>${val(x.to)}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
+    ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)} · الفصل ${esc(s.class ?? "—")}</span></div>`).join("")}</div>` : ""}
+    ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>صف ${x.line}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
+    ${p.missing.length ? `<div class="sec"><h3>موجودات في النظام وغير موجودات في الملف (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
+    <div class="actions">
+      ${total ? `<button class="btn" type="button" id="applyBtn">اعتماد ${total} تغيير</button>` : `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`}
+      <button class="btn quiet" type="button" id="cancelImport">${total ? "إلغاء" : "رجوع"}</button>
+    </div>`;
+  $("#importStart").hidden = true; pv.hidden = false;
+  $("#cancelImport").onclick = resetImport;
+  const apply = $("#applyBtn");
+  if (apply) apply.onclick = async () => {
+    apply.disabled = true; apply.textContent = "جارٍ الاعتماد…";
+    try {
+      const r = await api(`/import/${p.token}/apply`, { method: "POST" });
+      toast(`تم تحديث ${r.count} طالبة`);
+      resetImport();
+      await loadStudents();
+    } catch (x) {
+      apply.disabled = false; apply.textContent = `اعتماد ${total} تغيير`;
+      toast(x.message === "expired" ? "انتهت صلاحية المعاينة، ارفعي الملف مرة ثانية" : "تعذّر الاعتماد");
+      if (x.message === "expired") resetImport();
+    }
+  };
+}
+function resetImport() { $("#preview").hidden = true; $("#preview").innerHTML = ""; $("#importStart").hidden = false; }
+
+// ---------- Backups ----------
+async function loadBackups() {
+  const list = await api("/backups");
+  const df = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" });
+  $("#backupRows").innerHTML = list.map(b => `<tr>
+    <td>${df.format(new Date(b.created_at))}</td><td>${esc(b.note || "")}</td><td class="num">${b.count}</td>
+    <td><button class="btn sm quiet" type="button" data-restore="${b.id}">استرجاع</button></td></tr>`).join("");
+  $("#noBackups").hidden = list.length > 0;
+}
+$("#backupRows").addEventListener("click", async e => {
+  const id = e.target.closest("[data-restore]")?.dataset.restore;
+  if (!id) return;
+  if (!(await confirmBox("استرجاع نسخة احتياطية", "بيانات كل الطالبات بترجع كما كانت وقت هذي النسخة. البيانات الحالية تنحفظ قبلها كنسخة احتياطية.", "استرجاع"))) return;
+  const r = await api(`/backups/${id}/restore`, { method: "POST" });
+  toast(`تم الاسترجاع (${r.count} طالبة)`);
+  await Promise.all([loadBackups(), loadStudents()]);
+});
+
+// ---------- Boot ----------
+api("/me").then(showApp).catch(() => showLogin());
+</script>
+</body>
+</html>
