@@ -2,6 +2,7 @@ const path = require("path");
 const express = require("express");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
+const { loadSettings, getSettings } = require("./settings");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -52,6 +53,7 @@ setInterval(() => {
 const num = v => (v === null ? null : Number(v));
 
 app.post("/api/lookup", async (req, res) => {
+  if (!getSettings().lookup_open) return res.status(403).json({ error: "closed" });
   if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
   const id = String(req.body?.id || "").replace(/\D/g, "");
   if (id.length < 9 || id.length > 10) return res.status(400).json({ error: "invalid_id" });
@@ -78,12 +80,23 @@ app.post("/api/lookup", async (req, res) => {
   }
 });
 
+// Public texts and limits the lookup page renders with.
+app.get("/api/site", (req, res) => {
+  const s = getSettings();
+  res.set("Cache-Control", "no-store");
+  res.json({
+    gradeLabel: s.grade_label, termTitle: s.term_title, teacherName: s.teacher_name, principalName: s.principal_name,
+    max: { test: s.max_test, participation: s.max_participation, projects: s.max_projects },
+    open: s.lookup_open, closedMessage: s.closed_message,
+  });
+});
+
 app.get("/healthz", (req, res) => res.send("ok"));
 app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js")));
 app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js")));
 app.use(express.static(path.join(__dirname, "public")));
 
-const adminReady = pool.query(SCHEMA).then(() => mountAdmin(app, pool));
+const adminReady = pool.query(SCHEMA).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
 adminReady

@@ -5,8 +5,8 @@ const path = require("path");
 const express = require("express");
 const multer = require("multer");
 const ExcelJS = require("exceljs");
+const { DEFAULTS, getSettings, saveSettings, maxOf } = require("./settings");
 
-const MAX = { test: 20, participation: 10, projects: 10 };
 const SESSION_HOURS = 8;
 const COOKIE = "admin_session";
 
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
   national_id TEXT,
   details     JSONB
 );
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS undone_at TIMESTAMPTZ;
 CREATE TABLE IF NOT EXISTS classes (
   name        TEXT PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -45,7 +46,7 @@ const FIELDS = [
 ];
 const LABEL = Object.fromEntries(FIELDS);
 const NUMERIC = new Set(["test1", "test2", "test_avg", "participation", "projects", "lateness"]);
-const LIMITS = { test1: MAX.test, test2: MAX.test, test_avg: MAX.test, participation: MAX.participation, projects: MAX.projects, lateness: 365 };
+const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects, lateness: 365 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 
 // Header text in the teacher's sheet (and in our own export) → field.
@@ -78,7 +79,8 @@ function cellText(v) {
 }
 
 // Turns raw input into a clean student record, collecting problems instead of throwing.
-function cleanStudent(raw) {
+function cleanStudent(raw, max = maxOf(getSettings())) {
+  const LIMITS = limitsFor(max);
   const errors = [];
   const s = {};
   s.national_id = String(raw.national_id ?? "").replace(/\D/g, "");
@@ -198,7 +200,92 @@ module.exports = function mountAdmin(app, pool) {
 
   router.use((req, res, next) => (readSession(req) ? next() : res.status(401).json({ error: "unauthorized" })));
 
-  router.get("/me", (req, res) => res.json({ ok: true, max: MAX, styles: STYLES }));
+  router.get("/me", (req, res) => res.json({ ok: true, max: maxOf(getSettings()), styles: STYLES, settings: getSettings() }));
+
+  router.get("/settings", (req, res) => res.json(getSettings()));
+
+  router.put("/settings", async (req, res) => {
+    const b = req.body || {}, errors = [];
+    const next = {};
+    for (const k of ["grade_label", "term_title", "teacher_name", "principal_name", "closed_message"]) {
+      next[k] = norm(b[k] ?? DEFAULTS[k]).slice(0, 200);
+    }
+    if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
+    if (!next.closed_message) next.closed_message = DEFAULTS.closed_message;
+    for (const k of ["max_test", "max_participation", "max_projects"]) {
+      const n = Number(b[k]);
+      if (!Number.isFinite(n) || n <= 0 || n > 1000) errors.push(`الدرجة العظمى غير صحيحة: ${b[k]}`);
+      next[k] = n;
+    }
+    next.lookup_open = b.lookup_open !== false;
+    if (errors.length) return res.status(400).json({ error: "invalid", errors });
+
+    // A lower maximum must not leave saved scores above it.
+    const checks = [["test1", next.max_test], ["test2", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects]];
+    for (const [f, m] of checks) {
+      const { rows } = await pool.query(`SELECT name FROM students WHERE ${f} > $1 ORDER BY name LIMIT 3`, [m]);
+      if (rows.length) errors.push(`${LABEL[f]}: فيه طالبات درجاتهن أعلى من ${m} (${rows.map(r => r.name).join("، ")})`);
+    }
+    if (errors.length) return res.status(409).json({ error: "scores_above_max", errors });
+
+    const before = getSettings();
+    const changes = Object.keys(next).filter(k => before[k] !== next[k]).map(k => ({ field: k, from: before[k], to: next[k] }));
+    await saveSettings(pool, next);
+    if (changes.length) await pool.query("INSERT INTO audit_log (action, details) VALUES ('settings', $1)", [JSON.stringify(changes)]);
+    res.json(getSettings());
+  });
+
+  router.get("/audit", async (req, res) => {
+    const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, s.name AS current_name
+      FROM audit_log a LEFT JOIN students s ON s.national_id = a.national_id ORDER BY a.id DESC LIMIT 300`);
+    res.json(rows);
+  });
+
+  // Undo one student change. Fields edited again since then are left alone and reported back.
+  router.post("/audit/:id/undo", async (req, res) => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query("SELECT * FROM audit_log WHERE id = $1 FOR UPDATE", [req.params.id]);
+      const e = rows[0];
+      if (!e) { await client.query("ROLLBACK"); return res.status(404).json({ error: "not_found" }); }
+      if (e.undone_at) { await client.query("ROLLBACK"); return res.status(409).json({ error: "already_undone", errors: ["تم التراجع عن هذا التعديل من قبل"] }); }
+      const cols = FIELDS.map(f => f[0]);
+      const cur = (await client.query("SELECT * FROM students WHERE national_id = $1", [e.national_id])).rows[0];
+      let skipped = [];
+      if (e.action === "edit") {
+        if (!cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "gone", errors: ["الطالبة محذوفة، ما يمكن التراجع عن تعديلها"] }); }
+        const now = fromRow(cur);
+        const revert = [];
+        for (const c of e.details || []) {
+          if (c.field === "national_id" || c.field === "test_avg") continue;
+          if (same(now[c.field], c.to)) revert.push(c); else skipped.push(LABEL[c.field]);
+        }
+        const next = { ...now };
+        for (const c of revert) next[c.field] = c.from;
+        next.test_avg = next.test1 != null && next.test2 != null ? Math.round(((Number(next.test1) + Number(next.test2)) / 2) * 100) / 100 : next.test_avg;
+        await client.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...cols.map(c => next[c]), e.national_id]);
+      } else if (e.action === "add") {
+        if (cur) await client.query("DELETE FROM students WHERE national_id = $1", [e.national_id]);
+      } else if (e.action === "delete") {
+        if (cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية حالياً"] }); }
+        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, cols.map(c => e.details?.[c] ?? null));
+        if (e.details?.class) await client.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [e.details.class]);
+      } else {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "not_undoable", errors: ["هذا النوع يُسترجع من النسخ الاحتياطية"] });
+      }
+      await client.query("UPDATE audit_log SET undone_at = now() WHERE id = $1", [e.id]);
+      await client.query("INSERT INTO audit_log (action, national_id, details) VALUES ('undo', $1, $2)", [e.national_id, JSON.stringify({ of: e.id, action: e.action, skipped })]);
+      await client.query("COMMIT");
+      res.json({ ok: true, skipped });
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  });
 
   router.get("/students", async (req, res) => {
     const { rows } = await pool.query("SELECT * FROM students ORDER BY class NULLS LAST, name");

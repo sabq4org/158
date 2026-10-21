@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: a navy top bar with the two logos, three tabs (students, Excel upload, backups), and a wide working area. */
+/* Layout: a navy top bar with the two logos, tabs (overview, students, classes, upload, log, backups, settings), and a wide working area. */
 :root {
   --bg: #f1f5f4;
   --surface: #ffffff;
@@ -135,11 +135,44 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 .dlg .row { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; }
 .note { font-size: 13px; color: var(--muted); }
 
+.ov { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ov .card { padding: 16px; }
+.ov h3 { margin: 0 0 12px; font-size: 15px; }
+.gate { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; }
+.gate .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); flex: none; }
+.gate.off .dot { background: var(--low); box-shadow: 0 0 0 4px var(--low-soft); }
+.gate b { flex: 1 1 200px; }
+.bar-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) 64px; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+.bar { height: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar-row .v { text-align: left; font-weight: 600; font-variant-numeric: tabular-nums; direction: ltr; }
+.dist { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--surface-2); margin-bottom: 12px; }
+.dist i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13.5px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.names { display: flex; flex-wrap: wrap; gap: 6px; }
+.names button { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 99px; padding: 2px 12px; font: inherit; font-size: 13.5px; cursor: pointer; }
+.names button:hover { border-color: var(--accent); }
+.names .none { color: var(--muted); font-size: 13.5px; }
+.set { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.set fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 0; }
+.set legend { font-weight: 700; padding: 0 6px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.switch { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+.switch input { width: 20px; height: 20px; accent-color: var(--accent); }
+td.det { white-space: normal; min-width: 220px; font-size: 13.5px; }
+td.det s { color: var(--low); }
+td.det ins { color: var(--good); text-decoration: none; font-weight: 600; }
+.tag-act { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+tr.undone td { opacity: .55; }
+
 .toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 10px 18px; border-radius: 12px; font-weight: 600; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
 
 @media (max-width: 760px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .grid2, .ov, .grid3 { grid-template-columns: minmax(0, 1fr); }
+  .bar-row { grid-template-columns: 96px minmax(0, 1fr) 56px; }
   .brand span { display: none; }
   .logos img { height: 28px; }
   .logos { padding: 5px 8px; gap: 6px; }
@@ -158,7 +191,7 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 <header class="topbar">
   <div class="topbar-in">
     <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
-    <div class="brand"><b>لوحة تحكم المعلمة</b><span>فائزة محمد جبوع · الصف الثاني</span></div>
+    <div class="brand"><b>لوحة تحكم المعلمة</b><span id="whoLine">فائزة محمد جبوع · الصف الثاني</span></div>
     <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
     <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
   </div>
@@ -179,14 +212,27 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
     <div class="stats" id="stats"></div>
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
-      <button class="tab" role="tab" aria-selected="true" data-tab="students" id="tab-students">الطالبات</button>
+      <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview">نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students">الطالبات</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes">الفصول</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import">رفع ملف إكسل</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups">النسخ<span class="hide-sm"> الاحتياطية</span></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings">الإعدادات</button>
     </nav>
 
     <!-- Students -->
-    <div class="card" data-panel="students" style="margin-top:16px">
+    <div data-panel="overview" style="margin-top:16px; display:flex; flex-direction:column; gap:16px">
+      <div class="card gate" id="gate"><span class="dot"></span><b id="gateText"></b><button class="btn sm quiet" type="button" id="gateBtn"></button></div>
+      <div class="ov">
+        <div class="card"><h3>متوسط الصف في كل بند</h3><div id="itemBars"></div></div>
+        <div class="card"><h3>توزيع المستويات</h3><div class="dist" id="dist"></div><div class="legend" id="legend"></div></div>
+        <div class="card"><h3>يحتجن دعم (أقل من 60%)</h3><div class="names" id="supportNames"></div></div>
+        <div class="card"><h3>أنماط التعلم</h3><div class="legend" id="styleLegend" style="margin-bottom:12px"></div><div class="names" id="noStyleNames"></div></div>
+      </div>
+    </div>
+
+    <div class="card" data-panel="students" style="margin-top:16px" hidden>
       <div class="toolbar">
         <input class="in grow" id="search" type="search" placeholder="ابحثي بالاسم أو رقم الهوية">
         <select class="in" id="classFilter" aria-label="الفصل"><option value="">كل الفصول</option></select>
@@ -251,6 +297,18 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
       <div id="preview" hidden></div>
     </div>
 
+    <!-- Audit log -->
+    <div class="card" data-panel="audit" style="margin-top:16px" hidden>
+      <div class="help" style="padding-top:16px">كل تعديل على طالبة يقدر يتراجع عنه. لو الحقل تعدّل مرة ثانية بعده، يبقى على آخر قيمة. رفع الإكسل والاسترجاع يرجعون من "النسخ الاحتياطية".</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الوقت</th><th>العملية</th><th>الطالبة</th><th>التفاصيل</th><th></th></tr></thead>
+          <tbody id="auditRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="noAudit" hidden>لا توجد تعديلات بعد.</div>
+    </div>
+
     <!-- Backups -->
     <div class="card" data-panel="backups" style="margin-top:16px" hidden>
       <div class="help" style="padding-top:16px">تنحفظ نسخة تلقائياً قبل كل رفع ملف وقبل كل استرجاع. الاسترجاع يرجّع بيانات كل الطالبات كما كانت وقت النسخة.</div>
@@ -262,6 +320,35 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
       </div>
       <div class="empty" id="noBackups" hidden>لا توجد نسخ احتياطية بعد. أول نسخة تنحفظ عند أول رفع لملف إكسل.</div>
     </div>
+
+    <!-- Settings -->
+    <form class="card set" data-panel="settings" id="setForm" style="margin-top:16px" hidden novalidate>
+      <fieldset>
+        <legend>صفحة الاستعلام</legend>
+        <label class="switch"><input type="checkbox" name="lookup_open" id="s_open"> صفحة الاستعلام مفتوحة للطالبات</label>
+        <label class="f" style="margin-top:10px">الرسالة اللي تظهر للطالبات وقت القفل<input class="in" name="closed_message" maxlength="200"></label>
+      </fieldset>
+      <fieldset>
+        <legend>البيانات اللي تظهر في البطاقة والـ PDF</legend>
+        <div class="grid2">
+          <label class="f">الصف<input class="in" name="grade_label" maxlength="60" placeholder="الصف الثاني"></label>
+          <label class="f">عنوان الفترة (اختياري)<input class="in" name="term_title" maxlength="80" placeholder="الفصل الدراسي الأول 1447هـ"></label>
+          <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
+          <label class="f">اسم المديرة<input class="in" name="principal_name" maxlength="80"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>الدرجات العظمى</legend>
+        <div class="grid3">
+          <label class="f">كل اختبار<input class="in ltr" name="max_test" inputmode="decimal"></label>
+          <label class="f">المشاركة<input class="in ltr" name="max_participation" inputmode="decimal"></label>
+          <label class="f">المشاريع والمهام<input class="in ltr" name="max_projects" inputmode="decimal"></label>
+        </div>
+        <p class="note" style="margin:8px 0 0">النسبة الكلية تُحسب من متوسط الاختبارين + المشاركة + المشاريع. ما يمكن تنزيل الحد تحت درجة محفوظة.</p>
+      </fieldset>
+      <p class="msg err" id="setErr" hidden></p>
+      <div><button class="btn" type="submit" id="setSave">حفظ الإعدادات</button></div>
+    </form>
   </section>
 </main>
 
@@ -273,10 +360,10 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
       <label class="f full" for="e_name">اسم الطالبة<input class="in" id="e_name" name="name" required></label>
       <label class="f" for="e_id">رقم الهوية<input class="in ltr" id="e_id" name="national_id" inputmode="numeric" maxlength="10" required></label>
       <label class="f" for="e_class">الفصل<select class="in" id="e_class" name="class"><option value="">بدون فصل</option></select></label>
-      <label class="f" for="e_t1">الاختبار الأول (من 20)<input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
-      <label class="f" for="e_t2">الاختبار الثاني (من 20)<input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
-      <label class="f" for="e_part">المشاركة (من 10)<input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
-      <label class="f" for="e_proj">المشاريع والمهام (من 10)<input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
+      <label class="f" for="e_t1">الاختبار الأول (من <span data-max="test">20</span>)<input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
+      <label class="f" for="e_t2">الاختبار الثاني (من <span data-max="test">20</span>)<input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
+      <label class="f" for="e_part">المشاركة (من <span data-max="participation">10</span>)<input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
+      <label class="f" for="e_proj">المشاريع والمهام (من <span data-max="projects">10</span>)<input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
       <label class="f" for="e_late">التأخير (عدد المرات)<input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
       <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
       <label class="f full" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
@@ -324,6 +411,7 @@ const fmt = n => n == null || n === "" ? "—" : (Math.round(Number(n) * 100) / 
 const MAX = { test: 20, participation: 10, projects: 10 };
 
 let students = [];
+let settings = null;
 let classes = [];
 let editing = null;
 
@@ -364,6 +452,7 @@ function showLogin() {
 }
 async function showApp() {
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
+  applySettings(await api("/settings"));
   await loadStudents();
 }
 
@@ -393,7 +482,7 @@ const pctOf = s => {
   return Math.round(((test + (s.participation || 0) + (s.projects || 0)) / (MAX.test + MAX.participation + MAX.projects)) * 100);
 };
 const levelPill = p => p == null ? '<span class="pill none">—</span>'
-  : `<span class="pill ${p >= 80 ? "good" : p >= 65 ? "warn" : "low"}">${p}%</span>`;
+  : `<span class="pill ${p >= 75 ? "good" : p >= 60 ? "warn" : "low"}">${p}%</span>`;
 
 async function loadStudents() {
   [students, classes] = await Promise.all([api("/students"), api("/classes")]);
@@ -402,19 +491,19 @@ async function loadStudents() {
   sel.innerHTML = '<option value="">كل الفصول</option>' + names.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
   sel.value = names.includes(cur) ? cur : "";
   $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + names.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  renderStats(); renderRows(); renderClasses();
+  renderStats(); renderRows(); renderClasses(); renderOverview();
 }
 
 function renderStats() {
   const n = students.length;
   const pcts = students.map(pctOf).filter(p => p != null);
   const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
-  const support = pcts.filter(p => p < 65).length;
+  const support = pcts.filter(p => p < 60).length;
   const noStyle = students.filter(s => !s.learning_style).length;
   $("#stats").innerHTML = [
     ["عدد الطالبات", n, ""],
     ["متوسط الصف", avg, "%"],
-    ["يحتجن دعم (أقل من 65%)", support, ""],
+    ["يحتجن دعم (أقل من 60%)", support, ""],
     ["بدون نمط تعلم", noStyle, ""],
   ].map(([k, v, u]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div></div>`).join("");
 }
@@ -425,7 +514,7 @@ function renderRows() {
   const list = students.filter(s =>
     (!q || s.name.includes(q) || s.national_id.includes(q)) &&
     (!cls || s.class === cls) &&
-    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 65 : !s.learning_style)));
+    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 60 : !s.learning_style)));
   $("#rows").innerHTML = list.map(s => `<tr>
     <td class="name">${esc(s.name)}</td><td class="ltr">${esc(s.national_id)}</td><td class="num">${esc(s.class ?? "—")}</td>
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
@@ -496,6 +585,123 @@ async function deleteCurrent() {
   await loadStudents();
 }
 
+// ---------- Settings ----------
+function applySettings(s) {
+  settings = s;
+  Object.assign(MAX, { test: s.max_test, participation: s.max_participation, projects: s.max_projects });
+  document.querySelectorAll("[data-max]").forEach(el => (el.textContent = MAX[el.dataset.max]));
+  $("#whoLine").textContent = [s.teacher_name, s.grade_label, s.term_title].filter(Boolean).join(" · ");
+  const f = $("#setForm");
+  for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s[el.name]) : (el.value = s[el.name] ?? "");
+  renderGate();
+}
+function renderGate() {
+  const open = settings?.lookup_open;
+  $("#gate").classList.toggle("off", !open);
+  $("#gateText").textContent = open ? "صفحة الاستعلام مفتوحة، والطالبات يقدرن يشوفن نتائجهن." : "صفحة الاستعلام مقفلة، والطالبات يشوفن رسالة القفل.";
+  $("#gateBtn").textContent = open ? "قفل الصفحة" : "فتح الصفحة";
+}
+async function saveSettings(next) {
+  const s = await api("/settings", { method: "PUT", body: next });
+  applySettings(s);
+  renderStats(); renderRows(); renderClasses(); renderOverview();
+  return s;
+}
+$("#gateBtn").addEventListener("click", async () => {
+  const open = !settings.lookup_open;
+  if (!open && !(await confirmBox("قفل صفحة الاستعلام", "الطالبات ما راح يقدرن يشوفن نتائجهن لين تفتحين الصفحة مرة ثانية.", "قفل"))) return;
+  try { await saveSettings({ ...settings, lookup_open: open }); toast(open ? "تم فتح صفحة الاستعلام" : "تم قفل صفحة الاستعلام"); }
+  catch { toast("تعذّر الحفظ"); }
+});
+$("#setForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, next = {};
+  for (const el of f.elements) if (el.name) next[el.name] = el.type === "checkbox" ? el.checked : el.value;
+  const err = $("#setErr"); err.hidden = true;
+  const btn = $("#setSave"); btn.disabled = true;
+  try { await saveSettings(next); toast("تم حفظ الإعدادات"); }
+  catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
+// ---------- Overview ----------
+const LEVELS = [
+  ["ممتاز", p => p >= 90, "var(--good)"],
+  ["جيد جداً", p => p >= 75 && p < 90, "var(--mint)"],
+  ["جيد", p => p >= 60 && p < 75, "var(--warn)"],
+  ["يحتاج دعم", p => p < 60, "var(--low)"],
+];
+function renderOverview() {
+  if (!settings) return;
+  const avgOf = vals => { const v = vals.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const testAvg = avgOf(students.map(s => s.test_avg));
+  const items = [
+    ["الاختبارات", testAvg, MAX.test],
+    ["المشاركة", avgOf(students.map(s => s.participation)), MAX.participation],
+    ["المشاريع والمهام", avgOf(students.map(s => s.projects)), MAX.projects],
+  ];
+  const pcts = students.map(pctOf).filter(p => p != null);
+  $("#itemBars").innerHTML = items.map(([k, v, m]) => {
+    const p = v == null ? 0 : Math.round((v / m) * 100);
+    return `<div class="bar-row"><span>${k}</span><div class="bar"><i style="width:${p}%"></i></div><span class="v">${v == null ? "—" : `${fmt(v)}/${m}`}</span></div>`;
+  }).join("") + `<div class="bar-row"><b>النسبة الكلية</b><div class="bar"><i style="width:${avgOf(pcts) ?? 0}%"></i></div><span class="v">${pcts.length ? Math.round(avgOf(pcts)) + "%" : "—"}</span></div>`;
+  const counts = LEVELS.map(([k, test, c]) => [k, pcts.filter(test).length, c]);
+  const missing = students.length - pcts.length;
+  $("#dist").innerHTML = counts.map(([k, n, c]) => n ? `<i style="width:${(n / students.length) * 100}%;background:${c}" title="${k}: ${n}"></i>` : "").join("");
+  $("#legend").innerHTML = counts.map(([k, n, c]) => `<span style="--c:${c}">${k}: <b>${n}</b></span>`).join("") + (missing ? `<span style="--c:var(--line)">بدون درجات: <b>${missing}</b></span>` : "");
+  const chips = list => list.length ? list.map(s => `<button type="button" data-open="${esc(s.national_id)}">${esc(s.name)}</button>`).join("") : '<span class="none">لا يوجد</span>';
+  $("#supportNames").innerHTML = chips(students.filter(s => (pctOf(s) ?? 100) < 60));
+  const styles = ["بصري", "سمعي", "حركي", "كتابي"].map(k => [k, students.filter(s => s.learning_style === k).length]);
+  $("#styleLegend").innerHTML = styles.map(([k, n], i) => `<span style="--c:${["var(--accent)", "var(--mint)", "var(--warn)", "var(--navy)"][i]}">${k}: <b>${n}</b></span>`).join("");
+  const noStyle = students.filter(s => !s.learning_style);
+  $("#noStyleNames").innerHTML = (noStyle.length ? `<span class="none" style="flex-basis:100%">بدون نمط (${noStyle.length}):</span>` : "") + chips(noStyle).replace('<span class="none">لا يوجد</span>', '<span class="none">كل الطالبات محدد لهن نمط</span>');
+}
+document.querySelector('[data-panel="overview"]').addEventListener("click", e => {
+  const id = e.target.closest("[data-open]")?.dataset.open;
+  if (id) openEdit(students.find(s => s.national_id === id));
+});
+
+// ---------- Audit log ----------
+const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل" };
+const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", email: "الإيميل",
+  grade_label: "الصف", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
+const showVal = v => v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
+function auditDetails(a) {
+  const d = a.details;
+  if (Array.isArray(d)) return d.filter(c => c.field !== "test_avg").map(c => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from)}</s> ← <ins>${showVal(c.to)}</ins>`).join("<br>") || "بدون تغيير";
+  if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة`;
+  if (a.action === "restore") return `نسخة رقم ${d?.backup}`;
+  if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
+  if (a.action === "class_add" || a.action === "class_delete") return `الفصل ${esc(d?.name)}`;
+  if (a.action === "class_rename") return `${esc(d?.from)} ← ${esc(d?.to)} (${d?.students} طالبة)`;
+  if (a.action === "add") return `الفصل ${esc(d?.class ?? "—")}`;
+  if (a.action === "delete") return `كانت في الفصل ${esc(d?.class ?? "—")}`;
+  return "";
+}
+async function loadAudit() {
+  const list = await api("/audit");
+  const df = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" });
+  $("#auditRows").innerHTML = list.map(a => {
+    const who = a.national_id ? (a.current_name || a.details?.name || a.national_id) : "—";
+    const can = ["edit", "add", "delete"].includes(a.action) && !a.undone_at;
+    return `<tr class="${a.undone_at ? "undone" : ""}">
+      <td>${df.format(new Date(a.created_at))}</td><td><span class="tag-act">${ACTIONS[a.action] || esc(a.action)}</span></td>
+      <td class="name">${esc(who)}</td><td class="det">${auditDetails(a)}</td>
+      <td>${can ? `<button class="btn sm quiet" type="button" data-undo="${a.id}">تراجع</button>` : a.undone_at ? '<span class="note">تم التراجع</span>' : ""}</td></tr>`;
+  }).join("");
+  $("#noAudit").hidden = list.length > 0;
+}
+$("#auditRows").addEventListener("click", async e => {
+  const id = e.target.closest("[data-undo]")?.dataset.undo;
+  if (!id) return;
+  if (!(await confirmBox("التراجع عن التعديل", "بترجع البيانات كما كانت قبل هذا التعديل.", "تراجع"))) return;
+  try {
+    const r = await api(`/audit/${id}/undo`, { method: "POST" });
+    toast(r.skipped?.length ? `تم التراجع، وبقي بدون تغيير: ${r.skipped.join("، ")}` : "تم التراجع");
+  } catch (x) { toast((x.data?.errors || ["تعذّر التراجع"])[0]); }
+  await Promise.all([loadAudit(), loadStudents()]);
+});
+
 // ---------- Classes ----------
 let renaming = null;
 function renderClasses() {
@@ -563,6 +769,7 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t ? "true" : "false"));
   document.querySelectorAll("[data-panel]").forEach(p => (p.hidden = p.dataset.panel !== t.dataset.tab));
   if (t.dataset.tab === "backups") loadBackups();
+  if (t.dataset.tab === "audit") loadAudit();
 }));
 
 // ---------- Import ----------
