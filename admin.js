@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   action      TEXT NOT NULL,
   national_id TEXT,
   details     JSONB
+);
+CREATE TABLE IF NOT EXISTS classes (
+  name        TEXT PRIMARY KEY,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );`;
 
 // Field order shared by the API, Excel export and the import diff.
@@ -325,6 +329,56 @@ module.exports = function mountAdmin(app, pool) {
       client.release();
     }
     res.json({ ok: true, count: p.upserts.length });
+  });
+
+  // Classes can exist before any student is put in them; any class a student already has is listed too.
+  const syncClasses = q => q.query("INSERT INTO classes (name) SELECT DISTINCT class FROM students WHERE class IS NOT NULL ON CONFLICT DO NOTHING");
+
+  router.get("/classes", async (req, res) => {
+    await syncClasses(pool);
+    const { rows } = await pool.query(`SELECT c.name, count(s.national_id)::int AS count FROM classes c
+      LEFT JOIN students s ON s.class = c.name GROUP BY c.name ORDER BY c.name`);
+    res.json(rows);
+  });
+
+  router.post("/classes", async (req, res) => {
+    const name = norm(req.body?.name);
+    if (!name || name.length > 40) return res.status(400).json({ error: "invalid", errors: ["اكتبي اسم الفصل"] });
+    const { rowCount } = await pool.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [name]);
+    if (!rowCount) return res.status(409).json({ error: "exists", errors: ["الفصل موجود"] });
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('class_add', $1)", [JSON.stringify({ name })]);
+    res.json({ name, count: 0 });
+  });
+
+  // Renaming onto an existing class merges the two.
+  router.put("/classes/:name", async (req, res) => {
+    const to = norm(req.body?.name), from = req.params.name;
+    if (!to || to.length > 40) return res.status(400).json({ error: "invalid", errors: ["اكتبي اسم الفصل"] });
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await syncClasses(client);
+      const { rowCount } = await client.query("DELETE FROM classes WHERE name = $1", [from]);
+      if (!rowCount) { await client.query("ROLLBACK"); return res.status(404).json({ error: "not_found" }); }
+      await client.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [to]);
+      const moved = await client.query("UPDATE students SET class = $1 WHERE class = $2", [to, from]);
+      await client.query("INSERT INTO audit_log (action, details) VALUES ('class_rename', $1)", [JSON.stringify({ from, to, students: moved.rowCount })]);
+      await client.query("COMMIT");
+      res.json({ ok: true, moved: moved.rowCount });
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  });
+
+  router.delete("/classes/:name", async (req, res) => {
+    const { rows } = await pool.query("SELECT count(*)::int AS n FROM students WHERE class = $1", [req.params.name]);
+    if (rows[0].n) return res.status(409).json({ error: "not_empty", errors: ["انقلي طالبات الفصل أولاً"] });
+    await pool.query("DELETE FROM classes WHERE name = $1", [req.params.name]);
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('class_delete', $1)", [JSON.stringify({ name: req.params.name })]);
+    res.json({ ok: true });
   });
 
   router.get("/backups", async (req, res) => {

@@ -146,6 +146,8 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
   .topbar-in { gap: 8px; }
   .brand b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hide-sm { display: none; }
+  .tabs { gap: 0; }
+  .tab { padding: 10px 9px; font-size: 14px; }
   .topbar .link { padding-inline: 10px; font-size: 13px; white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -178,8 +180,9 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
       <button class="tab" role="tab" aria-selected="true" data-tab="students" id="tab-students">الطالبات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes">الفصول</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import">رفع ملف إكسل</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups">النسخ الاحتياطية</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups">النسخ<span class="hide-sm"> الاحتياطية</span></button>
     </nav>
 
     <!-- Students -->
@@ -207,6 +210,22 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
         </table>
       </div>
       <div class="empty" id="noRows" hidden>لا توجد طالبات مطابقة للبحث.</div>
+    </div>
+
+    <!-- Classes -->
+    <div class="card" data-panel="classes" style="margin-top:16px" hidden>
+      <form class="toolbar" id="classForm">
+        <input class="in grow" id="newClass" maxlength="40" placeholder="اسم الفصل الجديد، مثلاً 3 أو ثاني/4" aria-label="اسم الفصل الجديد">
+        <button class="btn" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة فصل</button>
+      </form>
+      <p class="msg err" id="classErr" hidden style="margin:0 16px 12px"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الفصل</th><th class="num">عدد الطالبات</th><th class="num">متوسط الفصل</th><th></th></tr></thead>
+          <tbody id="classRows"></tbody>
+        </table>
+      </div>
+      <div class="help" style="padding-block:12px 16px">لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. إعادة تسمية فصل باسم فصل موجود تدمجهم. الحذف متاح للفصل الفاضي فقط.</div>
     </div>
 
     <!-- Import -->
@@ -253,7 +272,7 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
     <div class="grid2">
       <label class="f full" for="e_name">اسم الطالبة<input class="in" id="e_name" name="name" required></label>
       <label class="f" for="e_id">رقم الهوية<input class="in ltr" id="e_id" name="national_id" inputmode="numeric" maxlength="10" required></label>
-      <label class="f" for="e_class">الفصل<input class="in" id="e_class" name="class"></label>
+      <label class="f" for="e_class">الفصل<select class="in" id="e_class" name="class"><option value="">بدون فصل</option></select></label>
       <label class="f" for="e_t1">الاختبار الأول (من 20)<input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
       <label class="f" for="e_t2">الاختبار الثاني (من 20)<input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
       <label class="f" for="e_part">المشاركة (من 10)<input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
@@ -283,6 +302,19 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
   </div>
 </dialog>
 
+<!-- Rename class dialog -->
+<dialog id="classDlg">
+  <form class="dlg" id="classDlgForm" method="dialog" novalidate>
+    <h2>إعادة تسمية الفصل</h2>
+    <label class="f" for="c_name">الاسم الجديد<input class="in" id="c_name" maxlength="40" required></label>
+    <p class="msg err" id="classDlgErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit">حفظ</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -292,6 +324,7 @@ const fmt = n => n == null || n === "" ? "—" : (Math.round(Number(n) * 100) / 
 const MAX = { test: 20, participation: 10, projects: 10 };
 
 let students = [];
+let classes = [];
 let editing = null;
 
 async function api(path, opts = {}) {
@@ -363,12 +396,13 @@ const levelPill = p => p == null ? '<span class="pill none">—</span>'
   : `<span class="pill ${p >= 80 ? "good" : p >= 65 ? "warn" : "low"}">${p}%</span>`;
 
 async function loadStudents() {
-  students = await api("/students");
-  const classes = [...new Set(students.map(s => s.class).filter(Boolean))].sort();
+  [students, classes] = await Promise.all([api("/students"), api("/classes")]);
+  const names = classes.map(c => c.name);
   const sel = $("#classFilter"), cur = sel.value;
-  sel.innerHTML = '<option value="">كل الفصول</option>' + classes.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
-  sel.value = classes.includes(cur) ? cur : "";
-  renderStats(); renderRows();
+  sel.innerHTML = '<option value="">كل الفصول</option>' + names.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
+  sel.value = names.includes(cur) ? cur : "";
+  $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + names.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  renderStats(); renderRows(); renderClasses();
 }
 
 function renderStats() {
@@ -415,6 +449,7 @@ function openEdit(s) {
   $("#editTitle").textContent = s ? "تعديل بيانات الطالبة" : "إضافة طالبة";
   const f = $("#editForm");
   for (const el of f.elements) if (el.name) el.value = s?.[el.name] ?? "";
+  if (!s) $("#e_class").value = $("#classFilter").value;
   $("#editErr").hidden = true;
   updateAvg();
   let del = f.querySelector("[data-delete]");
@@ -460,6 +495,68 @@ async function deleteCurrent() {
   toast("تم حذف الطالبة");
   await loadStudents();
 }
+
+// ---------- Classes ----------
+let renaming = null;
+function renderClasses() {
+  $("#classRows").innerHTML = classes.map(c => {
+    const pcts = students.filter(s => s.class === c.name).map(pctOf).filter(p => p != null);
+    const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+    return `<tr>
+    <td><b>الفصل ${esc(c.name)}</b></td><td class="num">${c.count}</td><td class="num">${levelPill(avg)}</td>
+    <td style="white-space:nowrap">
+      <button class="btn sm quiet" type="button" data-show="${esc(c.name)}" ${c.count ? "" : "disabled"}>عرض الطالبات</button>
+      <button class="btn sm quiet" type="button" data-rename="${esc(c.name)}">إعادة تسمية</button>
+      <button class="btn sm quiet" type="button" data-remove="${esc(c.name)}" ${c.count ? 'disabled title="انقلي طالبات الفصل أولاً"' : ""}>حذف</button>
+    </td></tr>`;
+  }).join("") || '<tr><td colspan="4" class="empty">لا توجد فصول بعد.</td></tr>';
+}
+$("#classForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#classErr"); err.hidden = true;
+  const name = $("#newClass").value.trim();
+  if (!name) return;
+  try {
+    await api("/classes", { method: "POST", body: { name } });
+    $("#newClass").value = "";
+    toast(`تمت إضافة الفصل ${name}`);
+    await loadStudents();
+  } catch (x) { err.textContent = (x.data?.errors || ["تعذّرت الإضافة."]).join(" "); err.hidden = false; }
+});
+$("#classRows").addEventListener("click", async e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.show != null) {
+    $("#classFilter").value = b.dataset.show; $("#search").value = ""; $("#levelFilter").value = "";
+    $("#tab-students").click(); renderRows();
+  } else if (b.dataset.rename != null) {
+    renaming = b.dataset.rename;
+    $("#c_name").value = renaming; $("#classDlgErr").hidden = true;
+    $("#classDlg").showModal();
+  } else if (b.dataset.remove != null) {
+    const name = b.dataset.remove;
+    if (!(await confirmBox("حذف الفصل", `سيتم حذف الفصل ${name} من القائمة.`, "حذف"))) return;
+    try { await api("/classes/" + encodeURIComponent(name), { method: "DELETE" }); toast("تم حذف الفصل"); }
+    catch (x) { toast((x.data?.errors || ["تعذّر الحذف"])[0]); }
+    await loadStudents();
+  }
+});
+$("#classDlgForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const to = $("#c_name").value.trim();
+  if (!to || to === renaming) { $("#classDlg").close(); return; }
+  const merge = classes.some(c => c.name === to);
+  if (merge) {
+    $("#classDlg").close();
+    if (!(await confirmBox("دمج الفصلين", `الفصل ${to} موجود. طالبات الفصل ${renaming} بينتقلن له ويصيرون فصل واحد.`, "دمج"))) return;
+  }
+  try {
+    const r = await api("/classes/" + encodeURIComponent(renaming), { method: "PUT", body: { name: to } });
+    $("#classDlg").close();
+    toast(merge ? `تم الدمج ونقل ${r.moved} طالبة` : "تمت إعادة التسمية");
+    await loadStudents();
+  } catch (x) { $("#classDlgErr").textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); $("#classDlgErr").hidden = false; }
+});
 
 // ---------- Tabs ----------
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
