@@ -450,10 +450,11 @@ function showLogin() {
   $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#loginForm").hidden = false;
   setTimeout(() => $("#pw").focus(), 50);
 }
-async function showApp() {
+async function showApp(me) {
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
-  applySettings(await api("/settings"));
-  await loadStudents();
+  const [st] = await Promise.all([me?.settings || api("/settings"), loadStudents()]);
+  applySettings(st);
+  renderStats(); renderRows(); renderClasses(); renderOverview();
 }
 
 $("#loginForm").addEventListener("submit", async e => {

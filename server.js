@@ -1,5 +1,6 @@
 const path = require("path");
 const express = require("express");
+const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
 const { loadSettings, getSettings } = require("./settings");
@@ -13,7 +14,10 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Render's external URLs need SSL; internal ones work either way.
   ssl: /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL) ? false : { rejectUnauthorized: false },
+  // Reuse connections for a while; opening a new TLS connection to the database costs more than the query.
+  idleTimeoutMillis: 120000,
 });
+pool.on("error", err => console.error("Idle database connection dropped", err.message));
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS students (
@@ -32,6 +36,7 @@ CREATE TABLE IF NOT EXISTS students (
 
 const app = express();
 app.set("trust proxy", 1);
+app.use(compression());
 app.use(express.json({ limit: "1kb" }));
 
 // Simple per-IP limit so nobody can walk through ID numbers.
@@ -92,9 +97,12 @@ app.get("/api/site", (req, res) => {
 });
 
 app.get("/healthz", (req, res) => res.send("ok"));
-app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js")));
-app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js")));
-app.use(express.static(path.join(__dirname, "public")));
+// Libraries and logos rarely change: let browsers keep them for a week. Pages always revalidate.
+const WEEK = 7 * 24 * 3600 * 1000;
+app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js"), { maxAge: WEEK }));
+app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js"), { maxAge: WEEK }));
+app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
+app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
 const adminReady = pool.query(SCHEMA).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
