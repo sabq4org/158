@@ -135,6 +135,14 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 .dlg .row { display: flex; gap: 10px; justify-content: flex-start; flex-wrap: wrap; }
 .note { font-size: 13px; color: var(--muted); }
 
+.look { padding: 16px; }
+.look h3 { margin: 0; font-size: 15px; }
+.look-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.look-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; }
+.look-list li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.look-list button { border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; padding: 0; }
+.look-list button:hover { color: var(--accent); }
+.seen { color: var(--good); font-size: 13px; font-weight: 600; }
 .ov { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .ov .card { padding: 16px; }
 .ov h3 { margin: 0 0 12px; font-size: 15px; }
@@ -171,7 +179,7 @@ tr.undone td { opacity: .55; }
 
 @media (max-width: 760px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid2, .ov, .grid3 { grid-template-columns: minmax(0, 1fr); }
+  .grid2, .ov, .grid3, .look-list { grid-template-columns: minmax(0, 1fr); }
   .bar-row { grid-template-columns: 96px minmax(0, 1fr) 56px; }
   .brand span { display: none; }
   .logos img { height: 28px; }
@@ -224,6 +232,12 @@ tr.undone td { opacity: .55; }
     <!-- Students -->
     <div data-panel="overview" style="margin-top:16px; display:flex; flex-direction:column; gap:16px">
       <div class="card gate" id="gate"><span class="dot"></span><b id="gateText"></b><button class="btn sm quiet" type="button" id="gateBtn"></button></div>
+      <div class="card look">
+        <div class="look-head"><h3>الاستعلامات</h3><span class="note" id="lookTotals"></span></div>
+        <p id="lookCount" style="margin:0 0 8px"></p>
+        <div class="bar" style="height:12px"><i id="lookBar" style="width:0"></i></div>
+        <ul class="look-list" id="lookRecent"></ul>
+      </div>
       <div class="ov">
         <div class="card"><h3>متوسط الصف في كل بند</h3><div id="itemBars"></div></div>
         <div class="card"><h3>توزيع المستويات</h3><div class="dist" id="dist"></div><div class="legend" id="legend"></div></div>
@@ -240,6 +254,8 @@ tr.undone td { opacity: .55; }
           <option value="">كل المستويات</option>
           <option value="support">يحتجن دعم</option>
           <option value="nostyle">بدون نمط تعلم</option>
+          <option value="looked">استعلمت</option>
+          <option value="notlooked">لم تستعلم بعد</option>
         </select>
         <button class="btn" type="button" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة طالبة</button>
         <a class="btn quiet" href="/api/admin/export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</a>
@@ -250,7 +266,7 @@ tr.undone td { opacity: .55; }
             <th>اسم الطالبة</th><th>رقم الهوية</th><th class="num">الفصل</th>
             <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
             <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">التأخير</th>
-            <th>نمط التعلم</th><th class="num">النسبة</th><th></th>
+            <th>نمط التعلم</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
           </tr></thead>
           <tbody id="rows"></tbody>
         </table>
@@ -455,6 +471,7 @@ async function showApp(me) {
   const [st] = await Promise.all([me?.settings || api("/settings"), loadStudents()]);
   applySettings(st);
   renderStats(); renderRows(); renderClasses(); renderOverview();
+  loadLookups(false).catch(() => {});
 }
 
 $("#loginForm").addEventListener("submit", async e => {
@@ -515,13 +532,14 @@ function renderRows() {
   const list = students.filter(s =>
     (!q || s.name.includes(q) || s.national_id.includes(q)) &&
     (!cls || s.class === cls) &&
-    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 60 : !s.learning_style)));
+    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 60 : lvl === "looked" ? s.last_lookup : lvl === "notlooked" ? !s.last_lookup : !s.learning_style)));
   $("#rows").innerHTML = list.map(s => `<tr>
     <td class="name">${esc(s.name)}</td><td class="ltr">${esc(s.national_id)}</td><td class="num">${esc(s.class ?? "—")}</td>
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
     <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
     <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
+    <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
     <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">تعديل</button></td>
   </tr>`).join("");
   $("#noRows").hidden = list.length > 0;
@@ -624,6 +642,41 @@ $("#setForm").addEventListener("submit", async e => {
   catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
   finally { btn.disabled = false; }
 });
+
+// ---------- Lookups ----------
+const fullTime = t => new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(new Date(t));
+function ago(t) {
+  const m = Math.round((Date.now() - new Date(t)) / 60000);
+  if (m < 1) return "الآن";
+  if (m < 60) return m === 1 ? "قبل دقيقة" : m === 2 ? "قبل دقيقتين" : m <= 10 ? `قبل ${m} دقائق` : `قبل ${m} دقيقة`;
+  const h = Math.round(m / 60);
+  if (h < 24) return h === 1 ? "قبل ساعة" : h === 2 ? "قبل ساعتين" : h <= 10 ? `قبل ${h} ساعات` : `قبل ${h} ساعة`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "أمس" : d === 2 ? "قبل يومين" : d <= 10 ? `قبل ${d} أيام` : `قبل ${d} يوم`;
+}
+let lastSeenId = null;
+async function loadLookups(announce) {
+  const data = await api("/lookups");
+  const viewed = students.filter(s => s.last_lookup).length;
+  const n = students.length || 1;
+  $("#lookCount").innerHTML = `<b>${viewed}</b> من ${students.length} طالبة استعلمن عن نتائجهن`;
+  $("#lookBar").style.width = `${Math.round((viewed / n) * 100)}%`;
+  $("#lookTotals").textContent = `${data.totals.view || 0} استعلام · ${data.totals.pdf || 0} تحميل PDF`;
+  $("#lookRecent").innerHTML = data.recent.slice(0, 12).map(l => `<li><button type="button" data-open="${esc(l.national_id)}">${esc(l.name || l.national_id)}</button>
+    <span class="tag-act">${l.kind === "pdf" ? "حمّلت PDF" : "استعلمت"}</span><span class="note">${esc(l.device || "")} · <time title="${esc(fullTime(l.created_at))}">${esc(ago(l.created_at))}</time></span></li>`).join("")
+    || '<li class="note">ما فيه استعلامات بعد.</li>';
+  const newest = data.recent[0]?.id ?? 0;
+  if (announce && lastSeenId != null && newest > lastSeenId) {
+    const fresh = data.recent.filter(l => l.id > lastSeenId && l.kind === "view");
+    if (fresh.length) toast(fresh.length === 1 ? `${fresh[0].name || "طالبة"} استعلمت عن نتيجتها الآن` : `${fresh.length} استعلامات جديدة`);
+  }
+  lastSeenId = newest;
+}
+// Refresh every minute while the panel is open, so new lookups show without reloading.
+setInterval(async () => {
+  if ($("#app").hidden || document.hidden) return;
+  try { students = await api("/students"); renderStats(); renderRows(); renderOverview(); await loadLookups(true); } catch {}
+}, 60000);
 
 // ---------- Overview ----------
 const LEVELS = [

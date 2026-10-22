@@ -32,7 +32,15 @@ CREATE TABLE IF NOT EXISTS students (
   lateness        NUMERIC,
   learning_style  TEXT,
   email           TEXT
-);`;
+);
+CREATE TABLE IF NOT EXISTS lookups (
+  id          SERIAL PRIMARY KEY,
+  national_id TEXT NOT NULL,
+  kind        TEXT NOT NULL,
+  device      TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS lookups_national_id ON lookups (national_id, created_at DESC);`;
 
 const app = express();
 app.set("trust proxy", 1);
@@ -57,6 +65,12 @@ setInterval(() => {
 
 const num = v => (v === null ? null : Number(v));
 
+// The teacher sees who looked up their result and when; a failed log must never block the student.
+const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
+const logLookup = (id, kind, req) =>
+  pool.query("INSERT INTO lookups (national_id, kind, device) VALUES ($1, $2, $3)", [id, kind, deviceOf(req)])
+    .catch(err => console.error("lookup log failed", err.message));
+
 app.post("/api/lookup", async (req, res) => {
   if (!getSettings().lookup_open) return res.status(403).json({ error: "closed" });
   if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
@@ -66,6 +80,7 @@ app.post("/api/lookup", async (req, res) => {
     const { rows } = await pool.query("SELECT * FROM students WHERE national_id = $1", [id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
     const s = rows[0];
+    logLookup(s.national_id, "view", req);
     res.json({
       id: s.national_id,
       name: s.name,
@@ -94,6 +109,14 @@ app.get("/api/site", (req, res) => {
     max: { test: s.max_test, participation: s.max_participation, projects: s.max_projects },
     open: s.lookup_open, closedMessage: s.closed_message,
   });
+});
+
+app.post("/api/lookup/pdf", async (req, res) => {
+  if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
+  const id = String(req.body?.id || "").replace(/\D/g, "");
+  const { rowCount } = await pool.query("SELECT 1 FROM students WHERE national_id = $1", [id]).catch(() => ({ rowCount: 0 }));
+  if (rowCount) logLookup(id, "pdf", req);
+  res.json({ ok: true });
 });
 
 app.get("/healthz", (req, res) => res.send("ok"));

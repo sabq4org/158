@@ -288,8 +288,17 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   router.get("/students", async (req, res) => {
-    const { rows } = await pool.query("SELECT * FROM students ORDER BY class NULLS LAST, name");
-    res.json(rows.map(fromRow));
+    const { rows } = await pool.query(`SELECT s.*, l.last_lookup, l.lookup_count FROM students s
+      LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups GROUP BY national_id) l
+      ON l.national_id = s.national_id ORDER BY s.class NULLS LAST, s.name`);
+    res.json(rows.map(r => ({ ...fromRow(r), last_lookup: r.last_lookup, lookup_count: r.lookup_count || 0 })));
+  });
+
+  router.get("/lookups", async (req, res) => {
+    const { rows } = await pool.query(`SELECT l.id, l.national_id, l.kind, l.device, l.created_at, s.name, s.class
+      FROM lookups l LEFT JOIN students s ON s.national_id = l.national_id ORDER BY l.id DESC LIMIT 100`);
+    const totals = (await pool.query("SELECT kind, count(*)::int AS n FROM lookups GROUP BY kind")).rows;
+    res.json({ recent: rows, totals: Object.fromEntries(totals.map(t => [t.kind, t.n])) });
   });
 
   router.post("/students", async (req, res) => {

@@ -507,6 +507,7 @@ function drawRing(canvas, pct) {
 
 async function downloadPdf(btn) {
   if (!currentStudent) return;
+  fetch("/api/lookup/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentStudent.id }) }).catch(() => {});
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = "جارٍ تجهيز الملف…";
   const host = document.createElement("div");
