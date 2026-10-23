@@ -26,6 +26,7 @@
   --warn: #b86a00;
   --low: #b43c3c;
   --pattern: rgba(13, 110, 106, 0.07);
+  --viewer: #4d5d60;
   --shadow: 0 1px 2px rgba(20, 42, 46, 0.06), 0 12px 32px -12px rgba(20, 42, 46, 0.18);
   --font-display: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
   --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
@@ -34,14 +35,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
     --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
-    --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06);
+    --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
   --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
-  --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06);
+  --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
 }
 
@@ -268,6 +269,32 @@ h1 {
 .closed p { margin: 10px 0 0; font-size: 17px; font-weight: 600; }
 .btn-pdf { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 22px; font-size: 15px; }
 .btn-pdf svg { width: 18px; height: 18px; }
+.btn-soft { background: var(--accent-soft); color: var(--accent); }
+
+/* The result card on screen exactly as it prints: the A4 page fitted to the width, over a dark backdrop. */
+.viewer {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0; overflow: hidden; background: var(--viewer); color: var(--ink);
+}
+.viewer[open] { display: flex; flex-direction: column; }
+.viewer::backdrop { background: var(--viewer); }
+.viewer-bar {
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.viewer-bar b { font-size: 16px; }
+.viewer-actions { display: flex; gap: 8px; }
+.viewer-bar .btn { flex: none; padding: 7px 14px; font-size: 14px; }
+.viewer-close { padding: 6px 14px; font-size: 14px; }
+.viewer-body { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 16px 12px max(16px, env(safe-area-inset-bottom, 0px)); }
+.sheet-page {
+  position: relative; overflow: hidden; margin: 0 auto; background: #fff;
+  width: calc(210mm * var(--s, 1)); height: calc(297mm * var(--s, 1));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25), 0 16px 40px -12px rgba(0, 0, 0, .45);
+}
+.sheet-page .rpt { position: absolute; top: 0; left: 0; width: 210mm; transform: scale(var(--s, 1)); transform-origin: 0 0; }
+html.viewing { overflow: hidden; }
 
 /* Class comparison, progress across terms, study tips */
 .block, .study { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
@@ -348,6 +375,17 @@ h1 {
     المعلمة: فائزة محمد جبوع · المديرة: د. حنان المطيري
   </footer>
 </div>
+
+<dialog class="viewer" id="viewer" aria-labelledby="viewerTitle">
+  <div class="viewer-bar">
+    <b id="viewerTitle">بطاقة النتيجة</b>
+    <div class="viewer-actions">
+      <button class="btn btn-pdf" type="button" id="viewerPdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تحميل PDF</button>
+      <button class="ghost viewer-close" type="button" id="viewerClose" autofocus>إغلاق</button>
+    </div>
+  </div>
+  <div class="viewer-body" id="viewerBody"><div class="sheet-page" id="sheetPage"></div></div>
+</dialog>
 
 <script src="/report.js"></script>
 <script>
@@ -458,11 +496,33 @@ async function downloadPdf(btn) {
     Report.save(blob, `نتيجة - ${currentStudent.name}.pdf`);
   } catch (err) {
     console.error(err);
+    if (viewer.open) viewer.close();
     showError("تعذّر تجهيز ملف PDF. تأكدي من اتصال الإنترنت وحاولي مرة أخرى.");
   } finally {
     btn.disabled = false; btn.innerHTML = label;
   }
 }
+
+// ===== مشاهدة البطاقة كما تُطبع، بدون تحميل =====
+const viewer = $("#viewer");
+// The A4 page shrinks to fit the screen's width, and never grows past its real size.
+function fitSheet() {
+  const page = $("#sheetPage"), sheet = page.querySelector(".rp-sheet");
+  if (sheet) page.style.setProperty("--s", Math.min(1, ($("#viewerBody").clientWidth - 24) / sheet.offsetWidth));
+}
+async function openViewer() {
+  if (!currentStudent) return;
+  await document.fonts.ready;
+  Report.show($("#sheetPage"), [Report.cardSheet(currentStudent, { max: MAX, site: SITE })]);
+  document.documentElement.classList.add("viewing");
+  viewer.showModal();
+  fitSheet();
+  $("#viewerBody").scrollTop = 0;
+}
+viewer.addEventListener("close", () => { document.documentElement.classList.remove("viewing"); $("#sheetPage").innerHTML = ""; });
+$("#viewerClose").addEventListener("click", () => viewer.close());
+$("#viewerPdf").addEventListener("click", e => downloadPdf(e.currentTarget));
+addEventListener("resize", () => { if (viewer.open) fitSheet(); });
 
 function render(r) {
   currentStudent = r;
@@ -516,7 +576,7 @@ function render(r) {
       <div class="sign"><span class="r-label">المديرة</span><b>${esc(SITE.principalName)}</b></div>
     </div>
   </article>
-  <div class="actions" style="margin-top:16px"><button class="btn btn-pdf" type="button" id="pdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تحميل PDF</button><button class="ghost" type="button" id="again">استعلام عن طالبة أخرى</button></div>`;
+  <div class="actions" style="margin-top:16px"><button class="btn btn-pdf btn-soft" type="button" id="viewBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>مشاهدة</button><button class="btn btn-pdf" type="button" id="pdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تحميل PDF</button><button class="ghost" type="button" id="again">استعلام عن طالبة أخرى</button></div>`;
 
   $("#result").hidden = false;
   if (sc.has) requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -530,6 +590,7 @@ function render(r) {
     navigator.clipboard?.writeText(email).then(() => { b.textContent = "تم النسخ"; setTimeout(() => b.textContent = "نسخ", 1600); })
       .catch(() => { const range = document.createRange(); range.selectNodeContents($("#emailText")); const s = getSelection(); s.removeAllRanges(); s.addRange(range); });
   });
+  $("#viewBtn").addEventListener("click", openViewer);
   $("#pdfBtn").addEventListener("click", e => downloadPdf(e.currentTarget));
   $("#again").addEventListener("click", () => {
     $("#result").hidden = true; $("#result").innerHTML = "";

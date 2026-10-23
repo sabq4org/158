@@ -310,6 +310,12 @@ const Report = (() => {
     });
   }
 
+  // Puts sheets into `host` exactly as they print, score ring included: off-screen for a PDF, or on screen to look at.
+  function show(host, sheets) {
+    host.innerHTML = `<div class="rpt">${sheets.join("")}</div>`;
+    host.querySelectorAll("canvas.rp-score").forEach(c => drawRing(c, Number(c.dataset.pct)));
+  }
+
   // Renders each sheet off-screen and stacks them into one A4 PDF. Big batches use a lighter image setting.
   async function toPdf(sheets, { onProgress } = {}) {
     await Promise.all([loadScript("/vendor/html2canvas.min.js"), loadScript("/vendor/jspdf.umd.min.js")]);
@@ -322,8 +328,7 @@ const Report = (() => {
     try {
       for (let i = 0; i < sheets.length; i++) {
         onProgress?.(i + 1, sheets.length);
-        host.innerHTML = `<div class="rpt">${sheets[i]}</div>`;
-        host.querySelectorAll("canvas.rp-score").forEach(c => drawRing(c, Number(c.dataset.pct)));
+        show(host, [sheets[i]]);
         await Promise.all([...host.querySelectorAll("img")].map(img => (img.complete ? 0 : new Promise(ok => { img.onload = img.onerror = ok; }))));
         const canvas = await html2canvas(host.querySelector(".rp-sheet"), { scale: many ? 2 : 2.5, backgroundColor: "#ffffff", useCORS: true, logging: false });
         if (i) pdf.addPage();
@@ -344,7 +349,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;
