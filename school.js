@@ -149,17 +149,20 @@ async function saveYear(pool, hijri, y) {
 
 // ---------- Classes (names are built by className in public/report.js) ----------
 const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
-const GRADE_WORDS = { "أول": 1, "اول": 1, "ثاني": 2, "ثالث": 3 };
+// Spelling varies from sheet to sheet (أ/ا، ى/ي، ة/ه), and a grade may be written in the feminine ("أولى").
+const plain = s => s.replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه");
+const GRADE_WORDS = { "اول": 1, "اولي": 1, "ثاني": 2, "ثانيه": 2, "ثالث": 3, "ثالثه": 3 };
 
 // Before a student could be marked, those with learning difficulties were listed as a group of their own,
 // as in "صعوبات التعلم ( 2 - 1 )". Such a name still points at their class, and marks them.
 const LD_GROUP = /صعوبات\s*(?:ال)?تعلم/;
 const isLdGroup = name => LD_GROUP.test(name || "");
 
-// Short forms people write in a sheet: "ثاني ثانوي / 1"، "الأول ثانوي - 2"، "2/1". A bare "1" stays as written.
+// Short forms people write in a sheet: "ثاني ثانوي / 1"، "الأول ثانوي - 2"، "أولى - 2"، "الصف الثالث 1"، "2/1".
+// A bare "1" stays as written.
 function parseClass(text) {
-  const t = toLatin(text).replace(LD_GROUP, " ").replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
-  let m = t.match(/^(?:ال)?(أول|اول|ثاني|ثالث)(?: (?:ال)?ثانوي(?:ة)?)? ?[/\-–]? ?(\d{1,2})$/);
+  const t = plain(toLatin(text).replace(LD_GROUP, " ")).replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
+  let m = t.match(/^(?:الصف )?(?:ال)?(اولي|اول|ثانيه|ثاني|ثالثه|ثالث)(?: (?:ال)?ثانوي(?:ه)?)? ?[/\-–]? ?(\d{1,2})$/);
   if (m) return { grade: GRADE_WORDS[m[1]], section: Number(m[2]) };
   m = t.match(/^([1-3]) ?[/\-–] ?(\d{1,2})$/);
   if (m) return { grade: Number(m[1]), section: Number(m[2]) };

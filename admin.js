@@ -66,19 +66,22 @@ const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 
 // Header text in the teacher's sheet (and in our own export) → field.
 const HEADER_MAP = {
-  "الهوية": "national_id", "رقم الهوية": "national_id",
-  "اسم الطالبة": "name", "الاسم": "name",
+  "الهوية": "national_id", "رقم الهوية": "national_id", "رقم الهوية الوطنية": "national_id", "الهوية الوطنية": "national_id",
+  "السجل المدني": "national_id", "رقم السجل المدني": "national_id", "رقم الهوية / الإقامة": "national_id", "رقم الهوية/الإقامة": "national_id",
+  "اسم الطالبة": "name", "الاسم": "name", "اسم الطالب": "name",
   "الصف": "class", "الفصل": "class",
   "درجة خ 1": "test1", "الاختبار الأول": "test1",
   "درجة خ 2": "test2", "الاختبار الثاني": "test2",
   "المتوسط": "test_avg", "معدل الاختبار": "test_avg",
   "المشاركة": "participation",
-  "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects",
+  "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects", "المشاريع": "projects", "المهام والمشاريع": "projects",
   "التأخر": "lateness", "التأخير": "lateness",
   "نمط التعلم": "learning_style",
   "صعوبات التعلم": "learning_difficulty", "صعوبات تعلم": "learning_difficulty",
-  "الايميل الوزاري": "email", "الإيميل الوزاري": "email",
+  "الايميل الوزاري": "email", "الإيميل الوزاري": "email", "الإيميل": "email", "الايميل": "email", "البريد الإلكتروني": "email",
 };
+// Columns the panel's own tables show and the system works out by itself; a sheet may carry them, unread.
+const COMPUTED_HEADERS = new Set(["النسبة", "المجموع", "المستوى", "م", "#", "الاستعلام"]);
 
 const norm = s => String(s ?? "").replace(/\s+/g, " ").trim();
 
@@ -105,13 +108,17 @@ function cellText(v) {
   return String(v);
 }
 
+// The preview counts the rows with this problem, to say why they can't be saved.
+const ID_EMPTY = "رقم الهوية فاضي";
+
 // Turns raw input into a clean student record, collecting problems instead of throwing.
 function cleanStudent(raw, max = maxOf(getSettings())) {
   const LIMITS = limitsFor(max);
   const errors = [];
   const s = {};
   s.national_id = String(raw.national_id ?? "").replace(/\D/g, "");
-  if (s.national_id.length < 9 || s.national_id.length > 10) errors.push("رقم الهوية يجب أن يكون 10 أرقام");
+  if (!s.national_id) errors.push(ID_EMPTY);
+  else if (s.national_id.length < 9 || s.national_id.length > 10) errors.push("رقم الهوية لازم يكون 10 أرقام");
   s.name = norm(raw.name);
   if (!s.name) errors.push("الاسم مطلوب");
   s.class = norm(raw.class) || null;
@@ -146,17 +153,22 @@ function fromRow(r) {
   return o;
 }
 
+// The first sheet with a students table: its rows, and the headers it has that the system does not read.
 async function readStudentsFromExcel(file) {
   const reader = new ExcelJS.stream.xlsx.WorkbookReader(file, { sharedStrings: "cache", styles: "ignore", hyperlinks: "ignore", worksheets: "emit" });
   for await (const sheet of reader) {
-    let cols = null, emptyRun = 0;
+    let cols = null, ignored = [], emptyRun = 0;
     const rows = [];
     for await (const row of sheet) {
       const values = row.values || [];
       if (!cols) {
         const found = {};
         values.forEach((v, i) => { const f = HEADER_MAP[norm(cellText(v))]; if (f && !(f in found)) found[f] = i; });
-        if ("national_id" in found && "name" in found && Object.keys(found).length >= 4) cols = found;
+        if ("national_id" in found && "name" in found && Object.keys(found).length >= 4) {
+          cols = found;
+          const used = new Set(Object.values(found));
+          ignored = values.map((v, i) => [i, norm(cellText(v))]).filter(([i, t]) => t && !used.has(i) && !COMPUTED_HEADERS.has(t)).map(([, t]) => t);
+        }
         if (row.number > 500 && !cols) break;
         continue;
       }
@@ -170,7 +182,7 @@ async function readStudentsFromExcel(file) {
       emptyRun = 0;
       rows.push({ line: row.number, raw });
     }
-    if (cols) return rows;
+    if (cols) return { rows, ignored };
   }
   return null;
 }
@@ -611,11 +623,12 @@ module.exports = function mountAdmin(app, pool) {
     const known = (await pool.query("SELECT name, aliases FROM classes")).rows;
     const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
     const seen = new Set();
-    const added = [], changed = [], errors = [], unchanged = [], elsewhere = {};
-    for (const { line, raw } of parsed) {
+    const added = [], changed = [], errors = [], unchanged = [], elsewhere = {}, named = new Set();
+    for (const { line, raw } of parsed.rows) {
       const { student, errors: errs } = cleanStudent(raw);
       if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
       const fileClass = resolveClass(student.class, known);
+      if (fileClass) named.add(fileClass);
       student.class = target || fileClass;
       if (seen.has(student.national_id)) errs.push("رقم الهوية مكرر في الملف");
       if (errs.length) { errors.push({ line, name: student.name || norm(raw.name), id: student.national_id, problems: errs }); continue; }
@@ -629,15 +642,17 @@ module.exports = function mountAdmin(app, pool) {
       const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
       if (changes.length) changed.push({ student, changes }); else unchanged.push(student.national_id);
     }
-    // With a class picked, only its own students can be missing from the file.
-    const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (!target || s.class === target))
+    // With a class picked, only its own students can be missing from the file; without one, only those of the classes
+    // the file names (all of them, if it names none).
+    const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (target ? s.class === target : !named.size || named.has(s.class)))
       .map(s => ({ national_id: s.national_id, name: s.name }));
 
     const token = crypto.randomBytes(16).toString("hex");
     previews.set(token, { at: Date.now(), name: req.file.originalname, target, upserts: [...added, ...changed.map(c => c.student)] });
     for (const [k, v] of previews) if (Date.now() - v.at > 30 * 60 * 1000) previews.delete(k);
-    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.length, added, changed, unchanged: unchanged.length, errors, missing,
-      target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })) });
+    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.rows.length, added, changed, unchanged: unchanged.length, errors, missing,
+      target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })),
+      ignored: parsed.ignored, missingIds: errors.filter(e => e.problems.includes(ID_EMPTY)).length });
   });
 
   router.post("/import/:token/apply", async (req, res) => {

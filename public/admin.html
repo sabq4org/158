@@ -1491,15 +1491,23 @@ function renderPreview(p, name, ui) {
   const total = p.added.length + p.changed.length;
   const val = (v, f) => f === "learning_difficulty" ? (v ? "نعم" : "لا") : v == null || v === "" ? "فاضي" : esc(f === "class" ? classLabel(v) : v);
   const to = p.target ? classLabel(p.target) : "";
+  // A student is known by her ID, and it's what she types to look up her result, so a row without one can't be saved.
+  const noIds = !p.missingIds ? "" : `${p.missingIds === p.totalRows ? "عمود «رقم الهوية» فاضي في كل صفوف الملف" : "بعض الصفوف رقم الهوية فيها فاضي"}، وبدونه ما تنحفظ الطالبة:
+    النظام يعرف كل طالبة برقم هويتها، وهو نفسه اللي تكتبه لما تستعلم عن نتيجتها. عبّي أرقام الهوية في الملف (من نظام نور مثلاً) وارفعيه مرة ثانية.${total ? " والصفوف السليمة تقدرين تعتمدينها الحين." : ""}`;
+  const outcome = total ? `<button class="btn" type="button" data-apply>اعتماد ${total} تغيير</button>`
+    : !p.errors.length ? `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`
+    : p.unchanged ? `<p class="msg warn" style="margin:0">الصفوف السليمة مطابقة للنظام، ما فيها شي يتغيّر. صلّحي الأخطاء اللي فوق في الملف وارفعيه مرة ثانية.</p>`
+    : `<p class="msg err" style="margin:0">ما فيه ولا صف ينحفظ من هذا الملف. صلّحي الأخطاء اللي فوق في الملف وارفعيه مرة ثانية.</p>`;
   pv.innerHTML = `
     <div class="summary">
-      <div class="file">${esc(name)} · ${p.totalRows} صف${to ? ` · إلى ${esc(to)}` : ""}</div>
+      <div class="file"><bdi>${esc(name)}</bdi> · ${p.totalRows} صف${to ? ` · إلى ${esc(to)}` : ""}</div>
       <span class="pill good">${p.added.length} جديدة</span>
       <span class="pill warn">${p.changed.length} تغيّرت</span>
       <span class="pill none">${p.unchanged} بدون تغيير</span>
       ${p.errors.length ? `<span class="pill low">${p.errors.length} فيها أخطاء</span>` : ""}
       ${p.missing.length ? `<span class="pill none">${p.missing.length} غير موجودة في الملف</span>` : ""}
     </div>
+    ${noIds ? `<div class="sec"><p class="msg err">${noIds}</p></div>` : ""}
     ${p.elsewhere?.length ? `<div class="sec"><p class="msg warn">الملف مكتوب فيه فصل ثاني لبعض الطالبات (${p.elsewhere.map(e => `${esc(classLabel(e.name))}: ${girls(e.count)}`).join("، ")}).
       بيدخلن كلهن ${esc(to)}. إذا الملف مو لهذا الفصل اضغطي "إلغاء".</p></div>` : ""}
     ${p.changed.length ? `<div class="sec"><h3>الطالبات اللي تغيّرت بياناتهن</h3>${p.changed.map(c => `
@@ -1507,8 +1515,10 @@ function renderPreview(p, name, ui) {
     ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)}${to ? "" : ` · ${s.class ? esc(classLabel(s.class)) : "بدون فصل"}`}</span></div>`).join("")}</div>` : ""}
     ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>صف ${x.line}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
     ${p.missing.length ? `<div class="sec"><h3>${to ? `طالبات ${esc(to)} اللي مو موجودات في الملف` : "موجودات في النظام وغير موجودات في الملف"} (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
+    ${p.ignored?.length ? `<div class="sec"><div class="note">أعمدة في الملف ما يقرأها النظام: ${p.ignored.map(h => `«${esc(h)}»`).join("، ")}.
+      إذا فيها بيانات تبينها، سمّي العمود مثل عنوانه في ملف التصدير من اللوحة.</div></div>` : ""}
     <div class="actions">
-      ${total ? `<button class="btn" type="button" data-apply>اعتماد ${total} تغيير</button>` : `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`}
+      ${outcome}
       <button class="btn quiet" type="button" data-cancel>${total ? "إلغاء" : "رجوع"}</button>
     </div>`;
   ui.start.hidden = true; pv.hidden = false;
