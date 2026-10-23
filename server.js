@@ -3,8 +3,9 @@ const express = require("express");
 const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
-const { loadSettings, getSettings } = require("./settings");
+const { loadSettings, getSettings, termTitleOf } = require("./settings");
 const grades = require("./grades");
+const school = require("./school");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -106,11 +107,12 @@ app.post("/api/lookup", async (req, res) => {
 });
 
 // Public texts and limits the lookup page renders with.
-app.get("/api/site", (req, res) => {
+app.get("/api/site", async (req, res) => {
   const s = getSettings();
+  const cal = await school.now(pool).catch(() => null);
   res.set("Cache-Control", "no-store");
   res.json({
-    gradeLabel: s.grade_label, termTitle: s.term_title, teacherName: s.teacher_name, principalName: s.principal_name,
+    gradeLabel: s.grade_label, termTitle: termTitleOf(s, cal), teacherName: s.teacher_name, principalName: s.principal_name,
     max: { test: s.max_test, participation: s.max_participation, projects: s.max_projects },
     open: s.lookup_open, closedMessage: s.closed_message,
   });
@@ -132,7 +134,7 @@ app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
-const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
+const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
 adminReady

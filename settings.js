@@ -37,5 +37,7 @@ async function saveSettings(pool, next) {
 
 const getSettings = () => current;
 const maxOf = s => ({ test: s.max_test, participation: s.max_participation, projects: s.max_projects });
+// A title the teacher typed wins; otherwise the period is named after the open semester in the calendar.
+const termTitleOf = (s, cal) => s.term_title || cal?.current.title || "";
 
-module.exports = { DEFAULTS, loadSettings, saveSettings, getSettings, maxOf };
+module.exports = { DEFAULTS, loadSettings, saveSettings, getSettings, maxOf, termTitleOf };

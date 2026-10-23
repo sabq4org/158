@@ -154,7 +154,11 @@ const Report = (() => {
   // ---------- Printable sheets (A4, rendered to images by html2canvas) ----------
   const LOGOS = { moe: "/img/moe.webp", school: "/img/school.webp" };
   const gradeLine = site => site.gradeLabel + (site.termTitle ? " · " + site.termTitle : "");
-  const issued = () => new Date().toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric" });
+  // Hijri first, Gregorian in brackets. Intl keeps a space before "هـ", which html2canvas needs.
+  const issued = () => {
+    const d = new Date(), on = cal => d.toLocaleDateString(`ar-SA-u-ca-${cal}-nu-latn`, { day: "numeric", month: "long", year: "numeric" });
+    return `${on("islamic-umalqura")} (${on("gregory")})`;
+  };
 
   const head = (title, sub) => `
   <div class="rp-band"><i></i><i></i></div>

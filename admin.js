@@ -8,6 +8,7 @@ const util = require("util");
 const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, maxOf } = require("./settings");
 const grades = require("./grades");
+const school = require("./school");
 
 const scrypt = util.promisify(crypto.scrypt);
 
@@ -233,7 +234,22 @@ module.exports = function mountAdmin(app, pool) {
     next();
   });
 
-  router.get("/me", (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings() }));
+  const calendarInfo = async () => ({ years: school.getYears(), now: await school.now(pool) });
+
+  router.get("/me", async (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings(), calendar: await calendarInfo() }));
+
+  // ---------- School calendar ----------
+  router.get("/calendar", async (req, res) => res.json(await calendarInfo()));
+
+  router.put("/calendar/:hijri", async (req, res) => {
+    const hijri = Number(req.params.hijri);
+    if (!school.getYears().some(y => y.hijri === hijri)) return res.status(404).json({ error: "not_found" });
+    const y = school.cleanYear(req.body);
+    if (y.errors.length) return res.status(400).json({ error: "invalid", errors: y.errors });
+    await school.saveYear(pool, hijri, y);
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('calendar', $1)", [JSON.stringify({ year: hijri })]);
+    res.json(await calendarInfo());
+  });
 
   router.get("/viewer", (req, res) => res.json({ enabled: !!viewer.hash }));
 
@@ -328,7 +344,8 @@ module.exports = function mountAdmin(app, pool) {
           await client.query("ROLLBACK");
           return res.status(409).json({ error: "exists", errors: ["توجد فترة بنفس العنوان حالياً"] });
         }
-        const t = await client.query("INSERT INTO terms (title, max, created_at) VALUES ($1, $2, $3) RETURNING id", [d.title, JSON.stringify(d.max), d.created_at]);
+        const t = await client.query("INSERT INTO terms (title, max, created_at, year, semester) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+          [d.title, JSON.stringify(d.max), d.created_at, d.year ?? null, d.semester ?? null]);
         await insertTermResults(client, t.rows[0].id, d.results || []);
       } else if (e.action === "term_archive" && e.details?.term_id) {
         const d = e.details;
@@ -448,7 +465,7 @@ module.exports = function mountAdmin(app, pool) {
   const titleTaken = (title, except = 0) => pool.query("SELECT 1 FROM terms WHERE title = $1 AND id <> $2", [title, except]).then(r => r.rowCount > 0);
 
   router.get("/terms", async (req, res) => {
-    const terms = (await pool.query("SELECT id, title, max, created_at FROM terms ORDER BY created_at, id")).rows;
+    const terms = (await pool.query("SELECT id, title, max, created_at, year, semester FROM terms ORDER BY created_at, id")).rows;
     const results = (await pool.query("SELECT term_id, test1, test2, test_avg, participation, projects FROM term_results")).rows;
     res.json(terms.map(t => {
       const mine = results.filter(r => r.term_id === t.id);
@@ -458,24 +475,31 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   // Archive the current grades under a title. Optionally empty them for the next period (a backup is kept first).
+  // The archive belongs to a semester, the open one unless the teacher picks another; clearing closes it.
   router.post("/terms", async (req, res) => {
     const title = norm(req.body?.title).slice(0, 80);
     const clear = req.body?.clear === true;
     const nextTitle = norm(req.body?.next_title).slice(0, 80);
+    const open = (await school.now(pool))?.current;
+    const year = req.body?.year == null ? open?.year ?? null : Number(req.body.year);
+    const semester = req.body?.semester == null ? open?.num ?? null : Number(req.body.semester);
     if (!title) return res.status(400).json({ error: "invalid", errors: ["اكتبي عنوان الفترة"] });
+    if ((year != null && !(year >= 1440 && year <= 1500)) || (semester != null && ![1, 2, 3].includes(semester))) {
+      return res.status(400).json({ error: "invalid", errors: ["الفصل الدراسي غير صحيح"] });
+    }
     if (await titleTaken(title)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
     const client = await pool.connect();
     const prevTitle = getSettings().term_title;
     let count;
     try {
       await client.query("BEGIN");
-      const t = await client.query("INSERT INTO terms (title, max) VALUES ($1, $2) RETURNING id", [title, JSON.stringify(maxOf(getSettings()))]);
+      const t = await client.query("INSERT INTO terms (title, max, year, semester) VALUES ($1, $2, $3, $4) RETURNING id", [title, JSON.stringify(maxOf(getSettings())), year, semester]);
       count = (await client.query(
         `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")}) SELECT $1, ${TERM_COLS.join(", ")} FROM students
          WHERE coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL`, [t.rows[0].id])).rowCount;
       if (!count) { await client.query("ROLLBACK"); return res.status(400).json({ error: "empty", errors: ["ما فيه درجات مرصودة للأرشفة"] }); }
       // The log keeps the term id and the cleared grades, so the archive can be undone from there.
-      const details = { title, count, cleared: clear, next_title: clear ? nextTitle : null, term_id: t.rows[0].id, prev_title: prevTitle };
+      const details = { title, count, cleared: clear, next_title: clear ? nextTitle : null, term_id: t.rows[0].id, prev_title: prevTitle, year, semester };
       if (clear) {
         const { rows } = await client.query("SELECT * FROM students ORDER BY national_id");
         await client.query("INSERT INTO backups (note, data) VALUES ($1, $2)", ["قبل أرشفة الفترة ومسح الدرجات", JSON.stringify(rows.map(fromRow))]);
@@ -510,7 +534,7 @@ module.exports = function mountAdmin(app, pool) {
   // The deleted results stay in the log, so the deletion can be undone from there.
   router.delete("/terms/:id", async (req, res) => {
     const id = termId(req);
-    const t = (await pool.query("SELECT title, max, created_at FROM terms WHERE id = $1", [id])).rows[0];
+    const t = (await pool.query("SELECT title, max, created_at, year, semester FROM terms WHERE id = $1", [id])).rows[0];
     if (!t) return res.status(404).json({ error: "not_found" });
     const results = (await pool.query(`SELECT ${TERM_COLS.join(", ")} FROM term_results WHERE term_id = $1 ORDER BY national_id`, [id])).rows;
     await pool.query("DELETE FROM terms WHERE id = $1", [id]);

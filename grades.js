@@ -24,7 +24,10 @@ CREATE TABLE IF NOT EXISTS term_results (
   learning_style  TEXT,
   PRIMARY KEY (term_id, national_id)
 );
-CREATE INDEX IF NOT EXISTS term_results_national_id ON term_results (national_id);`;
+CREATE INDEX IF NOT EXISTS term_results_national_id ON term_results (national_id);
+-- The semester an archive belongs to.
+ALTER TABLE terms ADD COLUMN IF NOT EXISTS year INT;
+ALTER TABLE terms ADD COLUMN IF NOT EXISTS semester INT;`;
 
 // Archived percentages, oldest term first. Each term keeps the maximum scores it was graded with.
 // With an id: that student's list. Without: { national_id: list } for everyone.

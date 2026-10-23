@@ -246,6 +246,31 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 .hist { margin: 0; font-size: 13px; color: var(--muted); }
 .hist b { color: var(--ink); }
 .progress-note { margin: 0; font-weight: 600; color: var(--accent); }
+/* Year bar: where today falls in the school calendar. */
+.yearbar { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.yb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 2px 16px; flex-wrap: wrap; }
+.yb-top b { font-size: 16px; }
+.yb-top span { color: var(--muted); font-size: 13.5px; }
+.yearbar .bar { height: 8px; }
+.yb-alert { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: 14px; }
+.yb-alert span { flex: 1 1 240px; }
+.cal-sems { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.cal-sem { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.cal-sem b { grid-column: 1 / -1; font-size: 14px; }
+.cal-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: start; margin-bottom: 8px; }
+.cal-row .btn { margin-top: 22px; }
+.hj { display: block; font-size: 12px; color: var(--muted); min-height: 1.5em; font-weight: 400; }
+.sub { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.set h4 { margin: 14px 0 8px; font-size: 14px; }
+@media (max-width: 760px) {
+  /* A break takes two lines on a phone: its name and the delete button, then the two dates. */
+  .cal-sems { grid-template-columns: minmax(0, 1fr); }
+  .cal-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .cal-row .nm { grid-area: 1 / 1 / 2 / 3; }
+  .cal-row .btn { grid-area: 1 / 3; }
+  .cal-row > label:nth-child(2) { grid-area: 2 / 1; }
+  .cal-row > label:nth-child(3) { grid-area: 2 / 2 / 3 / 4; }
+}
 /* The principal's read-only view hides every control that changes data. */
 body.viewer [data-admin] { display: none !important; }
 </style>
@@ -273,6 +298,12 @@ body.viewer [data-admin] { display: none !important; }
 
   <!-- App -->
   <section id="app" hidden>
+    <div class="card yearbar" id="yearBar" hidden>
+      <div class="yb-top"><b id="ybTitle"></b><span id="ybDate"></span></div>
+      <div class="bar" id="ybTrack"><i id="ybBar" style="width:0"></i></div>
+      <div class="note" id="ybNote"></div>
+      <div class="yb-alert" id="ybAlert" hidden><span id="ybAlertText"></span><button class="btn sm" type="button" id="ybArchive" data-admin>أرشفة الدرجات</button></div>
+    </div>
     <div class="stats" id="stats"></div>
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
@@ -434,7 +465,7 @@ body.viewer [data-admin] { display: none !important; }
         <legend>البيانات اللي تظهر في البطاقة والـ PDF</legend>
         <div class="grid2">
           <label class="f">الصف<input class="in" name="grade_label" maxlength="60" placeholder="الصف الثاني"></label>
-          <label class="f">عنوان الفترة (اختياري)<input class="in" name="term_title" maxlength="80" placeholder="الفصل الدراسي الأول 1447هـ"></label>
+          <label class="f">عنوان الفترة<input class="in" name="term_title" id="s_term" maxlength="80"><span class="hj" id="termAuto"></span></label>
           <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
           <label class="f">اسم المديرة<input class="in" name="principal_name" maxlength="80"></label>
         </div>
@@ -450,6 +481,16 @@ body.viewer [data-admin] { display: none !important; }
       </fieldset>
       <p class="msg err" id="setErr" hidden></p>
       <div><button class="btn" type="submit" id="setSave">حفظ الإعدادات</button></div>
+      <fieldset>
+        <legend>التقويم الدراسي <span id="calYear"></span></legend>
+        <div class="cal-sems" id="calSems"></div>
+        <h4>الإجازات</h4>
+        <div id="calBreaks"></div>
+        <button class="btn sm quiet" type="button" id="calAdd">إضافة إجازة</button>
+        <p class="note" style="margin:10px 0 0">التواريخ بالميلادي والهجري يظهر تحتها. أسابيع الدراسة تُحسب من الأحد إلى الخميس، والأسبوع اللي كله إجازة ما يُحسب.</p>
+        <p class="msg err" id="calErr" hidden style="margin-top:10px"></p>
+        <div style="margin-top:12px"><button class="btn" type="button" id="calSave">حفظ التقويم</button></div>
+      </fieldset>
       <fieldset>
         <legend>حساب المديرة (عرض فقط)</legend>
         <p class="note" id="viewerState" style="margin:0 0 10px"></p>
@@ -520,10 +561,13 @@ body.viewer [data-admin] { display: none !important; }
   <form class="dlg" id="termForm" method="dialog" novalidate>
     <h2>أرشفة الفترة الحالية</h2>
     <p class="note" style="margin:0">تنحفظ درجات الطالبات الحالية باسم الفترة، وتظهر لكل طالبة في "تقدّمك عبر الفترات".</p>
-    <label class="f" for="t_title">عنوان الفترة<input class="in" id="t_title" maxlength="80" required placeholder="الفصل الدراسي الأول 1447هـ"></label>
-    <label class="switch"><input type="checkbox" id="t_clear"> مسح الدرجات بعد الأرشفة لبدء فترة جديدة</label>
+    <div class="grid2">
+      <label class="f" for="t_sem">الفصل الدراسي<select class="in" id="t_sem"></select></label>
+      <label class="f" for="t_title">عنوان الفترة<input class="in" id="t_title" maxlength="80" required></label>
+    </div>
+    <label class="switch"><input type="checkbox" id="t_clear"> <span id="t_clearText">مسح الدرجات بعد الأرشفة لبدء فترة جديدة</span></label>
     <div id="t_nextWrap" hidden style="display:flex;flex-direction:column;gap:8px">
-      <label class="f" for="t_next">عنوان الفترة الجديدة (يظهر في صفحة الاستعلام)<input class="in" id="t_next" maxlength="80" placeholder="الفصل الدراسي الثاني 1447هـ"></label>
+      <label class="f" for="t_next">عنوان الفترة الجديدة (يظهر في صفحة الاستعلام)<input class="in" id="t_next" maxlength="80"><span class="hj">اتركيه فاضي ويتسمّى تلقائياً حسب التقويم.</span></label>
       <p class="note" style="margin:0">يبقى الاسم ورقم الهوية والفصل ونمط التعلم والإيميل، وتنحفظ نسخة احتياطية قبل المسح.</p>
     </div>
     <p class="msg err" id="termErr" hidden></p>
@@ -578,6 +622,7 @@ let editing = null;
 let role = "admin";
 let terms = [];
 let historyCache = null;
+let cal = null;
 
 async function api(path, opts = {}) {
   const res = await fetch("/api/admin" + path, {
@@ -619,9 +664,10 @@ async function showApp(me) {
   document.body.classList.toggle("viewer", role === "viewer");
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : "لوحة تحكم المعلمة";
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
-  await loadStudents();
+  cal = me.calendar || null;
   applySettings(me.settings);
-  renderStats(); renderRows(); renderClasses(); renderOverview();
+  await loadStudents();
+  renderCalendarForm();
   loadLookups(false).catch(() => {});
   if (role === "admin") loadViewer().catch(() => {});
 }
@@ -652,13 +698,14 @@ const levelPill = p => p == null ? '<span class="pill none">—</span>'
   : `<span class="pill ${p >= 75 ? "good" : p >= 60 ? "warn" : "low"}">${p}%</span>`;
 
 async function loadStudents() {
-  [students, classes] = await Promise.all([api("/students"), api("/classes")]);
+  // The calendar comes along: archiving, clearing or importing grades can move the open semester.
+  [students, classes, cal] = await Promise.all([api("/students"), api("/classes"), api("/calendar").catch(() => cal)]);
   const names = classes.map(c => c.name);
   const sel = $("#classFilter"), cur = sel.value;
   sel.innerHTML = '<option value="">كل الفصول</option>' + names.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
   sel.value = names.includes(cur) ? cur : "";
   $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + names.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  renderStats(); renderRows(); renderClasses(); renderOverview();
+  renderStats(); renderRows(); renderClasses(); renderOverview(); renderCalendar();
 }
 
 function renderStats() {
@@ -776,10 +823,10 @@ function applySettings(s) {
   settings = s;
   Object.assign(MAX, { test: s.max_test, participation: s.max_participation, projects: s.max_projects });
   document.querySelectorAll("[data-max]").forEach(el => (el.textContent = MAX[el.dataset.max]));
-  $("#whoLine").textContent = [s.teacher_name, s.grade_label, s.term_title].filter(Boolean).join(" · ");
   const f = $("#setForm");
   for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s[el.name]) : (el.value = s[el.name] ?? "");
   renderGate();
+  renderWho();
 }
 function renderGate() {
   const open = settings?.lookup_open;
@@ -810,8 +857,125 @@ $("#setForm").addEventListener("submit", async e => {
   finally { btn.disabled = false; }
 });
 
+// ---------- School calendar ----------
+// Dates read Hijri first with the Gregorian date in brackets. Calendar days (YYYY-MM-DD) are read in UTC so they never
+// shift a day; moments (when something happened) use the device's time.
+const DAY = 864e5;
+const dayNum = iso => Date.parse(iso + "T00:00:00Z") / DAY;
+const isoDay = n => new Date(n * DAY).toISOString().slice(0, 10);
+const validIso = s => /^\d{4}-\d{2}-\d{2}$/.test(s || "") && isoDay(dayNum(s)) === s;
+const riyadhToday = () => isoDay(Math.floor((Date.now() + 3 * 3600e3) / DAY));
+const atDay = iso => new Date(iso + "T00:00:00Z");
+const onCal = (d, c, timeZone) => d.toLocaleDateString(`ar-SA-u-ca-${c}-nu-latn`, { day: "numeric", month: "long", year: "numeric", timeZone });
+const hijriOf = (d, tz) => onCal(d, "islamic-umalqura", tz).replace(/\s*هـ$/, "هـ");
+const gregOf = (d, tz) => onCal(d, "gregory", tz);
+const bothDay = iso => `${hijriOf(atDay(iso), "UTC")} (${gregOf(atDay(iso), "UTC")})`;
+const onDay = iso => `${atDay(iso).toLocaleDateString("ar-SA", { weekday: "long", timeZone: "UTC" })} ${bothDay(iso)}`;
+const timeOf = t => new Date(t).toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" });
+// A table cell: the Hijri date (and time) on top, the Gregorian date under it.
+const whenCell = (t, withTime) => { const d = new Date(t);
+  return `${esc(hijriOf(d))}${withTime ? ` · ${esc(timeOf(t))}` : ""}<span class="sub">${esc(gregOf(d))}</span>`; };
+const semName = n => `الفصل الدراسي ${["الأول", "الثاني", "الثالث"][n - 1] || n}`;
+const semTitle = (year, n) => `${semName(n)} ${year}هـ`;
+// A title the teacher typed wins; otherwise the period is named after the open semester.
+const termTitle = () => settings?.term_title || cal?.now?.current.title || "";
+const weeksText = n => (n === 1 ? "أسبوع واحد" : n === 2 ? "أسبوعان" : n <= 10 ? `${n} أسابيع` : `${n} أسبوعاً`);
+const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects].some(v => v != null);
+
+function renderWho() {
+  $("#whoLine").textContent = [settings?.teacher_name, settings?.grade_label, termTitle()].filter(Boolean).join(" · ");
+  const auto = cal?.now?.current.title || "";
+  $("#s_term").placeholder = auto;
+  $("#termAuto").textContent = auto ? `اتركيه فاضي ويتسمّى تلقائياً: ${auto}` : "";
+}
+
+function renderCalendar() {
+  renderWho(); renderYearBar(); renderTerms();
+}
+
+// Where today falls: the year, the semester and its study week, or the break.
+function renderYearBar() {
+  const n = cal?.now, year = n && cal.years.find(y => y.hijri === n.year);
+  const sem = year?.semesters.find(s => s.num === n.semester);
+  $("#yearBar").hidden = !sem;
+  if (!sem) return;
+  const t = n.today, inSem = t >= sem.starts && t <= sem.ends;
+  const upcoming = year.semesters.find(s => s.starts > t), nextYear = cal.years.find(y => y.hijri > n.year);
+  const parts = [`العام الدراسي ${n.year}هـ`];
+  if (inSem) parts.push(semName(sem.num));
+  if (n.holiday) parts.push(n.holiday.name);
+  else if (inSem && n.week) parts.push(`الأسبوع ${n.week} من ${n.weeks}`);
+  else if (!inSem && !upcoming) parts.push("إجازة نهاية العام");
+  $("#ybTitle").textContent = parts.join(" · ");
+  $("#ybDate").textContent = onDay(t);
+
+  $("#ybTrack").hidden = !inSem;
+  const done = (dayNum(t) - dayNum(sem.starts) + 1) / (dayNum(sem.ends) - dayNum(sem.starts) + 1);
+  $("#ybBar").style.width = `${Math.round(Math.min(1, Math.max(0, done)) * 100)}%`;
+
+  // Study resumes on the first Sunday-to-Thursday day after the break.
+  let back = n.holiday && dayNum(n.holiday.ends) + 1;
+  while (back && [5, 6].includes((back + 4) % 7)) back++;
+  const toEnd = n.left ? `باقي ${weeksText(n.left)} على نهاية ${semName(sem.num)}، ${onDay(sem.ends)}.` : `ينتهي ${semName(sem.num)} ${onDay(sem.ends)}.`;
+  let note = inSem && back && isoDay(back) <= sem.ends ? `ترجع الدراسة ${onDay(isoDay(back))}. ${toEnd}`
+    : inSem ? (n.week && !n.left ? `هذا آخر أسبوع في ${semName(sem.num)}، وينتهي ${onDay(sem.ends)}.` : toEnd)
+    : upcoming ? `يبدأ ${semName(upcoming.num)} ${onDay(upcoming.starts)}.`
+    : nextYear ? `يبدأ العام الدراسي ${nextYear.hijri}هـ ${onDay(nextYear.semesters[0].starts)}.`
+    : `انتهى العام الدراسي ${n.year}هـ.`;
+  // The grades on the panel belong to the open semester, which is not always today's.
+  const cur = n.current, alert = n.ended && students.some(hasGrades);
+  if (!alert && (cur.year !== n.year || cur.num !== n.semester)) note += ` الدرجات اللي في اللوحة تتبع ${cur.title}.`;
+  $("#ybNote").textContent = note;
+  $("#ybAlert").hidden = !alert;
+  if (alert) $("#ybAlertText").textContent = `انتهى ${cur.title} ودرجاته ما زالت في اللوحة.` + (role === "viewer" ? "" : ` أرشفيها وامسحيها لبدء ${n.next.title}.`);
+}
+
+// The calendar of the current year in the settings. Its inputs carry no name, so the settings form leaves them alone.
+let calHijri = null;
+const dateField = (label, k, v) => `<label class="f">${label}<input class="in ltr" type="date" data-k="${k}" value="${esc(v || "")}">` +
+  `<span class="hj">${validIso(v) ? esc(hijriOf(atDay(v), "UTC")) : ""}</span></label>`;
+const breakRow = b => `<div class="cal-row"><label class="f nm">اسم الإجازة<input class="in" data-k="name" maxlength="60" value="${esc(b.name)}"></label>` +
+  `${dateField("من", "starts", b.starts)}${dateField("إلى", "ends", b.ends)}<button class="btn sm quiet" type="button" data-del>حذف</button></div>`;
+function renderCalendarForm() {
+  const y = cal?.years.find(x => x.hijri === cal.now?.year) || cal?.years[cal.years.length - 1];
+  const box = $("#calSems").closest("fieldset");
+  box.hidden = !y;
+  if (!y) return;
+  calHijri = y.hijri;
+  $("#calYear").textContent = `${y.hijri}هـ`;
+  $("#calSems").innerHTML = y.semesters.map(s => `<div class="cal-sem"><b>${semName(s.num)}</b>${dateField("البداية", "starts", s.starts)}${dateField("النهاية", "ends", s.ends)}</div>`).join("");
+  $("#calBreaks").innerHTML = y.breaks.map(breakRow).join("");
+  $("#calErr").hidden = true;
+}
+const calBox = $("#calSems").closest("fieldset");
+const showHijri = e => { if (e.target.type === "date") e.target.nextElementSibling.textContent = validIso(e.target.value) ? hijriOf(atDay(e.target.value), "UTC") : ""; };
+calBox.addEventListener("input", showHijri);
+calBox.addEventListener("change", showHijri);
+calBox.addEventListener("click", e => e.target.closest("[data-del]")?.closest(".cal-row").remove());
+// Enter in a calendar field saves the calendar, not the settings around it.
+calBox.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input")) { e.preventDefault(); $("#calSave").click(); } });
+$("#calAdd").addEventListener("click", () => {
+  $("#calBreaks").insertAdjacentHTML("beforeend", breakRow({ name: "", starts: "", ends: "" }));
+  $("#calBreaks").lastElementChild.querySelector("input").focus();
+});
+$("#calSave").addEventListener("click", async () => {
+  const val = (el, k) => el.querySelector(`[data-k="${k}"]`).value;
+  const body = {
+    semesters: [...document.querySelectorAll("#calSems .cal-sem")].map(el => ({ starts: val(el, "starts"), ends: val(el, "ends") })),
+    breaks: [...document.querySelectorAll("#calBreaks .cal-row")].map(el => ({ name: val(el, "name"), starts: val(el, "starts"), ends: val(el, "ends") })),
+  };
+  const err = $("#calErr"), btn = $("#calSave");
+  err.hidden = true; btn.disabled = true;
+  try {
+    cal = await api(`/calendar/${calHijri}`, { method: "PUT", body });
+    renderCalendar(); renderCalendarForm();
+    toast("تم حفظ التقويم");
+  } catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر حفظ التقويم."]).map(esc).join("<br>"); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
 // ---------- Lookups ----------
-const fullTime = t => new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(new Date(t));
+const fullTime = t => `${hijriOf(new Date(t))} (${gregOf(new Date(t))}) · ${timeOf(t)}`;
 function ago(t) {
   const m = Math.round((Date.now() - new Date(t)) / 60000);
   if (m < 1) return "الآن";
@@ -839,10 +1003,14 @@ async function loadLookups(announce) {
   }
   lastSeenId = newest;
 }
-// Refresh every minute while the panel is open, so new lookups show without reloading.
+// Refresh every minute while the panel is open, so new lookups show without reloading. The calendar follows the date.
 setInterval(async () => {
   if ($("#app").hidden || document.hidden) return;
-  try { students = await api("/students"); renderStats(); renderRows(); renderOverview(); await loadLookups(true); } catch {}
+  try {
+    students = await api("/students"); renderStats(); renderRows(); renderOverview(); await loadLookups(true);
+    if (cal?.now && cal.now.today !== riyadhToday()) cal = await api("/calendar");
+    renderCalendar();
+  } catch {}
 }, 60000);
 
 // ---------- Overview ----------
@@ -983,7 +1151,7 @@ document.querySelector('[data-panel="overview"]').addEventListener("click", e =>
 
 // ---------- Audit log ----------
 const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل",
-  term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة" };
+  term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم" };
 const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
 const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", email: "الإيميل",
   grade_label: "الصف", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
@@ -1001,6 +1169,7 @@ function auditDetails(a) {
   if (a.action === "term_delete") return `${esc(d?.title)} (${girls(d?.count ?? 0)})`;
   if (a.action === "viewer_set") return "تعيين كلمة مرور جديدة";
   if (a.action === "viewer_off") return "إيقاف الحساب";
+  if (a.action === "calendar") return `تعديل تقويم العام الدراسي ${esc(d?.year)}هـ`;
   if (a.action === "add") return `الفصل ${esc(d?.class ?? "—")}`;
   if (a.action === "delete") return `كانت في الفصل ${esc(d?.class ?? "—")}`;
   return "";
@@ -1008,12 +1177,11 @@ function auditDetails(a) {
 let auditList = [];
 async function loadAudit() {
   const list = auditList = await api("/audit");
-  const df = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" });
   $("#auditRows").innerHTML = list.map(a => {
     const who = a.national_id ? (a.current_name || a.details?.name || a.national_id) : "—";
     const can = UNDOABLE.includes(a.action) && !a.undone_at && (a.action !== "term_archive" || a.details?.term_id);
     return `<tr class="${a.undone_at ? "undone" : ""}">
-      <td>${df.format(new Date(a.created_at))}</td><td><span class="tag-act">${ACTIONS[a.action] || esc(a.action)}</span></td>
+      <td>${whenCell(a.created_at, true)}</td><td><span class="tag-act">${ACTIONS[a.action] || esc(a.action)}</span></td>
       <td class="name">${esc(who)}</td><td class="det">${auditDetails(a)}</td>
       <td>${can ? `<button class="btn sm quiet" type="button" data-undo="${a.id}" data-admin>تراجع</button>` : a.undone_at ? '<span class="note">تم التراجع</span>' : ""}</td></tr>`;
   }).join("");
@@ -1179,9 +1347,8 @@ function resetImport() { $("#preview").hidden = true; $("#preview").innerHTML = 
 // ---------- Backups ----------
 async function loadBackups() {
   const list = await api("/backups");
-  const df = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" });
   $("#backupRows").innerHTML = list.map(b => `<tr>
-    <td>${df.format(new Date(b.created_at))}</td><td>${esc(b.note || "")}</td><td class="num">${b.count}</td>
+    <td>${whenCell(b.created_at, true)}</td><td>${esc(b.note || "")}</td><td class="num">${b.count}</td>
     <td><button class="btn sm quiet" type="button" data-restore="${b.id}">استرجاع</button></td></tr>`).join("");
   $("#noBackups").hidden = list.length > 0;
 }
@@ -1195,7 +1362,6 @@ $("#backupRows").addEventListener("click", async e => {
 });
 
 // ---------- Terms ----------
-const dateOnly = t => new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric" }).format(new Date(t));
 async function loadTerms() {
   terms = await api("/terms");
   renderTerms();
@@ -1203,10 +1369,12 @@ async function loadTerms() {
 function renderTerms() {
   const pcts = students.map(pctOf).filter(p => p != null);
   const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
-  const current = `<tr><td class="name">${esc(settings?.term_title || "الفترة الحالية")} <span class="tag-act">الحالية</span></td><td class="muted">—</td>
+  const current = `<tr><td class="name">${esc(termTitle() || "الفترة الحالية")} <span class="tag-act">الحالية</span></td><td class="muted">—</td>
     <td class="num">${pcts.length}</td><td class="num">${levelPill(avg)}</td><td></td></tr>`;
+  // The semester shows under the title unless the title already names it.
+  const semOf = t => { const s = t.semester && semTitle(t.year, t.semester); return s && !t.title.includes(s) ? `<span class="sub">${esc(s)}</span>` : ""; };
   $("#termRows").innerHTML = terms.map(t => `<tr>
-    <td class="name">${esc(t.title)}</td><td>${dateOnly(t.created_at)}</td><td class="num">${t.count}</td><td class="num">${levelPill(t.avg)}</td>
+    <td class="name">${esc(t.title)}${semOf(t)}</td><td>${whenCell(t.created_at)}</td><td class="num">${t.count}</td><td class="num">${levelPill(t.avg)}</td>
     <td style="white-space:nowrap">
       <a class="btn sm quiet" href="/api/admin/terms/${t.id}/export">تنزيل إكسل</a>
       <button class="btn sm quiet" type="button" data-term-rename="${t.id}" data-admin>إعادة تسمية</button>
@@ -1240,21 +1408,56 @@ $("#termRows").addEventListener("click", async e => {
     toast("تم حذف الفترة"); historyCache = null; await loadTerms();
   }
 });
-$("#archiveBtn").addEventListener("click", () => {
-  $("#t_title").value = settings?.term_title || "";
-  $("#t_clear").checked = false; $("#t_next").value = ""; $("#t_nextWrap").hidden = true;
+// An archive belongs to a semester: any in the calendar, or the open one even when it lies past the calendar.
+function semesterChoices() {
+  const list = (cal?.years || []).flatMap(y => y.semesters.map(s => ({ year: y.hijri, num: s.num })));
+  const cur = cal?.now?.current;
+  if (cur && !list.some(s => s.year === cur.year && s.num === cur.num)) list.push({ year: cur.year, num: cur.num });
+  return list;
+}
+const semAfter = ({ year, num }) => (num < (cal?.years.find(y => y.hijri === year)?.semesters.length || 2) ? { year, num: num + 1 } : { year: year + 1, num: 1 });
+const semOfValue = v => { const [year, num] = String(v || "").split("-").map(Number); return year && num ? { year, num } : null; };
+function nextTitleFor() {
+  const s = semOfValue($("#t_sem").value), next = s && semAfter(s);
+  return next ? semTitle(next.year, next.num) : "";
+}
+function openArchive(clear) {
+  const list = semesterChoices(), cur = cal?.now?.current, sel = $("#t_sem");
+  sel.innerHTML = list.map(s => `<option value="${s.year}-${s.num}">${esc(semTitle(s.year, s.num))}</option>`).join("");
+  sel.closest("label").hidden = !list.length;
+  if (cur) sel.value = `${cur.year}-${cur.num}`;
+  sel.dataset.prev = sel.value;
+  $("#t_title").value = termTitle();
+  $("#t_clear").checked = clear; $("#t_next").value = ""; $("#t_nextWrap").hidden = !clear;
   $("#termErr").hidden = true;
+  syncArchiveNext();
   $("#termDlg").showModal();
+}
+function syncArchiveNext() {
+  const next = nextTitleFor();
+  $("#t_clearText").textContent = `مسح الدرجات بعد الأرشفة لبدء ${next || "فترة جديدة"}`;
+  $("#t_next").placeholder = next;
+}
+// The title follows the chosen semester until the teacher writes her own.
+$("#t_sem").addEventListener("change", e => {
+  const prev = semOfValue(e.target.dataset.prev), s = semOfValue(e.target.value), title = $("#t_title");
+  if (s && (!title.value.trim() || (prev && title.value.trim() === semTitle(prev.year, prev.num)))) title.value = semTitle(s.year, s.num);
+  e.target.dataset.prev = e.target.value;
+  syncArchiveNext();
 });
+$("#archiveBtn").addEventListener("click", () => openArchive(false));
+$("#ybArchive").addEventListener("click", () => openArchive(true));
 $("#t_clear").addEventListener("change", e => { $("#t_nextWrap").hidden = !e.target.checked; });
 $("#termForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const body = { title: $("#t_title").value.trim(), clear: $("#t_clear").checked, next_title: $("#t_next").value.trim() };
+  const sem = semOfValue($("#t_sem").value);
+  const body = { title: $("#t_title").value.trim(), clear: $("#t_clear").checked, next_title: $("#t_next").value.trim(), ...(sem && { year: sem.year, semester: sem.num }) };
   const err = $("#termErr"); err.hidden = true;
   if (!body.title) { err.textContent = "اكتبي عنوان الفترة"; err.hidden = false; return; }
   if (body.clear) {
     $("#termDlg").close();
-    if (!(await confirmBox("أرشفة ومسح الدرجات", `بتنحفظ نتائج "${body.title}"، وبعدها تنمسح درجات كل الطالبات لبدء فترة جديدة. تنحفظ نسخة احتياطية قبل المسح.`, "أرشفة ومسح"))) return;
+    const next = body.next_title || nextTitleFor() || "فترة جديدة";
+    if (!(await confirmBox("أرشفة ومسح الدرجات", `بتنحفظ نتائج "${body.title}"، وبعدها تنمسح درجات كل الطالبات لبدء ${next}. تنحفظ نسخة احتياطية قبل المسح.`, "أرشفة ومسح"))) return;
   }
   const btn = $("#termSave"); btn.disabled = true;
   try {
@@ -1293,7 +1496,7 @@ $("#viewerOff").addEventListener("click", async () => {
 });
 
 // ---------- Class PDF ----------
-const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: settings.term_title, teacherName: settings.teacher_name, principalName: settings.principal_name });
+const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: termTitle(), teacherName: settings.teacher_name, principalName: settings.principal_name });
 const asCard = (s, classStats, history) => ({
   id: s.national_id, name: s.name, class: s.class, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
   participation: s.participation, projects: s.projects, lateness: s.lateness, learningStyle: s.learning_style || "", email: s.email || "",
