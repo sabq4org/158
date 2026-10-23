@@ -478,9 +478,12 @@ module.exports = function mountAdmin(app, pool) {
     res.end();
   }
 
+  // All students, or one class (?class=) from its page.
   router.get("/export", async (req, res) => {
-    const { rows } = await pool.query(`SELECT s.* FROM students s LEFT JOIN classes c ON c.name = s.class ORDER BY ${CLASS_ORDER}, s.name`);
-    await sendExcel(res, rows, FIELDS, "نتائج الطالبات");
+    const cls = typeof req.query.class === "string" && req.query.class ? req.query.class : null;
+    const { rows } = await pool.query(`SELECT s.* FROM students s LEFT JOIN classes c ON c.name = s.class
+      ${cls ? "WHERE s.class = $1" : ""} ORDER BY ${CLASS_ORDER}, s.name`, cls ? [cls] : []);
+    await sendExcel(res, rows, FIELDS, cls ? `نتائج ${grades.Report.classLabel(cls).replace(/\//g, "-")}` : "نتائج الطالبات");
   });
 
   // ---------- Terms: each archived period keeps its own copy of the results ----------
@@ -585,8 +588,14 @@ module.exports = function mountAdmin(app, pool) {
   const previews = new Map();
   const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 150 * 1024 * 1024 } });
 
+  // A class picked before the upload takes every student in the file; without one, each row's class column decides.
   router.post("/import", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "no_file" });
+    const target = norm(req.body?.class) || null;
+    if (target && !(await pool.query("SELECT 1 FROM classes WHERE name = $1", [target])).rowCount) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ error: "unknown_class" });
+    }
     let parsed;
     try {
       parsed = await readStudentsFromExcel(req.file.path);
@@ -602,14 +611,17 @@ module.exports = function mountAdmin(app, pool) {
     const known = (await pool.query("SELECT name, aliases FROM classes")).rows;
     const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
     const seen = new Set();
-    const added = [], changed = [], errors = [], unchanged = [];
+    const added = [], changed = [], errors = [], unchanged = [], elsewhere = {};
     for (const { line, raw } of parsed) {
       const { student, errors: errs } = cleanStudent(raw);
       if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
-      student.class = resolveClass(student.class, known);
+      const fileClass = resolveClass(student.class, known);
+      student.class = target || fileClass;
       if (seen.has(student.national_id)) errs.push("رقم الهوية مكرر في الملف");
       if (errs.length) { errors.push({ line, name: student.name || norm(raw.name), id: student.national_id, problems: errs }); continue; }
       seen.add(student.national_id);
+      // A sheet that names another class may be the wrong file; the preview says so before anything changes.
+      if (target && fileClass && fileClass !== target) elsewhere[fileClass] = (elsewhere[fileClass] || 0) + 1;
       const before = current.get(student.national_id);
       if (!before) { student.learning_difficulty ??= false; added.push(student); continue; }
       // An empty cell in the file never erases a value already saved (e.g. a style set from the panel).
@@ -617,12 +629,15 @@ module.exports = function mountAdmin(app, pool) {
       const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
       if (changes.length) changed.push({ student, changes }); else unchanged.push(student.national_id);
     }
-    const missing = [...current.values()].filter(s => !seen.has(s.national_id)).map(s => ({ national_id: s.national_id, name: s.name }));
+    // With a class picked, only its own students can be missing from the file.
+    const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (!target || s.class === target))
+      .map(s => ({ national_id: s.national_id, name: s.name }));
 
     const token = crypto.randomBytes(16).toString("hex");
-    previews.set(token, { at: Date.now(), name: req.file.originalname, upserts: [...added, ...changed.map(c => c.student)] });
+    previews.set(token, { at: Date.now(), name: req.file.originalname, target, upserts: [...added, ...changed.map(c => c.student)] });
     for (const [k, v] of previews) if (Date.now() - v.at > 30 * 60 * 1000) previews.delete(k);
-    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.length, added, changed, unchanged: unchanged.length, errors, missing });
+    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.length, added, changed, unchanged: unchanged.length, errors, missing,
+      target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })) });
   });
 
   router.post("/import/:token/apply", async (req, res) => {
@@ -642,7 +657,7 @@ module.exports = function mountAdmin(app, pool) {
           valuesOf(s));
       }
       await syncClasses(client);
-      await client.query("INSERT INTO audit_log (action, details) VALUES ('import', $1)", [JSON.stringify({ count: p.upserts.length })]);
+      await client.query("INSERT INTO audit_log (action, details) VALUES ('import', $1)", [JSON.stringify({ count: p.upserts.length, class: p.target || undefined })]);
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");

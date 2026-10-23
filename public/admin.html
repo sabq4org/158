@@ -269,8 +269,28 @@ tr.grp td { background: var(--surface-2); padding-block: 10px; }
 td.none-row { color: var(--muted); font-size: 13.5px; padding-inline-start: 20px; }
 .pill.ld { color: var(--accent); background: var(--accent-soft); margin-inline-start: 6px; vertical-align: 1px; }
 .warn-t { color: var(--warn); font-weight: 600; }
+.msg.warn { background: var(--warn-soft); color: var(--warn); }
 .set h4 { margin: 14px 0 8px; font-size: 14px; }
+tr[data-open] { cursor: pointer; }
+.cls-link { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; text-align: start; }
+/* A chevron pointing forward (left, in Arabic). Drawn with borders so the bidi algorithm cannot mirror it. */
+.cls-link::after { content: ""; display: inline-block; width: 6px; height: 6px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(45deg); margin-inline-start: 10px; vertical-align: 2px; }
+tr[data-open]:hover .cls-link { color: var(--accent); }
+/* One class's page: a header, its numbers, an upload that lands in it, and its students. */
+.cv-head { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 14px 16px 6px; }
+.cv-title { flex: 1 1 220px; min-width: 0; }
+.cv-title h2 { margin: 0; font-size: 20px; line-height: 1.4; }
+.cv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 8px 16px 4px; }
+.cv-stats .stat { border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); padding: 10px 14px; }
+.cv-stats .stat .v { font-size: 22px; }
+.drop.sm { padding: 16px; gap: 4px; margin-block: 12px 4px; }
+.drop.sm b { font-size: 15px; }
+.drop.sm span { font-size: 13px; }
+.imp-to { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; padding: 16px 16px 0; }
+.imp-to label.f { flex: 1 1 260px; }
+.imp-to + .note { padding: 6px 16px 0; margin: 0; }
 @media (max-width: 760px) {
+  .cv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* A break takes two lines on a phone: its name and the delete button, then the two dates. */
   .cal-sems { grid-template-columns: minmax(0, 1fr); }
   .cal-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
@@ -389,16 +409,54 @@ body.viewer [data-admin] { display: none !important; }
       <div class="empty" id="noRows" hidden>لا توجد طالبات مطابقة للبحث.</div>
     </div>
 
-    <!-- Classes -->
+    <!-- Classes: the list, and one class's own page -->
     <div class="card" data-panel="classes" style="margin-top:16px" hidden>
-      <div class="toolbar"><div class="grow note" id="classYear"></div></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>الفصل</th><th>المسار</th><th class="num">عدد الطالبات</th><th class="num">متوسط الفصل</th><th></th></tr></thead>
-          <tbody id="classRows"></tbody>
-        </table>
+      <div id="classList">
+        <div class="toolbar"><div class="grow note" id="classYear"></div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الفصل</th><th>المسار</th><th class="num">عدد الطالبات</th><th class="num">متوسط الفصل</th><th></th></tr></thead>
+            <tbody id="classRows"></tbody>
+          </table>
+        </div>
+        <div class="help" style="padding-block:12px 16px">اضغطي على أي فصل لفتح صفحته وطالباته<span data-admin>، ومنها ترفعين ملف إكسل يدخل الفصل مباشرة</span>. "تقرير PDF" يطلع كشف درجات الفصل، ومعه بطاقة لكل طالبة إذا تبين تطبعينها. <span data-admin>لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. تغيير صف فصل أو رقمه إلى فصل موجود يدمجهم. الحذف متاح للفصل الفاضي فقط.</span></div>
       </div>
-      <div class="help" style="padding-block:12px 16px">"تقرير PDF" يطلع كشف درجات الفصل، ومعه بطاقة لكل طالبة إذا تبين تطبعينها. <span data-admin>لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. تغيير صف فصل أو رقمه إلى فصل موجود يدمجهم. الحذف متاح للفصل الفاضي فقط.</span></div>
+      <div id="classView" hidden>
+        <div class="cv-head">
+          <button class="btn sm quiet" type="button" id="cvBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>كل الفصول</button>
+          <div class="cv-title"><h2 id="cvTitle"></h2><div class="note" id="cvSub"></div></div>
+          <button class="btn sm quiet" type="button" id="cvEdit" data-admin>تعديل الفصل</button>
+        </div>
+        <div class="cv-stats" id="cvStats"></div>
+        <div id="cvMain">
+          <label class="drop sm" id="cvDrop" for="cvFile" data-admin>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg>
+            <b>رفع ملف إكسل لهذا الفصل</b>
+            <span id="cvDropNote"></span>
+            <input type="file" id="cvFile" accept=".xlsx" hidden>
+          </label>
+          <p class="msg err" id="cvErr" hidden style="margin:8px 16px 0"></p>
+          <div class="toolbar">
+            <div class="grow note" id="cvCount"></div>
+            <button class="btn sm" type="button" id="cvAdd" data-admin><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة طالبة</button>
+            <button class="btn sm quiet" type="button" id="cvPdf">تقرير PDF</button>
+            <a class="btn sm quiet" id="cvExport" href="#">تنزيل إكسل الفصل</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>اسم الطالبة</th><th>رقم الهوية</th>
+                <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
+                <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">التأخير</th>
+                <th>نمط التعلم</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
+              </tr></thead>
+              <tbody id="cvRows"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="cvEmpty" hidden></div>
+        </div>
+        <div id="cvPreview" hidden></div>
+      </div>
     </div>
 
     <!-- Terms -->
@@ -418,6 +476,11 @@ body.viewer [data-admin] { display: none !important; }
     <!-- Import -->
     <div class="card" data-panel="import" style="margin-top:16px" hidden>
       <div id="importStart">
+        <div class="imp-to">
+          <label class="f" for="importClass">وين تروح طالبات الملف؟<select class="in" id="importClass"></select></label>
+          <button class="btn quiet" type="button" id="importNewClass">فصل جديد</button>
+        </div>
+        <p class="note" id="importClassNote"></p>
         <label class="drop" id="drop" for="fileIn">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13l2 2 4-4"/></svg>
           <b>اسحبي ملف الإكسل هنا أو اضغطي للاختيار</b>
@@ -428,6 +491,7 @@ body.viewer [data-admin] { display: none !important; }
           ما يتغيّر شي قبل ما تراجعين المعاينة وتضغطين "اعتماد".
           <ul>
             <li>الطالبات يتطابقن برقم الهوية.</li>
+            <li>لملف فصل واحد اختاري الفصل فوق، أو ارفعيه من صفحة الفصل في تبويب "الفصول".</li>
             <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
             <li>الطالبة اللي مو موجودة في الملف ما تنحذف، تظهر لك في المعاينة فقط.</li>
             <li>قبل الاعتماد تنحفظ نسخة احتياطية تقدرين ترجعين لها.</li>
@@ -728,7 +792,7 @@ async function loadStudents() {
   sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
   sel.value = classByName.has(cur) ? cur : "";
   $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + classOptions(true);
-  renderStats(); renderRows(); renderClasses(); renderOverview(); renderCalendar();
+  renderStats(); renderRows(); renderClasses(); renderClassView(); renderImportClass(); renderOverview(); renderCalendar();
 }
 
 // Classes for a select, grouped by grade; classes without a grade come last.
@@ -756,6 +820,17 @@ const LEVEL_FILTERS = {
   support: s => (pctOf(s) ?? 100) < 60, nostyle: s => !s.learning_style, ld: s => s.learning_difficulty,
   looked: s => s.last_lookup, notlooked: s => !s.last_lookup,
 };
+// One student's row, in the students tab and on a class's page (which leaves the class out).
+const studentRow = (s, withClass) => `<tr>
+    <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
+    ${withClass ? `<td class="num">${s.class ? esc(shortClass(s.class)) : "—"}</td>` : ""}
+    <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
+    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
+    <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
+    <td class="num">${levelPill(pctOf(s))}</td>
+    <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
+    <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">${role === "viewer" ? "عرض" : "تعديل"}</button></td>
+  </tr>`;
 function renderRows() {
   const q = $("#search").value.trim();
   const cls = $("#classFilter").value, lvl = $("#levelFilter").value;
@@ -763,27 +838,19 @@ function renderRows() {
     (!q || s.name.includes(q) || s.national_id.includes(q)) &&
     (!cls || s.class === cls) &&
     (!lvl || LEVEL_FILTERS[lvl](s)));
-  $("#rows").innerHTML = list.map(s => `<tr>
-    <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
-    <td class="num">${s.class ? esc(shortClass(s.class)) : "—"}</td>
-    <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
-    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
-    <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
-    <td class="num">${levelPill(pctOf(s))}</td>
-    <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
-    <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">${role === "viewer" ? "عرض" : "تعديل"}</button></td>
-  </tr>`).join("");
+  $("#rows").innerHTML = list.map(s => studentRow(s, true)).join("");
   $("#noRows").hidden = list.length > 0;
 }
 
 ["#search", "#classFilter", "#levelFilter"].forEach(s => $(s).addEventListener("input", renderRows));
-$("#rows").addEventListener("click", e => {
+["#rows", "#cvRows"].forEach(sel => $(sel).addEventListener("click", e => {
   const id = e.target.closest("[data-edit]")?.dataset.edit;
   if (id) openEdit(students.find(s => s.national_id === id));
-});
+}));
 $("#addBtn").addEventListener("click", () => openEdit(null));
 
-function openEdit(s) {
+// A new student starts in the given class, or the one the list is filtered by.
+function openEdit(s, cls) {
   editing = s;
   const viewer = role === "viewer";
   $("#editTitle").textContent = viewer ? "بيانات الطالبة" : s ? "تعديل بيانات الطالبة" : "إضافة طالبة";
@@ -792,7 +859,7 @@ function openEdit(s) {
   showHistory(s);
   const f = $("#editForm");
   for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s?.[el.name]) : (el.value = s?.[el.name] ?? "");
-  if (!s) $("#e_class").value = $("#classFilter").value;
+  if (!s) $("#e_class").value = cls ?? $("#classFilter").value;
   $("#editErr").hidden = true;
   updateAvg();
   let del = f.querySelector("[data-delete]");
@@ -1200,7 +1267,7 @@ const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : 
 function auditDetails(a) {
   const d = a.details;
   if (Array.isArray(d)) return d.filter(c => c.field !== "test_avg").map(c => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from, c.field)}</s> ← <ins>${showVal(c.to, c.field)}</ins>`).join("<br>") || "بدون تغيير";
-  if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة`;
+  if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة` + (d?.class ? ` في ${esc(classLabel(d.class))}` : "");
   if (a.action === "restore") return `نسخة رقم ${d?.backup}`;
   if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
   if (a.action === "class_add" || a.action === "class_delete") return esc(classLabel(d?.name)) + (d?.track ? ` · ${esc(d.track)}` : "");
@@ -1254,11 +1321,12 @@ function renderClasses() {
   $("#classYear").textContent = [cal?.now ? `فصول العام الدراسي ${cal.now.year}هـ` : "الفصول", schoolInfo.stage].join(" · ");
   const row = c => {
     const list = students.filter(s => s.class === c.name), avg = avgPct(regular(list));
-    return `<tr>
-    <td><b>${esc(classLabel(c.name))}</b></td><td>${c.grade === 1 ? '<span class="note">السنة الأولى المشتركة</span>' : c.track ? esc(c.track) : "—"}</td>
+    return `<tr data-open="${esc(c.name)}">
+    <td><button class="cls-link" type="button" data-open="${esc(c.name)}">${esc(classLabel(c.name))}</button></td>
+    <td>${c.grade === 1 ? '<span class="note">السنة الأولى المشتركة</span>' : c.track ? esc(c.track) : "—"}</td>
     <td class="num">${c.count}</td><td class="num">${levelPill(avg)}</td>
     <td style="white-space:nowrap">
-      <button class="btn sm quiet" type="button" data-show="${esc(c.name)}" ${c.count ? "" : "disabled"}>عرض الطالبات</button>
+      <button class="btn sm quiet" type="button" data-open="${esc(c.name)}">فتح الفصل</button>
       <button class="btn sm quiet" type="button" data-pdf="${esc(c.name)}" ${c.count ? "" : "disabled"}>تقرير PDF</button>
       <button class="btn sm quiet" type="button" data-edit-class="${esc(c.name)}" data-admin>${c.grade ? "تعديل" : "تحديد الصف"}</button>
       <button class="btn sm quiet" type="button" data-remove="${esc(c.name)}" data-admin ${c.count ? 'disabled title="انقلي طالبات الفصل أولاً"' : ""}>حذف</button>
@@ -1277,14 +1345,14 @@ function renderClasses() {
   }).join("") + (legacy.length ? head("فصول بدون صف", legacy) + legacy.map(row).join("") : "");
 }
 $("#classRows").addEventListener("click", async e => {
+  // A click anywhere on a class's row opens its page; the buttons on the row do their own thing.
   const b = e.target.closest("button");
-  if (!b) return;
-  if (b.dataset.add) openClassDlg(null, Number(b.dataset.add));
+  if (!b) { const row = e.target.closest("tr[data-open]"); if (row) openClassView(row.dataset.open); return; }
+  // A class added from the list opens straight away, ready for its file.
+  if (b.dataset.add) openClassDlg(null, Number(b.dataset.add), openClassView);
+  else if (b.dataset.open != null) openClassView(b.dataset.open);
   else if (b.dataset.editClass != null) openClassDlg(classByName.get(b.dataset.editClass));
-  else if (b.dataset.show != null) {
-    $("#classFilter").value = b.dataset.show; $("#search").value = ""; $("#levelFilter").value = "";
-    $("#tab-students").click(); renderRows();
-  } else if (b.dataset.pdf != null) {
+  else if (b.dataset.pdf != null) {
     openClassPdf(b.dataset.pdf);
   } else if (b.dataset.remove != null) {
     const name = b.dataset.remove;
@@ -1296,15 +1364,16 @@ $("#classRows").addEventListener("click", async e => {
 });
 
 // The add and edit dialog. The year and stage are fixed; the section starts at the first free number in the grade.
-let classEdit = null;
+// `then` gets the saved class's name (after a merge, the class it joined).
+let classEdit = null, classThen = null;
 const freeSection = grade => { const used = new Set(classes.filter(c => c.grade === grade).map(c => c.section)); let n = 1; while (used.has(n)) n++; return n; };
 const dlgClass = () => {
   const grade = Number($("#c_grade").value), section = Number(toLatin($("#c_section").value).trim() || NaN);
   const ok = Number.isInteger(section) && section >= 1 && section <= 99;
   return { grade, section, track: grade === 1 ? null : $("#c_track").value, name: ok ? Report.className(grade, section) : "" };
 };
-function openClassDlg(c, grade) {
-  classEdit = c || null;
+function openClassDlg(c, grade, then) {
+  classEdit = c || null; classThen = then || null;
   const g = c?.grade || grade || 1;
   $("#classDlgTitle").textContent = !c ? "إضافة فصل" : c.grade ? `تعديل ${c.name}` : `تحديد صف ${classLabel(c.name)}`;
   $("#classDlgYear").textContent = [cal?.now ? `العام الدراسي ${cal.now.year}هـ` : "", schoolInfo.stage].filter(Boolean).join(" · ");
@@ -1345,7 +1414,11 @@ $("#classDlgForm").addEventListener("submit", async e => {
     const r = classEdit ? await api("/classes/" + encodeURIComponent(classEdit.name), { method: "PUT", body }) : await api("/classes", { method: "POST", body });
     $("#classDlg").close();
     toast(!classEdit ? `تمت إضافة ${c.name}` : r.merged ? `تم الدمج ونقل ${girls(r.moved)}` : "تم حفظ الفصل");
+    const then = classThen; classThen = null;
+    // An open class page follows its class to the new name.
+    if (classEdit && viewClass === classEdit.name) viewClass = r.name || c.name;
     await loadStudents();
+    then?.(r.name || c.name);
   } catch (x) {
     err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false;
     if (!$("#classDlg").open) $("#classDlg").showModal();
@@ -1356,6 +1429,8 @@ $("#classDlgForm").addEventListener("submit", async e => {
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t ? "true" : "false"));
   document.querySelectorAll("[data-panel]").forEach(p => (p.hidden = p.dataset.panel !== t.dataset.tab));
+  // The classes tab always opens on the list.
+  if (t.dataset.tab === "classes") closeClassView();
   if (t.dataset.tab === "backups") loadBackups();
   if (t.dataset.tab === "audit") loadAudit();
   if (t.dataset.tab === "terms") loadTerms();
@@ -1363,69 +1438,144 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
 }));
 
 // ---------- Import ----------
-const drop = $("#drop");
-["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
-["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
-drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) uploadFile(f); });
-$("#fileIn").addEventListener("change", e => { const f = e.target.files[0]; if (f) uploadFile(f); e.target.value = ""; });
+// A sheet is uploaded from the upload tab (to the class picked there, or by each row's class column) or from a
+// class's page (to that class). Both show the same preview in their own place.
+const importUi = { start: $("#importStart"), pv: $("#preview"), err: $("#importErr"), zone: $("#drop"), input: $("#fileIn"), target: () => $("#importClass").value || null };
+const classUi = { start: $("#cvMain"), pv: $("#cvPreview"), err: $("#cvErr"), zone: $("#cvDrop"), input: $("#cvFile"), target: () => viewClass };
+for (const ui of [importUi, classUi]) {
+  const { zone, input } = ui;
+  ui.idle = zone.querySelector("b").textContent;
+  ["dragenter", "dragover"].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove("over"); }));
+  zone.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) uploadFile(f, ui); });
+  input.addEventListener("change", e => { const f = e.target.files[0]; if (f) uploadFile(f, ui); e.target.value = ""; });
+}
 
-async function uploadFile(file) {
-  const err = $("#importErr"); err.hidden = true;
+// Where the upload tab sends a file.
+function renderImportClass() {
+  const sel = $("#importClass"), cur = sel.value;
+  sel.innerHTML = '<option value="">حسب عمود "الفصل" في الملف</option>' + classOptions(true);
+  sel.value = classByName.has(cur) ? cur : "";
+  syncImportClass();
+}
+function syncImportClass() {
+  const t = $("#importClass").value;
+  $("#importClassNote").textContent = t ? `كل طالبات الملف يدخلن ${classLabel(t)}، حتى لو الملف مكتوب فيه فصل ثاني.` : "كل طالبة تروح للفصل المكتوب لها في الملف.";
+}
+$("#importClass").addEventListener("change", syncImportClass);
+$("#importNewClass").addEventListener("click", () => openClassDlg(null, 1, name => { $("#importClass").value = name; syncImportClass(); }));
+
+async function uploadFile(file, ui) {
+  const err = ui.err; err.hidden = true;
   if (!/\.xlsx$/i.test(file.name)) { err.textContent = "الملف لازم يكون بصيغة xlsx."; err.hidden = false; return; }
-  drop.querySelector("b").textContent = "جارٍ قراءة الملف…";
-  const fd = new FormData(); fd.append("file", file);
+  const label = ui.zone.querySelector("b");
+  label.textContent = "جارٍ قراءة الملف…";
+  const fd = new FormData(), target = ui.target();
+  if (target) fd.append("class", target);
+  fd.append("file", file);
   try {
     const p = await api("/import", { method: "POST", body: fd });
-    renderPreview(p, file.name);
+    renderPreview(p, file.name, ui);
   } catch (x) {
     err.textContent = x.message === "no_table" ? "ما لقيت جدول الطالبات في الملف. تأكدي إن فيه عمود \"الهوية\" وعمود \"اسم الطالبة\"."
       : x.message === "too_large" ? "حجم الملف كبير جداً."
       : x.message === "unreadable" ? "تعذّر قراءة الملف. تأكدي إنه ملف إكسل سليم."
+      : x.message === "unknown_class" ? "الفصل المختار ما عاد موجود. حدّثي الصفحة واختاري الفصل من جديد."
       : "تعذّر رفع الملف. حاولي مرة أخرى.";
     err.hidden = false;
-  } finally { drop.querySelector("b").textContent = "اسحبي ملف الإكسل هنا أو اضغطي للاختيار"; }
+  } finally { label.textContent = ui.idle; }
 }
 
-function renderPreview(p, name) {
-  const pv = $("#preview");
+function renderPreview(p, name, ui) {
+  const pv = ui.pv;
   const total = p.added.length + p.changed.length;
   const val = (v, f) => f === "learning_difficulty" ? (v ? "نعم" : "لا") : v == null || v === "" ? "فاضي" : esc(f === "class" ? classLabel(v) : v);
+  const to = p.target ? classLabel(p.target) : "";
   pv.innerHTML = `
     <div class="summary">
-      <div class="file">${esc(name)} · ${p.totalRows} صف</div>
+      <div class="file">${esc(name)} · ${p.totalRows} صف${to ? ` · إلى ${esc(to)}` : ""}</div>
       <span class="pill good">${p.added.length} جديدة</span>
       <span class="pill warn">${p.changed.length} تغيّرت</span>
       <span class="pill none">${p.unchanged} بدون تغيير</span>
       ${p.errors.length ? `<span class="pill low">${p.errors.length} فيها أخطاء</span>` : ""}
       ${p.missing.length ? `<span class="pill none">${p.missing.length} غير موجودة في الملف</span>` : ""}
     </div>
+    ${p.elsewhere?.length ? `<div class="sec"><p class="msg warn">الملف مكتوب فيه فصل ثاني لبعض الطالبات (${p.elsewhere.map(e => `${esc(classLabel(e.name))}: ${girls(e.count)}`).join("، ")}).
+      بيدخلن كلهن ${esc(to)}. إذا الملف مو لهذا الفصل اضغطي "إلغاء".</p></div>` : ""}
     ${p.changed.length ? `<div class="sec"><h3>الطالبات اللي تغيّرت بياناتهن</h3>${p.changed.map(c => `
       <div class="change"><b>${esc(c.student.name)}</b>${c.changes.map(x => `<span class="d">${esc(x.label)}: <s>${val(x.from, x.field)}</s> ← <ins>${val(x.to, x.field)}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
-    ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)} · ${s.class ? esc(classLabel(s.class)) : "بدون فصل"}</span></div>`).join("")}</div>` : ""}
+    ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)}${to ? "" : ` · ${s.class ? esc(classLabel(s.class)) : "بدون فصل"}`}</span></div>`).join("")}</div>` : ""}
     ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>صف ${x.line}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
-    ${p.missing.length ? `<div class="sec"><h3>موجودات في النظام وغير موجودات في الملف (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
+    ${p.missing.length ? `<div class="sec"><h3>${to ? `طالبات ${esc(to)} اللي مو موجودات في الملف` : "موجودات في النظام وغير موجودات في الملف"} (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
     <div class="actions">
-      ${total ? `<button class="btn" type="button" id="applyBtn">اعتماد ${total} تغيير</button>` : `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`}
-      <button class="btn quiet" type="button" id="cancelImport">${total ? "إلغاء" : "رجوع"}</button>
+      ${total ? `<button class="btn" type="button" data-apply>اعتماد ${total} تغيير</button>` : `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`}
+      <button class="btn quiet" type="button" data-cancel>${total ? "إلغاء" : "رجوع"}</button>
     </div>`;
-  $("#importStart").hidden = true; pv.hidden = false;
-  $("#cancelImport").onclick = resetImport;
-  const apply = $("#applyBtn");
+  ui.start.hidden = true; pv.hidden = false;
+  pv.querySelector("[data-cancel]").onclick = () => resetPreview(ui);
+  const apply = pv.querySelector("[data-apply]");
   if (apply) apply.onclick = async () => {
     apply.disabled = true; apply.textContent = "جارٍ الاعتماد…";
     try {
       const r = await api(`/import/${p.token}/apply`, { method: "POST" });
-      toast(`تم تحديث ${r.count} طالبة`);
-      resetImport();
+      toast(`تم تحديث ${r.count} طالبة${to ? ` في ${to}` : ""}`);
+      resetPreview(ui);
       await loadStudents();
     } catch (x) {
       apply.disabled = false; apply.textContent = `اعتماد ${total} تغيير`;
       toast(x.message === "expired" ? "انتهت صلاحية المعاينة، ارفعي الملف مرة ثانية" : "تعذّر الاعتماد");
-      if (x.message === "expired") resetImport();
+      if (x.message === "expired") resetPreview(ui);
     }
   };
 }
-function resetImport() { $("#preview").hidden = true; $("#preview").innerHTML = ""; $("#importStart").hidden = false; }
+function resetPreview(ui) { ui.pv.hidden = true; ui.pv.innerHTML = ""; ui.start.hidden = false; ui.err.hidden = true; }
+
+// ---------- A class's own page: its numbers, its students, and an upload that lands in it ----------
+let viewClass = null;
+function openClassView(name) {
+  if (!classByName.has(name)) return;
+  if ($("#tab-classes").getAttribute("aria-selected") !== "true") $("#tab-classes").click();
+  viewClass = name;
+  resetPreview(classUi);
+  $("#classList").hidden = true; $("#classView").hidden = false;
+  renderClassView();
+  $('[data-panel="classes"]').scrollIntoView({ block: "nearest" });
+}
+function closeClassView() {
+  viewClass = null;
+  resetPreview(classUi);
+  $("#classView").hidden = true; $("#classList").hidden = false;
+}
+function renderClassView() {
+  if (!viewClass) return;
+  const c = classByName.get(viewClass);
+  if (!c) { closeClassView(); return; }
+  const list = students.filter(s => s.class === c.name), n = list.length;
+  const avg = avgPct(regular(list)), ld = list.filter(s => s.learning_difficulty).length;
+  const support = list.filter(s => (pctOf(s) ?? 100) < 60).length, looked = list.filter(s => s.last_lookup).length;
+  $("#cvTitle").textContent = classLabel(c.name);
+  $("#cvSub").textContent = [c.grade === 1 ? "السنة الأولى المشتركة" : c.track, c.year ? `العام الدراسي ${c.year}هـ` : "", schoolInfo.stage].filter(Boolean).join(" · ");
+  $("#cvEdit").textContent = c.grade ? "تعديل الفصل" : "تحديد الصف";
+  $("#cvStats").innerHTML = [
+    ["عدد الطالبات", n, "", ld ? `منهن ${girls(ld)} صعوبات تعلم` : ""],
+    ["متوسط الفصل", avg ?? "—", avg == null ? "" : "%", ld && avg != null ? "بدون طالبات صعوبات التعلم" : ""],
+    ["يحتجن دعم", support, "", "أقل من 60%"],
+    ["استعلمن عن النتيجة", looked, n ? ` من ${n}` : "", ""],
+  ].map(([k, v, u, note]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}<small>${esc(u)}</small></div>${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`).join("");
+  $("#cvDropNote").textContent = `اسحبي الملف هنا أو اضغطي للاختيار. كل طالبات الملف يدخلن ${classLabel(c.name)}، وتراجعين المعاينة قبل الاعتماد.`;
+  $("#cvCount").textContent = n ? `طالبات الفصل: ${girls(n)}` : "";
+  $("#cvRows").innerHTML = list.map(s => studentRow(s, false)).join("");
+  $("#cvRows").closest(".table-wrap").hidden = !n;
+  $("#cvEmpty").hidden = n > 0;
+  $("#cvEmpty").textContent = role === "viewer" ? "ما فيه طالبات في هذا الفصل بعد." : "ما فيه طالبات في هذا الفصل بعد. ارفعي ملف إكسل الفصل من فوق، أو أضيفي طالبة.";
+  $("#cvPdf").disabled = !n;
+  $("#cvExport").hidden = !n;
+  $("#cvExport").href = "/api/admin/export?class=" + encodeURIComponent(c.name);
+}
+$("#cvBack").addEventListener("click", closeClassView);
+$("#cvEdit").addEventListener("click", () => openClassDlg(classByName.get(viewClass)));
+$("#cvAdd").addEventListener("click", () => openEdit(null, viewClass));
+$("#cvPdf").addEventListener("click", () => openClassPdf(viewClass));
 
 // ---------- Backups ----------
 async function loadBackups() {
