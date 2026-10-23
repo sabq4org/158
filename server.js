@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS students (
   learning_style  TEXT,
   email           TEXT
 );
+-- Set by the teacher; such a student stays in her class but out of its average.
+ALTER TABLE students ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN NOT NULL DEFAULT false;
 CREATE TABLE IF NOT EXISTS lookups (
   id          SERIAL PRIMARY KEY,
   national_id TEXT NOT NULL,
@@ -79,15 +81,18 @@ app.post("/api/lookup", async (req, res) => {
   const id = String(req.body?.id || "").replace(/\D/g, "");
   if (id.length < 9 || id.length > 10) return res.status(400).json({ error: "invalid_id" });
   try {
-    const { rows } = await pool.query("SELECT * FROM students WHERE national_id = $1", [id]);
+    const { rows } = await pool.query("SELECT s.*, c.track FROM students s LEFT JOIN classes c ON c.name = s.class WHERE s.national_id = $1", [id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
     const s = rows[0];
     logLookup(s.national_id, "view", req);
-    const [history, classStats] = await Promise.all([grades.history(pool, s.national_id), grades.classStats(pool, s.class)]);
+    // A student with learning difficulties is not compared with her class.
+    const [history, classStats] = await Promise.all([grades.history(pool, s.national_id), s.learning_difficulty ? null : grades.classStats(pool, s.class)]);
     res.json({
       id: s.national_id,
       name: s.name,
       class: s.class,
+      classLabel: grades.Report.classLabel(s.class),
+      track: s.track || "",
       test1: num(s.test1),
       test2: num(s.test2),
       testAvg: num(s.test_avg),

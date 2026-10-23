@@ -39,6 +39,17 @@ const Report = (() => {
 
   const level = p => (p >= 0.9 ? ["good", "ممتاز"] : p >= 0.75 ? ["good", "جيد جداً"] : p >= 0.6 ? ["warn", "جيد"] : ["low", "يحتاج دعم"]);
 
+  // ---------- Class names: "الثاني الثانوي / 1" is the second grade, section 1 ----------
+  const GRADES = ["الأول الثانوي", "الثاني الثانوي", "الثالث الثانوي"];
+  const className = (grade, section) => `${GRADES[grade - 1]} / ${section}`;
+  // Grade and section of a name in that form; null for any other name, such as an old "1".
+  const classParts = name => {
+    const m = /^(.+) \/ (\d{1,2})$/.exec(name || ""), grade = m ? GRADES.indexOf(m[1]) + 1 : 0;
+    return grade ? { grade, section: Number(m[2]) } : null;
+  };
+  const classLabel = name => (!name ? "" : classParts(name) ? name : `الفصل ${name}`);
+  const shortClass = name => { const p = classParts(name); return p ? `${GRADES[p.grade - 1].split(" ")[0]} / ${p.section}` : classLabel(name); };
+
   const STAR = '<svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
   const SPROUT = '<svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V11"/><path d="M12 11C12 6 8 4 3 4c0 5 3 7 9 7z"/><path d="M12 14c0-4 3-6 9-6 0 4-3 6-9 6z"/></svg>';
 
@@ -219,7 +230,7 @@ const Report = (() => {
     <div class="rp-info">
       <dl>
         <dt>اسم الطالبة</dt><dd class="rp-name">${esc(r.name)}</dd>
-        <dt>رقم الهوية</dt><dd class="rp-mono">${esc(r.id)}</dd><dt>الفصل</dt><dd>${esc(r.class || "")}</dd>
+        <dt>رقم الهوية</dt><dd class="rp-mono">${esc(r.id)}</dd><dt>الفصل</dt><dd>${esc(r.classLabel || classLabel(r.class))}${r.track ? `<span class="rp-track">${esc(r.track)}</span>` : ""}</dd>
         <dt>الإيميل الوزاري</dt><dd class="rp-mono rp-wide">${esc(r.email || "")}</dd>
       </dl>
       ${sc.has ? `<canvas class="rp-score" width="340" height="340" data-pct="${sc.pct}" data-sub="${fmt(sc.total)} من ${sc.maxTotal}"></canvas>` : ""}
@@ -242,19 +253,22 @@ const Report = (() => {
   // on one page with the signatures; bigger classes split evenly over pages of at most ROWS_PAGE, signatures on the last.
   const ROWS_ONE = 30, ROWS_PAGE = 34;
   const sheetPages = n => (n <= ROWS_ONE ? 1 : Math.max(2, Math.ceil(n / ROWS_PAGE)));
+  // A student with learning difficulties is marked with an asterisk and left out of the class average.
   function classSheets(cls, list, ctx) {
-    const { max, site } = ctx;
+    const { max, site, track } = ctx;
     const rows = list.map(r => ({ r, sc: scores(r, max) })).sort((a, b) => String(a.r.name).localeCompare(String(b.r.name), "ar"));
-    const graded = rows.filter(x => x.sc.has);
-    const avg = graded.length ? Math.round(graded.reduce((a, x) => a + x.sc.pct, 0) / graded.length) : null;
+    const graded = rows.filter(x => x.sc.has), counted = graded.filter(x => !x.r.learningDifficulty);
+    const avg = counted.length ? Math.round(counted.reduce((a, x) => a + x.sc.pct, 0) / counted.length) : null;
     const count = test => graded.filter(x => test(x.sc.pct)).length;
     const per = Math.max(1, Math.ceil(rows.length / sheetPages(rows.length)));
     const pages = [];
     for (let i = 0; i < rows.length || !pages.length; i += per) pages.push(rows.slice(i, i + per));
-    const title = `كشف درجات الفصل ${cls}`;
+    const title = `كشف درجات ${classLabel(cls)}`, sub = [track, gradeLine(site)].filter(Boolean).join(" · ");
+    const footText = (chunk, p) => [chunk.some(x => x.r.learningDifficulty) ? "* صعوبات تعلم، خارج متوسط الفصل" : "",
+      pages.length > 1 ? `صفحة ${p + 1} من ${pages.length}` : ""].filter(Boolean).join(" · ") || "صادرة من نظام استعلام النتائج";
     return pages.map((chunk, p) => `
 <div class="rp-sheet rp-class">
-  ${head(p ? `${title} (تابع)` : title, gradeLine(site))}
+  ${head(p ? `${title} (تابع)` : title, sub)}
   <div class="rp-body">
     ${p ? "" : `<div class="rp-stats">
       <div><span>عدد الطالبات</span><b>${rows.length}</b></div>
@@ -267,11 +281,11 @@ const Report = (() => {
     <table class="rp-list">
       <colgroup><col style="width:6mm"><col><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:10mm"><col style="width:13mm"><col style="width:12mm"><col style="width:20mm"></colgroup>
       <tr><th>م</th><th class="rp-nm">اسم الطالبة</th><th>الاختبار الأول<small>/ ${max.test}</small></th><th>الاختبار الثاني<small>/ ${max.test}</small></th><th>المتوسط<small>/ ${max.test}</small></th><th>المشاركة<small>/ ${max.participation}</small></th><th>المشاريع<small>/ ${max.projects}</small></th><th>التأخير</th><th>المجموع<small>/ ${rows[0]?.sc.maxTotal ?? ""}</small></th><th>النسبة</th><th>المستوى</th></tr>
-      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}</td><td>${fmt(x.sc.t1)}</td><td>${fmt(x.sc.t2)}</td><td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td><td>${x.sc.late || "—"}</td><td>${fmt(x.sc.total)}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
+      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}${x.r.learningDifficulty ? " *" : ""}</td><td>${fmt(x.sc.t1)}</td><td>${fmt(x.sc.t2)}</td><td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td><td>${x.sc.late || "—"}</td><td>${fmt(x.sc.total)}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
     </table>
   </div>
   ${p === pages.length - 1 ? signs(site) : ""}
-  ${foot(pages.length > 1 ? `صفحة ${p + 1} من ${pages.length}` : "صادرة من نظام استعلام النتائج")}
+  ${foot(footText(chunk, p))}
 </div>`);
   }
 
@@ -330,7 +344,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, scores, classStats, level, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;

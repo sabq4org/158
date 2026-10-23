@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS term_results (
 CREATE INDEX IF NOT EXISTS term_results_national_id ON term_results (national_id);
 -- The semester an archive belongs to.
 ALTER TABLE terms ADD COLUMN IF NOT EXISTS year INT;
-ALTER TABLE terms ADD COLUMN IF NOT EXISTS semester INT;`;
+ALTER TABLE terms ADD COLUMN IF NOT EXISTS semester INT;
+ALTER TABLE term_results ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN;`;
 
 // Archived percentages, oldest term first. Each term keeps the maximum scores it was graded with.
 // With an id: that student's list. Without: { national_id: list } for everyone.
@@ -41,9 +42,10 @@ async function history(pool, nationalId) {
   return nationalId ? out[nationalId] || [] : out;
 }
 
+// The class average leaves out students with learning difficulties.
 async function classStats(pool, cls) {
   if (!cls) return null;
-  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects FROM students WHERE class = $1", [cls]);
+  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects FROM students WHERE class = $1 AND NOT learning_difficulty", [cls]);
   return Report.classStats(rows, maxOf(getSettings()));
 }
 

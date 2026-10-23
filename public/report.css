@@ -24,6 +24,7 @@
 .rpt .rp-info dd.rp-name { font-size: 15pt; font-weight: 700; color: var(--navy); grid-column: span 3; }
 .rpt .rp-info dd.rp-wide { grid-column: span 3; }
 .rpt .rp-info dd.rp-mono { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+.rpt .rp-info .rp-track { display: block; font-size: 8.5pt; font-weight: 500; color: var(--muted); line-height: 1.3; }
 .rpt .rp-score { width: 25mm; height: 25mm; display: block; }
 .rpt h2 { font-size: 12pt; color: var(--navy); font-weight: 700; display: flex; align-items: center; gap: 2.5mm; margin-bottom: 2mm; }
 .rpt h2::before { content: ""; width: 2.2mm; height: 2.2mm; border-radius: 50%; background: var(--mint); }

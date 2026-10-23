@@ -322,7 +322,7 @@ h1 {
       <span class="logo-sep" aria-hidden="true"></span>
       <img class="logo" src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة" width="150" height="131">
     </div>
-    <div class="eyebrow" id="gradeLabel">الصف الثاني</div>
+    <div class="eyebrow" id="gradeLabel">المرحلة الثانوية</div>
     <h1>استعلام نتائج الطالبات</h1>
     <p class="sub">اكتبي رقم الهوية لتظهر بطاقة النتيجة كاملة</p>
   </header>
@@ -356,7 +356,7 @@ document.documentElement.lang = "ar";
 // ===== إعدادات الدرجات =====
 const MAX = { test: 20, participation: 10, projects: 10 };
 // Overwritten from /api/site, which the teacher controls from the panel.
-const SITE = { gradeLabel: "الصف الثاني", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري" };
+const SITE = { gradeLabel: "المرحلة الثانوية", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري" };
 const gradeLine = () => Report.gradeLine(SITE);
 const { fmt, esc, level, praiseFor } = Report;
 
@@ -496,7 +496,7 @@ function render(r) {
       <div>
         <div class="r-label">اسم الطالبة</div>
         <div class="r-name">${esc(name)}</div>
-        <div class="tags"><span class="tag">${esc(SITE.gradeLabel)}${cls ? ` · الفصل ${esc(cls)}` : ""}</span><span class="tag id">${esc(id)}</span></div>
+        <div class="tags"><span class="tag">${cls ? esc(r.classLabel || cls) + (r.track ? ` · ${esc(r.track)}` : "") : esc(SITE.gradeLabel)}</span><span class="tag id">${esc(id)}</span></div>
       </div>
       ${sc.has ? `<div class="ring" role="img" aria-label="المجموع ${sc.pct}%">
         <svg viewBox="0 0 116 116"><circle class="ring-bg" cx="58" cy="58" r="48"/><circle class="ring-fg" id="ringFg" cx="58" cy="58" r="48" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>

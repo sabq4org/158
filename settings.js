@@ -1,6 +1,8 @@
 // Site settings the teacher edits from the panel. One JSON row, cached in memory (single instance).
+const { STAGE } = require("./school");
+
 const DEFAULTS = {
-  grade_label: "الصف الثاني",
+  subject: "رياضيات",
   term_title: "",
   teacher_name: "فائزة محمد جبوع",
   principal_name: "د. حنان المطيري",
@@ -18,20 +20,27 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );`;
 
-let current = { ...DEFAULTS };
+// The stage is fixed and the teacher names her subject; the line on the cards and PDFs is built from both.
+const withLabel = s => ({ ...s, grade_label: [STAGE, s.subject].filter(Boolean).join(" · ") });
+let current = withLabel({ ...DEFAULTS });
 
 async function loadSettings(pool) {
   await pool.query(SCHEMA);
   const { rows } = await pool.query("SELECT value FROM settings WHERE key = 'site'");
-  current = { ...DEFAULTS, ...(rows[0]?.value || {}) };
+  const saved = { ...(rows[0]?.value || {}) };
+  // Before the stage was fixed the subject was typed into the grade label, as in "المرحلة الثانوية - رياضيات".
+  if (saved.subject === undefined && saved.grade_label) saved.subject = saved.grade_label.split(/\s[-–]\s/).slice(1).join(" - ").trim();
+  delete saved.grade_label;
+  current = withLabel({ ...DEFAULTS, ...saved });
   return current;
 }
 
 async function saveSettings(pool, next) {
+  const { grade_label, ...value } = next;
   await pool.query(
     "INSERT INTO settings (key, value) VALUES ('site', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()",
-    [JSON.stringify(next)]);
-  current = { ...DEFAULTS, ...next };
+    [JSON.stringify(value)]);
+  current = withLabel({ ...DEFAULTS, ...value });
   return current;
 }
 

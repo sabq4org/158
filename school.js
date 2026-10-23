@@ -1,12 +1,14 @@
 // The school's calendar and class structure. A school year is named after the Hijri year it starts in:
 // 1448 runs from August 2026 to June 2027, in two semesters. Dates are ISO strings (YYYY-MM-DD) in Riyadh time.
+const { GRADES, className } = require("./public/report.js");
+
 const DAY = 864e5;
 const ORDINALS = ["الأول", "الثاني", "الثالث"];
 
 // Secondary school only. The first grade is the common first year; tracks start in the second.
 const STAGE = "المرحلة الثانوية";
-const GRADES = ["الأول الثانوي", "الثاني الثانوي", "الثالث الثانوي"];
 const TRACKS = ["المسار العام", "علوم الحاسب والهندسة", "الصحة والحياة", "إدارة الأعمال", "الشرعي"];
+const trackFor = (grade, track) => (grade === 1 ? null : TRACKS.includes(track) ? track : TRACKS[0]);
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS school_years (
@@ -109,6 +111,7 @@ function situation(closed = [], date = today(), { empty = false } = {}) {
 // Read from the log, so deleting an archived period later does not reopen its semester; undoing the archive does.
 const closedSemesters = pool => pool.query(`SELECT DISTINCT (details->>'year')::int AS year, (details->>'semester')::int AS semester
   FROM audit_log WHERE action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean AND details ? 'semester'`).then(r => r.rows);
+const currentYear = () => situation()?.year ?? null;
 const now = async pool => {
   const [closed, graded] = await Promise.all([closedSemesters(pool),
     pool.query("SELECT 1 FROM students WHERE coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL LIMIT 1")]);
@@ -144,14 +147,18 @@ async function saveYear(pool, hijri, y) {
   return load(pool);
 }
 
-// ---------- Classes: "الثاني الثانوي / 1" is the second grade, section 1 ----------
-const className = (grade, section) => `${GRADES[grade - 1]} / ${section}`;
+// ---------- Classes (names are built by className in public/report.js) ----------
 const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const GRADE_WORDS = { "أول": 1, "اول": 1, "ثاني": 2, "ثالث": 3 };
 
+// Before a student could be marked, those with learning difficulties were listed as a group of their own,
+// as in "صعوبات التعلم ( 2 - 1 )". Such a name still points at their class, and marks them.
+const LD_GROUP = /صعوبات\s*(?:ال)?تعلم/;
+const isLdGroup = name => LD_GROUP.test(name || "");
+
 // Short forms people write in a sheet: "ثاني ثانوي / 1"، "الأول ثانوي - 2"، "2/1". A bare "1" stays as written.
 function parseClass(text) {
-  const t = toLatin(text).replace(/\s+/g, " ").trim();
+  const t = toLatin(text).replace(LD_GROUP, " ").replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
   let m = t.match(/^(?:ال)?(أول|اول|ثاني|ثالث)(?: (?:ال)?ثانوي(?:ة)?)? ?[/\-–]? ?(\d{1,2})$/);
   if (m) return { grade: GRADE_WORDS[m[1]], section: Number(m[2]) };
   m = t.match(/^([1-3]) ?[/\-–] ?(\d{1,2})$/);
@@ -159,4 +166,4 @@ function parseClass(text) {
   return null;
 }
 
-module.exports = { STAGE, GRADES, TRACKS, ORDINALS, load, getYears, situation, now, today, semesterName, semesterTitle, cleanYear, saveYear, className, parseClass };
+module.exports = { STAGE, GRADES, TRACKS, ORDINALS, trackFor, load, getYears, situation, now, today, currentYear, semesterName, semesterTitle, cleanYear, saveYear, className, parseClass, isLdGroup };

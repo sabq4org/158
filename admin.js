@@ -33,7 +33,14 @@ ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS undone_at TIMESTAMPTZ;
 CREATE TABLE IF NOT EXISTS classes (
   name        TEXT PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);`;
+);
+-- A class is a grade and a section in a school year, with a track from the second grade on. Names it had before
+-- ("1" before it became "الثاني الثانوي / 1") stay as aliases, so old sheets and backups still land in it.
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS year INT;
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS grade INT;
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS section INT;
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS track TEXT;
+ALTER TABLE classes ADD COLUMN IF NOT EXISTS aliases TEXT[] NOT NULL DEFAULT '{}';`;
 
 // Field order shared by the API, Excel export and the import diff.
 const FIELDS = [
@@ -47,12 +54,13 @@ const FIELDS = [
   ["projects", "المشاريع والمهام"],
   ["lateness", "التأخير"],
   ["learning_style", "نمط التعلم"],
+  ["learning_difficulty", "صعوبات التعلم"],
   ["email", "الإيميل الوزاري"],
 ];
 const LABEL = Object.fromEntries(FIELDS);
 const NUMERIC = new Set(["test1", "test2", "test_avg", "participation", "projects", "lateness"]);
 const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "lateness"];
-const TERM_COLS = ["national_id", "name", "class", ...GRADE_COLS, "learning_style"];
+const TERM_COLS = ["national_id", "name", "class", ...GRADE_COLS, "learning_style", "learning_difficulty"];
 const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects, lateness: 365 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 
@@ -68,10 +76,22 @@ const HEADER_MAP = {
   "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects",
   "التأخر": "lateness", "التأخير": "lateness",
   "نمط التعلم": "learning_style",
+  "صعوبات التعلم": "learning_difficulty", "صعوبات تعلم": "learning_difficulty",
   "الايميل الوزاري": "email", "الإيميل الوزاري": "email",
 };
 
 const norm = s => String(s ?? "").replace(/\s+/g, " ").trim();
+
+// The learning difficulty flag: a checkbox from the panel, "نعم" or "لا" in a sheet. Empty means not given,
+// which keeps what is saved; anything else is undefined (an error).
+const YES = ["نعم", "✓", "✔", "1", "true"], NO = ["لا", "✗", "0", "false"];
+function flagOf(v) {
+  if (typeof v === "boolean") return v;
+  const t = norm(v).toLowerCase();
+  return !t ? null : YES.includes(t) ? true : NO.includes(t) ? false : undefined;
+}
+// Column values for a write. A flag never stored (an old backup or log entry) is false.
+const valuesOf = s => FIELDS.map(([c]) => (c === "learning_difficulty" ? !!s[c] : s[c] ?? null));
 
 function cellText(v) {
   if (v == null) return "";
@@ -105,6 +125,8 @@ function cleanStudent(raw, max = maxOf(getSettings())) {
   if (s.test1 != null && s.test2 != null) s.test_avg = Math.round(((s.test1 + s.test2) / 2) * 100) / 100;
   s.learning_style = norm(raw.learning_style) || null;
   if (s.learning_style && !STYLES.includes(s.learning_style)) errors.push(`نمط التعلم "${s.learning_style}" غير معروف`);
+  s.learning_difficulty = flagOf(raw.learning_difficulty);
+  if (s.learning_difficulty === undefined) { errors.push(`${LABEL.learning_difficulty}: اكتبي "نعم" أو "لا" أو اتركيها فاضية`); s.learning_difficulty = null; }
   s.email = norm(raw.email) || null;
   return { student: s, errors };
 }
@@ -152,6 +174,9 @@ async function readStudentsFromExcel(file) {
   }
   return null;
 }
+
+// Students listed by grade and section; classes without a grade after them.
+const CLASS_ORDER = "c.grade NULLS LAST, c.section, s.class NULLS LAST";
 
 module.exports = function mountAdmin(app, pool) {
   const PASSWORD = process.env.ADMIN_PASSWORD || "";
@@ -236,7 +261,8 @@ module.exports = function mountAdmin(app, pool) {
 
   const calendarInfo = async () => ({ years: school.getYears(), now: await school.now(pool) });
 
-  router.get("/me", async (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings(), calendar: await calendarInfo() }));
+  router.get("/me", async (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings(),
+    calendar: await calendarInfo(), school: { stage: school.STAGE, tracks: school.TRACKS } }));
 
   // ---------- School calendar ----------
   router.get("/calendar", async (req, res) => res.json(await calendarInfo()));
@@ -274,7 +300,7 @@ module.exports = function mountAdmin(app, pool) {
   router.put("/settings", async (req, res) => {
     const b = req.body || {}, errors = [];
     const next = {};
-    for (const k of ["grade_label", "term_title", "teacher_name", "principal_name", "closed_message"]) {
+    for (const k of ["subject", "term_title", "teacher_name", "principal_name", "closed_message"]) {
       next[k] = norm(b[k] ?? DEFAULTS[k]).slice(0, 200);
     }
     if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
@@ -331,13 +357,13 @@ module.exports = function mountAdmin(app, pool) {
         const next = { ...now };
         for (const c of revert) next[c.field] = c.from;
         next.test_avg = next.test1 != null && next.test2 != null ? Math.round(((Number(next.test1) + Number(next.test2)) / 2) * 100) / 100 : next.test_avg;
-        await client.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...cols.map(c => next[c]), e.national_id]);
+        await client.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...valuesOf(next), e.national_id]);
       } else if (e.action === "add") {
         if (cur) await client.query("DELETE FROM students WHERE national_id = $1", [e.national_id]);
       } else if (e.action === "delete") {
         if (cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية حالياً"] }); }
-        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, cols.map(c => e.details?.[c] ?? null));
-        if (e.details?.class) await client.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [e.details.class]);
+        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(e.details || {}));
+        await syncClasses(client);
       } else if (e.action === "term_delete") {
         const d = e.details || {};
         if ((await client.query("SELECT 1 FROM terms WHERE title = $1", [d.title])).rowCount) {
@@ -382,7 +408,7 @@ module.exports = function mountAdmin(app, pool) {
   router.get("/students", async (req, res) => {
     const { rows } = await pool.query(`SELECT s.*, l.last_lookup, l.lookup_count FROM students s
       LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups WHERE ${SINCE} GROUP BY national_id) l
-      ON l.national_id = s.national_id ORDER BY s.class NULLS LAST, s.name`);
+      ON l.national_id = s.national_id LEFT JOIN classes c ON c.name = s.class ORDER BY ${CLASS_ORDER}, s.name`);
     res.json(rows.map(r => ({ ...fromRow(r), last_lookup: r.last_lookup, lookup_count: r.lookup_count || 0 })));
   });
 
@@ -396,9 +422,10 @@ module.exports = function mountAdmin(app, pool) {
   router.post("/students", async (req, res) => {
     const { student, errors } = cleanStudent(req.body || {});
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
+    student.learning_difficulty ??= false;
     const cols = FIELDS.map(f => f[0]);
     try {
-      await pool.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, cols.map(c => student[c]));
+      await pool.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(student));
     } catch (err) {
       if (err.code === "23505") return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية"] });
       throw err;
@@ -412,9 +439,10 @@ module.exports = function mountAdmin(app, pool) {
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
     const { rows } = await pool.query("SELECT * FROM students WHERE national_id = $1", [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
+    student.learning_difficulty ??= rows[0].learning_difficulty;
     const cols = FIELDS.map(f => f[0]);
     try {
-      await pool.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...cols.map(c => student[c]), req.params.id]);
+      await pool.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...valuesOf(student), req.params.id]);
     } catch (err) {
       if (err.code === "23505") return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية"] });
       throw err;
@@ -436,7 +464,7 @@ module.exports = function mountAdmin(app, pool) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("الطالبات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
     ws.columns = fields.map(([key, header]) => ({ key, header, width: key === "name" ? 30 : key === "email" ? 28 : key === "national_id" ? 14 : 13 }));
-    rows.forEach(r => ws.addRow(fromRow(r)));
+    rows.forEach(r => { const o = fromRow(r); o.learning_difficulty = o.learning_difficulty ? "نعم" : ""; ws.addRow(o); });
     const head = ws.getRow(1);
     head.font = { bold: true, color: { argb: "FFFFFFFF" } };
     head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B2765" } };
@@ -451,7 +479,7 @@ module.exports = function mountAdmin(app, pool) {
   }
 
   router.get("/export", async (req, res) => {
-    const { rows } = await pool.query("SELECT * FROM students ORDER BY class NULLS LAST, name");
+    const { rows } = await pool.query(`SELECT s.* FROM students s LEFT JOIN classes c ON c.name = s.class ORDER BY ${CLASS_ORDER}, s.name`);
     await sendExcel(res, rows, FIELDS, "نتائج الطالبات");
   });
 
@@ -459,17 +487,18 @@ module.exports = function mountAdmin(app, pool) {
   const insertTermResults = (q, termId, list) => q.query(
     `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")})
      SELECT $1, ${TERM_COLS.join(", ")} FROM jsonb_to_recordset($2) AS x(national_id TEXT, name TEXT, class TEXT,
-       test1 NUMERIC, test2 NUMERIC, test_avg NUMERIC, participation NUMERIC, projects NUMERIC, lateness NUMERIC, learning_style TEXT)`,
+       test1 NUMERIC, test2 NUMERIC, test_avg NUMERIC, participation NUMERIC, projects NUMERIC, lateness NUMERIC, learning_style TEXT, learning_difficulty BOOLEAN)`,
     [termId, JSON.stringify(list)]);
   const termId = req => (/^\d+$/.test(req.params.id) ? Number(req.params.id) : null);
   const titleTaken = (title, except = 0) => pool.query("SELECT 1 FROM terms WHERE title = $1 AND id <> $2", [title, except]).then(r => r.rowCount > 0);
 
   router.get("/terms", async (req, res) => {
     const terms = (await pool.query("SELECT id, title, max, created_at, year, semester FROM terms ORDER BY created_at, id")).rows;
-    const results = (await pool.query("SELECT term_id, test1, test2, test_avg, participation, projects FROM term_results")).rows;
+    const results = (await pool.query("SELECT term_id, test1, test2, test_avg, participation, projects, learning_difficulty FROM term_results")).rows;
     res.json(terms.map(t => {
       const mine = results.filter(r => r.term_id === t.id);
-      const pcts = mine.map(r => grades.Report.scores(r, t.max).pct).filter(p => p != null);
+      // Like the class average, the term average leaves out students with learning difficulties.
+      const pcts = mine.filter(r => !r.learning_difficulty).map(r => grades.Report.scores(r, t.max).pct).filter(p => p != null);
       return { ...t, count: mine.length, avg: pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null };
     }));
   });
@@ -570,16 +599,19 @@ module.exports = function mountAdmin(app, pool) {
     if (!parsed) return res.status(400).json({ error: "no_table" });
 
     const { rows } = await pool.query("SELECT * FROM students");
+    const known = (await pool.query("SELECT name, aliases FROM classes")).rows;
     const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
     const seen = new Set();
     const added = [], changed = [], errors = [], unchanged = [];
     for (const { line, raw } of parsed) {
       const { student, errors: errs } = cleanStudent(raw);
+      if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
+      student.class = resolveClass(student.class, known);
       if (seen.has(student.national_id)) errs.push("رقم الهوية مكرر في الملف");
       if (errs.length) { errors.push({ line, name: student.name || norm(raw.name), id: student.national_id, problems: errs }); continue; }
       seen.add(student.national_id);
       const before = current.get(student.national_id);
-      if (!before) { added.push(student); continue; }
+      if (!before) { student.learning_difficulty ??= false; added.push(student); continue; }
       // An empty cell in the file never erases a value already saved (e.g. a style set from the panel).
       for (const [f] of FIELDS) if (student[f] == null && before[f] != null) student[f] = before[f];
       const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
@@ -607,8 +639,9 @@ module.exports = function mountAdmin(app, pool) {
         await client.query(
           `INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})
            ON CONFLICT (national_id) DO UPDATE SET ${cols.slice(1).map(c => `${c} = EXCLUDED.${c}`).join(", ")}`,
-          cols.map(c => s[c]));
+          valuesOf(s));
       }
+      await syncClasses(client);
       await client.query("INSERT INTO audit_log (action, details) VALUES ('import', $1)", [JSON.stringify({ count: p.upserts.length })]);
       await client.query("COMMIT");
     } catch (err) {
@@ -620,46 +653,109 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true, count: p.upserts.length });
   });
 
-  // Classes can exist before any student is put in them; any class a student already has is listed too.
-  const syncClasses = q => q.query("INSERT INTO classes (name) SELECT DISTINCT class FROM students WHERE class IS NOT NULL ON CONFLICT DO NOTHING");
+  // ---------- Classes ----------
+  // A student's class always names a class on the list. An old name joins the class that kept it as an alias,
+  // a short form ("2/1") becomes the full name, and any other name is listed as written, without a grade.
+  const resolveClass = (name, known) => {
+    if (!name || known.some(c => c.name === name)) return name;
+    const owner = known.find(c => c.aliases.includes(name));
+    if (owner) return owner.name;
+    const p = school.parseClass(name);
+    return p ? school.className(p.grade, p.section) : name;
+  };
+  async function syncClasses(q) {
+    const known = (await q.query("SELECT name, aliases FROM classes")).rows;
+    const { rows } = await q.query("SELECT DISTINCT class FROM students WHERE class IS NOT NULL AND class NOT IN (SELECT name FROM classes)");
+    for (const { class: name } of rows) {
+      const to = resolveClass(name, known);
+      if (!known.some(c => c.name === to)) {
+        const p = grades.Report.classParts(to);
+        await q.query("INSERT INTO classes (name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+          [to, p ? school.currentYear() : null, p?.grade ?? null, p?.section ?? null, p ? school.trackFor(p.grade) : null]);
+        known.push({ name: to, aliases: [] });
+      }
+      if (to !== name) await q.query(`UPDATE students SET class = $1${school.isLdGroup(name) ? ", learning_difficulty = true" : ""} WHERE class = $2`, [to, name]);
+    }
+  }
+  // A class taken by name is nobody's old name any more.
+  const freeName = (q, name) => q.query("UPDATE classes SET aliases = array_remove(aliases, $1) WHERE name <> $1", [name]);
 
-  router.get("/classes", async (req, res) => {
-    await syncClasses(pool);
-    const { rows } = await pool.query(`SELECT c.name, count(s.national_id)::int AS count FROM classes c
-      LEFT JOIN students s ON s.class = c.name GROUP BY c.name ORDER BY c.name`);
-    res.json(rows);
-  });
+  const classOf = body => {
+    const grade = Number(body?.grade), section = Number(body?.section), errors = [];
+    if (![1, 2, 3].includes(grade)) errors.push("اختاري الصف");
+    if (!Number.isInteger(section) || section < 1 || section > 99) errors.push("رقم الفصل لازم يكون من 1 إلى 99");
+    const track = grade === 1 ? null : norm(body?.track);
+    if (grade > 1 && !school.TRACKS.includes(track)) errors.push("اختاري المسار");
+    return { grade, section, track, name: errors.length ? null : school.className(grade, section), errors };
+  };
 
-  router.post("/classes", async (req, res) => {
-    const name = norm(req.body?.name);
-    if (!name || name.length > 40) return res.status(400).json({ error: "invalid", errors: ["اكتبي اسم الفصل"] });
-    const { rowCount } = await pool.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [name]);
-    if (!rowCount) return res.status(409).json({ error: "exists", errors: ["الفصل موجود"] });
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('class_add', $1)", [JSON.stringify({ name })]);
-    res.json({ name, count: 0 });
-  });
-
-  // Renaming onto an existing class merges the two.
-  router.put("/classes/:name", async (req, res) => {
-    const to = norm(req.body?.name), from = req.params.name;
-    if (!to || to.length > 40) return res.status(400).json({ error: "invalid", errors: ["اكتبي اسم الفصل"] });
+  async function inTransaction(fn) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await syncClasses(client);
-      const { rowCount } = await client.query("DELETE FROM classes WHERE name = $1", [from]);
-      if (!rowCount) { await client.query("ROLLBACK"); return res.status(404).json({ error: "not_found" }); }
-      await client.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [to]);
-      const moved = await client.query("UPDATE students SET class = $1 WHERE class = $2", [to, from]);
-      await client.query("INSERT INTO audit_log (action, details) VALUES ('class_rename', $1)", [JSON.stringify({ from, to, students: moved.rowCount })]);
-      await client.query("COMMIT");
-      res.json({ ok: true, moved: moved.rowCount });
+      const out = await fn(client);
+      await client.query(out?.rollback ? "ROLLBACK" : "COMMIT");
+      return out;
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;
     } finally {
       client.release();
     }
+  }
+
+  router.get("/classes", async (req, res) => {
+    await syncClasses(pool);
+    const { rows } = await pool.query(`SELECT c.name, c.year, c.grade, c.section, c.track, c.aliases, count(s.national_id)::int AS count
+      FROM classes c LEFT JOIN students s ON s.class = c.name GROUP BY c.name ORDER BY c.grade NULLS LAST, c.section, c.name`);
+    res.json(rows);
+  });
+
+  router.post("/classes", async (req, res) => {
+    const c = classOf(req.body);
+    if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
+    const out = await inTransaction(async q => {
+      const { rowCount } = await q.query("INSERT INTO classes (name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+        [c.name, school.currentYear(), c.grade, c.section, c.track]);
+      if (!rowCount) return { rollback: true };
+      await freeName(q, c.name);
+      await q.query("INSERT INTO audit_log (action, details) VALUES ('class_add', $1)", [JSON.stringify({ name: c.name, track: c.track })]);
+    });
+    if (out?.rollback) return res.status(409).json({ error: "exists", errors: [`${c.name} موجود`] });
+    res.json({ name: c.name, count: 0 });
+  });
+
+  // A new grade or section renames the class, keeping an unstructured old name ("1") as an alias.
+  // Onto a class that exists, it merges the two. The same grade and section only changes the track.
+  router.put("/classes/:name", async (req, res) => {
+    const from = req.params.name, c = classOf(req.body);
+    if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
+    const out = await inTransaction(async q => {
+      await syncClasses(q);
+      const old = (await q.query("SELECT * FROM classes WHERE name = $1 FOR UPDATE", [from])).rows[0];
+      if (!old) return { rollback: true };
+      if (c.name === from) {
+        if (old.track !== c.track) {
+          await q.query("UPDATE classes SET track = $2 WHERE name = $1", [from, c.track]);
+          await q.query("INSERT INTO audit_log (action, details) VALUES ('class_track', $1)", [JSON.stringify({ name: from, from: old.track, to: c.track })]);
+        }
+        return { moved: 0, name: from };
+      }
+      const target = (await q.query("SELECT track FROM classes WHERE name = $1 FOR UPDATE", [c.name])).rows[0];
+      const aliases = [...old.aliases, ...(grades.Report.classParts(from) ? [] : [from])];
+      await q.query("DELETE FROM classes WHERE name = $1", [from]);
+      if (target) await q.query("UPDATE classes SET aliases = ARRAY(SELECT DISTINCT unnest(aliases || $2::text[])) WHERE name = $1", [c.name, aliases]);
+      else await q.query("INSERT INTO classes (name, year, grade, section, track, aliases, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        [c.name, old.year ?? school.currentYear(), c.grade, c.section, c.track, aliases, old.created_at]);
+      await freeName(q, c.name);
+      const ld = school.isLdGroup(from);
+      const moved = (await q.query(`UPDATE students SET class = $1${ld ? ", learning_difficulty = true" : ""} WHERE class = $2`, [c.name, from])).rowCount;
+      await q.query("INSERT INTO audit_log (action, details) VALUES ('class_rename', $1)",
+        [JSON.stringify({ from, to: c.name, students: moved, merged: !!target, track: target ? target.track : c.track, learning_difficulty: ld && moved > 0 })]);
+      return { moved, name: c.name, merged: !!target };
+    });
+    if (out?.rollback) return res.status(404).json({ error: "not_found" });
+    res.json({ ok: true, ...out });
   });
 
   router.delete("/classes/:name", async (req, res) => {
@@ -686,8 +782,9 @@ module.exports = function mountAdmin(app, pool) {
       await client.query("DELETE FROM students");
       const cols = FIELDS.map(f => f[0]);
       for (const s of b.rows[0].data) {
-        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, cols.map(c => s[c] ?? null));
+        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(s));
       }
+      await syncClasses(client);
       await client.query("INSERT INTO audit_log (action, details) VALUES ('restore', $1)", [JSON.stringify({ backup: Number(req.params.id) })]);
       await client.query("COMMIT");
       res.json({ ok: true, count: b.rows[0].data.length });

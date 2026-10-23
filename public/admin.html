@@ -261,6 +261,14 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 .cal-row .btn { margin-top: 22px; }
 .hj { display: block; font-size: 12px; color: var(--muted); min-height: 1.5em; font-weight: 400; }
 .sub { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+/* Classes grouped by grade. */
+tr.grp td { background: var(--surface-2); padding-block: 10px; }
+.grp-in { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; }
+.grp-in b { font-size: 15px; }
+.grp-in .btn { margin-inline-start: auto; }
+td.none-row { color: var(--muted); font-size: 13.5px; padding-inline-start: 20px; }
+.pill.ld { color: var(--accent); background: var(--accent-soft); margin-inline-start: 6px; vertical-align: 1px; }
+.warn-t { color: var(--warn); font-weight: 600; }
 .set h4 { margin: 14px 0 8px; font-size: 14px; }
 @media (max-width: 760px) {
   /* A break takes two lines on a phone: its name and the delete button, then the two dates. */
@@ -340,6 +348,9 @@ body.viewer [data-admin] { display: none !important; }
           <div class="names" id="supportNames"></div>
           <h4 id="noStyleHead">بدون نمط تعلم</h4>
           <div class="names" id="noStyleNames"></div>
+          <h4 id="ldHead">صعوبات التعلم</h4>
+          <div class="names" id="ldNames"></div>
+          <p class="note" style="margin:6px 0 0">طالبات صعوبات التعلم يبقين في فصولهن، ودرجاتهن ما تدخل في المتوسطات، وما تظهر لهن مقارنة بمتوسط الفصل.</p>
         </div>
         <div class="card viz">
           <div class="viz-head"><h3>الطالبات حسب نمط التعلم</h3><button class="btn sm quiet" type="button" data-view="st" aria-pressed="false">جدول</button></div>
@@ -357,6 +368,7 @@ body.viewer [data-admin] { display: none !important; }
           <option value="">كل المستويات</option>
           <option value="support">يحتجن دعم</option>
           <option value="nostyle">بدون نمط تعلم</option>
+          <option value="ld">صعوبات التعلم</option>
           <option value="looked">استعلمت</option>
           <option value="notlooked">لم تستعلم بعد</option>
         </select>
@@ -379,18 +391,14 @@ body.viewer [data-admin] { display: none !important; }
 
     <!-- Classes -->
     <div class="card" data-panel="classes" style="margin-top:16px" hidden>
-      <form class="toolbar" id="classForm" data-admin>
-        <input class="in grow" id="newClass" maxlength="40" placeholder="اسم الفصل الجديد، مثلاً 3 أو ثاني/4" aria-label="اسم الفصل الجديد">
-        <button class="btn" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة فصل</button>
-      </form>
-      <p class="msg err" id="classErr" hidden style="margin:0 16px 12px"></p>
+      <div class="toolbar"><div class="grow note" id="classYear"></div></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>الفصل</th><th class="num">عدد الطالبات</th><th class="num">متوسط الفصل</th><th></th></tr></thead>
+          <thead><tr><th>الفصل</th><th>المسار</th><th class="num">عدد الطالبات</th><th class="num">متوسط الفصل</th><th></th></tr></thead>
           <tbody id="classRows"></tbody>
         </table>
       </div>
-      <div class="help" style="padding-block:12px 16px">"تقرير PDF" يطلع كشف درجات الفصل، ومعه بطاقة لكل طالبة إذا تبين تطبعينها. <span data-admin>لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. إعادة تسمية فصل باسم فصل موجود تدمجهم. الحذف متاح للفصل الفاضي فقط.</span></div>
+      <div class="help" style="padding-block:12px 16px">"تقرير PDF" يطلع كشف درجات الفصل، ومعه بطاقة لكل طالبة إذا تبين تطبعينها. <span data-admin>لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. تغيير صف فصل أو رقمه إلى فصل موجود يدمجهم. الحذف متاح للفصل الفاضي فقط.</span></div>
     </div>
 
     <!-- Terms -->
@@ -464,7 +472,7 @@ body.viewer [data-admin] { display: none !important; }
       <fieldset>
         <legend>البيانات اللي تظهر في البطاقة والـ PDF</legend>
         <div class="grid2">
-          <label class="f">الصف<input class="in" name="grade_label" maxlength="60" placeholder="الصف الثاني"></label>
+          <label class="f">المادة<input class="in" name="subject" maxlength="40" placeholder="رياضيات"><span class="hj">تظهر بعد "المرحلة الثانوية" في صفحة الاستعلام والتقارير.</span></label>
           <label class="f">عنوان الفترة<input class="in" name="term_title" id="s_term" maxlength="80"><span class="hj" id="termAuto"></span></label>
           <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
           <label class="f">اسم المديرة<input class="in" name="principal_name" maxlength="80"></label>
@@ -519,6 +527,7 @@ body.viewer [data-admin] { display: none !important; }
       <label class="f" for="e_proj"><span>المشاريع والمهام (من <span data-max="projects">10</span>)</span><input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
       <label class="f" for="e_late">التأخير (عدد المرات)<input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
       <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
+      <label class="switch full" for="e_ld"><input type="checkbox" id="e_ld" name="learning_difficulty"> صعوبات التعلم <span class="note" style="font-weight:400">تبقى في فصلها، وما تدخل درجاتها في متوسطه</span></label>
       <label class="f full" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
     </div></fieldset>
     <p class="note" id="avgNote"></p>
@@ -543,14 +552,20 @@ body.viewer [data-admin] { display: none !important; }
   </div>
 </dialog>
 
-<!-- Rename class dialog -->
+<!-- Add or edit a class: grade, section and track -->
 <dialog id="classDlg">
   <form class="dlg" id="classDlgForm" method="dialog" novalidate>
-    <h2>إعادة تسمية الفصل</h2>
-    <label class="f" for="c_name">الاسم الجديد<input class="in" id="c_name" maxlength="40" required></label>
+    <h2 id="classDlgTitle"></h2>
+    <p class="note" id="classDlgYear" style="margin:0"></p>
+    <div class="grid2">
+      <label class="f" for="c_grade">الصف<select class="in" id="c_grade"></select></label>
+      <label class="f" for="c_section">رقم الفصل<input class="in ltr" id="c_section" inputmode="numeric" maxlength="2" autocomplete="off"></label>
+      <label class="f full" for="c_track" id="c_trackWrap">المسار<select class="in" id="c_track"></select></label>
+    </div>
+    <p class="hist" id="classDlgName" style="margin:0"></p>
     <p class="msg err" id="classDlgErr" hidden></p>
     <div class="row">
-      <button class="btn" type="submit">حفظ</button>
+      <button class="btn" type="submit" id="classDlgSave">حفظ</button>
       <button class="btn quiet" type="button" data-close>إلغاء</button>
     </div>
   </form>
@@ -623,6 +638,13 @@ let role = "admin";
 let terms = [];
 let historyCache = null;
 let cal = null;
+let schoolInfo = { stage: "المرحلة الثانوية", tracks: [] };
+let classByName = new Map();
+const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+const classLabel = n => Report.classLabel(n), shortClass = n => Report.shortClass(n);
+// Averages leave out students with learning difficulties; counts and lists keep them.
+const regular = list => list.filter(s => !s.learning_difficulty);
+const avgPct = list => { const p = list.map(pctOf).filter(x => x != null); return p.length ? Math.round(p.reduce((a, b) => a + b, 0) / p.length) : null; };
 
 async function api(path, opts = {}) {
   const res = await fetch("/api/admin" + path, {
@@ -665,6 +687,7 @@ async function showApp(me) {
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : "لوحة تحكم المعلمة";
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   cal = me.calendar || null;
+  if (me.school) schoolInfo = me.school;
   applySettings(me.settings);
   await loadStudents();
   renderCalendarForm();
@@ -700,37 +723,49 @@ const levelPill = p => p == null ? '<span class="pill none">—</span>'
 async function loadStudents() {
   // The calendar comes along: archiving, clearing or importing grades can move the open semester.
   [students, classes, cal] = await Promise.all([api("/students"), api("/classes"), api("/calendar").catch(() => cal)]);
-  const names = classes.map(c => c.name);
+  classByName = new Map(classes.map(c => [c.name, c]));
   const sel = $("#classFilter"), cur = sel.value;
-  sel.innerHTML = '<option value="">كل الفصول</option>' + names.map(c => `<option value="${esc(c)}">الفصل ${esc(c)}</option>`).join("");
-  sel.value = names.includes(cur) ? cur : "";
-  $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + names.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
+  sel.value = classByName.has(cur) ? cur : "";
+  $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + classOptions(true);
   renderStats(); renderRows(); renderClasses(); renderOverview(); renderCalendar();
+}
+
+// Classes for a select, grouped by grade; classes without a grade come last.
+function classOptions(withTrack) {
+  const groups = [...Report.GRADES.map((g, i) => [g, classes.filter(c => c.grade === i + 1)]), ["فصول بدون صف", classes.filter(c => !c.grade)]];
+  return groups.filter(([, list]) => list.length).map(([g, list]) => `<optgroup label="${esc(g)}">${list.map(c =>
+    `<option value="${esc(c.name)}">${esc(classLabel(c.name))}${withTrack && c.track ? ` · ${esc(c.track)}` : ""}</option>`).join("")}</optgroup>`).join("");
 }
 
 function renderStats() {
   const n = students.length;
   const pcts = students.map(pctOf).filter(p => p != null);
-  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+  const avg = avgPct(regular(students));
   const support = pcts.filter(p => p < 60).length;
   const noStyle = students.filter(s => !s.learning_style).length;
   $("#stats").innerHTML = [
     ["عدد الطالبات", n, ""],
-    ["متوسط الصف", avg ?? "—", avg == null ? "" : "%"],
+    ["المتوسط العام", avg ?? "—", avg == null ? "" : "%"],
     ["يحتجن دعم (أقل من 60%)", support, ""],
     ["بدون نمط تعلم", noStyle, ""],
   ].map(([k, v, u]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div></div>`).join("");
 }
 
+const LEVEL_FILTERS = {
+  support: s => (pctOf(s) ?? 100) < 60, nostyle: s => !s.learning_style, ld: s => s.learning_difficulty,
+  looked: s => s.last_lookup, notlooked: s => !s.last_lookup,
+};
 function renderRows() {
   const q = $("#search").value.trim();
   const cls = $("#classFilter").value, lvl = $("#levelFilter").value;
   const list = students.filter(s =>
     (!q || s.name.includes(q) || s.national_id.includes(q)) &&
     (!cls || s.class === cls) &&
-    (!lvl || (lvl === "support" ? (pctOf(s) ?? 100) < 60 : lvl === "looked" ? s.last_lookup : lvl === "notlooked" ? !s.last_lookup : !s.learning_style)));
+    (!lvl || LEVEL_FILTERS[lvl](s)));
   $("#rows").innerHTML = list.map(s => `<tr>
-    <td class="name">${esc(s.name)}</td><td class="ltr">${esc(s.national_id)}</td><td class="num">${esc(s.class ?? "—")}</td>
+    <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
+    <td class="num">${s.class ? esc(shortClass(s.class)) : "—"}</td>
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
     <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
     <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
@@ -756,7 +791,7 @@ function openEdit(s) {
   $("#editClose").textContent = viewer ? "إغلاق" : "إلغاء";
   showHistory(s);
   const f = $("#editForm");
-  for (const el of f.elements) if (el.name) el.value = s?.[el.name] ?? "";
+  for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s?.[el.name]) : (el.value = s?.[el.name] ?? "");
   if (!s) $("#e_class").value = $("#classFilter").value;
   $("#editErr").hidden = true;
   updateAvg();
@@ -795,7 +830,7 @@ document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener
 
 $("#editForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const body = Object.fromEntries(new FormData($("#editForm")));
+  const body = { ...Object.fromEntries(new FormData($("#editForm"))), learning_difficulty: $("#e_ld").checked };
   const btn = $("#saveBtn"); btn.disabled = true;
   try {
     if (editing) await api("/students/" + encodeURIComponent(editing.national_id), { method: "PUT", body });
@@ -883,7 +918,7 @@ const weeksText = n => (n === 1 ? "أسبوع واحد" : n === 2 ? "أسبوع�
 const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects].some(v => v != null);
 
 function renderWho() {
-  $("#whoLine").textContent = [settings?.teacher_name, settings?.grade_label, termTitle()].filter(Boolean).join(" · ");
+  $("#whoLine").textContent = [settings?.teacher_name, settings?.subject, termTitle()].filter(Boolean).join(" · ");
   const auto = cal?.now?.current.title || "";
   $("#s_term").placeholder = auto;
   $("#termAuto").textContent = auto ? `اتركيه فاضي ويتسمّى تلقائياً: ${auto}` : "";
@@ -1033,12 +1068,13 @@ function renderOverview() {
   if (!settings) return;
   tips.clear();
   const avgOf = vals => { const v = vals.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const counted = regular(students);
   const items = [
-    ["الاختبارات", avgOf(students.map(s => s.test_avg)), MAX.test],
-    ["المشاركة", avgOf(students.map(s => s.participation)), MAX.participation],
-    ["المشاريع والمهام", avgOf(students.map(s => s.projects)), MAX.projects],
+    ["الاختبارات", avgOf(counted.map(s => s.test_avg)), MAX.test],
+    ["المشاركة", avgOf(counted.map(s => s.participation)), MAX.participation],
+    ["المشاريع والمهام", avgOf(counted.map(s => s.projects)), MAX.projects],
   ];
-  const pcts = students.map(pctOf).filter(p => p != null);
+  const pcts = counted.map(pctOf).filter(p => p != null);
   $("#itemBars").innerHTML = items.map(([k, v, m]) => {
     const p = v == null ? 0 : Math.round((v / m) * 100);
     return `<div class="bar-row"><span>${k}</span><div class="bar"><i style="width:${p}%"></i></div><span class="v">${v == null ? "—" : `${fmt(v)}/${m}`}</span></div>`;
@@ -1050,12 +1086,15 @@ function renderOverview() {
   const noStyle = students.filter(s => !s.learning_style);
   $("#noStyleHead").textContent = noStyle.length ? `بدون نمط تعلم (${noStyle.length})` : "بدون نمط تعلم";
   $("#noStyleNames").innerHTML = noStyle.length ? chips(noStyle) : '<span class="none">كل الطالبات محدد لهن نمط</span>';
+  const ld = students.filter(s => s.learning_difficulty);
+  $("#ldHead").textContent = ld.length ? `صعوبات التعلم (${ld.length})` : "صعوبات التعلم";
+  $("#ldNames").innerHTML = chips(ld);
   requestAnimationFrame(fitLabels);
 }
 
 // 100% stacked bar per class: how many students sit at each level.
 function renderLevelChart() {
-  const groups = [["كل الفصول", students], ...classes.map(c => [`الفصل ${c.name}`, students.filter(s => s.class === c.name)])];
+  const groups = [["كل الفصول", students], ...classes.map(c => [shortClass(c.name), students.filter(s => s.class === c.name)])];
   if (students.some(s => !s.class)) groups.push(["بدون فصل", students.filter(s => !s.class)]);
   const rows = groups.filter(([, list]) => list.length).map(([label, list]) => {
     const p = list.map(pctOf);
@@ -1082,14 +1121,14 @@ function renderLevelChart() {
 function renderStyleChart() {
   const rows = [...STYLE_KEYS.map(k => ({ k, list: students.filter(s => s.learning_style === k) })), { k: "لم يُحدَّد", list: students.filter(s => !s.learning_style), none: true }];
   const top = Math.max(1, ...rows.map(r => r.list.length));
-  const byClass = list => classes.map(c => ({ text: `الفصل ${c.name}: ${list.filter(s => s.class === c.name).length}` }));
+  const byClass = list => classes.map(c => ({ text: `${shortClass(c.name)}: ${list.filter(s => s.class === c.name).length}` }));
   $("#stChart").innerHTML = rows.map(r => `<div class="hbar-row" tabindex="0" role="img" aria-label="${r.k}: ${girls(r.list.length)}"
       ${tipFor([{ text: girls(r.list.length), key: r.none ? "var(--viz-muted)" : "var(--series-1)" }, { text: `${r.k} · ${share(r.list.length, students.length)}% من الطالبات` }, ...byClass(r.list)])}>
       <span class="hbar-label">${r.k}</span>
       <span class="hbar"><i class="${r.none ? "none" : ""}" style="width:${(r.list.length / top) * 100}%"></i></span>
       <span class="hbar-v">${r.list.length}</span>
     </div>`).join("");
-  $("#stTable").innerHTML = `<table class="viz-table"><thead><tr><th>نمط التعلم</th>${classes.map(c => `<th>الفصل ${esc(c.name)}</th>`).join("")}<th>المجموع</th></tr></thead><tbody>
+  $("#stTable").innerHTML = `<table class="viz-table"><thead><tr><th>نمط التعلم</th>${classes.map(c => `<th>${esc(shortClass(c.name))}</th>`).join("")}<th>المجموع</th></tr></thead><tbody>
     ${rows.map(r => `<tr><td>${r.k}</td>${classes.map(c => `<td>${r.list.filter(s => s.class === c.name).length}</td>`).join("")}<td><b>${r.list.length}</b></td></tr>`).join("")}</tbody></table>`;
 }
 
@@ -1151,27 +1190,31 @@ document.querySelector('[data-panel="overview"]').addEventListener("click", e =>
 
 // ---------- Audit log ----------
 const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل",
-  term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم" };
+  term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم",
+  class_track: "مسار فصل", classes_migrate: "ترتيب الفصول" };
 const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
-const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", email: "الإيميل",
-  grade_label: "الصف", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
-const showVal = v => v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
+const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
+  grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
+const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
+  : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
 function auditDetails(a) {
   const d = a.details;
-  if (Array.isArray(d)) return d.filter(c => c.field !== "test_avg").map(c => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from)}</s> ← <ins>${showVal(c.to)}</ins>`).join("<br>") || "بدون تغيير";
+  if (Array.isArray(d)) return d.filter(c => c.field !== "test_avg").map(c => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from, c.field)}</s> ← <ins>${showVal(c.to, c.field)}</ins>`).join("<br>") || "بدون تغيير";
   if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة`;
   if (a.action === "restore") return `نسخة رقم ${d?.backup}`;
   if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
-  if (a.action === "class_add" || a.action === "class_delete") return `الفصل ${esc(d?.name)}`;
-  if (a.action === "class_rename") return `${esc(d?.from)} ← ${esc(d?.to)} (${d?.students} طالبة)`;
+  if (a.action === "class_add" || a.action === "class_delete") return esc(classLabel(d?.name)) + (d?.track ? ` · ${esc(d.track)}` : "");
+  if (a.action === "class_rename") return `${esc(classLabel(d?.from))} ← ${esc(classLabel(d?.to))}` + (d?.students ? ` (${girls(d.students)})` : "") + (d?.merged ? " · دمج" : "") + (d?.learning_difficulty ? " · عُلّمن بصعوبات التعلم" : "");
+  if (a.action === "class_track") return `${esc(classLabel(d?.name))}: ${esc(d?.from || "—")} ← ${esc(d?.to || "—")}`;
+  if (a.action === "classes_migrate") return (d?.moves || []).map(m => `${esc(m.from)} ← ${esc(m.to)}`).join("<br>") + (d?.flagged ? `<br>صعوبات التعلم: ${girls(d.flagged)}` : "");
   if (a.action === "term_archive") return `${esc(d?.title)} · ${girls(d?.count ?? 0)}` + (d?.cleared ? " · مُسحت الدرجات لبدء فترة جديدة" : "") + (d?.next_title ? ` · الفترة الجديدة: ${esc(d.next_title)}` : "");
   if (a.action === "term_rename") return `${esc(d?.from)} ← ${esc(d?.to)}`;
   if (a.action === "term_delete") return `${esc(d?.title)} (${girls(d?.count ?? 0)})`;
   if (a.action === "viewer_set") return "تعيين كلمة مرور جديدة";
   if (a.action === "viewer_off") return "إيقاف الحساب";
   if (a.action === "calendar") return `تعديل تقويم العام الدراسي ${esc(d?.year)}هـ`;
-  if (a.action === "add") return `الفصل ${esc(d?.class ?? "—")}`;
-  if (a.action === "delete") return `كانت في الفصل ${esc(d?.class ?? "—")}`;
+  if (a.action === "add") return d?.class ? esc(classLabel(d.class)) : "بدون فصل";
+  if (a.action === "delete") return d?.class ? `كانت في ${esc(classLabel(d.class))}` : "كانت بدون فصل";
   return "";
 }
 let auditList = [];
@@ -1205,68 +1248,108 @@ $("#auditRows").addEventListener("click", async e => {
 });
 
 // ---------- Classes ----------
-let renaming = null;
+// Grouped by grade, every grade shown so a class can be added to it. Classes from before the grades come last.
+const sectionsText = n => (n === 1 ? "فصل واحد" : n === 2 ? "فصلان" : n <= 10 ? `${n} فصول` : `${n} فصلاً`);
 function renderClasses() {
-  $("#classRows").innerHTML = classes.map(c => {
-    const pcts = students.filter(s => s.class === c.name).map(pctOf).filter(p => p != null);
-    const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+  $("#classYear").textContent = [cal?.now ? `فصول العام الدراسي ${cal.now.year}هـ` : "الفصول", schoolInfo.stage].join(" · ");
+  const row = c => {
+    const list = students.filter(s => s.class === c.name), avg = avgPct(regular(list));
     return `<tr>
-    <td><b>الفصل ${esc(c.name)}</b></td><td class="num">${c.count}</td><td class="num">${levelPill(avg)}</td>
+    <td><b>${esc(classLabel(c.name))}</b></td><td>${c.grade === 1 ? '<span class="note">السنة الأولى المشتركة</span>' : c.track ? esc(c.track) : "—"}</td>
+    <td class="num">${c.count}</td><td class="num">${levelPill(avg)}</td>
     <td style="white-space:nowrap">
       <button class="btn sm quiet" type="button" data-show="${esc(c.name)}" ${c.count ? "" : "disabled"}>عرض الطالبات</button>
       <button class="btn sm quiet" type="button" data-pdf="${esc(c.name)}" ${c.count ? "" : "disabled"}>تقرير PDF</button>
-      <button class="btn sm quiet" type="button" data-rename="${esc(c.name)}" data-admin>إعادة تسمية</button>
+      <button class="btn sm quiet" type="button" data-edit-class="${esc(c.name)}" data-admin>${c.grade ? "تعديل" : "تحديد الصف"}</button>
       <button class="btn sm quiet" type="button" data-remove="${esc(c.name)}" data-admin ${c.count ? 'disabled title="انقلي طالبات الفصل أولاً"' : ""}>حذف</button>
     </td></tr>`;
-  }).join("") || '<tr><td colspan="4" class="empty">لا توجد فصول بعد.</td></tr>';
+  };
+  const head = (title, list, add) => {
+    const n = list.reduce((sum, c) => sum + c.count, 0);
+    const about = !list.length ? "ما فيه فصول بعد" : `${sectionsText(list.length)} · ${n ? girls(n) : "بدون طالبات"}`;
+    return `<tr class="grp"><td colspan="5"><div class="grp-in"><b>${esc(title)}</b><span class="note">${about}</span>
+      ${add ? `<button class="btn sm ghost" type="button" data-add="${add}" data-admin>إضافة فصل</button>` : ""}</div></td></tr>`;
+  };
+  const legacy = classes.filter(c => !c.grade);
+  $("#classRows").innerHTML = Report.GRADES.map((g, i) => {
+    const list = classes.filter(c => c.grade === i + 1);
+    return head(g, list, i + 1) + list.map(row).join("");
+  }).join("") + (legacy.length ? head("فصول بدون صف", legacy) + legacy.map(row).join("") : "");
 }
-$("#classForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const err = $("#classErr"); err.hidden = true;
-  const name = $("#newClass").value.trim();
-  if (!name) return;
-  try {
-    await api("/classes", { method: "POST", body: { name } });
-    $("#newClass").value = "";
-    toast(`تمت إضافة الفصل ${name}`);
-    await loadStudents();
-  } catch (x) { err.textContent = (x.data?.errors || ["تعذّرت الإضافة."]).join(" "); err.hidden = false; }
-});
 $("#classRows").addEventListener("click", async e => {
   const b = e.target.closest("button");
   if (!b) return;
-  if (b.dataset.show != null) {
+  if (b.dataset.add) openClassDlg(null, Number(b.dataset.add));
+  else if (b.dataset.editClass != null) openClassDlg(classByName.get(b.dataset.editClass));
+  else if (b.dataset.show != null) {
     $("#classFilter").value = b.dataset.show; $("#search").value = ""; $("#levelFilter").value = "";
     $("#tab-students").click(); renderRows();
   } else if (b.dataset.pdf != null) {
     openClassPdf(b.dataset.pdf);
-  } else if (b.dataset.rename != null) {
-    renaming = b.dataset.rename;
-    $("#c_name").value = renaming; $("#classDlgErr").hidden = true;
-    $("#classDlg").showModal();
   } else if (b.dataset.remove != null) {
     const name = b.dataset.remove;
-    if (!(await confirmBox("حذف الفصل", `سيتم حذف الفصل ${name} من القائمة.`, "حذف"))) return;
+    if (!(await confirmBox("حذف الفصل", `سيتم حذف ${classLabel(name)} من القائمة.`, "حذف"))) return;
     try { await api("/classes/" + encodeURIComponent(name), { method: "DELETE" }); toast("تم حذف الفصل"); }
     catch (x) { toast((x.data?.errors || ["تعذّر الحذف"])[0]); }
     await loadStudents();
   }
 });
+
+// The add and edit dialog. The year and stage are fixed; the section starts at the first free number in the grade.
+let classEdit = null;
+const freeSection = grade => { const used = new Set(classes.filter(c => c.grade === grade).map(c => c.section)); let n = 1; while (used.has(n)) n++; return n; };
+const dlgClass = () => {
+  const grade = Number($("#c_grade").value), section = Number(toLatin($("#c_section").value).trim() || NaN);
+  const ok = Number.isInteger(section) && section >= 1 && section <= 99;
+  return { grade, section, track: grade === 1 ? null : $("#c_track").value, name: ok ? Report.className(grade, section) : "" };
+};
+function openClassDlg(c, grade) {
+  classEdit = c || null;
+  const g = c?.grade || grade || 1;
+  $("#classDlgTitle").textContent = !c ? "إضافة فصل" : c.grade ? `تعديل ${c.name}` : `تحديد صف ${classLabel(c.name)}`;
+  $("#classDlgYear").textContent = [cal?.now ? `العام الدراسي ${cal.now.year}هـ` : "", schoolInfo.stage].filter(Boolean).join(" · ");
+  $("#c_grade").innerHTML = Report.GRADES.map((x, i) => `<option value="${i + 1}">${esc(x)}</option>`).join("");
+  $("#c_track").innerHTML = schoolInfo.tracks.map(t => `<option>${esc(t)}</option>`).join("");
+  $("#c_grade").value = String(g);
+  $("#c_section").value = c ? c.section || "" : freeSection(g);
+  $("#c_track").value = c?.track || schoolInfo.tracks[0] || "";
+  $("#classDlgErr").hidden = true;
+  syncClassDlg();
+  $("#classDlg").showModal();
+}
+function syncClassDlg() {
+  const c = dlgClass();
+  $("#c_trackWrap").hidden = c.grade === 1;
+  const taken = c.name && c.name !== classEdit?.name && classByName.has(c.name);
+  $("#classDlgName").innerHTML = !c.name ? "اكتبي رقم الفصل من 1 إلى 99."
+    : `اسم الفصل: <b>${esc(c.name)}</b>${c.track ? ` · ${esc(c.track)}` : ""}` + (taken ? ` · <span class="warn-t">${classEdit ? "موجود، وبيندمج الفصلان" : "موجود"}</span>` : "");
+}
+$("#c_grade").addEventListener("change", () => {
+  if (!classEdit) $("#c_section").value = freeSection(Number($("#c_grade").value));
+  syncClassDlg();
+});
+["#c_section", "#c_track"].forEach(sel => $(sel).addEventListener("input", syncClassDlg));
 $("#classDlgForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const to = $("#c_name").value.trim();
-  if (!to || to === renaming) { $("#classDlg").close(); return; }
-  const merge = classes.some(c => c.name === to);
-  if (merge) {
+  const c = dlgClass(), err = $("#classDlgErr");
+  err.hidden = true;
+  if (!c.name) { err.textContent = "رقم الفصل لازم يكون من 1 إلى 99"; err.hidden = false; return; }
+  if (!classEdit && classByName.has(c.name)) { err.textContent = `${c.name} موجود`; err.hidden = false; return; }
+  if (classEdit && c.name !== classEdit.name && classByName.has(c.name)) {
     $("#classDlg").close();
-    if (!(await confirmBox("دمج الفصلين", `الفصل ${to} موجود. طالبات الفصل ${renaming} بينتقلن له ويصيرون فصل واحد.`, "دمج"))) return;
+    if (!(await confirmBox("دمج الفصلين", `${c.name} موجود. طالبات ${classLabel(classEdit.name)} بينتقلن له ويصيرون فصل واحد.`, "دمج"))) return;
   }
+  const btn = $("#classDlgSave"); btn.disabled = true;
   try {
-    const r = await api("/classes/" + encodeURIComponent(renaming), { method: "PUT", body: { name: to } });
+    const body = { grade: c.grade, section: c.section, track: c.track };
+    const r = classEdit ? await api("/classes/" + encodeURIComponent(classEdit.name), { method: "PUT", body }) : await api("/classes", { method: "POST", body });
     $("#classDlg").close();
-    toast(merge ? `تم الدمج ونقل ${r.moved} طالبة` : "تمت إعادة التسمية");
+    toast(!classEdit ? `تمت إضافة ${c.name}` : r.merged ? `تم الدمج ونقل ${girls(r.moved)}` : "تم حفظ الفصل");
     await loadStudents();
-  } catch (x) { $("#classDlgErr").textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); $("#classDlgErr").hidden = false; }
+  } catch (x) {
+    err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false;
+    if (!$("#classDlg").open) $("#classDlg").showModal();
+  } finally { btn.disabled = false; }
 });
 
 // ---------- Tabs ----------
@@ -1306,7 +1389,7 @@ async function uploadFile(file) {
 function renderPreview(p, name) {
   const pv = $("#preview");
   const total = p.added.length + p.changed.length;
-  const val = v => v == null || v === "" ? "فاضي" : esc(v);
+  const val = (v, f) => f === "learning_difficulty" ? (v ? "نعم" : "لا") : v == null || v === "" ? "فاضي" : esc(f === "class" ? classLabel(v) : v);
   pv.innerHTML = `
     <div class="summary">
       <div class="file">${esc(name)} · ${p.totalRows} صف</div>
@@ -1317,8 +1400,8 @@ function renderPreview(p, name) {
       ${p.missing.length ? `<span class="pill none">${p.missing.length} غير موجودة في الملف</span>` : ""}
     </div>
     ${p.changed.length ? `<div class="sec"><h3>الطالبات اللي تغيّرت بياناتهن</h3>${p.changed.map(c => `
-      <div class="change"><b>${esc(c.student.name)}</b>${c.changes.map(x => `<span class="d">${esc(x.label)}: <s>${val(x.from)}</s> ← <ins>${val(x.to)}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
-    ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)} · الفصل ${esc(s.class ?? "—")}</span></div>`).join("")}</div>` : ""}
+      <div class="change"><b>${esc(c.student.name)}</b>${c.changes.map(x => `<span class="d">${esc(x.label)}: <s>${val(x.from, x.field)}</s> ← <ins>${val(x.to, x.field)}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
+    ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)} · ${s.class ? esc(classLabel(s.class)) : "بدون فصل"}</span></div>`).join("")}</div>` : ""}
     ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>صف ${x.line}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
     ${p.missing.length ? `<div class="sec"><h3>موجودات في النظام وغير موجودات في الملف (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
     <div class="actions">
@@ -1368,7 +1451,7 @@ async function loadTerms() {
 }
 function renderTerms() {
   const pcts = students.map(pctOf).filter(p => p != null);
-  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+  const avg = avgPct(regular(students));
   const current = `<tr><td class="name">${esc(termTitle() || "الفترة الحالية")} <span class="tag-act">الحالية</span></td><td class="muted">—</td>
     <td class="num">${pcts.length}</td><td class="num">${levelPill(avg)}</td><td></td></tr>`;
   // The semester shows under the title unless the title already names it.
@@ -1498,7 +1581,8 @@ $("#viewerOff").addEventListener("click", async () => {
 // ---------- Class PDF ----------
 const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: termTitle(), teacherName: settings.teacher_name, principalName: settings.principal_name });
 const asCard = (s, classStats, history) => ({
-  id: s.national_id, name: s.name, class: s.class, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
+  id: s.national_id, name: s.name, class: s.class, classLabel: classLabel(s.class), track: classByName.get(s.class)?.track || "",
+  learningDifficulty: !!s.learning_difficulty, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
   participation: s.participation, projects: s.projects, lateness: s.lateness, learningStyle: s.learning_style || "", email: s.email || "",
   classStats, history: history[s.national_id] || [],
 });
@@ -1506,7 +1590,7 @@ let pdfClass = null;
 function openClassPdf(name) {
   pdfClass = name;
   const n = students.filter(s => s.class === name).length;
-  $("#pdfTitle").textContent = `تقرير الفصل ${name}`;
+  $("#pdfTitle").textContent = `تقرير ${classLabel(name)}`;
   $("#pdfAll").textContent = `الكشف + بطاقات الطالبات (${n + Report.sheetPages(n)} صفحة)`;
   $("#pdfProgress").hidden = true;
   $("#pdfDlg").showModal();
@@ -1519,14 +1603,15 @@ async function makeClassPdf(withCards) {
   note.hidden = false; note.textContent = "جارٍ تجهيز الملف…";
   try {
     const ctx = { max: MAX, site: siteForReport() };
-    const sheets = Report.classSheets(pdfClass, list.map(s => asCard(s, null, {})), ctx);
+    const sheets = Report.classSheets(pdfClass, list.map(s => asCard(s, null, {})), { ...ctx, track: classByName.get(pdfClass)?.track });
     if (withCards) {
       const history = await loadHistory();
-      const cs = Report.classStats(list, MAX);
-      list.slice().sort((a, b) => a.name.localeCompare(b.name, "ar")).forEach(s => sheets.push(Report.cardSheet(asCard(s, cs, history), ctx)));
+      // Students with learning difficulties are left out of the class average and get no comparison with it.
+      const cs = Report.classStats(regular(list), MAX);
+      list.slice().sort((a, b) => a.name.localeCompare(b.name, "ar")).forEach(s => sheets.push(Report.cardSheet(asCard(s, s.learning_difficulty ? null : cs, history), ctx)));
     }
     const blob = await Report.toPdf(sheets, { onProgress: (i, n) => { note.textContent = `جارٍ تجهيز صفحة ${i} من ${n}…`; } });
-    Report.save(blob, `${withCards ? "تقرير" : "كشف"} الفصل ${pdfClass}.pdf`);
+    Report.save(blob, `${withCards ? "تقرير" : "كشف"} ${classLabel(pdfClass).replace(/\//g, "-")}.pdf`);
     note.textContent = "تم تجهيز الملف.";
   } catch (err) {
     console.error(err);
