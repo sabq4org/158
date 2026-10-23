@@ -4,8 +4,12 @@ const os = require("os");
 const path = require("path");
 const express = require("express");
 const multer = require("multer");
+const util = require("util");
 const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, maxOf } = require("./settings");
+const grades = require("./grades");
+
+const scrypt = util.promisify(crypto.scrypt);
 
 const SESSION_HOURS = 8;
 const COOKIE = "admin_session";
@@ -46,6 +50,8 @@ const FIELDS = [
 ];
 const LABEL = Object.fromEntries(FIELDS);
 const NUMERIC = new Set(["test1", "test2", "test_avg", "participation", "projects", "lateness"]);
+const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "lateness"];
+const TERM_COLS = ["national_id", "name", "class", ...GRADE_COLS, "learning_style"];
 const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects, lateness: 365 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 
@@ -154,20 +160,40 @@ module.exports = function mountAdmin(app, pool) {
   const sign = v => crypto.createHmac("sha256", SECRET).update(v).digest("base64url");
   const hash = v => crypto.createHash("sha256").update(String(v)).digest();
 
+  // The principal's read-only password, set by the teacher. Kept apart from the site settings so it is never sent out.
+  let viewer = { ver: 0 };
+  const loadViewer = async () => {
+    const { rows } = await pool.query("SELECT value FROM settings WHERE key = 'viewer'");
+    viewer = { ver: 0, ...(rows[0]?.value || {}) };
+  };
+  const saveViewer = async next => {
+    await pool.query("INSERT INTO settings (key, value) VALUES ('viewer', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()", [JSON.stringify(next)]);
+    viewer = next;
+  };
+  const isViewerPassword = async pw => {
+    if (!viewer.hash || !pw) return false;
+    return crypto.timingSafeEqual(await scrypt(pw, viewer.salt, 32), Buffer.from(viewer.hash, "hex"));
+  };
+
+  // Cookie: role.expiry.version.signature. A new principal password bumps the version and ends her old sessions.
   function readSession(req) {
     const m = (req.headers.cookie || "").match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`));
-    if (!m) return false;
-    const [exp, sig] = m[1].split(".");
-    if (!exp || !sig) return false;
-    const expected = sign(exp);
-    if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return false;
-    return Number(exp) > Date.now();
+    if (!m) return null;
+    const parts = m[1].split(".");
+    if (parts.length !== 4) return null;
+    const [role, exp, ver, sig] = parts;
+    const expected = sign(`${role}.${exp}.${ver}`);
+    if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+    if (!(Number(exp) > Date.now())) return null;
+    if (role === "admin") return "admin";
+    if (role === "viewer" && viewer.hash && Number(ver) === viewer.ver) return "viewer";
+    return null;
   }
 
-  function setSession(res, ms) {
-    const exp = String(Date.now() + ms);
+  function setSession(res, ms, role = "admin") {
+    const payload = `${role}.${Date.now() + ms}.${role === "viewer" ? viewer.ver : 0}`;
     const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-    res.setHeader("Set-Cookie", `${COOKIE}=${exp}.${sign(exp)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${Math.floor(ms / 1000)}${secure}`);
+    res.setHeader("Set-Cookie", `${COOKIE}=${payload}.${sign(payload)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${Math.floor(ms / 1000)}${secure}`);
   }
 
   // 5 wrong passwords lock that device out for 15 minutes.
@@ -184,23 +210,48 @@ module.exports = function mountAdmin(app, pool) {
     }));
   }
 
-  router.post("/login", (req, res) => {
+  router.post("/login", async (req, res) => {
     if (!PASSWORD) return res.status(503).json({ error: "disabled" });
     const now = Date.now();
     const list = (failures.get(req.ip) || []).filter(t => now - t < LOCK_MS);
     if (list.length >= 5) return res.status(429).json({ error: "locked" });
-    const ok = crypto.timingSafeEqual(hash(req.body?.password ?? ""), hash(PASSWORD));
-    if (!ok) { list.push(now); failures.set(req.ip, list); return res.status(401).json({ error: "wrong_password", left: 5 - list.length }); }
+    const pw = String(req.body?.password ?? "");
+    const role = crypto.timingSafeEqual(hash(pw), hash(PASSWORD)) ? "admin" : (await isViewerPassword(pw)) ? "viewer" : null;
+    if (!role) { list.push(now); failures.set(req.ip, list); return res.status(401).json({ error: "wrong_password", left: 5 - list.length }); }
     failures.delete(req.ip);
-    setSession(res, SESSION_HOURS * 3600 * 1000);
-    res.json({ ok: true });
+    setSession(res, SESSION_HOURS * 3600 * 1000, role);
+    res.json({ ok: true, role });
   });
 
   router.post("/logout", (req, res) => { setSession(res, 0); res.json({ ok: true }); });
 
-  router.use((req, res, next) => (readSession(req) ? next() : res.status(401).json({ error: "unauthorized" })));
+  router.use((req, res, next) => {
+    req.role = readSession(req);
+    if (!req.role) return res.status(401).json({ error: "unauthorized" });
+    // The principal's account sees everything and changes nothing.
+    if (req.role !== "admin" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
+    next();
+  });
 
-  router.get("/me", (req, res) => res.json({ ok: true, max: maxOf(getSettings()), styles: STYLES, settings: getSettings() }));
+  router.get("/me", (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings() }));
+
+  router.get("/viewer", (req, res) => res.json({ enabled: !!viewer.hash }));
+
+  router.put("/viewer", async (req, res) => {
+    const pw = String(req.body?.password ?? "");
+    if (pw.length < 6) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور لازم تكون 6 أحرف أو أكثر"] });
+    if (pw === PASSWORD) return res.status(400).json({ error: "invalid", errors: ["اختاري كلمة مرور غير كلمة مرور المعلمة"] });
+    const salt = crypto.randomBytes(16).toString("hex");
+    await saveViewer({ salt, hash: (await scrypt(pw, salt, 32)).toString("hex"), ver: viewer.ver + 1 });
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('viewer_set', '{}')");
+    res.json({ enabled: true });
+  });
+
+  router.delete("/viewer", async (req, res) => {
+    await saveViewer({ ver: viewer.ver + 1 });
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('viewer_off', '{}')");
+    res.json({ enabled: false });
+  });
 
   router.get("/settings", (req, res) => res.json(getSettings()));
 
@@ -252,7 +303,7 @@ module.exports = function mountAdmin(app, pool) {
       if (e.undone_at) { await client.query("ROLLBACK"); return res.status(409).json({ error: "already_undone", errors: ["تم التراجع عن هذا التعديل من قبل"] }); }
       const cols = FIELDS.map(f => f[0]);
       const cur = (await client.query("SELECT * FROM students WHERE national_id = $1", [e.national_id])).rows[0];
-      let skipped = [];
+      let skipped = [], title = null;
       if (e.action === "edit") {
         if (!cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "gone", errors: ["الطالبة محذوفة، ما يمكن التراجع عن تعديلها"] }); }
         const now = fromRow(cur);
@@ -271,6 +322,25 @@ module.exports = function mountAdmin(app, pool) {
         if (cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية حالياً"] }); }
         await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, cols.map(c => e.details?.[c] ?? null));
         if (e.details?.class) await client.query("INSERT INTO classes (name) VALUES ($1) ON CONFLICT DO NOTHING", [e.details.class]);
+      } else if (e.action === "term_delete") {
+        const d = e.details || {};
+        if ((await client.query("SELECT 1 FROM terms WHERE title = $1", [d.title])).rowCount) {
+          await client.query("ROLLBACK");
+          return res.status(409).json({ error: "exists", errors: ["توجد فترة بنفس العنوان حالياً"] });
+        }
+        const t = await client.query("INSERT INTO terms (title, max, created_at) VALUES ($1, $2, $3) RETURNING id", [d.title, JSON.stringify(d.max), d.created_at]);
+        await insertTermResults(client, t.rows[0].id, d.results || []);
+      } else if (e.action === "term_archive" && e.details?.term_id) {
+        const d = e.details;
+        await client.query("DELETE FROM terms WHERE id = $1", [d.term_id]);
+        if (d.grades?.length) {
+          const graded = `coalesce(${GRADE_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
+          const g = `jsonb_to_recordset($1) AS g(national_id TEXT, ${GRADE_COLS.map(c => c + " NUMERIC").join(", ")})`;
+          const list = JSON.stringify(d.grades);
+          skipped = (await client.query(`SELECT s.name FROM students s JOIN ${g} ON g.national_id = s.national_id WHERE ${graded} ORDER BY s.name`, [list])).rows.map(r => r.name);
+          await client.query(`UPDATE students s SET ${GRADE_COLS.map(c => `${c} = g.${c}`).join(", ")} FROM ${g} WHERE g.national_id = s.national_id AND NOT (${graded})`, [list]);
+        }
+        if (d.cleared && getSettings().term_title === (d.next_title || "")) title = d.prev_title ?? "";
       } else {
         await client.query("ROLLBACK");
         return res.status(400).json({ error: "not_undoable", errors: ["هذا النوع يُسترجع من النسخ الاحتياطية"] });
@@ -278,7 +348,8 @@ module.exports = function mountAdmin(app, pool) {
       await client.query("UPDATE audit_log SET undone_at = now() WHERE id = $1", [e.id]);
       await client.query("INSERT INTO audit_log (action, national_id, details) VALUES ('undo', $1, $2)", [e.national_id, JSON.stringify({ of: e.id, action: e.action, skipped })]);
       await client.query("COMMIT");
-      res.json({ ok: true, skipped });
+      if (title != null) await saveSettings(pool, { ...getSettings(), term_title: title });
+      res.json({ ok: true, skipped, settings: getSettings() });
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;
@@ -287,17 +358,21 @@ module.exports = function mountAdmin(app, pool) {
     }
   });
 
+  // Lookups count from the start of the current period: the last archive that cleared the grades.
+  const SINCE = `created_at > coalesce((SELECT max(created_at) FROM audit_log
+    WHERE action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean), '-infinity')`;
+
   router.get("/students", async (req, res) => {
     const { rows } = await pool.query(`SELECT s.*, l.last_lookup, l.lookup_count FROM students s
-      LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups GROUP BY national_id) l
+      LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups WHERE ${SINCE} GROUP BY national_id) l
       ON l.national_id = s.national_id ORDER BY s.class NULLS LAST, s.name`);
     res.json(rows.map(r => ({ ...fromRow(r), last_lookup: r.last_lookup, lookup_count: r.lookup_count || 0 })));
   });
 
   router.get("/lookups", async (req, res) => {
     const { rows } = await pool.query(`SELECT l.id, l.national_id, l.kind, l.device, l.created_at, s.name, s.class
-      FROM lookups l LEFT JOIN students s ON s.national_id = l.national_id ORDER BY l.id DESC LIMIT 100`);
-    const totals = (await pool.query("SELECT kind, count(*)::int AS n FROM lookups GROUP BY kind")).rows;
+      FROM lookups l LEFT JOIN students s ON s.national_id = l.national_id WHERE l.${SINCE} ORDER BY l.id DESC LIMIT 100`);
+    const totals = (await pool.query(`SELECT kind, count(*)::int AS n FROM lookups WHERE ${SINCE} GROUP BY kind`)).rows;
     res.json({ recent: rows, totals: Object.fromEntries(totals.map(t => [t.kind, t.n])) });
   });
 
@@ -340,11 +415,10 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true });
   });
 
-  router.get("/export", async (req, res) => {
-    const { rows } = await pool.query("SELECT * FROM students ORDER BY class NULLS LAST, name");
+  async function sendExcel(res, rows, fields, fileName) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("الطالبات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
-    ws.columns = FIELDS.map(([key, header]) => ({ key, header, width: key === "name" ? 30 : key === "email" ? 28 : key === "national_id" ? 14 : 13 }));
+    ws.columns = fields.map(([key, header]) => ({ key, header, width: key === "name" ? 30 : key === "email" ? 28 : key === "national_id" ? 14 : 13 }));
     rows.forEach(r => ws.addRow(fromRow(r)));
     const head = ws.getRow(1);
     head.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -354,10 +428,105 @@ module.exports = function mountAdmin(app, pool) {
     ws.getColumn("national_id").numFmt = "@";
     const stamp = new Date().toISOString().slice(0, 10);
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename="students-${stamp}.xlsx"; filename*=UTF-8''${encodeURIComponent(`نتائج الطالبات ${stamp}.xlsx`)}`);
+    res.setHeader("Content-Disposition", `attachment; filename="students-${stamp}.xlsx"; filename*=UTF-8''${encodeURIComponent(`${fileName} ${stamp}.xlsx`)}`);
     await wb.xlsx.write(res);
     res.end();
+  }
+
+  router.get("/export", async (req, res) => {
+    const { rows } = await pool.query("SELECT * FROM students ORDER BY class NULLS LAST, name");
+    await sendExcel(res, rows, FIELDS, "نتائج الطالبات");
   });
+
+  // ---------- Terms: each archived period keeps its own copy of the results ----------
+  const insertTermResults = (q, termId, list) => q.query(
+    `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")})
+     SELECT $1, ${TERM_COLS.join(", ")} FROM jsonb_to_recordset($2) AS x(national_id TEXT, name TEXT, class TEXT,
+       test1 NUMERIC, test2 NUMERIC, test_avg NUMERIC, participation NUMERIC, projects NUMERIC, lateness NUMERIC, learning_style TEXT)`,
+    [termId, JSON.stringify(list)]);
+  const termId = req => (/^\d+$/.test(req.params.id) ? Number(req.params.id) : null);
+  const titleTaken = (title, except = 0) => pool.query("SELECT 1 FROM terms WHERE title = $1 AND id <> $2", [title, except]).then(r => r.rowCount > 0);
+
+  router.get("/terms", async (req, res) => {
+    const terms = (await pool.query("SELECT id, title, max, created_at FROM terms ORDER BY created_at, id")).rows;
+    const results = (await pool.query("SELECT term_id, test1, test2, test_avg, participation, projects FROM term_results")).rows;
+    res.json(terms.map(t => {
+      const mine = results.filter(r => r.term_id === t.id);
+      const pcts = mine.map(r => grades.Report.scores(r, t.max).pct).filter(p => p != null);
+      return { ...t, count: mine.length, avg: pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null };
+    }));
+  });
+
+  // Archive the current grades under a title. Optionally empty them for the next period (a backup is kept first).
+  router.post("/terms", async (req, res) => {
+    const title = norm(req.body?.title).slice(0, 80);
+    const clear = req.body?.clear === true;
+    const nextTitle = norm(req.body?.next_title).slice(0, 80);
+    if (!title) return res.status(400).json({ error: "invalid", errors: ["اكتبي عنوان الفترة"] });
+    if (await titleTaken(title)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
+    const client = await pool.connect();
+    const prevTitle = getSettings().term_title;
+    let count;
+    try {
+      await client.query("BEGIN");
+      const t = await client.query("INSERT INTO terms (title, max) VALUES ($1, $2) RETURNING id", [title, JSON.stringify(maxOf(getSettings()))]);
+      count = (await client.query(
+        `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")}) SELECT $1, ${TERM_COLS.join(", ")} FROM students
+         WHERE coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL`, [t.rows[0].id])).rowCount;
+      if (!count) { await client.query("ROLLBACK"); return res.status(400).json({ error: "empty", errors: ["ما فيه درجات مرصودة للأرشفة"] }); }
+      // The log keeps the term id and the cleared grades, so the archive can be undone from there.
+      const details = { title, count, cleared: clear, next_title: clear ? nextTitle : null, term_id: t.rows[0].id, prev_title: prevTitle };
+      if (clear) {
+        const { rows } = await client.query("SELECT * FROM students ORDER BY national_id");
+        await client.query("INSERT INTO backups (note, data) VALUES ($1, $2)", ["قبل أرشفة الفترة ومسح الدرجات", JSON.stringify(rows.map(fromRow))]);
+        details.grades = rows.filter(r => GRADE_COLS.some(c => r[c] != null))
+          .map(r => Object.fromEntries(["national_id", ...GRADE_COLS].map(c => [c, r[c]])));
+        await client.query(`UPDATE students SET ${GRADE_COLS.map(c => `${c} = NULL`).join(", ")}`);
+      }
+      await client.query("INSERT INTO audit_log (action, details) VALUES ('term_archive', $1)", [JSON.stringify(details)]);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+    // A fresh period starts with its own title on the lookup page (empty until the teacher names it).
+    if (clear) await saveSettings(pool, { ...getSettings(), term_title: nextTitle });
+    res.json({ ok: true, count, settings: getSettings() });
+  });
+
+  router.put("/terms/:id", async (req, res) => {
+    const id = termId(req), title = norm(req.body?.title).slice(0, 80);
+    if (!title) return res.status(400).json({ error: "invalid", errors: ["اكتبي عنوان الفترة"] });
+    if (await titleTaken(title, id || 0)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
+    const old = (await pool.query("SELECT title FROM terms WHERE id = $1", [id])).rows[0];
+    if (!old) return res.status(404).json({ error: "not_found" });
+    await pool.query("UPDATE terms SET title = $1 WHERE id = $2", [title, id]);
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('term_rename', $1)", [JSON.stringify({ from: old.title, to: title })]);
+    res.json({ ok: true });
+  });
+
+  // The deleted results stay in the log, so the deletion can be undone from there.
+  router.delete("/terms/:id", async (req, res) => {
+    const id = termId(req);
+    const t = (await pool.query("SELECT title, max, created_at FROM terms WHERE id = $1", [id])).rows[0];
+    if (!t) return res.status(404).json({ error: "not_found" });
+    const results = (await pool.query(`SELECT ${TERM_COLS.join(", ")} FROM term_results WHERE term_id = $1 ORDER BY national_id`, [id])).rows;
+    await pool.query("DELETE FROM terms WHERE id = $1", [id]);
+    await pool.query("INSERT INTO audit_log (action, details) VALUES ('term_delete', $1)", [JSON.stringify({ ...t, count: results.length, results })]);
+    res.json({ ok: true });
+  });
+
+  router.get("/terms/:id/export", async (req, res) => {
+    const id = termId(req);
+    const t = (await pool.query("SELECT title FROM terms WHERE id = $1", [id])).rows[0];
+    if (!t) return res.status(404).json({ error: "not_found" });
+    const { rows } = await pool.query("SELECT * FROM term_results WHERE term_id = $1 ORDER BY class NULLS LAST, name", [id]);
+    await sendExcel(res, rows, FIELDS.filter(([k]) => k !== "email"), `نتائج ${t.title}`);
+  });
+
+  router.get("/history", async (req, res) => res.json(await grades.history(pool)));
 
   // Uploads are previewed first; the parsed result waits here until the teacher approves it.
   const previews = new Map();
@@ -515,5 +684,5 @@ module.exports = function mountAdmin(app, pool) {
   app.use("/api/admin", router);
   app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
-  return pool.query(ADMIN_SCHEMA);
+  return pool.query(ADMIN_SCHEMA).then(loadViewer);
 };

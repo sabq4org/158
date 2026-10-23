@@ -4,6 +4,7 @@ const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
 const { loadSettings, getSettings } = require("./settings");
+const grades = require("./grades");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -81,6 +82,7 @@ app.post("/api/lookup", async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: "not_found" });
     const s = rows[0];
     logLookup(s.national_id, "view", req);
+    const [history, classStats] = await Promise.all([grades.history(pool, s.national_id), grades.classStats(pool, s.class)]);
     res.json({
       id: s.national_id,
       name: s.name,
@@ -93,6 +95,9 @@ app.post("/api/lookup", async (req, res) => {
       lateness: num(s.lateness),
       learningStyle: s.learning_style || "",
       email: s.email || "",
+      // Only the class average leaves the server, never a classmate's score or name.
+      classStats,
+      history,
     });
   } catch (err) {
     console.error(err);
@@ -127,7 +132,7 @@ app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
-const adminReady = pool.query(SCHEMA).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
+const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
 adminReady

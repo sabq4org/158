@@ -1,0 +1,91 @@
+/* Printable A4 sheets (student card and class grade sheet). They render off-screen, then html2canvas captures them into a PDF. */
+.rpt-host { position: fixed; top: 0; left: -10000px; width: 210mm; pointer-events: none; }
+.rpt { direction: rtl; background: #fff; }
+.rpt * { box-sizing: border-box; margin: 0; }
+.rpt { --navy:#2b2765; --teal:#0d6e6a; --mint:#8fc3ad; --mint-soft:#eaf5f0; --ink:#1d2433; --muted:#667085; --line:#dfe5ea; --gold:#b9800f; --gold-soft:#fdf3dc; }
+.rpt { font-family: "IBM Plex Sans Arabic", Tahoma, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.rpt .rp-sheet { width: 210mm; height: 297mm; position: relative; overflow: hidden; padding: 0; display: flex; flex-direction: column; background: #fff; }
+.rpt .rp-band { height: 5mm; flex: none; display: flex; }
+.rpt .rp-band i { flex: 65; background: var(--navy); }
+.rpt .rp-band i + i { flex: 35; background: var(--mint); }
+.rpt .rp-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 3.5mm 14mm 3mm; gap: 6mm; border-bottom: 1px solid var(--line); }
+.rpt .rp-gov { font-size: 10pt; line-height: 1.6; font-weight: 600; color: var(--navy); }
+.rpt .rp-gov span { display: block; font-weight: 500; color: var(--muted); font-size: 9pt; }
+.rpt .rp-head img.rp-moe { height: 19mm; justify-self: center; }
+.rpt .rp-head img.rp-school { height: 21mm; justify-self: end; }
+.rpt .rp-title { text-align: center; padding: 2.5mm 14mm 2mm; line-height: 1.45; }
+.rpt .rp-title h1 { font-size: 17pt; font-weight: 700; color: var(--navy); letter-spacing: 0; }
+.rpt .rp-title p { color: var(--muted); font-size: 10pt; }
+.rpt .rp-body { padding: 0 14mm; display: flex; flex-direction: column; gap: 3mm; }
+.rpt .rp-info { display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center; border: 1px solid var(--line); border-radius: 4mm; padding: 2.5mm 6mm; }
+.rpt .rp-info dl { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 1.2mm 5mm; font-size: 10.5pt; line-height: 1.55; }
+.rpt .rp-info dt { color: var(--muted); }
+.rpt .rp-info dd { font-weight: 600; }
+.rpt .rp-info dd.rp-name { font-size: 15pt; font-weight: 700; color: var(--navy); grid-column: span 3; }
+.rpt .rp-info dd.rp-wide { grid-column: span 3; }
+.rpt .rp-info dd.rp-mono { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+.rpt .rp-score { width: 25mm; height: 25mm; display: block; }
+.rpt h2 { font-size: 12pt; color: var(--navy); font-weight: 700; display: flex; align-items: center; gap: 2.5mm; margin-bottom: 2mm; }
+.rpt h2::before { content: ""; width: 2.2mm; height: 2.2mm; border-radius: 50%; background: var(--mint); }
+.rpt h3 { font-size: 10pt; color: var(--navy); font-weight: 700; margin-bottom: 1.2mm; line-height: 1.5; }
+.rpt table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 3mm; overflow: hidden; font-size: 11pt; }
+/* Sheets also render inside the admin panel, whose own table styles (nowrap, sticky, right-aligned) must not leak in. */
+.rpt th { background: var(--navy); color: #fff; font-weight: 600; padding: 2.4mm 3mm; font-size: 10.5pt; text-align: center; white-space: normal; position: static; border-bottom: 0; }
+.rpt td { padding: 2.2mm 3mm; text-align: center; border-top: 1px solid var(--line); border-bottom: 0; white-space: normal; font-variant-numeric: tabular-nums; }
+.rpt th + th, .rpt td + td { border-inline-start: 1px solid var(--line); }
+.rpt td b { font-size: 14pt; }
+.rpt td small { color: var(--muted); }
+.rpt td.rp-key { background: var(--mint-soft); color: var(--teal); }
+.rpt table.rp-grades th { padding: 1.2mm 2mm; font-size: 9.5pt; line-height: 1.5; }
+.rpt table.rp-grades tr.rp-sub th { background: #423f86; font-size: 9pt; font-weight: 500; }
+.rpt table.rp-grades td { padding: 1.6mm 2mm; line-height: 1.45; }
+.rpt table.rp-grades td b { font-size: 13pt; }
+.rpt .rp-lvl { display: inline-block; font-size: 9pt; font-weight: 600; padding: .4mm 3mm; border-radius: 10mm; margin-top: 1mm; }
+.rpt .rp-good { background: #e3f4ea; color: #1f7a45; }
+.rpt .rp-warn { background: #fdf0dc; color: #9a5a00; }
+.rpt .rp-low { background: #fbe4e4; color: #a33a3a; }
+.rpt .rp-empty { border: 1px dashed #b9c2cc; border-radius: 3mm; padding: 6mm; text-align: center; color: var(--muted); font-size: 12pt; }
+.rpt .rp-row1 { display: grid; grid-template-columns: minmax(0, 1fr); }
+.rpt .rp-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 5mm; }
+.rpt .rp-box { border: 1px solid var(--line); border-radius: 3mm; padding: 2.5mm 4.5mm; }
+.rpt .rp-box .rp-k { color: var(--muted); font-size: 9.5pt; }
+.rpt .rp-box .rp-v { font-weight: 700; font-size: 13pt; color: var(--navy); }
+.rpt .rp-box .rp-t { font-size: 9.5pt; color: var(--muted); margin-top: 1mm; line-height: 1.7; }
+.rpt table.rp-mini { font-size: 9.5pt; border-radius: 2mm; line-height: 1.5; }
+.rpt table.rp-mini th { padding: 0.9mm 2.5mm; font-size: 9pt; }
+.rpt table.rp-mini td { padding: 0.8mm 2.5mm; }
+.rpt table.rp-mini td:first-child { text-align: right; }
+.rpt table.rp-mini tr.rp-sum td { background: var(--mint-soft); color: var(--teal); font-weight: 700; }
+.rpt .rp-study { display: flex; flex-direction: column; gap: 1.5mm; }
+.rpt .rp-study-head { display: flex; align-items: baseline; gap: 3mm; flex-wrap: wrap; line-height: 1.5; }
+.rpt .rp-study-head .rp-t { margin-top: 0; }
+.rpt .rp-tips b, .rpt .rp-next b { color: var(--navy); font-size: 10pt; display: block; }
+.rpt .rp-li { position: relative; padding-right: 4mm; font-size: 9.5pt; line-height: 1.6; }
+.rpt .rp-li::before { content: ""; position: absolute; right: 0.4mm; top: 2.3mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: var(--mint); }
+.rpt .rp-next { background: var(--mint-soft); border-radius: 2mm; padding: 1.4mm 4mm; font-size: 9.5pt; line-height: 1.6; }
+.rpt .rp-next span { display: block; }
+.rpt .rp-praise { background: var(--gold-soft); border-radius: 3mm; padding: 2.2mm 6mm; display: flex; gap: 4mm; align-items: center; line-height: 1.55; }
+.rpt .rp-praise svg { width: 9mm; height: 9mm; flex: none; color: var(--gold); }
+.rpt .rp-praise b { display: block; color: var(--gold); font-size: 12pt; }
+.rpt .rp-praise span { font-size: 10pt; }
+.rpt .rp-signs { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; padding: 2mm 14mm 0; margin-top: auto; line-height: 1.5; }
+.rpt .rp-sign { text-align: center; }
+.rpt .rp-sign .rp-k { color: var(--muted); font-size: 10pt; }
+.rpt .rp-sign .rp-n { font-weight: 700; font-size: 12.5pt; color: var(--navy); margin-top: 1mm; }
+.rpt .rp-sign .rp-line { border-bottom: 1px dashed #b9c2cc; height: 8mm; margin: 0 14mm; }
+.rpt .rp-foot { display: flex; justify-content: space-between; padding: 2.5mm 14mm; font-size: 8.5pt; color: var(--muted); }
+
+/* Class grade sheet */
+.rpt .rp-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 3mm; overflow: hidden; }
+.rpt .rp-stats div { padding: 2.2mm 2mm; text-align: center; display: flex; flex-direction: column; }
+.rpt .rp-stats div + div { border-inline-start: 1px solid var(--line); }
+.rpt .rp-stats span { font-size: 9pt; color: var(--muted); }
+.rpt .rp-stats b { font-size: 14pt; color: var(--navy); }
+.rpt table.rp-list { font-size: 9pt; border-radius: 2mm; table-layout: fixed; }
+.rpt table.rp-list th { height: 9mm; padding: 0 0.8mm; font-size: 8.5pt; line-height: 1.25; vertical-align: middle; }
+.rpt table.rp-list th small { display: block; color: #c9cde6; font-size: 7.5pt; font-weight: 500; }
+.rpt table.rp-list td { height: 5.5mm; padding: 0 0.8mm; line-height: 1.2; white-space: nowrap; overflow: hidden; vertical-align: middle; }
+.rpt table.rp-list td b { font-size: 9.5pt; }
+.rpt table.rp-list .rp-nm { text-align: right; padding-inline: 2.5mm; }
+.rpt table.rp-list tr:nth-child(odd) td { background: #f7f9fa; }
+.rpt table.rp-list .rp-lvl { margin-top: 0; font-size: 7.5pt; padding: 0.2mm 2mm; line-height: 1.3; }

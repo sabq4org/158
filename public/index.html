@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/report.css">
 <style>
 /* Layout: one calm column. A lookup slip on top; the result opens beneath it as a report card with a score ring, four measure tiles, learning style and signatures. */
 :root {
@@ -261,66 +262,55 @@ h1 {
   .tags { justify-content: center; }
   .btn { flex: 1 1 100%; }
 }
-.rpt-host { position: fixed; top: 0; left: -10000px; width: 210mm; pointer-events: none; }
-.rpt { direction: rtl; background: #fff; }
-.rpt * { box-sizing: border-box; margin: 0; }
-.rpt { --navy:#2b2765; --teal:#0d6e6a; --mint:#8fc3ad; --mint-soft:#eaf5f0; --ink:#1d2433; --muted:#667085; --line:#dfe5ea; --gold:#b9800f; --gold-soft:#fdf3dc; }
-.rpt { font-family: "IBM Plex Sans Arabic", Tahoma, sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.rpt .rp-sheet { width: 210mm; height: 297mm; position: relative; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
-.rpt .rp-band { height: 5mm; flex: none; display: flex; }
-.rpt .rp-band i { flex: 65; background: var(--navy); }
-.rpt .rp-band i + i { flex: 35; background: var(--mint); }
-.rpt .rp-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6mm 14mm 5mm; gap: 6mm; border-bottom: 1px solid var(--line); }
-.rpt .rp-gov { font-size: 10.5pt; line-height: 1.75; font-weight: 600; color: var(--navy); }
-.rpt .rp-gov span { display: block; font-weight: 500; color: var(--muted); font-size: 9.5pt; }
-.rpt .rp-head img.rp-moe { height: 22mm; justify-self: center; }
-.rpt .rp-head img.rp-school { height: 24mm; justify-self: end; }
-.rpt .rp-title { text-align: center; padding: 4mm 14mm 3mm; }
-.rpt .rp-title h1 { font-size: 20pt; font-weight: 700; color: var(--navy); letter-spacing: 0; }
-.rpt .rp-title p { color: var(--muted); font-size: 10.5pt; margin-top: 1mm; }
-.rpt .rp-body { padding: 0 14mm; display: flex; flex-direction: column; gap: 4mm; }
-.rpt .rp-info { display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center; border: 1px solid var(--line); border-radius: 4mm; padding: 4mm 6mm; }
-.rpt .rp-info dl { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 2.5mm 5mm; font-size: 11pt; }
-.rpt .rp-info dt { color: var(--muted); }
-.rpt .rp-info dd { font-weight: 600; }
-.rpt .rp-info dd.rp-name { font-size: 15pt; font-weight: 700; color: var(--navy); grid-column: span 3; }
-.rpt .rp-info dd.rp-mono { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
-.rpt .rp-score { width: 30mm; height: 30mm; display: block; }
-.rpt h2 { font-size: 12.5pt; color: var(--navy); font-weight: 700; display: flex; align-items: center; gap: 2.5mm; margin-bottom: 2.5mm; }
-.rpt h2::before { content: ""; width: 2.2mm; height: 2.2mm; border-radius: 50%; background: var(--mint); }
-.rpt table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 3mm; overflow: hidden; font-size: 11pt; }
-.rpt th { background: var(--navy); color: #fff; font-weight: 600; padding: 2.8mm 3mm; font-size: 10.5pt; }
-.rpt td { padding: 2.6mm 3mm; text-align: center; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.rpt th + th, .rp-rpt td + td { border-inline-start: 1px solid var(--line); }
-.rpt td b { font-size: 14pt; }
-.rpt td small { color: var(--muted); }
-.rpt td.rp-key { background: var(--mint-soft); color: var(--teal); }
-.rpt .rp-lvl { display: inline-block; font-size: 9pt; font-weight: 600; padding: .4mm 3mm; border-radius: 10mm; margin-top: 1mm; }
-.rpt .rp-good { background: #e3f4ea; color: #1f7a45; }
-.rpt .rp-warn { background: #fdf0dc; color: #9a5a00; }
-.rpt .rp-low { background: #fbe4e4; color: #a33a3a; }
-.rpt .rp-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
-.rpt .rp-box { border: 1px solid var(--line); border-radius: 3mm; padding: 3mm 5mm; }
-.rpt .rp-box .rp-k { color: var(--muted); font-size: 9.5pt; }
-.rpt .rp-box .rp-v { font-weight: 700; font-size: 13pt; color: var(--navy); }
-.rpt .rp-box .rp-t { font-size: 9.5pt; color: var(--muted); margin-top: 1mm; line-height: 1.7; }
-.rpt .rp-box .rp-v.rp-mono { direction: ltr; text-align: right; font-size: 11.5pt; }
-.rpt .rp-praise { background: var(--gold-soft); border-radius: 3mm; padding: 4mm 6mm; display: flex; gap: 4mm; align-items: center; }
-.rpt .rp-praise svg { width: 11mm; height: 11mm; flex: none; color: var(--gold); }
-.rpt .rp-praise b { display: block; color: var(--gold); font-size: 13.5pt; }
-.rpt .rp-praise span { font-size: 10.5pt; }
-.rpt .rp-signs { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; padding: 4mm 14mm 0; margin-top: auto; }
-.rpt .rp-sign { text-align: center; }
-.rpt .rp-sign .rp-k { color: var(--muted); font-size: 10pt; }
-.rpt .rp-sign .rp-n { font-weight: 700; font-size: 12.5pt; color: var(--navy); margin-top: 1mm; }
-.rpt .rp-sign .rp-line { border-bottom: 1px dashed #b9c2cc; height: 10mm; margin: 0 14mm; }
-.rpt .rp-foot { display: flex; justify-content: space-between; padding: 4mm 14mm 4mm; font-size: 8.5pt; color: var(--muted); }
 .actions { gap: 10px; flex-wrap: wrap; }
 .closed { background: var(--surface, #fff); border: 1px solid var(--line); border-radius: 18px; padding: 28px 20px; text-align: center; box-shadow: var(--shadow); }
 .closed svg { width: 40px; height: 40px; color: var(--accent); }
 .closed p { margin: 10px 0 0; font-size: 17px; font-weight: 600; }
 .btn-pdf { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 22px; font-size: 15px; }
 .btn-pdf svg { width: 18px; height: 18px; }
+
+/* Class comparison, progress across terms, study tips */
+.block, .study { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.block-head { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; }
+.block-title, .sub-title { font-weight: 700; font-size: 16px; }
+.sub-title { font-size: 15px; margin-bottom: 8px; }
+.key { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.key .k-you::before { content: ""; width: 16px; height: 8px; border-radius: 99px; background: var(--accent); }
+.key .k-avg::before { content: ""; width: 3px; height: 14px; border-radius: 2px; background: var(--ink); }
+.cmp-sum { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font-size: 14px; }
+.cmp-sum b { display: block; font-size: 15px; }
+.cmp { display: flex; flex-direction: column; gap: 14px; }
+.cmp-row { display: flex; flex-direction: column; gap: 7px; }
+.cmp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 2px 10px; flex-wrap: wrap; font-size: 14px; }
+.cmp-name { font-weight: 600; }
+.cmp-vals { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cmp-vals b { color: var(--ink); font-size: 14.5px; }
+.cmp-track { position: relative; height: 10px; border-radius: 99px; background: var(--line); }
+.cmp-track i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: inherit; background: var(--accent); }
+.cmp-track s { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-inline-start: -1.5px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+.prog { display: flex; flex-direction: column; gap: 10px; }
+.prog-row { display: grid; grid-template-columns: minmax(0, 10em) minmax(0, 1fr) 3em; gap: 12px; align-items: center; font-size: 14px; }
+.prog-name { color: var(--muted); line-height: 1.45; }
+.prog-row.now .prog-name { color: var(--ink); font-weight: 600; }
+.prog-track { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.prog-track i { display: block; height: 100%; border-radius: inherit; background: var(--muted); }
+.prog-row.now .prog-track i { background: var(--accent); }
+.prog-val { font-weight: 700; font-variant-numeric: tabular-nums; text-align: end; }
+.study-head { display: flex; gap: 16px; align-items: center; }
+.study-head > div { min-width: 0; }
+.tips { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: tip; }
+.tips li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14.5px; counter-increment: tip; }
+.tips li::before { content: counter(tip); width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; display: grid; place-items: center; line-height: 1; }
+.next { background: var(--gold-soft); border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; }
+.next b { font-size: 14.5px; }
+.next p { margin: 0; font-size: 14.5px; }
+.no-grades { margin: 0 24px 24px; padding: 18px; border: 1.5px dashed var(--line); border-radius: 16px; text-align: center; color: var(--muted); font-weight: 600; }
+@media (max-width: 520px) {
+  .block, .study { padding-inline: 18px; }
+  .no-grades { margin-inline: 18px; }
+  .prog-row { grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 2.8em; gap: 10px; }
+}
 </style>
 </head>
 <body>
@@ -359,6 +349,7 @@ h1 {
   </footer>
 </div>
 
+<script src="/report.js"></script>
 <script>
 document.documentElement.dir = "rtl";
 document.documentElement.lang = "ar";
@@ -366,17 +357,8 @@ document.documentElement.lang = "ar";
 const MAX = { test: 20, participation: 10, projects: 10 };
 // Overwritten from /api/site, which the teacher controls from the panel.
 const SITE = { gradeLabel: "الصف الثاني", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري" };
-const gradeLine = () => SITE.gradeLabel + (SITE.termTitle ? " · " + SITE.termTitle : "");
-
-const STYLES = {
-  "بصري":  { tip: "تتعلم أفضل بالصور والخرائط الذهنية والألوان والمخططات.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>' },
-  "سمعي":  { tip: "تتعلم أفضل بالاستماع والنقاش والشرح الصوتي والتكرار بصوت مسموع.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3 3 0 0 1-6 0"/><path d="M9.5 8.5a2.5 2.5 0 0 1 5 0"/></svg>' },
-  "حركي":  { tip: "تتعلم أفضل بالتجربة والأنشطة العملية والحركة ولعب الأدوار.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg>' },
-  "كتابي": { tip: "تتعلم أفضل بالقراءة وتدوين الملاحظات والتلخيص والكتابة.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' }
-};
-
-const STAR = '<svg class="star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
-const SPROUT = '<svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V11"/><path d="M12 11C12 6 8 4 3 4c0 5 3 7 9 7z"/><path d="M12 14c0-4 3-6 9-6 0 4-3 6-9 6z"/></svg>';
+const gradeLine = () => Report.gradeLine(SITE);
+const { fmt, esc, level, praiseFor } = Report;
 
 async function findStudent(id) {
   const res = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
@@ -387,31 +369,23 @@ async function findStudent(id) {
   return res.json();
 }
 const $ = s => document.querySelector(s);
-const fmt = n => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 function toLatin(s) {
   return s.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, "");
 }
 
-function praiseFor(pct, first) {
-  if (pct >= 95) return { cls: "", icon: STAR, title: `ما شاء الله يا ${first}! أداء متميز`, text: "نتيجتك تدل على اجتهاد وإصرار. أنتِ قدوة لزميلاتك، فاستمري على هذا التألق." };
-  if (pct >= 90) return { cls: "", icon: STAR, title: `أحسنتِ يا ${first}، نتيجة ممتازة`, text: "جهدك واضح ومثمر. خطوة صغيرة بعد وتصلين للقمة." };
-  if (pct >= 80) return { cls: "", icon: STAR, title: `رائعة يا ${first}، أنتِ على الطريق الصحيح`, text: "مستواك جميل جداً، ومع قليل من المراجعة ستكونين من المتفوقات." };
-  if (pct >= 65) return { cls: "calm", icon: SPROUT, title: `بداية طيبة يا ${first}`, text: "عندك قدرات جميلة، وبالمراجعة المنتظمة ستلاحظين الفرق بسرعة." };
-  return { cls: "calm", icon: SPROUT, title: `نثق بكِ يا ${first}`, text: "كل خطوة تقدّم تُحسب لك. معلمتك بجانبك، وبالتدريب المستمر تتحسن النتائج." };
-}
-
-function level(p) { return p >= 0.9 ? ["good", "ممتاز"] : p >= 0.75 ? ["good", "جيد جداً"] : p >= 0.6 ? ["warn", "جيد"] : ["low", "يحتاج دعم"]; }
-
-function metric(name, val, max, note) {
+function metric(name, val, max) {
+  if (val == null) return `<div class="metric">
+    <div class="m-top"><span class="m-name">${name}</span></div>
+    <div class="m-val">— <small>/ ${max}</small></div>
+    <div class="m-note">لم تُرصد بعد</div>
+  </div>`;
   const p = Math.max(0, Math.min(1, val / max));
   const [c, t] = level(p);
   return `<div class="metric">
     <div class="m-top"><span class="m-name">${name}</span><span class="pill ${c}">${t}</span></div>
     <div class="m-val">${fmt(val)} <small>/ ${max}</small></div>
     <div class="bar" role="img" aria-label="${Math.round(p * 100)}%"><i style="width:${p * 100}%"></i></div>
-    ${note ? `<div class="m-note">${note}</div>` : ""}
   </div>`;
 }
 
@@ -424,135 +398,96 @@ function lateMetric(n) {
   </div>`;
 }
 
+// One row: the student's bar, with a tick where the class average sits.
+function cmpRow(name, mine, avg, max, mineText, avgText) {
+  const at = v => Math.max(0, Math.min(100, (v / max) * 100));
+  return `<div class="cmp-row">
+    <div class="cmp-top"><span class="cmp-name">${name}</span><span class="cmp-vals">درجتك <b>${mineText}</b> · متوسط الفصل ${avgText}</span></div>
+    <div class="cmp-track" role="img" aria-label="${name}: درجتك ${mineText}، ومتوسط الفصل ${avgText}">${mine == null ? "" : `<i style="width:${at(mine)}%"></i>`}${avg == null ? "" : `<s style="inset-inline-start:${at(avg)}%"></s>`}</div>
+  </div>`;
+}
+
+function compareBlock(sc, cs) {
+  const v = Report.versusClass(sc, cs);
+  const of = (x, m) => (x == null ? "—" : `${fmt(x)} من ${m}`);
+  return `<div class="block">
+    <div class="block-head"><span class="block-title">مقارنة بمتوسط الفصل</span><span class="key" aria-hidden="true"><span class="k-you">درجتك</span><span class="k-avg">متوسط الفصل</span></span></div>
+    <p class="cmp-sum"><b>${esc(v.title)}</b>${esc(v.text)}</p>
+    <div class="cmp">
+      ${cmpRow("الاختبارات", sc.test, cs.test, MAX.test, of(sc.test, MAX.test), fmt(cs.test))}
+      ${cmpRow("المشاركة", sc.part, cs.participation, MAX.participation, of(sc.part, MAX.participation), fmt(cs.participation))}
+      ${cmpRow("المشاريع والمهام", sc.proj, cs.projects, MAX.projects, of(sc.proj, MAX.projects), fmt(cs.projects))}
+      ${cmpRow("النسبة الكلية", sc.pct, cs.pct, 100, sc.pct + "%", cs.pct + "%")}
+    </div>
+    <p class="hint">المتوسط محسوب من درجات طالبات فصلك، ولا يظهر فيه اسم أو درجة أي طالبة.</p>
+  </div>`;
+}
+
+function progressBlock(pg) {
+  return `<div class="block">
+    <div class="block-head"><span class="block-title">تقدّمك عبر الفترات</span>${pg.trend ? `<span class="pill ${pg.trend.kind}">${pg.trend.text}</span>` : ""}</div>
+    <div class="prog">${pg.rows.map(x => `<div class="prog-row${x.now ? " now" : ""}">
+      <span class="prog-name">${esc(x.title)}</span>
+      <div class="prog-track" role="img" aria-label="${esc(x.title)}: ${x.pct}%"><i style="width:${Math.min(100, x.pct)}%"></i></div>
+      <span class="prog-val">${x.pct}%</span></div>`).join("")}</div>
+  </div>`;
+}
+
+function studyBlock(style, steps) {
+  const st = Report.styleOf(style);
+  return `<div class="study">
+    <div class="study-head">
+      <div class="style-icon" aria-hidden="true">${st.icon}</div>
+      <div><div class="r-label">نمط التعلم</div><div class="s-title">${esc(style || "لم يُحدَّد بعد")}</div><p class="s-text">${esc(st.tip)}</p></div>
+    </div>
+    <div><div class="sub-title">نصائح مذاكرة تناسبك</div><ol class="tips">${st.tips.map(t => `<li>${esc(t)}</li>`).join("")}</ol></div>
+    <div class="next"><b>خطوتك القادمة</b>${steps.map(t => `<p>${esc(t)}</p>`).join("")}</div>
+  </div>`;
+}
 
 // ===== تصدير بطاقة النتيجة PDF =====
 let currentStudent = null;
-const LOGO_MOE = document.querySelectorAll(".logos img")[0]?.src || "";
-const LOGO_SCHOOL = document.querySelectorAll(".logos img")[1]?.src || "";
-
-function loadScript(src) {
-  return new Promise((ok, fail) => {
-    if (document.querySelector(`script[src="${src}"]`)) return ok();
-    const s = document.createElement("script");
-    s.src = src; s.onload = ok; s.onerror = () => fail(new Error("load_failed"));
-    document.head.appendChild(s);
-  });
-}
-
-function reportHTML(r) {
-  const { id, name, class: cls, test1, test2, testAvg, participation, projects, lateness, learningStyle, email } = r;
-  const t1 = Number(test1), t2 = Number(test2);
-  const test = testAvg != null ? Number(testAvg) : (t1 + t2) / 2;
-  const part = Number(participation), proj = Number(projects), late = Number(lateness) || 0;
-  const total = test + part + proj, maxTotal = MAX.test + MAX.participation + MAX.projects;
-  const pct = Math.round((total / maxTotal) * 100);
-  const pr = praiseFor(pct, name.split(" ")[0]);
-  const lv = v => { const [c, t] = level(v); return `<span class="rp-lvl rp-${c}">${t}</span>`; };
-  const lateLv = late === 0 ? ["good", "منضبطة"] : late <= 2 ? ["warn", "قليل"] : ["low", "متكرر"];
-  const st = STYLES[learningStyle];
-  const today = new Date().toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric" });
-  return { pct, html: `
-<div class="rp-sheet">
-  <div class="rp-band"><i></i><i></i></div>
-  <div class="rp-head">
-    <div class="rp-gov">المملكة العربية السعودية<span>وزارة التعليم</span><span>الإدارة العامة للتعليم بمنطقة الرياض</span><span>الثانوية الثامنة والخمسون بعد المائة</span></div>
-    <img class="rp-moe" src="${LOGO_MOE}">
-    <img class="rp-school" src="${LOGO_SCHOOL}">
-  </div>
-  <div class="rp-title"><h1>بطاقة نتيجة الطالبة</h1><p>${esc(gradeLine())}</p></div>
-  <div class="rp-body">
-    <div class="rp-info">
-      <dl>
-        <dt>اسم الطالبة</dt><dd class="rp-name">${esc(name)}</dd>
-        <dt>رقم الهوية</dt><dd class="rp-mono">${esc(id)}</dd><dt>الفصل</dt><dd>${esc(cls || "")}</dd>
-      </dl>
-      <canvas class="rp-score" width="340" height="340" data-sub="${fmt(total)} من ${maxTotal}"></canvas>
-    </div>
-    <div>
-      <h2>الاختبارات</h2>
-      <table><tr><th>الاختبار الأول</th><th>الاختبار الثاني</th><th>المجموع</th><th>المتوسط</th></tr>
-      <tr><td><b>${fmt(t1)}</b> <small>/ ${MAX.test}</small></td><td><b>${fmt(t2)}</b> <small>/ ${MAX.test}</small></td><td><b>${fmt(t1 + t2)}</b> <small>/ ${MAX.test * 2}</small></td><td class="rp-key"><b>${fmt(test)}</b> <small>/ ${MAX.test}</small><br>${lv(test / MAX.test)}</td></tr></table>
-    </div>
-    <div>
-      <h2>التقييم المستمر</h2>
-      <table><tr><th>المشاركة</th><th>المشاريع والمهام</th><th>التأخير</th></tr>
-      <tr><td><b>${fmt(part)}</b> <small>/ ${MAX.participation}</small><br>${lv(part / MAX.participation)}</td><td><b>${fmt(proj)}</b> <small>/ ${MAX.projects}</small><br>${lv(proj / MAX.projects)}</td><td><b>${late === 0 ? "لا يوجد" : fmt(late)}</b><br><span class="rp-lvl rp-${lateLv[0]}">${lateLv[1]}</span></td></tr></table>
-    </div>
-    <div class="rp-row2">
-      <div class="rp-box"><div class="rp-k">نمط التعلم</div><div class="rp-v">${esc(learningStyle || "لم يُحدَّد بعد")}</div><div class="rp-t">${esc(st ? st.tip : "سيُحدَّد نمط التعلم بعد استكمال المعلمة للتقييم.")}</div></div>
-      <div class="rp-box"><div class="rp-k">الإيميل الوزاري</div><div class="rp-v rp-mono">${esc(email || "")}</div></div>
-    </div>
-    <div class="rp-praise">${STAR.replace('class="rp-star"', "")}<div><b>${esc(pr.title)}</b><span>${esc(pr.text)}</span></div></div>
-  </div>
-  <div class="rp-signs">
-    <div class="rp-sign"><div class="rp-k">معلمة المادة</div><div class="rp-n">${esc(SITE.teacherName)}</div><div class="rp-line"></div></div>
-    <div class="rp-sign"><div class="rp-k">مديرة المدرسة</div><div class="rp-n">${esc(SITE.principalName)}</div><div class="rp-line"></div></div>
-  </div>
-  <div class="rp-foot"><span>تاريخ الإصدار: ${today}</span><span>صادرة من نظام استعلام النتائج</span></div>
-  <div class="rp-band"><i></i><i></i></div>
-</div>` };
-}
-
-function drawRing(canvas, pct) {
-  const c = canvas.getContext("2d"), s = canvas.width, r = s / 2 - 18;
-  c.lineWidth = 30; c.lineCap = "butt";
-  c.strokeStyle = "#e6efed"; c.beginPath(); c.arc(s / 2, s / 2, r, 0, Math.PI * 2); c.stroke();
-  c.strokeStyle = "#0d6e6a"; c.beginPath(); c.arc(s / 2, s / 2, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(pct, 100) / 100); c.stroke();
-  c.textAlign = "center"; c.direction = "rtl";
-  c.fillStyle = "#1d2433"; c.font = '700 76px "IBM Plex Sans Arabic", Tahoma, sans-serif';
-  c.fillText(pct + "%", s / 2, s / 2 + 18);
-  c.fillStyle = "#667085"; c.font = '500 30px "IBM Plex Sans Arabic", Tahoma, sans-serif';
-  c.fillText(canvas.dataset.sub, s / 2, s / 2 + 66);
-}
 
 async function downloadPdf(btn) {
   if (!currentStudent) return;
   fetch("/api/lookup/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentStudent.id }) }).catch(() => {});
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = "جارٍ تجهيز الملف…";
-  const host = document.createElement("div");
-  host.className = "rpt-host";
   try {
-    await Promise.all([
-      loadScript("/vendor/html2canvas.min.js"),
-      loadScript("/vendor/jspdf.umd.min.js"),
-    ]);
-    const { pct, html } = reportHTML(currentStudent);
-    host.innerHTML = `<div class="rpt">${html}</div>`;
-    document.body.appendChild(host);
-    await document.fonts.ready;
-    drawRing(host.querySelector("canvas.rp-score"), pct);
-    await Promise.all([...host.querySelectorAll("img")].map(i => i.complete ? 0 : new Promise(ok => { i.onload = i.onerror = ok; })));
-    const sheet = host.querySelector(".rp-sheet");
-    const canvas = await html2canvas(sheet, { scale: 2.5, backgroundColor: "#ffffff", useCORS: true, logging: false });
-    const pdf = new jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 210, 297);
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(pdf.output("blob"));
-    a.download = `نتيجة - ${currentStudent.name}.pdf`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    const blob = await Report.toPdf([Report.cardSheet(currentStudent, { max: MAX, site: SITE })]);
+    Report.save(blob, `نتيجة - ${currentStudent.name}.pdf`);
   } catch (err) {
     console.error(err);
     showError("تعذّر تجهيز ملف PDF. تأكدي من اتصال الإنترنت وحاولي مرة أخرى.");
   } finally {
-    host.remove();
     btn.disabled = false; btn.innerHTML = label;
   }
 }
 
 function render(r) {
   currentStudent = r;
-  const { id, name, class: cls, test1: t1, test2: t2, testAvg: avg, participation: part, projects: proj, lateness: lateRaw, learningStyle: style, email } = r;
-  const test = avg != null ? Number(avg) : (Number(t1) + Number(t2)) / 2;
-  const late = Number(lateRaw) || 0;
-  const total = test + Number(part) + Number(proj);
-  const maxTotal = MAX.test + MAX.participation + MAX.projects;
-  const pct = Math.round((total / maxTotal) * 100);
+  const { id, name, class: cls, learningStyle: style, email } = r;
+  const sc = Report.scores(r, MAX);
   const first = name.split(" ")[0];
-  const pr = praiseFor(pct, first);
-  const st = STYLES[style] || { tip: "سيُحدَّد نمط التعلم بعد استكمال المعلمة للتقييم.", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2"/></svg>' };
+  const pr = sc.has ? praiseFor(sc.pct, first)
+    : { cls: "calm", icon: Report.SPROUT, title: `أهلاً يا ${first}`, text: "لم تكتمل درجات هذه الفترة بعد، وستظهر نسبتك هنا فور رصدها." };
+  const pg = Report.progress(r.history, sc, SITE.termTitle);
   const C = 2 * Math.PI * 48;
+  const results = sc.any ? `
+    <div class="tests">
+      <div class="tests-head"><span class="tests-title">الاختبارات</span>${sc.test == null ? "" : (() => { const [c, t] = level(sc.test / MAX.test); return `<span class="pill ${c}">${t}</span>`; })()}</div>
+      <div class="tests-grid">
+        <div class="t-cell"><span class="t-label">الاختبار الأول</span><span class="t-val">${fmt(sc.t1)} <small>/ ${MAX.test}</small></span></div>
+        <div class="t-cell"><span class="t-label">الاختبار الثاني</span><span class="t-val">${fmt(sc.t2)} <small>/ ${MAX.test}</small></span></div>
+        <div class="t-cell"><span class="t-label">المجموع</span><span class="t-val">${fmt(sc.t1 != null && sc.t2 != null ? sc.t1 + sc.t2 : null)} <small>/ ${MAX.test * 2}</small></span></div>
+        <div class="t-cell key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(sc.test)} <small>/ ${MAX.test}</small></span></div>
+      </div>
+    </div>
+    <div class="metrics">
+      ${metric("المشاركة", sc.part, MAX.participation)}
+      ${metric("المشاريع والمهام", sc.proj, MAX.projects)}
+      ${lateMetric(sc.late)}
+    </div>` : `<p class="no-grades">لم تُرصد درجات هذه الفترة بعد.</p>`;
 
   $("#result").innerHTML = `
   <article class="result">
@@ -561,31 +496,17 @@ function render(r) {
       <div>
         <div class="r-label">اسم الطالبة</div>
         <div class="r-name">${esc(name)}</div>
-        <div class="tags"><span class="tag">${esc(SITE.gradeLabel)} · الفصل ${esc(cls)}</span><span class="tag id">${esc(id)}</span></div>
+        <div class="tags"><span class="tag">${esc(SITE.gradeLabel)}${cls ? ` · الفصل ${esc(cls)}` : ""}</span><span class="tag id">${esc(id)}</span></div>
       </div>
-      <div class="ring" role="img" aria-label="المجموع ${pct}%">
+      ${sc.has ? `<div class="ring" role="img" aria-label="المجموع ${sc.pct}%">
         <svg viewBox="0 0 116 116"><circle class="ring-bg" cx="58" cy="58" r="48"/><circle class="ring-fg" id="ringFg" cx="58" cy="58" r="48" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
-        <div class="ring-val"><b>${pct}%</b><small>${fmt(total)} من ${maxTotal}</small></div>
-      </div>
+        <div class="ring-val"><b>${sc.pct}%</b><small>${fmt(sc.total)} من ${sc.maxTotal}</small></div>
+      </div>` : ""}
     </div>
-    <div class="tests">
-      <div class="tests-head"><span class="tests-title">الاختبارات</span>${(() => { const [c, t] = level(test / MAX.test); return `<span class="pill ${c}">${t}</span>`; })()}</div>
-      <div class="tests-grid">
-        <div class="t-cell"><span class="t-label">الاختبار الأول</span><span class="t-val">${fmt(Number(t1))} <small>/ ${MAX.test}</small></span></div>
-        <div class="t-cell"><span class="t-label">الاختبار الثاني</span><span class="t-val">${fmt(Number(t2))} <small>/ ${MAX.test}</small></span></div>
-        <div class="t-cell"><span class="t-label">المجموع</span><span class="t-val">${fmt(Number(t1) + Number(t2))} <small>/ ${MAX.test * 2}</small></span></div>
-        <div class="t-cell key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(test)} <small>/ ${MAX.test}</small></span></div>
-      </div>
-    </div>
-    <div class="metrics">
-      ${metric("المشاركة", Number(part), MAX.participation)}
-      ${metric("المشاريع والمهام", Number(proj), MAX.projects)}
-      ${lateMetric(late)}
-    </div>
-    <div class="section">
-      <div class="style-icon" aria-hidden="true">${st.icon}</div>
-      <div><div class="r-label">نمط التعلم</div><div class="s-title">${esc(style || "لم يُحدَّد بعد")}</div><p class="s-text">${esc(st.tip)}</p></div>
-    </div>
+    ${results}
+    ${sc.has && r.classStats ? compareBlock(sc, r.classStats) : ""}
+    ${r.history?.length && pg.rows.length ? progressBlock(pg) : ""}
+    ${studyBlock(style, Report.nextSteps(sc, MAX))}
     <div class="section">
       <div class="style-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
       <div><div class="r-label">الإيميل الوزاري</div><div class="email-row"><span class="email" id="emailText">${esc(email)}</span><button class="copy" type="button" id="copyBtn">نسخ</button></div></div>
@@ -598,10 +519,10 @@ function render(r) {
   <div class="actions" style="margin-top:16px"><button class="btn btn-pdf" type="button" id="pdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تحميل PDF</button><button class="ghost" type="button" id="again">استعلام عن طالبة أخرى</button></div>`;
 
   $("#result").hidden = false;
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  if (sc.has) requestAnimationFrame(() => requestAnimationFrame(() => {
     const ring = $("#ringFg");
-    ring.style.stroke = pct >= 80 ? "var(--gold)" : "var(--accent)";
-    ring.style.strokeDashoffset = C * (1 - Math.min(pct, 100) / 100);
+    ring.style.stroke = sc.pct >= 80 ? "var(--gold)" : "var(--accent)";
+    ring.style.strokeDashoffset = C * (1 - Math.min(sc.pct, 100) / 100);
   }));
 
   $("#copyBtn").addEventListener("click", e => {

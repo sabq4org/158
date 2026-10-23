@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/report.css">
 <style>
 /* Layout: a navy top bar with the two logos, tabs (overview, students, classes, upload, log, backups, settings), and a wide working area. */
 :root {
@@ -154,8 +155,6 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 .bar { height: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
 .bar-row .v { text-align: left; font-weight: 600; font-variant-numeric: tabular-nums; direction: ltr; }
-.dist { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--surface-2); margin-bottom: 12px; }
-.dist i { display: block; height: 100%; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13.5px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
@@ -163,6 +162,9 @@ dialog::backdrop { background: rgba(14,26,28,.45); }
 .names button { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 99px; padding: 2px 12px; font: inherit; font-size: 13.5px; cursor: pointer; }
 .names button:hover { border-color: var(--accent); }
 .names .none { color: var(--muted); font-size: 13.5px; }
+.follow h4 { margin: 16px 0 8px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.follow h3 + h4 { margin-top: 4px; }
+a.btn { text-decoration: none; }
 .set { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .set fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 0; }
 .set legend { font-weight: 700; padding: 0 6px; }
@@ -192,6 +194,60 @@ tr.undone td { opacity: .55; }
   .topbar .link { padding-inline: 10px; font-size: 13px; white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Charts. Levels are ordered, so they share one blue ramp: darker means higher on light, lighter means higher on dark.
+   Each fill names the ink its in-bar label uses. Checked with the dataviz palette validator against both surfaces. */
+:root {
+  --lv-1: #0d366b; --lv-1-ink: #ffffff;
+  --lv-2: #1c5cab; --lv-2-ink: #ffffff;
+  --lv-3: #3987e5; --lv-3-ink: #ffffff;
+  --lv-4: #86b6ef; --lv-4-ink: #0b0b0b;
+  --lv-none: #898781; --lv-none-ink: #ffffff;
+  --series-1: #2a78d6; --viz-muted: #898781; --viz-axis: #c3c2b7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lv-1: #b7d3f6; --lv-1-ink: #0b0b0b;
+    --lv-2: #6da7ec; --lv-2-ink: #0b0b0b;
+    --lv-3: #3987e5; --lv-3-ink: #ffffff;
+    --lv-4: #1c5cab; --lv-4-ink: #ffffff;
+    --series-1: #3987e5; --viz-axis: #383835;
+  }
+}
+.viz-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.viz-head h3 { margin: 0 !important; }
+.viz .legend { margin-bottom: 6px; }
+.stack-row { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 10px; }
+.stack-label { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.stack-label small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.stack-row.all { border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 6px; }
+.stack { display: flex; gap: 2px; min-width: 0; }
+.seg { flex: 1 1 0; min-width: 3px; padding-block: 6px; outline-offset: 0; }
+.seg i { display: flex; align-items: center; justify-content: center; height: 24px; background: var(--c); color: var(--ci); font-style: normal; overflow: visible; }
+.seg.end i { border-start-end-radius: 4px; border-end-end-radius: 4px; }
+.seg b { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.seg:hover i, .seg:focus-visible i { filter: brightness(1.12); }
+.hbar-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 32px; align-items: center; gap: 10px; min-height: 34px; border-radius: 8px; }
+.hbar-row:hover, .hbar-row:focus-visible { background: var(--surface-2); }
+.hbar-label { font-size: 13.5px; font-weight: 600; }
+.hbar { display: block; border-inline-start: 1px solid var(--viz-axis); padding-block: 5px; }
+.hbar i { display: block; height: 20px; background: var(--series-1); border-start-end-radius: 4px; border-end-end-radius: 4px; }
+.hbar i.none { background: var(--viz-muted); }
+.hbar-row:hover .hbar i, .hbar-row:focus-visible .hbar i { filter: brightness(1.12); }
+.hbar-v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: end; }
+.viz-table { font-size: 13.5px; }
+.viz-table td, .viz-table th { text-align: center; }
+.viz-table td:first-child, .viz-table th:first-child { text-align: right; }
+.viz-tip { position: fixed; z-index: 60; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 8px 12px; font-size: 13px; line-height: 1.5; min-width: 120px; max-width: 240px; }
+.viz-tip .tv { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.viz-tip .tv.keyed::before { content: ""; width: 14px; height: 3px; border-radius: 2px; background: var(--k); flex: none; }
+.viz-tip .tl { color: var(--muted); }
+fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
+.hist { margin: 0; font-size: 13px; color: var(--muted); }
+.hist b { color: var(--ink); }
+.progress-note { margin: 0; font-weight: 600; color: var(--accent); }
+/* The principal's read-only view hides every control that changes data. */
+body.viewer [data-admin] { display: none !important; }
 </style>
 </head>
 <body>
@@ -199,7 +255,7 @@ tr.undone td { opacity: .55; }
 <header class="topbar">
   <div class="topbar-in">
     <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
-    <div class="brand"><b>لوحة تحكم المعلمة</b><span id="whoLine">فائزة محمد جبوع · الصف الثاني</span></div>
+    <div class="brand"><b id="brandTitle">لوحة تحكم المعلمة</b><span id="whoLine">فائزة محمد جبوع · الصف الثاني</span></div>
     <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
     <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
   </div>
@@ -223,15 +279,16 @@ tr.undone td { opacity: .55; }
       <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview">نظرة عامة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students">الطالبات</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes">الفصول</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import">رفع ملف إكسل</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms">الفترات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import" data-admin>رفع ملف إكسل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups">النسخ<span class="hide-sm"> الاحتياطية</span></button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings">الإعدادات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups" data-admin>النسخ<span class="hide-sm"> الاحتياطية</span></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings" data-admin>الإعدادات</button>
     </nav>
 
     <!-- Students -->
     <div data-panel="overview" style="margin-top:16px; display:flex; flex-direction:column; gap:16px">
-      <div class="card gate" id="gate"><span class="dot"></span><b id="gateText"></b><button class="btn sm quiet" type="button" id="gateBtn"></button></div>
+      <div class="card gate" id="gate"><span class="dot"></span><b id="gateText"></b><button class="btn sm quiet" type="button" id="gateBtn" data-admin></button></div>
       <div class="card look">
         <div class="look-head"><h3>الاستعلامات</h3><span class="note" id="lookTotals"></span></div>
         <p id="lookCount" style="margin:0 0 8px"></p>
@@ -240,9 +297,24 @@ tr.undone td { opacity: .55; }
       </div>
       <div class="ov">
         <div class="card"><h3>متوسط الصف في كل بند</h3><div id="itemBars"></div></div>
-        <div class="card"><h3>توزيع المستويات</h3><div class="dist" id="dist"></div><div class="legend" id="legend"></div></div>
-        <div class="card"><h3>يحتجن دعم (أقل من 60%)</h3><div class="names" id="supportNames"></div></div>
-        <div class="card"><h3>أنماط التعلم</h3><div class="legend" id="styleLegend" style="margin-bottom:12px"></div><div class="names" id="noStyleNames"></div></div>
+        <div class="card viz">
+          <div class="viz-head"><h3>المستويات حسب الفصل</h3><button class="btn sm quiet" type="button" data-view="lv" aria-pressed="false">جدول</button></div>
+          <div class="legend" id="lvLegend"></div>
+          <div id="lvChart"></div>
+          <div class="table-wrap" id="lvTable" hidden></div>
+        </div>
+        <div class="card follow">
+          <h3>يحتجن متابعة</h3>
+          <h4>يحتجن دعم (أقل من 60%)</h4>
+          <div class="names" id="supportNames"></div>
+          <h4 id="noStyleHead">بدون نمط تعلم</h4>
+          <div class="names" id="noStyleNames"></div>
+        </div>
+        <div class="card viz">
+          <div class="viz-head"><h3>الطالبات حسب نمط التعلم</h3><button class="btn sm quiet" type="button" data-view="st" aria-pressed="false">جدول</button></div>
+          <div id="stChart"></div>
+          <div class="table-wrap" id="stTable" hidden></div>
+        </div>
       </div>
     </div>
 
@@ -257,7 +329,7 @@ tr.undone td { opacity: .55; }
           <option value="looked">استعلمت</option>
           <option value="notlooked">لم تستعلم بعد</option>
         </select>
-        <button class="btn" type="button" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة طالبة</button>
+        <button class="btn" type="button" id="addBtn" data-admin><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة طالبة</button>
         <a class="btn quiet" href="/api/admin/export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</a>
       </div>
       <div class="table-wrap">
@@ -276,7 +348,7 @@ tr.undone td { opacity: .55; }
 
     <!-- Classes -->
     <div class="card" data-panel="classes" style="margin-top:16px" hidden>
-      <form class="toolbar" id="classForm">
+      <form class="toolbar" id="classForm" data-admin>
         <input class="in grow" id="newClass" maxlength="40" placeholder="اسم الفصل الجديد، مثلاً 3 أو ثاني/4" aria-label="اسم الفصل الجديد">
         <button class="btn" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة فصل</button>
       </form>
@@ -287,7 +359,21 @@ tr.undone td { opacity: .55; }
           <tbody id="classRows"></tbody>
         </table>
       </div>
-      <div class="help" style="padding-block:12px 16px">لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. إعادة تسمية فصل باسم فصل موجود تدمجهم. الحذف متاح للفصل الفاضي فقط.</div>
+      <div class="help" style="padding-block:12px 16px">"تقرير PDF" يطلع كشف درجات الفصل، ومعه بطاقة لكل طالبة إذا تبين تطبعينها. <span data-admin>لنقل طالبة لفصل ثاني افتحي "تعديل" عندها واختاري الفصل. إعادة تسمية فصل باسم فصل موجود تدمجهم. الحذف متاح للفصل الفاضي فقط.</span></div>
+    </div>
+
+    <!-- Terms -->
+    <div class="card" data-panel="terms" style="margin-top:16px" hidden>
+      <div class="toolbar">
+        <div class="grow note">احفظي نتائج كل فترة قبل ما تبدأ الفترة الجديدة. الطالبة تشوف تقدّمها عبر الفترات في بطاقة النتيجة.</div>
+        <button class="btn" type="button" id="archiveBtn" data-admin>أرشفة الفترة الحالية</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الفترة</th><th>تاريخ الأرشفة</th><th class="num">عدد الطالبات</th><th class="num">متوسط النسبة</th><th></th></tr></thead>
+          <tbody id="termRows"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Import -->
@@ -364,6 +450,16 @@ tr.undone td { opacity: .55; }
       </fieldset>
       <p class="msg err" id="setErr" hidden></p>
       <div><button class="btn" type="submit" id="setSave">حفظ الإعدادات</button></div>
+      <fieldset>
+        <legend>حساب المديرة (عرض فقط)</legend>
+        <p class="note" id="viewerState" style="margin:0 0 10px"></p>
+        <div class="grid2" style="align-items:end">
+          <label class="f">كلمة مرور جديدة للمديرة<input class="in" id="v_pw" type="password" autocomplete="new-password" minlength="6"></label>
+          <div class="row" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="button" id="viewerSave">حفظ كلمة المرور</button><button class="btn quiet" type="button" id="viewerOff" hidden>إيقاف الحساب</button></div>
+        </div>
+        <p class="note" style="margin:10px 0 0">تدخل المديرة من رابط لوحة التحكم نفسه بهذي الكلمة، وتشوف البيانات والرسوم والتقارير بدون ما تقدر تعدّل شي. تغيير الكلمة يطلّع أي دخول قديم لها.</p>
+        <p class="msg err" id="viewerErr" hidden style="margin-top:10px"></p>
+      </fieldset>
     </form>
   </section>
 </main>
@@ -372,7 +468,7 @@ tr.undone td { opacity: .55; }
 <dialog id="editDlg">
   <form class="dlg" id="editForm" method="dialog" novalidate>
     <h2 id="editTitle">تعديل بيانات الطالبة</h2>
-    <div class="grid2">
+    <fieldset class="plain" id="editFields"><div class="grid2">
       <label class="f full" for="e_name">اسم الطالبة<input class="in" id="e_name" name="name" required></label>
       <label class="f" for="e_id">رقم الهوية<input class="in ltr" id="e_id" name="national_id" inputmode="numeric" maxlength="10" required></label>
       <label class="f" for="e_class">الفصل<select class="in" id="e_class" name="class"><option value="">بدون فصل</option></select></label>
@@ -383,12 +479,13 @@ tr.undone td { opacity: .55; }
       <label class="f" for="e_late">التأخير (عدد المرات)<input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
       <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
       <label class="f full" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
-    </div>
+    </div></fieldset>
     <p class="note" id="avgNote"></p>
+    <p class="hist" id="histNote" hidden></p>
     <p class="msg err" id="editErr" hidden></p>
     <div class="row">
-      <button class="btn" type="submit" id="saveBtn">حفظ</button>
-      <button class="btn quiet" type="button" data-close>إلغاء</button>
+      <button class="btn" type="submit" id="saveBtn" data-admin>حفظ</button>
+      <button class="btn quiet" type="button" data-close id="editClose">إلغاء</button>
     </div>
   </form>
 </dialog>
@@ -418,8 +515,56 @@ tr.undone td { opacity: .55; }
   </form>
 </dialog>
 
+<!-- Archive the current term -->
+<dialog id="termDlg">
+  <form class="dlg" id="termForm" method="dialog" novalidate>
+    <h2>أرشفة الفترة الحالية</h2>
+    <p class="note" style="margin:0">تنحفظ درجات الطالبات الحالية باسم الفترة، وتظهر لكل طالبة في "تقدّمك عبر الفترات".</p>
+    <label class="f" for="t_title">عنوان الفترة<input class="in" id="t_title" maxlength="80" required placeholder="الفصل الدراسي الأول 1447هـ"></label>
+    <label class="switch"><input type="checkbox" id="t_clear"> مسح الدرجات بعد الأرشفة لبدء فترة جديدة</label>
+    <div id="t_nextWrap" hidden style="display:flex;flex-direction:column;gap:8px">
+      <label class="f" for="t_next">عنوان الفترة الجديدة (يظهر في صفحة الاستعلام)<input class="in" id="t_next" maxlength="80" placeholder="الفصل الدراسي الثاني 1447هـ"></label>
+      <p class="note" style="margin:0">يبقى الاسم ورقم الهوية والفصل ونمط التعلم والإيميل، وتنحفظ نسخة احتياطية قبل المسح.</p>
+    </div>
+    <p class="msg err" id="termErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit" id="termSave">أرشفة</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- One-field prompt (renaming a term) -->
+<dialog id="promptDlg">
+  <form class="dlg" id="promptForm" method="dialog" novalidate>
+    <h2 id="promptTitle"></h2>
+    <label class="f" for="p_value"><span id="promptLabel"></span><input class="in" id="p_value" maxlength="80" required></label>
+    <p class="msg err" id="promptErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit">حفظ</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Class PDF -->
+<dialog id="pdfDlg">
+  <div class="dlg">
+    <h2 id="pdfTitle"></h2>
+    <p class="note" style="margin:0">كشف الفصل صفحة فيها درجات كل الطالبات. البطاقات صفحة لكل طالبة مثل اللي تحمّلها من صفحة الاستعلام.</p>
+    <div class="row">
+      <button class="btn" type="button" id="pdfSheet">كشف الفصل</button>
+      <button class="btn ghost" type="button" id="pdfAll"></button>
+      <button class="btn quiet" type="button" data-close id="pdfClose">إغلاق</button>
+    </div>
+    <p class="progress-note" id="pdfProgress" role="status" hidden></p>
+  </div>
+</dialog>
+
+<div class="viz-tip" id="vizTip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
+<script src="/report.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -430,6 +575,9 @@ let students = [];
 let settings = null;
 let classes = [];
 let editing = null;
+let role = "admin";
+let terms = [];
+let historyCache = null;
 
 async function api(path, opts = {}) {
   const res = await fetch("/api/admin" + path, {
@@ -467,11 +615,15 @@ function showLogin() {
   setTimeout(() => $("#pw").focus(), 50);
 }
 async function showApp(me) {
+  role = me.role === "viewer" ? "viewer" : "admin";
+  document.body.classList.toggle("viewer", role === "viewer");
+  $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : "لوحة تحكم المعلمة";
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
-  const [st] = await Promise.all([me?.settings || api("/settings"), loadStudents()]);
-  applySettings(st);
+  await loadStudents();
+  applySettings(me.settings);
   renderStats(); renderRows(); renderClasses(); renderOverview();
   loadLookups(false).catch(() => {});
+  if (role === "admin") loadViewer().catch(() => {});
 }
 
 $("#loginForm").addEventListener("submit", async e => {
@@ -481,7 +633,7 @@ $("#loginForm").addEventListener("submit", async e => {
   try {
     await api("/login", { method: "POST", body: { password: $("#pw").value } });
     $("#pw").value = "";
-    await showApp();
+    await showApp(await api("/me"));
   } catch (x) {
     err.textContent = x.message === "locked" ? "محاولات كثيرة. انتظري 15 دقيقة ثم حاولي مرة أخرى."
       : x.message === "wrong_password" ? `كلمة المرور غير صحيحة. باقي ${x.data?.left ?? 0} محاولات.`
@@ -494,11 +646,8 @@ $("#loginForm").addEventListener("submit", async e => {
 $("#logoutBtn").addEventListener("click", async () => { await api("/logout", { method: "POST" }).catch(() => {}); showLogin(); });
 
 // ---------- Students ----------
-const pctOf = s => {
-  const test = s.test_avg ?? (s.test1 != null && s.test2 != null ? (s.test1 + s.test2) / 2 : null);
-  if (test == null) return null;
-  return Math.round(((test + (s.participation || 0) + (s.projects || 0)) / (MAX.test + MAX.participation + MAX.projects)) * 100);
-};
+// Same math as the lookup page and the printed card (public/report.js).
+const pctOf = s => Report.scores(s, MAX).pct;
 const levelPill = p => p == null ? '<span class="pill none">—</span>'
   : `<span class="pill ${p >= 75 ? "good" : p >= 60 ? "warn" : "low"}">${p}%</span>`;
 
@@ -515,12 +664,12 @@ async function loadStudents() {
 function renderStats() {
   const n = students.length;
   const pcts = students.map(pctOf).filter(p => p != null);
-  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
   const support = pcts.filter(p => p < 60).length;
   const noStyle = students.filter(s => !s.learning_style).length;
   $("#stats").innerHTML = [
     ["عدد الطالبات", n, ""],
-    ["متوسط الصف", avg, "%"],
+    ["متوسط الصف", avg ?? "—", avg == null ? "" : "%"],
     ["يحتجن دعم (أقل من 60%)", support, ""],
     ["بدون نمط تعلم", noStyle, ""],
   ].map(([k, v, u]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div></div>`).join("");
@@ -540,7 +689,7 @@ function renderRows() {
     <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
     <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
-    <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">تعديل</button></td>
+    <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">${role === "viewer" ? "عرض" : "تعديل"}</button></td>
   </tr>`).join("");
   $("#noRows").hidden = list.length > 0;
 }
@@ -554,7 +703,11 @@ $("#addBtn").addEventListener("click", () => openEdit(null));
 
 function openEdit(s) {
   editing = s;
-  $("#editTitle").textContent = s ? "تعديل بيانات الطالبة" : "إضافة طالبة";
+  const viewer = role === "viewer";
+  $("#editTitle").textContent = viewer ? "بيانات الطالبة" : s ? "تعديل بيانات الطالبة" : "إضافة طالبة";
+  $("#editFields").disabled = viewer;
+  $("#editClose").textContent = viewer ? "إغلاق" : "إلغاء";
+  showHistory(s);
   const f = $("#editForm");
   for (const el of f.elements) if (el.name) el.value = s?.[el.name] ?? "";
   if (!s) $("#e_class").value = $("#classFilter").value;
@@ -563,13 +716,27 @@ function openEdit(s) {
   let del = f.querySelector("[data-delete]");
   if (s && !del) {
     del = document.createElement("button");
-    del.type = "button"; del.className = "btn ghost"; del.dataset.delete = "1"; del.textContent = "حذف الطالبة";
+    del.type = "button"; del.className = "btn ghost"; del.dataset.delete = "1"; del.dataset.admin = ""; del.textContent = "حذف الطالبة";
     del.style.marginInlineStart = "auto"; del.style.color = "var(--low)"; del.style.borderColor = "var(--low)";
     f.querySelector(".row").appendChild(del);
     del.addEventListener("click", deleteCurrent);
   }
   if (del) del.hidden = !s;
   $("#editDlg").showModal();
+}
+
+async function loadHistory(force) {
+  if (!historyCache || force) historyCache = await api("/history");
+  return historyCache;
+}
+async function showHistory(s) {
+  const el = $("#histNote");
+  el.hidden = true;
+  if (!s) return;
+  const list = (await loadHistory().catch(() => ({})))[s.national_id] || [];
+  if (editing !== s || !list.length) return;
+  el.innerHTML = "الفترات السابقة: " + list.map(h => `${esc(h.title)} <b>${h.pct == null ? "—" : h.pct + "%"}</b>`).join(" · ");
+  el.hidden = false;
 }
 
 function updateAvg() {
@@ -680,17 +847,26 @@ setInterval(async () => {
 
 // ---------- Overview ----------
 const LEVELS = [
-  ["ممتاز", p => p >= 90, "var(--good)"],
-  ["جيد جداً", p => p >= 75 && p < 90, "var(--mint)"],
-  ["جيد", p => p >= 60 && p < 75, "var(--warn)"],
-  ["يحتاج دعم", p => p < 60, "var(--low)"],
+  ["ممتاز", p => p >= 90, "--lv-1"],
+  ["جيد جداً", p => p >= 75 && p < 90, "--lv-2"],
+  ["جيد", p => p >= 60 && p < 75, "--lv-3"],
+  ["يحتاج دعم", p => p < 60, "--lv-4"],
 ];
+const STYLE_KEYS = ["بصري", "سمعي", "حركي", "كتابي"];
+const girls = n => (n === 1 ? "طالبة واحدة" : n === 2 ? "طالبتان" : n >= 3 && n <= 10 ? `${n} طالبات` : `${n} طالبة`);
+const share = (n, total) => (total ? Math.round((n / total) * 100) : 0);
+
+// Tooltip rows per mark, rebuilt with every render. The first row is the value; the rest are labels.
+const tips = new Map();
+let tipSeq = 0;
+const tipFor = rows => { const id = "t" + ++tipSeq; tips.set(id, rows); return `data-tip="${id}"`; };
+
 function renderOverview() {
   if (!settings) return;
+  tips.clear();
   const avgOf = vals => { const v = vals.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
-  const testAvg = avgOf(students.map(s => s.test_avg));
   const items = [
-    ["الاختبارات", testAvg, MAX.test],
+    ["الاختبارات", avgOf(students.map(s => s.test_avg)), MAX.test],
     ["المشاركة", avgOf(students.map(s => s.participation)), MAX.participation],
     ["المشاريع والمهام", avgOf(students.map(s => s.projects)), MAX.projects],
   ];
@@ -699,24 +875,116 @@ function renderOverview() {
     const p = v == null ? 0 : Math.round((v / m) * 100);
     return `<div class="bar-row"><span>${k}</span><div class="bar"><i style="width:${p}%"></i></div><span class="v">${v == null ? "—" : `${fmt(v)}/${m}`}</span></div>`;
   }).join("") + `<div class="bar-row"><b>النسبة الكلية</b><div class="bar"><i style="width:${avgOf(pcts) ?? 0}%"></i></div><span class="v">${pcts.length ? Math.round(avgOf(pcts)) + "%" : "—"}</span></div>`;
-  const counts = LEVELS.map(([k, test, c]) => [k, pcts.filter(test).length, c]);
-  const missing = students.length - pcts.length;
-  $("#dist").innerHTML = counts.map(([k, n, c]) => n ? `<i style="width:${(n / students.length) * 100}%;background:${c}" title="${k}: ${n}"></i>` : "").join("");
-  $("#legend").innerHTML = counts.map(([k, n, c]) => `<span style="--c:${c}">${k}: <b>${n}</b></span>`).join("") + (missing ? `<span style="--c:var(--line)">بدون درجات: <b>${missing}</b></span>` : "");
+  renderLevelChart();
+  renderStyleChart();
   const chips = list => list.length ? list.map(s => `<button type="button" data-open="${esc(s.national_id)}">${esc(s.name)}</button>`).join("") : '<span class="none">لا يوجد</span>';
   $("#supportNames").innerHTML = chips(students.filter(s => (pctOf(s) ?? 100) < 60));
-  const styles = ["بصري", "سمعي", "حركي", "كتابي"].map(k => [k, students.filter(s => s.learning_style === k).length]);
-  $("#styleLegend").innerHTML = styles.map(([k, n], i) => `<span style="--c:${["var(--accent)", "var(--mint)", "var(--warn)", "var(--navy)"][i]}">${k}: <b>${n}</b></span>`).join("");
   const noStyle = students.filter(s => !s.learning_style);
-  $("#noStyleNames").innerHTML = (noStyle.length ? `<span class="none" style="flex-basis:100%">بدون نمط (${noStyle.length}):</span>` : "") + chips(noStyle).replace('<span class="none">لا يوجد</span>', '<span class="none">كل الطالبات محدد لهن نمط</span>');
+  $("#noStyleHead").textContent = noStyle.length ? `بدون نمط تعلم (${noStyle.length})` : "بدون نمط تعلم";
+  $("#noStyleNames").innerHTML = noStyle.length ? chips(noStyle) : '<span class="none">كل الطالبات محدد لهن نمط</span>';
+  requestAnimationFrame(fitLabels);
 }
+
+// 100% stacked bar per class: how many students sit at each level.
+function renderLevelChart() {
+  const groups = [["كل الفصول", students], ...classes.map(c => [`الفصل ${c.name}`, students.filter(s => s.class === c.name)])];
+  if (students.some(s => !s.class)) groups.push(["بدون فصل", students.filter(s => !s.class)]);
+  const rows = groups.filter(([, list]) => list.length).map(([label, list]) => {
+    const p = list.map(pctOf);
+    return { label, total: list.length, counts: LEVELS.map(([, test]) => p.filter(x => x != null && test(x)).length), none: p.filter(x => x == null).length };
+  });
+  const hasNone = rows.some(r => r.none);
+  const keys = [...LEVELS.map(([k, , c]) => [k, c]), ...(hasNone ? [["بدون درجات", "--lv-none"]] : [])];
+  $("#lvLegend").innerHTML = keys.map(([k, c]) => `<span style="--c:var(${c})">${k}</span>`).join("");
+  $("#lvChart").innerHTML = rows.map((r, i) => {
+    const segs = keys.map(([k, c], j) => ({ k, c, n: j < LEVELS.length ? r.counts[j] : r.none })).filter(x => x.n);
+    const of = i === 0 ? "من الطالبات" : r.label === "بدون فصل" ? "من بدون فصل" : `من ${r.label}`;
+    return `<div class="stack-row${i === 0 && rows.length > 1 ? " all" : ""}">
+      <span class="stack-label">${esc(r.label)}<small>${girls(r.total)}</small></span>
+      <div class="stack">${segs.map((x, j) => `<span class="seg${j === segs.length - 1 ? " end" : ""}" tabindex="0" role="img"
+        aria-label="${esc(r.label)}، ${x.k}: ${girls(x.n)}" style="flex-grow:${x.n};--c:var(${x.c});--ci:var(${x.c}-ink)"
+        ${tipFor([{ text: girls(x.n), key: `var(${x.c})` }, { text: `${x.k} · ${r.label}` }, { text: `${share(x.n, r.total)}% ${of}` }])}><i><b>${x.n}</b></i></span>`).join("")}</div>
+    </div>`;
+  }).join("") || '<p class="note" style="margin:0">لا توجد طالبات بعد.</p>';
+  $("#lvTable").innerHTML = `<table class="viz-table"><thead><tr><th>الفصل</th>${keys.map(([k]) => `<th>${k}</th>`).join("")}<th>المجموع</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.label)}</td>${r.counts.map(n => `<td>${n}</td>`).join("")}${hasNone ? `<td>${r.none}</td>` : ""}<td><b>${r.total}</b></td></tr>`).join("")}</tbody></table>`;
+}
+
+// One series, one color; "not set yet" is set apart in gray.
+function renderStyleChart() {
+  const rows = [...STYLE_KEYS.map(k => ({ k, list: students.filter(s => s.learning_style === k) })), { k: "لم يُحدَّد", list: students.filter(s => !s.learning_style), none: true }];
+  const top = Math.max(1, ...rows.map(r => r.list.length));
+  const byClass = list => classes.map(c => ({ text: `الفصل ${c.name}: ${list.filter(s => s.class === c.name).length}` }));
+  $("#stChart").innerHTML = rows.map(r => `<div class="hbar-row" tabindex="0" role="img" aria-label="${r.k}: ${girls(r.list.length)}"
+      ${tipFor([{ text: girls(r.list.length), key: r.none ? "var(--viz-muted)" : "var(--series-1)" }, { text: `${r.k} · ${share(r.list.length, students.length)}% من الطالبات` }, ...byClass(r.list)])}>
+      <span class="hbar-label">${r.k}</span>
+      <span class="hbar"><i class="${r.none ? "none" : ""}" style="width:${(r.list.length / top) * 100}%"></i></span>
+      <span class="hbar-v">${r.list.length}</span>
+    </div>`).join("");
+  $("#stTable").innerHTML = `<table class="viz-table"><thead><tr><th>نمط التعلم</th>${classes.map(c => `<th>الفصل ${esc(c.name)}</th>`).join("")}<th>المجموع</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${r.k}</td>${classes.map(c => `<td>${r.list.filter(s => s.class === c.name).length}</td>`).join("")}<td><b>${r.list.length}</b></td></tr>`).join("")}</tbody></table>`;
+}
+
+// A count goes inside its segment only when it fits; otherwise the tooltip and the table carry it.
+function fitLabels() {
+  document.querySelectorAll(".seg b").forEach(b => {
+    b.style.visibility = "";
+    if (b.offsetWidth + 8 > b.parentElement.clientWidth) b.style.visibility = "hidden";
+  });
+}
+let fitTimer;
+window.addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitLabels, 120); });
+
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
+  const table = b.getAttribute("aria-pressed") !== "true";
+  b.setAttribute("aria-pressed", String(table));
+  b.textContent = table ? "رسم" : "جدول";
+  $(`#${b.dataset.view}Chart`).hidden = table;
+  $(`#${b.dataset.view}Table`).hidden = !table;
+  if (b.dataset.view === "lv") $("#lvLegend").hidden = table;
+  if (!table) requestAnimationFrame(fitLabels);
+}));
+
+const tipEl = $("#vizTip");
+function showTip(el, x, y) {
+  const rows = tips.get(el.dataset.tip);
+  if (!rows) return;
+  tipEl.replaceChildren(...rows.map((row, i) => {
+    const d = document.createElement("div");
+    d.className = i ? "tl" : row.key ? "tv keyed" : "tv";
+    d.textContent = row.text;
+    if (!i && row.key) d.style.setProperty("--k", row.key);
+    return d;
+  }));
+  tipEl.hidden = false;
+  const r = tipEl.getBoundingClientRect();
+  let top = y - r.height - 14;
+  if (top < 8) top = y + 18;
+  tipEl.style.top = `${top}px`;
+  tipEl.style.left = `${Math.max(8, Math.min(innerWidth - r.width - 8, x - r.width / 2))}px`;
+}
+const hideTip = () => { tipEl.hidden = true; };
+const ovPanel = document.querySelector('[data-panel="overview"]');
+ovPanel.addEventListener("pointermove", e => {
+  if (e.pointerType === "touch") return;
+  const el = e.target.closest("[data-tip]");
+  el ? showTip(el, e.clientX, e.clientY) : hideTip();
+});
+ovPanel.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") hideTip(); });
+ovPanel.addEventListener("pointerdown", e => { const el = e.target.closest("[data-tip]"); if (el && e.pointerType === "touch") showTip(el, e.clientX, e.clientY); });
+ovPanel.addEventListener("focusin", e => { const el = e.target.closest("[data-tip]"); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left + r.width / 2, r.top); } });
+ovPanel.addEventListener("focusout", hideTip);
+document.addEventListener("pointerdown", e => { if (!e.target.closest("[data-tip]")) hideTip(); });
+window.addEventListener("scroll", hideTip, { passive: true });
 document.querySelector('[data-panel="overview"]').addEventListener("click", e => {
   const id = e.target.closest("[data-open]")?.dataset.open;
   if (id) openEdit(students.find(s => s.national_id === id));
 });
 
 // ---------- Audit log ----------
-const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل" };
+const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل",
+  term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة" };
+const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
 const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", email: "الإيميل",
   grade_label: "الصف", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
 const showVal = v => v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
@@ -728,32 +996,44 @@ function auditDetails(a) {
   if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
   if (a.action === "class_add" || a.action === "class_delete") return `الفصل ${esc(d?.name)}`;
   if (a.action === "class_rename") return `${esc(d?.from)} ← ${esc(d?.to)} (${d?.students} طالبة)`;
+  if (a.action === "term_archive") return `${esc(d?.title)} · ${girls(d?.count ?? 0)}` + (d?.cleared ? " · مُسحت الدرجات لبدء فترة جديدة" : "") + (d?.next_title ? ` · الفترة الجديدة: ${esc(d.next_title)}` : "");
+  if (a.action === "term_rename") return `${esc(d?.from)} ← ${esc(d?.to)}`;
+  if (a.action === "term_delete") return `${esc(d?.title)} (${girls(d?.count ?? 0)})`;
+  if (a.action === "viewer_set") return "تعيين كلمة مرور جديدة";
+  if (a.action === "viewer_off") return "إيقاف الحساب";
   if (a.action === "add") return `الفصل ${esc(d?.class ?? "—")}`;
   if (a.action === "delete") return `كانت في الفصل ${esc(d?.class ?? "—")}`;
   return "";
 }
+let auditList = [];
 async function loadAudit() {
-  const list = await api("/audit");
+  const list = auditList = await api("/audit");
   const df = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short" });
   $("#auditRows").innerHTML = list.map(a => {
     const who = a.national_id ? (a.current_name || a.details?.name || a.national_id) : "—";
-    const can = ["edit", "add", "delete"].includes(a.action) && !a.undone_at;
+    const can = UNDOABLE.includes(a.action) && !a.undone_at && (a.action !== "term_archive" || a.details?.term_id);
     return `<tr class="${a.undone_at ? "undone" : ""}">
       <td>${df.format(new Date(a.created_at))}</td><td><span class="tag-act">${ACTIONS[a.action] || esc(a.action)}</span></td>
       <td class="name">${esc(who)}</td><td class="det">${auditDetails(a)}</td>
-      <td>${can ? `<button class="btn sm quiet" type="button" data-undo="${a.id}">تراجع</button>` : a.undone_at ? '<span class="note">تم التراجع</span>' : ""}</td></tr>`;
+      <td>${can ? `<button class="btn sm quiet" type="button" data-undo="${a.id}" data-admin>تراجع</button>` : a.undone_at ? '<span class="note">تم التراجع</span>' : ""}</td></tr>`;
   }).join("");
   $("#noAudit").hidden = list.length > 0;
 }
 $("#auditRows").addEventListener("click", async e => {
   const id = e.target.closest("[data-undo]")?.dataset.undo;
   if (!id) return;
-  if (!(await confirmBox("التراجع عن التعديل", "بترجع البيانات كما كانت قبل هذا التعديل.", "تراجع"))) return;
+  const a = auditList.find(x => String(x.id) === id);
+  const text = a?.action === "term_archive"
+    ? `بتنحذف الفترة المؤرشفة "${a.details.title}"` + (a.details.cleared ? "، وترجع الدرجات اللي انمسحت وعنوان الفترة السابق." : ".")
+    : "بترجع البيانات كما كانت قبل هذا التعديل.";
+  if (!(await confirmBox("التراجع عن التعديل", text, "تراجع"))) return;
   try {
     const r = await api(`/audit/${id}/undo`, { method: "POST" });
+    if (r.settings) applySettings(r.settings);
     toast(r.skipped?.length ? `تم التراجع، وبقي بدون تغيير: ${r.skipped.join("، ")}` : "تم التراجع");
   } catch (x) { toast((x.data?.errors || ["تعذّر التراجع"])[0]); }
-  await Promise.all([loadAudit(), loadStudents()]);
+  historyCache = null;
+  await Promise.all([loadAudit(), loadStudents(), loadTerms()]);
 });
 
 // ---------- Classes ----------
@@ -766,8 +1046,9 @@ function renderClasses() {
     <td><b>الفصل ${esc(c.name)}</b></td><td class="num">${c.count}</td><td class="num">${levelPill(avg)}</td>
     <td style="white-space:nowrap">
       <button class="btn sm quiet" type="button" data-show="${esc(c.name)}" ${c.count ? "" : "disabled"}>عرض الطالبات</button>
-      <button class="btn sm quiet" type="button" data-rename="${esc(c.name)}">إعادة تسمية</button>
-      <button class="btn sm quiet" type="button" data-remove="${esc(c.name)}" ${c.count ? 'disabled title="انقلي طالبات الفصل أولاً"' : ""}>حذف</button>
+      <button class="btn sm quiet" type="button" data-pdf="${esc(c.name)}" ${c.count ? "" : "disabled"}>تقرير PDF</button>
+      <button class="btn sm quiet" type="button" data-rename="${esc(c.name)}" data-admin>إعادة تسمية</button>
+      <button class="btn sm quiet" type="button" data-remove="${esc(c.name)}" data-admin ${c.count ? 'disabled title="انقلي طالبات الفصل أولاً"' : ""}>حذف</button>
     </td></tr>`;
   }).join("") || '<tr><td colspan="4" class="empty">لا توجد فصول بعد.</td></tr>';
 }
@@ -789,6 +1070,8 @@ $("#classRows").addEventListener("click", async e => {
   if (b.dataset.show != null) {
     $("#classFilter").value = b.dataset.show; $("#search").value = ""; $("#levelFilter").value = "";
     $("#tab-students").click(); renderRows();
+  } else if (b.dataset.pdf != null) {
+    openClassPdf(b.dataset.pdf);
   } else if (b.dataset.rename != null) {
     renaming = b.dataset.rename;
     $("#c_name").value = renaming; $("#classDlgErr").hidden = true;
@@ -824,6 +1107,8 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   document.querySelectorAll("[data-panel]").forEach(p => (p.hidden = p.dataset.panel !== t.dataset.tab));
   if (t.dataset.tab === "backups") loadBackups();
   if (t.dataset.tab === "audit") loadAudit();
+  if (t.dataset.tab === "terms") loadTerms();
+  if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
 }));
 
 // ---------- Import ----------
@@ -908,6 +1193,147 @@ $("#backupRows").addEventListener("click", async e => {
   toast(`تم الاسترجاع (${r.count} طالبة)`);
   await Promise.all([loadBackups(), loadStudents()]);
 });
+
+// ---------- Terms ----------
+const dateOnly = t => new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric" }).format(new Date(t));
+async function loadTerms() {
+  terms = await api("/terms");
+  renderTerms();
+}
+function renderTerms() {
+  const pcts = students.map(pctOf).filter(p => p != null);
+  const avg = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+  const current = `<tr><td class="name">${esc(settings?.term_title || "الفترة الحالية")} <span class="tag-act">الحالية</span></td><td class="muted">—</td>
+    <td class="num">${pcts.length}</td><td class="num">${levelPill(avg)}</td><td></td></tr>`;
+  $("#termRows").innerHTML = terms.map(t => `<tr>
+    <td class="name">${esc(t.title)}</td><td>${dateOnly(t.created_at)}</td><td class="num">${t.count}</td><td class="num">${levelPill(t.avg)}</td>
+    <td style="white-space:nowrap">
+      <a class="btn sm quiet" href="/api/admin/terms/${t.id}/export">تنزيل إكسل</a>
+      <button class="btn sm quiet" type="button" data-term-rename="${t.id}" data-admin>إعادة تسمية</button>
+      <button class="btn sm quiet" type="button" data-term-delete="${t.id}" data-admin>حذف</button>
+    </td></tr>`).join("") + current;
+}
+function promptBox(title, label, value, save) {
+  const d = $("#promptDlg"), err = $("#promptErr");
+  $("#promptTitle").textContent = title; $("#promptLabel").textContent = label;
+  $("#p_value").value = value; err.hidden = true;
+  $("#promptForm").onsubmit = async e => {
+    e.preventDefault();
+    try { await save($("#p_value").value.trim()); d.close(); }
+    catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
+  };
+  d.showModal();
+}
+$("#termRows").addEventListener("click", async e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const t = terms.find(x => String(x.id) === (b.dataset.termRename || b.dataset.termDelete));
+  if (!t) return;
+  if (b.dataset.termRename) {
+    promptBox("إعادة تسمية الفترة", "العنوان الجديد", t.title, async title => {
+      await api(`/terms/${t.id}`, { method: "PUT", body: { title } });
+      toast("تمت إعادة التسمية"); historyCache = null; await loadTerms();
+    });
+  } else {
+    if (!(await confirmBox("حذف الفترة", `بتنحذف نتائج "${t.title}" (${girls(t.count)}) وتختفي من تقدّم الطالبات. تقدرين تتراجعين عن الحذف من السجل.`, "حذف"))) return;
+    await api(`/terms/${t.id}`, { method: "DELETE" });
+    toast("تم حذف الفترة"); historyCache = null; await loadTerms();
+  }
+});
+$("#archiveBtn").addEventListener("click", () => {
+  $("#t_title").value = settings?.term_title || "";
+  $("#t_clear").checked = false; $("#t_next").value = ""; $("#t_nextWrap").hidden = true;
+  $("#termErr").hidden = true;
+  $("#termDlg").showModal();
+});
+$("#t_clear").addEventListener("change", e => { $("#t_nextWrap").hidden = !e.target.checked; });
+$("#termForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = { title: $("#t_title").value.trim(), clear: $("#t_clear").checked, next_title: $("#t_next").value.trim() };
+  const err = $("#termErr"); err.hidden = true;
+  if (!body.title) { err.textContent = "اكتبي عنوان الفترة"; err.hidden = false; return; }
+  if (body.clear) {
+    $("#termDlg").close();
+    if (!(await confirmBox("أرشفة ومسح الدرجات", `بتنحفظ نتائج "${body.title}"، وبعدها تنمسح درجات كل الطالبات لبدء فترة جديدة. تنحفظ نسخة احتياطية قبل المسح.`, "أرشفة ومسح"))) return;
+  }
+  const btn = $("#termSave"); btn.disabled = true;
+  try {
+    const r = await api("/terms", { method: "POST", body });
+    $("#termDlg").close();
+    applySettings(r.settings);
+    toast(`تمت أرشفة ${girls(r.count)}` + (body.clear ? " ومسح الدرجات" : ""));
+    historyCache = null;
+    await Promise.all([loadStudents(), loadTerms()]);
+  } catch (x) {
+    err.textContent = (x.data?.errors || ["تعذّرت الأرشفة."]).join(" "); err.hidden = false;
+    if (!$("#termDlg").open) $("#termDlg").showModal();
+  } finally { btn.disabled = false; }
+});
+
+// ---------- Principal's read-only account ----------
+async function loadViewer() {
+  const v = await api("/viewer");
+  $("#viewerState").textContent = v.enabled ? "مفعّل: المديرة تقدر تدخل بكلمة المرور اللي حددتيها." : "غير مفعّل بعد. اكتبي كلمة مرور للمديرة (6 أحرف أو أكثر).";
+  $("#viewerOff").hidden = !v.enabled;
+}
+$("#viewerSave").addEventListener("click", async () => {
+  const err = $("#viewerErr"); err.hidden = true;
+  try {
+    await api("/viewer", { method: "PUT", body: { password: $("#v_pw").value } });
+    $("#v_pw").value = "";
+    toast("تم حفظ كلمة مرور المديرة");
+    await loadViewer();
+  } catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
+});
+$("#viewerOff").addEventListener("click", async () => {
+  if (!(await confirmBox("إيقاف حساب المديرة", "ما راح تقدر المديرة تدخل لين تحددين كلمة مرور جديدة.", "إيقاف"))) return;
+  await api("/viewer", { method: "DELETE" });
+  toast("تم إيقاف حساب المديرة");
+  await loadViewer();
+});
+
+// ---------- Class PDF ----------
+const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: settings.term_title, teacherName: settings.teacher_name, principalName: settings.principal_name });
+const asCard = (s, classStats, history) => ({
+  id: s.national_id, name: s.name, class: s.class, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
+  participation: s.participation, projects: s.projects, lateness: s.lateness, learningStyle: s.learning_style || "", email: s.email || "",
+  classStats, history: history[s.national_id] || [],
+});
+let pdfClass = null;
+function openClassPdf(name) {
+  pdfClass = name;
+  const n = students.filter(s => s.class === name).length;
+  $("#pdfTitle").textContent = `تقرير الفصل ${name}`;
+  $("#pdfAll").textContent = `الكشف + بطاقات الطالبات (${n + Report.sheetPages(n)} صفحة)`;
+  $("#pdfProgress").hidden = true;
+  $("#pdfDlg").showModal();
+}
+async function makeClassPdf(withCards) {
+  const list = students.filter(s => s.class === pdfClass);
+  const buttons = ["#pdfSheet", "#pdfAll", "#pdfClose"].map(s => $(s));
+  const note = $("#pdfProgress");
+  buttons.forEach(b => (b.disabled = true));
+  note.hidden = false; note.textContent = "جارٍ تجهيز الملف…";
+  try {
+    const ctx = { max: MAX, site: siteForReport() };
+    const sheets = Report.classSheets(pdfClass, list.map(s => asCard(s, null, {})), ctx);
+    if (withCards) {
+      const history = await loadHistory();
+      const cs = Report.classStats(list, MAX);
+      list.slice().sort((a, b) => a.name.localeCompare(b.name, "ar")).forEach(s => sheets.push(Report.cardSheet(asCard(s, cs, history), ctx)));
+    }
+    const blob = await Report.toPdf(sheets, { onProgress: (i, n) => { note.textContent = `جارٍ تجهيز صفحة ${i} من ${n}…`; } });
+    Report.save(blob, `${withCards ? "تقرير" : "كشف"} الفصل ${pdfClass}.pdf`);
+    note.textContent = "تم تجهيز الملف.";
+  } catch (err) {
+    console.error(err);
+    note.textContent = "تعذّر تجهيز الملف. حاولي مرة أخرى.";
+  } finally {
+    buttons.forEach(b => (b.disabled = false));
+  }
+}
+$("#pdfSheet").addEventListener("click", () => makeClassPdf(false));
+$("#pdfAll").addEventListener("click", () => makeClassPdf(true));
 
 // ---------- Boot ----------
 api("/me").then(showApp).catch(() => showLogin());
