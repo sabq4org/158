@@ -552,6 +552,7 @@ body.viewer [data-admin] { display: none !important; }
           <label class="f">عنوان الفترة<input class="in" name="term_title" id="s_term" maxlength="80"><span class="hj" id="termAuto"></span></label>
           <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
           <label class="f">اسم المديرة<input class="in" name="principal_name" maxlength="80"></label>
+          <label class="f">شكل المقارنة بمتوسط الفصل<select class="in" name="compare_chart" id="s_chart"></select><span class="hj">تقدر الطالبة تغيّره من صفحتها، وتقارير الفصل تطلع بهذا الشكل.</span></label>
         </div>
       </fieldset>
       <fieldset>
@@ -940,6 +941,7 @@ async function deleteCurrent() {
 }
 
 // ---------- Settings ----------
+$("#s_chart").innerHTML = Object.entries(Report.CHARTS).map(([k, t]) => `<option value="${k}">${t}</option>`).join("");
 function applySettings(s) {
   settings = s;
   Object.assign(MAX, { test: s.max_test, participation: s.max_participation, projects: s.max_projects, homework: s.max_homework || null, final: s.max_final || null });
@@ -1284,8 +1286,9 @@ const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
 const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع",
   homework: "الواجبات", final_exam: "الاختبار النهائي", notes: "الملاحظات", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
   grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع",
-  max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
+  max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", compare_chart: "شكل المقارنة", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
+  : field === "compare_chart" && Report.isChart(v) ? Report.CHARTS[v]
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
 function auditDetails(a) {
   const d = a.details;
@@ -1785,7 +1788,7 @@ async function makeClassPdf(withCards) {
   buttons.forEach(b => (b.disabled = true));
   note.hidden = false; note.textContent = "جارٍ تجهيز الملف…";
   try {
-    const ctx = { max: MAX, site: siteForReport() };
+    const ctx = { max: MAX, site: siteForReport(), chart: settings.compare_chart };
     const sheets = Report.classSheets(pdfClass, list.map(s => asCard(s, null, {})), { ...ctx, track: classByName.get(pdfClass)?.track });
     if (withCards) {
       const history = await loadHistory();

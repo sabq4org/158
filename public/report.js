@@ -150,6 +150,22 @@ const Report = (() => {
     return [weakest[1] >= 0.9 ? STEPS.keep : STEPS[weakest[0]]];
   }
 
+  // ---------- Comparison with the class average, drawn as columns, rings or a table ----------
+  // The teacher picks the default in the settings; on the lookup page the student can switch, and her PDF follows.
+  const CHARTS = { bars: "أعمدة", pie: "دائري", table: "جدول" };
+  const isChart = v => Object.prototype.hasOwnProperty.call(CHARTS, v);
+  const chartOf = v => (isChart(v) ? v : "bars");
+  // Each part as a percentage of its own maximum, so a part out of 10 and one out of 40 share a scale. A part with no
+  // score on either side yet (a final exam not sat) is left out; the overall percentage comes last.
+  function compareItems(sc, cs, max) {
+    const pc = (v, m) => (v == null ? null : Math.round(Math.min(1, Math.max(0, v / m)) * 100));
+    const parts = [["الاختبارات", sc.test, cs.test, max.test], ["المشاركة", sc.part, cs.participation, max.participation],
+      ["المشاريع والمهام", sc.proj, cs.projects, max.projects], ...extrasOf(max).map(k => [EXTRAS[k], sc[k], cs[k], max[k]])]
+      .filter(([, mine, avg]) => mine != null || avg != null)
+      .map(([name, mine, avg, m]) => ({ name, mine, avg, max: m, mineP: pc(mine, m), avgP: pc(avg, m) }));
+    return [...parts, { name: "النسبة الكلية", total: true, mine: sc.pct, avg: cs.pct, max: 100, mineP: pc(sc.pct, 100), avgP: pc(cs.pct, 100) }];
+  }
+
   function versusClass(sc, cs) {
     const d = sc.pct - cs.pct;
     const both = `نسبتك ${sc.pct}% ومتوسط فصلك ${cs.pct}%.`;
@@ -196,6 +212,24 @@ const Report = (() => {
   const score = (v, m) => `<b>${fmt(v)}</b>${v == null ? "" : ` <small>/ ${m}</small>`}`;
   const scoreCell = (v, m, cls) => `<td${cls ? ` class="${cls}"` : ""}>${score(v, m)}${v == null ? "" : "<br>" + lvTag(v / m)}</td>`;
 
+  // The card's comparison in its three forms. Paper has no hover, so every column and ring carries its number.
+  const cols = n => `grid-template-columns:repeat(${n}, minmax(0, 1fr))`;
+  const cmpColumns = items => `
+        <div class="rp-plot" style="${cols(items.length)}">
+          <div class="rp-gl" style="bottom:100%"><span>100%</span></div><div class="rp-gl" style="bottom:50%"><span>50%</span></div><div class="rp-gl rp-base"></div>
+          ${items.map(x => `<div class="rp-cg">${[[x.mineP, "rp-you"], [x.avgP, "rp-avg"]].map(([p, c]) => `<i class="${c}" style="height:${p || 0}%"><b>${p == null ? "—" : p}</b></i>`).join("")}</div>`).join("")}
+        </div>
+        <div class="rp-xs" style="${cols(items.length)}">${items.map(x => `<span${x.total ? ' class="rp-tot"' : ""}>${x.name}</span>`).join("")}</div>`;
+  // Rings: the student outside, the class average inside. show() paints them; html2canvas copies canvases as they are.
+  const cmpRings = (items, half) => `
+        <div class="rp-rings" style="${cols(half && items.length > 4 ? 3 : items.length)}">
+          ${items.map(x => `<div class="rp-ring${x.total ? " rp-tot" : ""}"><canvas class="rp-donut" width="200" height="200" data-a="${x.mineP ?? ""}" data-b="${x.avgP ?? ""}"></canvas><span class="rp-rn">${x.name}</span><span class="rp-rv">الفصل ${x.avgP == null ? "—" : x.avgP + "%"}</span></div>`).join("")}
+        </div>`;
+  const cmpTable = items => `
+        <table class="rp-mini"><tr><th></th><th>درجتك</th><th>متوسط الفصل</th></tr>
+        ${items.map(x => (x.total ? `<tr class="rp-sum"><td>${x.name}</td><td>${x.mine}%</td><td>${x.avg}%</td></tr>`
+          : `<tr><td>${x.name}</td><td>${fmt(x.mine)} <small>/ ${x.max}</small></td><td>${fmt(x.avg)}</td></tr>`)).join("")}</table>`;
+
   // r: the lookup API shape (camelCase) plus optional classStats and history.
   function cardSheet(r, ctx) {
     const { max, site } = ctx;
@@ -213,14 +247,12 @@ const Report = (() => {
       <tr><td>${score(sc.t1, max.test)}</td><td>${score(sc.t2, max.test)}</td>${scoreCell(sc.test, max.test, "rp-key")}
       ${scoreCell(sc.part, max.participation)}${scoreCell(sc.proj, max.projects)}${hw ? scoreCell(sc.homework, max.homework) : ""}${fin ? scoreCell(sc.final, max.final) : ""}</tr>
     </table>` : `<div class="rp-empty">لم تُرصد درجات هذه الفترة بعد.</div>`;
-    const cmpRow = (label, v, m, avg) => `<tr><td>${label}</td><td>${fmt(v)} <small>/ ${m}</small></td><td>${fmt(avg)}</td></tr>`;
+    // Beside the progress box the comparison has half the width, so its rings wrap to three a row.
+    const form = chartOf(ctx.chart), half = !!cs && showProgress;
     const cmp = cs ? `
-      <div class="rp-box">
-        <h3>مقارنة بمتوسط الفصل</h3>
-        <table class="rp-mini"><tr><th></th><th>درجتك</th><th>متوسط الفصل</th></tr>
-        ${cmpRow("الاختبارات", sc.test, max.test, cs.test)}${cmpRow("المشاركة", sc.part, max.participation, cs.participation)}${cmpRow("المشاريع والمهام", sc.proj, max.projects, cs.projects)}
-        ${ex.map(k => cmpRow(EXTRAS[k], sc[k], max[k], cs[k])).join("")}
-        <tr class="rp-sum"><td>النسبة الكلية</td><td>${sc.pct}%</td><td>${cs.pct}%</td></tr></table>
+      <div class="rp-box rp-cmp">
+        <div class="rp-cmp-head"><h3>مقارنة بمتوسط الفصل</h3>${form === "table" ? "" : '<span class="rp-key"><span><i class="rp-you"></i>درجتك</span><span><i class="rp-avg"></i>متوسط الفصل</span></span>'}</div>
+        ${(form === "table" ? cmpTable : form === "pie" ? cmpRings : cmpColumns)(compareItems(sc, cs, max), half)}
       </div>` : "";
     // Room on the page for the last four periods; the lookup page lists them all.
     const prog = showProgress ? `
@@ -317,6 +349,26 @@ const Report = (() => {
     c.fillText(canvas.dataset.sub, s / 2, s / 2 + 66);
   }
 
+  // A comparison ring on the card: her percentage around the outside, the class average inside, her number in the middle.
+  function drawDonut(canvas) {
+    const c = canvas.getContext("2d"), s = canvas.width, mid = s / 2;
+    const val = k => (canvas.dataset[k] === "" ? null : Number(canvas.dataset[k]));
+    const arc = (r, w, color, p) => {
+      c.lineWidth = w; c.strokeStyle = color;
+      c.beginPath(); c.arc(mid, mid, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p / 100); c.stroke();
+    };
+    const a = val("a"), b = val("b");
+    c.lineCap = "butt";
+    arc(s * 0.42, s * 0.11, "#e3ebe9", 100);
+    if (a) arc(s * 0.42, s * 0.11, "#008a80", a);
+    arc(s * 0.28, s * 0.075, "#eef2f1", 100);
+    if (b) arc(s * 0.28, s * 0.075, "#94a6a9", b);
+    c.textAlign = "center"; c.textBaseline = "middle"; c.direction = "ltr";
+    const t = a == null ? "—" : a + "%";
+    c.fillStyle = "#1d2433"; c.font = `700 ${Math.round(s * (t.length > 3 ? 0.15 : 0.18))}px "IBM Plex Sans Arabic", Tahoma, sans-serif`;
+    c.fillText(t, mid, mid + s * 0.01);
+  }
+
   function loadScript(src) {
     return new Promise((ok, fail) => {
       if (document.querySelector(`script[src="${src}"]`)) return ok();
@@ -330,6 +382,7 @@ const Report = (() => {
   function show(host, sheets) {
     host.innerHTML = `<div class="rpt">${sheets.join("")}</div>`;
     host.querySelectorAll("canvas.rp-score").forEach(c => drawRing(c, Number(c.dataset.pct)));
+    host.querySelectorAll("canvas.rp-donut").forEach(drawDonut);
   }
 
   // Renders each sheet off-screen and stacks them into one A4 PDF. Big batches use a lighter image setting.
@@ -365,7 +418,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, CHARTS, isChart, chartOf, compareItems, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;

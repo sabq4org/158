@@ -125,7 +125,7 @@ app.get("/api/site", async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({
     gradeLabel: s.grade_label, termTitle: termTitleOf(s, cal), teacherName: s.teacher_name, principalName: s.principal_name,
-    max: maxOf(s),
+    max: maxOf(s), compareChart: s.compare_chart,
     open: s.lookup_open, closedMessage: s.closed_message,
   });
 });

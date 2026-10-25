@@ -12,6 +12,8 @@ const DEFAULTS = {
   // Empty until the teacher sets them: homework and the final exam stay out of the percentage until then.
   max_homework: null,
   max_final: null,
+  // How a student's card compares her with the class average: "bars", "pie" or "table" (CHARTS in public/report.js).
+  compare_chart: "bars",
   lookup_open: true,
   closed_message: "النتائج غير متاحة حالياً، ترقّبي إعلانها قريباً.",
 };

@@ -355,6 +355,7 @@ module.exports = function mountAdmin(app, pool) {
       if (t && (!Number.isFinite(n) || n <= 0 || n > 1000)) errors.push(`الدرجة العظمى غير صحيحة: ${t}`);
       next[k] = t ? n : null;
     }
+    next.compare_chart = grades.Report.isChart(b.compare_chart) ? b.compare_chart : getSettings().compare_chart;
     next.lookup_open = b.lookup_open !== false;
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
 

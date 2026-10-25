@@ -25,6 +25,9 @@
   --good: #1f8a4c;
   --warn: #b86a00;
   --low: #b43c3c;
+  /* Comparison chart: the student, and the class average beside her (checked for colour-blind separation). */
+  --you: #008a80;
+  --avg: #94a6a9;
   --pattern: rgba(13, 110, 106, 0.07);
   --viewer: #4d5d60;
   --shadow: 0 1px 2px rgba(20, 42, 46, 0.06), 0 12px 32px -12px rgba(20, 42, 46, 0.18);
@@ -35,14 +38,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
     --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
-    --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
+    --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --you: #1fa89c; --avg: #5c6c6f; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae;
   --line: #26403f; --accent: #4fc2b8; --accent-soft: #163a3a; --gold: #e9b44c; --gold-soft: #3a2e14;
-  --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
+  --good: #5fcf8c; --warn: #f0a540; --low: #f08080; --you: #1fa89c; --avg: #5c6c6f; --pattern: rgba(79, 194, 184, 0.06); --viewer: #060d0e;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -12px rgba(0,0,0,.6); color-scheme: dark;
 }
 
@@ -301,21 +304,64 @@ html.viewing { overflow: hidden; }
 .block-head { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; }
 .block-title, .sub-title { font-weight: 700; font-size: 16px; }
 .sub-title { font-size: 15px; margin-bottom: 8px; }
-.key { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.key { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); }
 .key span { display: inline-flex; align-items: center; gap: 6px; }
-.key .k-you::before { content: ""; width: 16px; height: 8px; border-radius: 99px; background: var(--accent); }
-.key .k-avg::before { content: ""; width: 3px; height: 14px; border-radius: 2px; background: var(--ink); }
+.key span::before { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--you); }
+.key .k-avg::before { background: var(--avg); }
 .cmp-sum { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font-size: 14px; }
 .cmp-sum b { display: block; font-size: 15px; }
-.cmp { display: flex; flex-direction: column; gap: 14px; }
-.cmp-row { display: flex; flex-direction: column; gap: 7px; }
-.cmp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 2px 10px; flex-wrap: wrap; font-size: 14px; }
-.cmp-name { font-weight: 600; }
-.cmp-vals { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.cmp-vals b { color: var(--ink); font-size: 14.5px; }
-.cmp-track { position: relative; height: 10px; border-radius: 99px; background: var(--line); }
-.cmp-track i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: inherit; background: var(--accent); }
-.cmp-track s { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-inline-start: -1.5px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+/* The comparison's form: columns, rings or a table. The pick is kept on this device, and the PDF follows it. */
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.seg button { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 9px; padding: 3px 11px; min-height: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.seg button svg { width: 15px; height: 15px; flex: none; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 2px rgba(20, 42, 46, .16); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cmp-block { position: relative; }
+.cmp-view { display: flex; flex-direction: column; gap: 12px; }
+.cmp-view [data-i] { outline: none; border-radius: 10px; cursor: default; }
+.cmp-view [data-i]:hover, .cmp-view [data-i]:focus-visible { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.cmp-view [data-i]:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.cols-plot { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); height: 150px; margin-top: 22px; padding-inline-start: 36px; }
+.cols-gl { position: absolute; inset-inline: 0; height: 0; border-top: 1px solid var(--line); }
+.cols-gl span { position: absolute; inset-inline-start: 0; top: -9px; font-size: 11px; line-height: 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cols-gl.base { bottom: 0; border-top-color: color-mix(in srgb, var(--muted) 55%, transparent); }
+.col-g { position: relative; display: flex; justify-content: center; align-items: flex-end; gap: 3px; }
+.col-g > span { height: 100%; width: 22px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.col-g b { flex: none; font-size: 12.5px; line-height: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.col-g .avg b { color: var(--muted); font-weight: 500; }
+.col-g i { flex: none; width: 100%; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: grow .8s ease-out both; }
+.col-g .you i { background: var(--you); }
+.col-g .avg i { background: var(--avg); }
+@keyframes grow { from { transform: scaleY(0); } }
+.cols-x { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); padding-inline-start: 36px; margin-top: 6px; }
+.cols-x span { text-align: center; font-size: 13px; line-height: 1.4; padding: 0 2px; }
+.cols-x .total, .ring-c.total .ring-name { color: var(--accent); font-weight: 700; }
+.rings { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 12px 6px; }
+.ring-c { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 6px 2px 8px; }
+.ring-w { display: block; width: min(100%, 104px); aspect-ratio: 1; }
+.ring-w circle { fill: none; }
+.ring-w text { fill: var(--ink); font-weight: 700; text-anchor: middle; dominant-baseline: central; direction: ltr; }
+.ring-w .tr { stroke: var(--line); }
+.ring-w .tr2 { stroke: color-mix(in srgb, var(--line) 55%, transparent); }
+.ring-w .you { stroke: var(--you); animation: arc .9s ease-out both; }
+.ring-w .avg { stroke: var(--avg); animation: arc .9s ease-out both; }
+@keyframes arc { from { stroke-dasharray: 0 100; } }
+.ring-name { font-size: 13.5px; font-weight: 600; line-height: 1.4; margin-top: 6px; }
+.ring-avg { font-size: 12.5px; color: var(--muted); }
+.cmp-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 14.5px; }
+.cmp-table th { background: var(--surface-2); color: var(--muted); font-weight: 600; font-size: 13px; padding: 8px 12px; }
+.cmp-table td { padding: 9px 12px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.cmp-table :is(th, td) { text-align: center; }
+.cmp-table :is(th, td):first-child { text-align: start; }
+.cmp-table td small { color: var(--muted); font-size: 12.5px; }
+.cmp-table tr.sum td { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.cmp-tip { position: absolute; z-index: 3; pointer-events: none; background: var(--ink); color: var(--surface); border-radius: 10px; padding: 7px 12px; font-size: 12.5px; line-height: 1.6; box-shadow: var(--shadow); white-space: nowrap; }
+.cmp-tip div { font-weight: 700; font-size: 13px; }
+.cmp-tip p { margin: 0; display: flex; align-items: center; gap: 7px; }
+.cmp-tip p::before { content: ""; width: 12px; height: 3px; border-radius: 2px; background: var(--you); }
+.cmp-tip p + p::before { background: var(--avg); }
+.cmp-tip strong { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .col-g i, .ring-w circle { animation: none !important; } }
 .prog { display: flex; flex-direction: column; gap: 10px; }
 .prog-row { display: grid; grid-template-columns: minmax(0, 10em) minmax(0, 1fr) 3em; gap: 12px; align-items: center; font-size: 14px; }
 .prog-name { color: var(--muted); line-height: 1.45; }
@@ -337,6 +383,15 @@ html.viewing { overflow: hidden; }
   .block, .study { padding-inline: 18px; }
   .no-grades { margin-inline: 18px; }
   .prog-row { grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 2.8em; gap: 10px; }
+  .cols-plot { height: 130px; padding-inline-start: 30px; }
+  .cols-x { padding-inline-start: 30px; }
+  .cols-x span { font-size: 12px; }
+  .col-g { gap: 2px; }
+  .col-g > span { width: min(16px, 40%); }
+  .col-g b { font-size: 11.5px; }
+  .rings { grid-template-columns: repeat(var(--m), minmax(0, 1fr)); }
+  .ring-name { font-size: 12.5px; }
+  .ring-avg { font-size: 12px; }
 }
 </style>
 </head>
@@ -394,7 +449,7 @@ document.documentElement.lang = "ar";
 // ===== إعدادات الدرجات =====
 const MAX = { test: 20, participation: 10, projects: 10, homework: null, final: null };
 // Overwritten from /api/site, which the teacher controls from the panel.
-const SITE = { gradeLabel: "المرحلة الثانوية", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري" };
+const SITE = { gradeLabel: "المرحلة الثانوية", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري", compareChart: "bars" };
 const gradeLine = () => Report.gradeLine(SITE);
 const { fmt, esc, level, praiseFor } = Report;
 
@@ -427,30 +482,103 @@ function metric(name, val, max) {
   </div>`;
 }
 
-// One row: the student's bar, with a tick where the class average sits.
-function cmpRow(name, mine, avg, max, mineText, avgText) {
-  const at = v => Math.max(0, Math.min(100, (v / max) * 100));
-  return `<div class="cmp-row">
-    <div class="cmp-top"><span class="cmp-name">${name}</span><span class="cmp-vals">درجتك <b>${mineText}</b> · متوسط الفصل ${avgText}</span></div>
-    <div class="cmp-track" role="img" aria-label="${name}: درجتك ${mineText}، ومتوسط الفصل ${avgText}">${mine == null ? "" : `<i style="width:${at(mine)}%"></i>`}${avg == null ? "" : `<s style="inset-inline-start:${at(avg)}%"></s>`}</div>
-  </div>`;
+// ===== المقارنة بمتوسط الفصل: أعمدة أو دائري أو جدول =====
+// The teacher's default comes from /api/site; a student's own pick is kept on her device and her PDF follows it.
+const CHART_KEY = "cmpChart";
+let chart = "bars", picked = null;
+const savedChart = () => { try { const v = localStorage.getItem(CHART_KEY); return Report.isChart(v) ? v : null; } catch { return null; } };
+const CHART_ICONS = {
+  bars: '<path d="M4 20h16"/><path d="M7 16v-6"/><path d="M11 16V6"/><path d="M15 16v-8"/><path d="M19 16v-4"/>',
+  pie: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/>',
+  table: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 10h17"/><path d="M10 10v9"/>',
+};
+// What each part reads as in words: the score out of its maximum, or a percentage for the whole.
+const said = (x, v) => (v == null ? "—" : x.total ? `${v}%` : `${fmt(v)} من ${x.max}`);
+const cmpLabel = x => `${x.name}: درجتك ${x.mine == null ? "لم تُرصد بعد" : said(x, x.mine)}، ومتوسط الفصل ${x.avg == null ? "غير متاح" : said(x, x.avg)}`;
+
+function cmpChart(items) {
+  const n = items.length;
+  if (chart === "table") return `<table class="cmp-table">
+      <thead><tr><th>البند</th><th>درجتك</th><th>متوسط الفصل</th></tr></thead>
+      <tbody>${items.map(x => x.total ? `<tr class="sum"><td>${x.name}</td><td>${said(x, x.mine)}</td><td>${said(x, x.avg)}</td></tr>`
+        : `<tr><td>${x.name}</td><td><b>${fmt(x.mine)}</b> <small>من ${x.max}</small></td><td>${fmt(x.avg)}</td></tr>`).join("")}</tbody>
+    </table>`;
+  const key = `<div class="key" aria-hidden="true"><span class="k-you">درجتك</span><span class="k-avg">متوسط الفصل</span></div>`;
+  // Rings: the student outside, the class average inside, her percentage in the middle.
+  if (chart === "pie") return key + `<div class="rings" style="--n:${n};--m:${n > 4 ? 3 : n}">${items.map((x, i) => `
+      <div class="ring-c${x.total ? " total" : ""}" data-i="${i}" tabindex="0" role="img" aria-label="${cmpLabel(x)}">
+        <svg class="ring-w" viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-90 50 50)">
+          <circle class="tr" cx="50" cy="50" r="42" stroke-width="11"/>${x.mineP ? `<circle class="you" cx="50" cy="50" r="42" stroke-width="11" pathLength="100" style="stroke-dasharray:${x.mineP} 100"/>` : ""}
+          <circle class="tr2" cx="50" cy="50" r="28" stroke-width="7.5"/>${x.avgP ? `<circle class="avg" cx="50" cy="50" r="28" stroke-width="7.5" pathLength="100" style="stroke-dasharray:${x.avgP} 100"/>` : ""}
+        </g><text x="50" y="51" font-size="${x.mineP === 100 ? 16 : 19}">${x.mineP == null ? "—" : x.mineP + "%"}</text></svg>
+        <span class="ring-name" aria-hidden="true">${x.name}</span><span class="ring-avg" aria-hidden="true">الفصل ${x.avgP == null ? "—" : x.avgP + "%"}</span>
+      </div>`).join("")}</div>`;
+  // Columns: a pair per part on one 0–100% scale, each labelled with its percentage.
+  const col = (p, cls) => `<span class="${cls}"><b>${p == null ? "—" : p}</b><i style="height:${p || 0}%"></i></span>`;
+  return key + `<div class="cols" style="--n:${n}">
+      <div class="cols-plot">
+        <div class="cols-gl" style="bottom:100%" aria-hidden="true"><span>100%</span></div><div class="cols-gl" style="bottom:50%" aria-hidden="true"><span>50%</span></div><div class="cols-gl base" aria-hidden="true"></div>
+        ${items.map((x, i) => `<div class="col-g" data-i="${i}" tabindex="0" role="img" aria-label="${cmpLabel(x)}">${col(x.mineP, "you")}${col(x.avgP, "avg")}</div>`).join("")}
+      </div>
+      <div class="cols-x" aria-hidden="true">${items.map(x => `<span${x.total ? ' class="total"' : ""}>${x.name}</span>`).join("")}</div>
+    </div>`;
 }
 
 function compareBlock(sc, cs) {
   const v = Report.versusClass(sc, cs);
-  const of = (x, m) => (x == null ? "—" : `${fmt(x)} من ${m}`);
-  return `<div class="block">
-    <div class="block-head"><span class="block-title">مقارنة بمتوسط الفصل</span><span class="key" aria-hidden="true"><span class="k-you">درجتك</span><span class="k-avg">متوسط الفصل</span></span></div>
-    <p class="cmp-sum"><b>${esc(v.title)}</b>${esc(v.text)}</p>
-    <div class="cmp">
-      ${cmpRow("الاختبارات", sc.test, cs.test, MAX.test, of(sc.test, MAX.test), fmt(cs.test))}
-      ${cmpRow("المشاركة", sc.part, cs.participation, MAX.participation, of(sc.part, MAX.participation), fmt(cs.participation))}
-      ${cmpRow("المشاريع والمهام", sc.proj, cs.projects, MAX.projects, of(sc.proj, MAX.projects), fmt(cs.projects))}
-      ${Report.extrasOf(MAX).map(k => cmpRow(Report.EXTRAS[k], sc[k], cs[k], MAX[k], of(sc[k], MAX[k]), fmt(cs[k]))).join("")}
-      ${cmpRow("النسبة الكلية", sc.pct, cs.pct, 100, sc.pct + "%", cs.pct + "%")}
+  return `<div class="block cmp-block" id="cmpBlock">
+    <div class="block-head"><span class="block-title">مقارنة بمتوسط الفصل</span>
+      <div class="seg" role="group" aria-label="شكل المقارنة">${Object.entries(Report.CHARTS).map(([k, t]) => `<button type="button" data-chart="${k}" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CHART_ICONS[k]}</svg>${t}</button>`).join("")}</div>
     </div>
-    <p class="hint">المتوسط محسوب من درجات طالبات فصلك، ولا يظهر فيه اسم أو درجة أي طالبة.</p>
+    <p class="cmp-sum"><b>${esc(v.title)}</b>${esc(v.text)}</p>
+    <div class="cmp-view" id="cmpView"></div>
+    <p class="hint" id="cmpHint"></p>
   </div>`;
+}
+
+// Draws the picked form, and keeps the switch and the hover/focus readout working across switches.
+function mountCompare(items) {
+  const block = $("#cmpBlock"), view = $("#cmpView");
+  const draw = () => {
+    view.innerHTML = cmpChart(items);
+    block.querySelectorAll("[data-chart]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.chart === chart)));
+    $("#cmpHint").textContent = (chart === "table" ? "" : "كل بند بالنسبة المئوية من درجته العظمى. ")
+      + "المتوسط محسوب من درجات طالبات فصلك، ولا يظهر فيه اسم أو درجة أي طالبة.";
+  };
+  draw();
+  block.querySelector(".seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-chart]");
+    if (!b || b.dataset.chart === chart) return;
+    chart = picked = b.dataset.chart;
+    try { localStorage.setItem(CHART_KEY, chart); } catch {}
+    hide();
+    draw();
+  });
+  // One readout for the whole chart: the value leads, the series follows. Built with textContent.
+  const tip = document.createElement("div");
+  tip.className = "cmp-tip"; tip.hidden = true; tip.setAttribute("aria-hidden", "true");
+  block.appendChild(tip);
+  function show(el) {
+    const x = items[el.dataset.i];
+    tip.replaceChildren();
+    const head = document.createElement("div"); head.textContent = x.name; tip.appendChild(head);
+    for (const [v, who] of [[x.mine, "درجتك"], [x.avg, "متوسط الفصل"]]) {
+      const p = document.createElement("p"), b = document.createElement("strong");
+      b.textContent = said(x, v);
+      p.append(b, " " + who);
+      tip.appendChild(p);
+    }
+    tip.hidden = false;
+    const box = block.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const left = Math.min(Math.max(8, r.left - box.left + r.width / 2 - tip.offsetWidth / 2), box.width - tip.offsetWidth - 8);
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(4, r.top - box.top - tip.offsetHeight - 6) + "px";
+  }
+  function hide() { tip.hidden = true; }
+  view.addEventListener("pointerover", e => { const el = e.target.closest("[data-i]"); if (el && e.pointerType === "mouse") show(el); });
+  view.addEventListener("pointerleave", e => { if (e.pointerType === "mouse" && !view.contains(document.activeElement)) hide(); });
+  view.addEventListener("focusin", e => { const el = e.target.closest("[data-i]"); if (el) show(el); });
+  view.addEventListener("focusout", hide);
 }
 
 function progressBlock(pg) {
@@ -484,7 +612,7 @@ async function downloadPdf(btn) {
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = "جارٍ تجهيز الملف…";
   try {
-    const blob = await Report.toPdf([Report.cardSheet(currentStudent, { max: MAX, site: SITE })]);
+    const blob = await Report.toPdf([Report.cardSheet(currentStudent, { max: MAX, site: SITE, chart })]);
     Report.save(blob, `نتيجة - ${currentStudent.name}.pdf`);
   } catch (err) {
     console.error(err);
@@ -505,7 +633,7 @@ function fitSheet() {
 async function openViewer() {
   if (!currentStudent) return;
   await document.fonts.ready;
-  Report.show($("#sheetPage"), [Report.cardSheet(currentStudent, { max: MAX, site: SITE })]);
+  Report.show($("#sheetPage"), [Report.cardSheet(currentStudent, { max: MAX, site: SITE, chart })]);
   document.documentElement.classList.add("viewing");
   viewer.showModal();
   fitSheet();
@@ -524,6 +652,7 @@ function render(r) {
   const pr = sc.has ? praiseFor(sc.pct, first)
     : { cls: "calm", icon: Report.SPROUT, title: `أهلاً يا ${first}`, text: "لم تكتمل درجات هذه الفترة بعد، وستظهر نسبتك هنا فور رصدها." };
   const pg = Report.progress(r.history, sc, SITE.termTitle);
+  chart = picked || savedChart() || SITE.compareChart;
   const C = 2 * Math.PI * 48;
   // Homework and the final exam show once the teacher counts them. Four tiles sit two by two.
   const tiles = [metric("المشاركة", sc.part, MAX.participation), metric("المشاريع والمهام", sc.proj, MAX.projects),
@@ -570,6 +699,7 @@ function render(r) {
   <div class="actions" style="margin-top:16px"><button class="btn btn-pdf btn-soft" type="button" id="viewBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>مشاهدة</button><button class="btn btn-pdf" type="button" id="pdfBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تحميل PDF</button><button class="ghost" type="button" id="again">استعلام عن طالبة أخرى</button></div>`;
 
   $("#result").hidden = false;
+  if (sc.has && r.classStats) mountCompare(Report.compareItems(sc, r.classStats, MAX));
   if (sc.has) requestAnimationFrame(() => requestAnimationFrame(() => {
     const ring = $("#ringFg");
     ring.style.stroke = sc.pct >= 80 ? "var(--gold)" : "var(--accent)";
@@ -626,7 +756,7 @@ function showClosed() {
 fetch("/api/site", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(site => {
   if (!site) return;
   Object.assign(MAX, site.max);
-  Object.assign(SITE, { gradeLabel: site.gradeLabel, termTitle: site.termTitle, teacherName: site.teacherName, principalName: site.principalName });
+  Object.assign(SITE, { gradeLabel: site.gradeLabel, termTitle: site.termTitle, teacherName: site.teacherName, principalName: site.principalName, compareChart: Report.chartOf(site.compareChart) });
   $("#gradeLabel").textContent = gradeLine();
   $("#foot").textContent = `المعلمة: ${site.teacherName}` + (site.principalName ? ` · المديرة: ${site.principalName}` : "");
   $("#closedMsg").textContent = site.closedMessage;
