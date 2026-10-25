@@ -353,6 +353,7 @@ html.viewing { overflow: hidden; }
 .cmp-table td { padding: 9px 12px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .cmp-table :is(th, td) { text-align: center; }
 .cmp-table :is(th, td):first-child { text-align: start; }
+.cmp-table :is(th, td):not(:first-child) { white-space: nowrap; }
 .cmp-table td small { color: var(--muted); font-size: 12.5px; }
 .cmp-table tr.sum td { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .cmp-tip { position: absolute; z-index: 3; pointer-events: none; background: var(--ink); color: var(--surface); border-radius: 10px; padding: 7px 12px; font-size: 12.5px; line-height: 1.6; box-shadow: var(--shadow); white-space: nowrap; }
@@ -392,6 +393,7 @@ html.viewing { overflow: hidden; }
   .rings { grid-template-columns: repeat(var(--m), minmax(0, 1fr)); }
   .ring-name { font-size: 12.5px; }
   .ring-avg { font-size: 12px; }
+  .cmp-table th, .cmp-table td { padding-inline: 9px; }
 }
 </style>
 </head>
