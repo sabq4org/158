@@ -42,48 +42,64 @@ ALTER TABLE classes ADD COLUMN IF NOT EXISTS section INT;
 ALTER TABLE classes ADD COLUMN IF NOT EXISTS track TEXT;
 ALTER TABLE classes ADD COLUMN IF NOT EXISTS aliases TEXT[] NOT NULL DEFAULT '{}';`;
 
-// Field order shared by the API, Excel export and the import diff.
+// Field order shared by the API, the students table, Excel export and the import diff.
 const FIELDS = [
-  ["national_id", "رقم الهوية"],
   ["name", "اسم الطالبة"],
-  ["class", "الفصل"],
+  ["national_id", "رقم الهوية"],
+  ["email", "الإيميل الوزاري"],
+  ["class", "الصف والشعبة"],
   ["test1", "الاختبار الأول"],
   ["test2", "الاختبار الثاني"],
   ["test_avg", "المتوسط"],
   ["participation", "المشاركة"],
   ["projects", "المشاريع والمهام"],
-  ["lateness", "التأخير"],
+  ["homework", "الواجبات"],
+  ["final_exam", "الاختبار النهائي"],
+  ["notes", "ملاحظات"],
   ["learning_style", "نمط التعلم"],
   ["learning_difficulty", "صعوبات التعلم"],
-  ["email", "الإيميل الوزاري"],
 ];
 const LABEL = Object.fromEntries(FIELDS);
-const NUMERIC = new Set(["test1", "test2", "test_avg", "participation", "projects", "lateness"]);
-const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "lateness"];
+const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "homework", "final_exam"];
+const NUMERIC = new Set(GRADE_COLS);
 const TERM_COLS = ["national_id", "name", "class", ...GRADE_COLS, "learning_style", "learning_difficulty"];
-const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects, lateness: 365 });
+const TERM_TYPES = { national_id: "TEXT", name: "TEXT", class: "TEXT", learning_style: "TEXT", learning_difficulty: "BOOLEAN" };
+// Homework and the final exam have no maximum until the teacher sets one; 100 keeps a typo out meanwhile.
+const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects,
+  homework: max.homework || 100, final_exam: max.final || 100 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
+const NOTES_MAX = 1000;
 
-// Header text in the teacher's sheet (and in our own export) → field.
+// Header text in the teacher's sheet (and in our own export) → field. "grade" and "section" are joined into the class.
 const HEADER_MAP = {
   "الهوية": "national_id", "رقم الهوية": "national_id", "رقم الهوية الوطنية": "national_id", "الهوية الوطنية": "national_id",
   "السجل المدني": "national_id", "رقم السجل المدني": "national_id", "رقم الهوية / الإقامة": "national_id", "رقم الهوية/الإقامة": "national_id",
   "اسم الطالبة": "name", "الاسم": "name", "اسم الطالب": "name",
-  "الصف": "class", "الفصل": "class",
-  "درجة خ 1": "test1", "الاختبار الأول": "test1",
-  "درجة خ 2": "test2", "الاختبار الثاني": "test2",
+  "الفصل": "class", "الصف والشعبة": "class",
+  "الصف": "grade", "الشعبة": "section", "شعبة": "section", "رقم الشعبة": "section",
+  "درجة خ 1": "test1", "الاختبار الأول": "test1", "الاختبار 1": "test1", "اختبار 1": "test1",
+  "درجة خ 2": "test2", "الاختبار الثاني": "test2", "الاختبار 2": "test2", "اختبار 2": "test2",
   "المتوسط": "test_avg", "معدل الاختبار": "test_avg",
   "المشاركة": "participation",
   "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects", "المشاريع": "projects", "المهام والمشاريع": "projects",
-  "التأخر": "lateness", "التأخير": "lateness",
+  "الواجبات": "homework", "الواجب": "homework", "واجبات": "homework",
+  "الاختبار النهائي": "final_exam", "اختبار نهائي": "final_exam", "النهائي": "final_exam",
+  "ملاحظات": "notes", "الملاحظات": "notes", "ملاحظة": "notes",
   "نمط التعلم": "learning_style",
   "صعوبات التعلم": "learning_difficulty", "صعوبات تعلم": "learning_difficulty",
   "الايميل الوزاري": "email", "الإيميل الوزاري": "email", "الإيميل": "email", "الايميل": "email", "البريد الإلكتروني": "email",
 };
 // Columns the panel's own tables show and the system works out by itself; a sheet may carry them, unread.
-const COMPUTED_HEADERS = new Set(["النسبة", "المجموع", "المستوى", "م", "#", "الاستعلام"]);
+const COMPUTED_HEADERS = ["النسبة", "المجموع", "المستوى", "م", "#", "الاستعلام"];
 
 const norm = s => String(s ?? "").replace(/\s+/g, " ").trim();
+// Headers match loosely: أ/ا، ى/ي، ة/ه, Arabic digits, and a maximum after the name ("المشاركة (10)", "الاختبار الأول / 20").
+const headerKey = s => school.plain(school.toLatin(norm(s))).replace(/\(.*?\)/g, " ").replace(/(?:\s*\/|\s+من)\s*\d+(?:\.\d+)?\s*$/, "")
+  .replace(/\s+/g, " ").trim();
+const HEADERS = Object.fromEntries(Object.entries(HEADER_MAP).map(([k, f]) => [headerKey(k), f]));
+const COMPUTED = new Set(COMPUTED_HEADERS.map(headerKey));
+// Notes keep their line breaks; other spacing is tidied as in any text.
+const notesOf = v => String(v ?? "").replace(/\r\n?/g, "\n").replace(/[^\S\n]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 
 // The learning difficulty flag: a checkbox from the panel, "نعم" or "لا" in a sheet. Empty means not given,
 // which keeps what is saved; anything else is undefined (an error).
@@ -135,6 +151,8 @@ function cleanStudent(raw, max = maxOf(getSettings())) {
   s.learning_difficulty = flagOf(raw.learning_difficulty);
   if (s.learning_difficulty === undefined) { errors.push(`${LABEL.learning_difficulty}: اكتبي "نعم" أو "لا" أو اتركيها فاضية`); s.learning_difficulty = null; }
   s.email = norm(raw.email) || null;
+  s.notes = notesOf(raw.notes) || null;
+  if (s.notes && s.notes.length > NOTES_MAX) errors.push(`${LABEL.notes}: النص أطول من ${NOTES_MAX} حرف`);
   return { student: s, errors };
 }
 
@@ -153,6 +171,14 @@ function fromRow(r) {
   return o;
 }
 
+// A sheet may split the class into الصف and الشعبة, as the panel's export does ("الأول الثانوي" or "1", and "2"), or
+// write it in one column. A grade next to a bare number in the class column is joined the same way.
+function classOfRow(raw) {
+  const grade = school.toLatin(norm(raw.grade)), cls = norm(raw.class), section = school.toLatin(norm(raw.section) || cls);
+  const isGrade = /^[1-3]$/.test(grade) || (grade && !/\d/.test(grade));
+  return isGrade && /^\d{1,2}$/.test(section) ? `${grade} / ${section}` : cls || grade;
+}
+
 // The first sheet with a students table: its rows, and the headers it has that the system does not read.
 async function readStudentsFromExcel(file) {
   const reader = new ExcelJS.stream.xlsx.WorkbookReader(file, { sharedStrings: "cache", styles: "ignore", hyperlinks: "ignore", worksheets: "emit" });
@@ -163,11 +189,11 @@ async function readStudentsFromExcel(file) {
       const values = row.values || [];
       if (!cols) {
         const found = {};
-        values.forEach((v, i) => { const f = HEADER_MAP[norm(cellText(v))]; if (f && !(f in found)) found[f] = i; });
+        values.forEach((v, i) => { const f = HEADERS[headerKey(cellText(v))]; if (f && !(f in found)) found[f] = i; });
         if ("national_id" in found && "name" in found && Object.keys(found).length >= 4) {
           cols = found;
           const used = new Set(Object.values(found));
-          ignored = values.map((v, i) => [i, norm(cellText(v))]).filter(([i, t]) => t && !used.has(i) && !COMPUTED_HEADERS.has(t)).map(([, t]) => t);
+          ignored = values.map((v, i) => [i, norm(cellText(v))]).filter(([i, t]) => t && !used.has(i) && !COMPUTED.has(headerKey(t))).map(([, t]) => t);
         }
         if (row.number > 500 && !cols) break;
         continue;
@@ -180,6 +206,7 @@ async function readStudentsFromExcel(file) {
         continue;
       }
       emptyRun = 0;
+      raw.class = classOfRow(raw);
       rows.push({ line: row.number, raw });
     }
     if (cols) return { rows, ignored };
@@ -318,15 +345,22 @@ module.exports = function mountAdmin(app, pool) {
     if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
     if (!next.closed_message) next.closed_message = DEFAULTS.closed_message;
     for (const k of ["max_test", "max_participation", "max_projects"]) {
-      const n = Number(b[k]);
+      const n = Number(school.toLatin(b[k]));
       if (!Number.isFinite(n) || n <= 0 || n > 1000) errors.push(`الدرجة العظمى غير صحيحة: ${b[k]}`);
       next[k] = n;
+    }
+    // Left empty, homework and the final exam stay out of the percentage and off the students' cards.
+    for (const k of ["max_homework", "max_final"]) {
+      const t = norm(school.toLatin(b[k])), n = Number(t);
+      if (t && (!Number.isFinite(n) || n <= 0 || n > 1000)) errors.push(`الدرجة العظمى غير صحيحة: ${t}`);
+      next[k] = t ? n : null;
     }
     next.lookup_open = b.lookup_open !== false;
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
 
     // A lower maximum must not leave saved scores above it.
-    const checks = [["test1", next.max_test], ["test2", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects]];
+    const checks = [["test1", next.max_test], ["test2", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects],
+      ["homework", next.max_homework], ["final_exam", next.max_final]].filter(([, m]) => m != null);
     for (const [f, m] of checks) {
       const { rows } = await pool.query(`SELECT name FROM students WHERE ${f} > $1 ORDER BY name LIMIT 3`, [m]);
       if (rows.length) errors.push(`${LABEL[f]}: فيه طالبات درجاتهن أعلى من ${m} (${rows.map(r => r.name).join("، ")})`);
@@ -363,7 +397,8 @@ module.exports = function mountAdmin(app, pool) {
         const now = fromRow(cur);
         const revert = [];
         for (const c of e.details || []) {
-          if (c.field === "national_id" || c.field === "test_avg") continue;
+          // A field the panel no longer has (lateness, in older entries) has nothing to go back to.
+          if (c.field === "national_id" || c.field === "test_avg" || !(c.field in LABEL)) continue;
           if (same(now[c.field], c.to)) revert.push(c); else skipped.push(LABEL[c.field]);
         }
         const next = { ...now };
@@ -472,11 +507,22 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true });
   });
 
-  async function sendExcel(res, rows, fields, fileName) {
+  // Columns in the order of the students table. The class is split into الصف and الشعبة; the import joins them back.
+  const EXPORT_COLS = FIELDS.flatMap(f => (f[0] === "class" ? [["grade", "الصف"], ["section", "الشعبة"]] : [f]));
+  const WIDTHS = { name: 30, email: 28, national_id: 14, grade: 16, notes: 40 };
+  function exportRow(r) {
+    const o = fromRow(r), p = grades.Report.classParts(o.class);
+    o.grade = p ? grades.Report.GRADES[p.grade - 1] : o.class;
+    o.section = p ? p.section : null;
+    o.learning_difficulty = o.learning_difficulty ? "نعم" : "";
+    return o;
+  }
+  async function sendExcel(res, rows, cols, fileName) {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("الطالبات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
-    ws.columns = fields.map(([key, header]) => ({ key, header, width: key === "name" ? 30 : key === "email" ? 28 : key === "national_id" ? 14 : 13 }));
-    rows.forEach(r => { const o = fromRow(r); o.learning_difficulty = o.learning_difficulty ? "نعم" : ""; ws.addRow(o); });
+    ws.columns = cols.map(([key, header]) => ({ key, header, width: WIDTHS[key] || 13 }));
+    rows.forEach(r => ws.addRow(exportRow(r)));
+    if (cols.some(([k]) => k === "notes")) ws.getColumn("notes").alignment = { wrapText: true, vertical: "top" };
     const head = ws.getRow(1);
     head.font = { bold: true, color: { argb: "FFFFFFFF" } };
     head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B2765" } };
@@ -495,21 +541,20 @@ module.exports = function mountAdmin(app, pool) {
     const cls = typeof req.query.class === "string" && req.query.class ? req.query.class : null;
     const { rows } = await pool.query(`SELECT s.* FROM students s LEFT JOIN classes c ON c.name = s.class
       ${cls ? "WHERE s.class = $1" : ""} ORDER BY ${CLASS_ORDER}, s.name`, cls ? [cls] : []);
-    await sendExcel(res, rows, FIELDS, cls ? `نتائج ${grades.Report.classLabel(cls).replace(/\//g, "-")}` : "نتائج الطالبات");
+    await sendExcel(res, rows, EXPORT_COLS, cls ? `نتائج ${grades.Report.classLabel(cls).replace(/\//g, "-")}` : "نتائج الطالبات");
   });
 
   // ---------- Terms: each archived period keeps its own copy of the results ----------
   const insertTermResults = (q, termId, list) => q.query(
     `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")})
-     SELECT $1, ${TERM_COLS.join(", ")} FROM jsonb_to_recordset($2) AS x(national_id TEXT, name TEXT, class TEXT,
-       test1 NUMERIC, test2 NUMERIC, test_avg NUMERIC, participation NUMERIC, projects NUMERIC, lateness NUMERIC, learning_style TEXT, learning_difficulty BOOLEAN)`,
+     SELECT $1, ${TERM_COLS.join(", ")} FROM jsonb_to_recordset($2) AS x(${TERM_COLS.map(c => `${c} ${TERM_TYPES[c] || "NUMERIC"}`).join(", ")})`,
     [termId, JSON.stringify(list)]);
   const termId = req => (/^\d+$/.test(req.params.id) ? Number(req.params.id) : null);
   const titleTaken = (title, except = 0) => pool.query("SELECT 1 FROM terms WHERE title = $1 AND id <> $2", [title, except]).then(r => r.rowCount > 0);
 
   router.get("/terms", async (req, res) => {
     const terms = (await pool.query("SELECT id, title, max, created_at, year, semester FROM terms ORDER BY created_at, id")).rows;
-    const results = (await pool.query("SELECT term_id, test1, test2, test_avg, participation, projects, learning_difficulty FROM term_results")).rows;
+    const results = (await pool.query(`SELECT term_id, ${GRADE_COLS.join(", ")}, learning_difficulty FROM term_results`)).rows;
     res.json(terms.map(t => {
       const mine = results.filter(r => r.term_id === t.id);
       // Like the class average, the term average leaves out students with learning difficulties.
@@ -540,7 +585,7 @@ module.exports = function mountAdmin(app, pool) {
       const t = await client.query("INSERT INTO terms (title, max, year, semester) VALUES ($1, $2, $3, $4) RETURNING id", [title, JSON.stringify(maxOf(getSettings())), year, semester]);
       count = (await client.query(
         `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")}) SELECT $1, ${TERM_COLS.join(", ")} FROM students
-         WHERE coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL`, [t.rows[0].id])).rowCount;
+         WHERE coalesce(${GRADE_COLS.join(", ")}) IS NOT NULL`, [t.rows[0].id])).rowCount;
       if (!count) { await client.query("ROLLBACK"); return res.status(400).json({ error: "empty", errors: ["ما فيه درجات مرصودة للأرشفة"] }); }
       // The log keeps the term id and the cleared grades, so the archive can be undone from there.
       const details = { title, count, cleared: clear, next_title: clear ? nextTitle : null, term_id: t.rows[0].id, prev_title: prevTitle, year, semester };
@@ -591,7 +636,7 @@ module.exports = function mountAdmin(app, pool) {
     const t = (await pool.query("SELECT title FROM terms WHERE id = $1", [id])).rows[0];
     if (!t) return res.status(404).json({ error: "not_found" });
     const { rows } = await pool.query("SELECT * FROM term_results WHERE term_id = $1 ORDER BY class NULLS LAST, name", [id]);
-    await sendExcel(res, rows, FIELDS.filter(([k]) => k !== "email"), `نتائج ${t.title}`);
+    await sendExcel(res, rows, EXPORT_COLS.filter(([k]) => k !== "email" && k !== "notes"), `نتائج ${t.title}`);
   });
 
   router.get("/history", async (req, res) => res.json(await grades.history(pool)));
@@ -668,7 +713,7 @@ module.exports = function mountAdmin(app, pool) {
       for (const s of p.upserts) {
         await client.query(
           `INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})
-           ON CONFLICT (national_id) DO UPDATE SET ${cols.slice(1).map(c => `${c} = EXCLUDED.${c}`).join(", ")}`,
+           ON CONFLICT (national_id) DO UPDATE SET ${cols.filter(c => c !== "national_id").map(c => `${c} = EXCLUDED.${c}`).join(", ")}`,
           valuesOf(s));
       }
       await syncClasses(client);

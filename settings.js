@@ -9,6 +9,9 @@ const DEFAULTS = {
   max_test: 20,
   max_participation: 10,
   max_projects: 10,
+  // Empty until the teacher sets them: homework and the final exam stay out of the percentage until then.
+  max_homework: null,
+  max_final: null,
   lookup_open: true,
   closed_message: "النتائج غير متاحة حالياً، ترقّبي إعلانها قريباً.",
 };
@@ -45,7 +48,7 @@ async function saveSettings(pool, next) {
 }
 
 const getSettings = () => current;
-const maxOf = s => ({ test: s.max_test, participation: s.max_participation, projects: s.max_projects });
+const maxOf = s => ({ test: s.max_test, participation: s.max_participation, projects: s.max_projects, homework: s.max_homework || null, final: s.max_final || null });
 // A title the teacher typed wins; otherwise the period is named after the open semester in the calendar.
 const termTitleOf = (s, cal) => s.term_title || cal?.current.title || "";
 

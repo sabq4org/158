@@ -169,4 +169,4 @@ function parseClass(text) {
   return null;
 }
 
-module.exports = { STAGE, GRADES, TRACKS, ORDINALS, trackFor, load, getYears, situation, now, today, currentYear, semesterName, semesterTitle, cleanYear, saveYear, className, parseClass, isLdGroup };
+module.exports = { STAGE, GRADES, TRACKS, ORDINALS, trackFor, load, getYears, situation, now, today, currentYear, semesterName, semesterTitle, cleanYear, saveYear, className, parseClass, isLdGroup, toLatin, plain };

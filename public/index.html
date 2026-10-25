@@ -180,7 +180,7 @@ h1 {
 .ring-val small { font-size: 11.5px; color: var(--muted); }
 
 .metrics {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+  display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 12px;
   padding: 0 24px 24px;
 }
 .metric {
@@ -392,7 +392,7 @@ html.viewing { overflow: hidden; }
 document.documentElement.dir = "rtl";
 document.documentElement.lang = "ar";
 // ===== إعدادات الدرجات =====
-const MAX = { test: 20, participation: 10, projects: 10 };
+const MAX = { test: 20, participation: 10, projects: 10, homework: null, final: null };
 // Overwritten from /api/site, which the teacher controls from the panel.
 const SITE = { gradeLabel: "المرحلة الثانوية", termTitle: "", teacherName: "فائزة محمد جبوع", principalName: "د. حنان المطيري" };
 const gradeLine = () => Report.gradeLine(SITE);
@@ -427,15 +427,6 @@ function metric(name, val, max) {
   </div>`;
 }
 
-function lateMetric(n) {
-  const [c, t] = n === 0 ? ["good", "منضبطة"] : n <= 2 ? ["warn", "قليل"] : ["low", "متكرر"];
-  return `<div class="metric">
-    <div class="m-top"><span class="m-name">التأخير</span><span class="pill ${c}">${t}</span></div>
-    <div class="m-val">${n === 0 ? "لا يوجد" : fmt(n)} <small>${n === 0 ? "" : n === 1 ? "مرة" : n === 2 ? "مرتان" : n >= 3 && n <= 10 ? "مرات" : "مرة"}</small></div>
-    <div class="m-note">${n === 0 ? "لا يوجد تأخير، شكراً على انضباطك" : "الحضور المبكر يساعدك على الاستفادة من بداية الحصة"}</div>
-  </div>`;
-}
-
 // One row: the student's bar, with a tick where the class average sits.
 function cmpRow(name, mine, avg, max, mineText, avgText) {
   const at = v => Math.max(0, Math.min(100, (v / max) * 100));
@@ -455,6 +446,7 @@ function compareBlock(sc, cs) {
       ${cmpRow("الاختبارات", sc.test, cs.test, MAX.test, of(sc.test, MAX.test), fmt(cs.test))}
       ${cmpRow("المشاركة", sc.part, cs.participation, MAX.participation, of(sc.part, MAX.participation), fmt(cs.participation))}
       ${cmpRow("المشاريع والمهام", sc.proj, cs.projects, MAX.projects, of(sc.proj, MAX.projects), fmt(cs.projects))}
+      ${Report.extrasOf(MAX).map(k => cmpRow(Report.EXTRAS[k], sc[k], cs[k], MAX[k], of(sc[k], MAX[k]), fmt(cs[k]))).join("")}
       ${cmpRow("النسبة الكلية", sc.pct, cs.pct, 100, sc.pct + "%", cs.pct + "%")}
     </div>
     <p class="hint">المتوسط محسوب من درجات طالبات فصلك، ولا يظهر فيه اسم أو درجة أي طالبة.</p>
@@ -533,6 +525,9 @@ function render(r) {
     : { cls: "calm", icon: Report.SPROUT, title: `أهلاً يا ${first}`, text: "لم تكتمل درجات هذه الفترة بعد، وستظهر نسبتك هنا فور رصدها." };
   const pg = Report.progress(r.history, sc, SITE.termTitle);
   const C = 2 * Math.PI * 48;
+  // Homework and the final exam show once the teacher counts them. Four tiles sit two by two.
+  const tiles = [metric("المشاركة", sc.part, MAX.participation), metric("المشاريع والمهام", sc.proj, MAX.projects),
+    ...Report.extrasOf(MAX).map(k => metric(Report.EXTRAS[k], sc[k], MAX[k]))];
   const results = sc.any ? `
     <div class="tests">
       <div class="tests-head"><span class="tests-title">الاختبارات</span>${sc.test == null ? "" : (() => { const [c, t] = level(sc.test / MAX.test); return `<span class="pill ${c}">${t}</span>`; })()}</div>
@@ -543,11 +538,7 @@ function render(r) {
         <div class="t-cell key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(sc.test)} <small>/ ${MAX.test}</small></span></div>
       </div>
     </div>
-    <div class="metrics">
-      ${metric("المشاركة", sc.part, MAX.participation)}
-      ${metric("المشاريع والمهام", sc.proj, MAX.projects)}
-      ${lateMetric(sc.late)}
-    </div>` : `<p class="no-grades">لم تُرصد درجات هذه الفترة بعد.</p>`;
+    <div class="metrics" style="--cols:${tiles.length === 3 ? 3 : 2}">${tiles.join("")}</div>` : `<p class="no-grades">لم تُرصد درجات هذه الفترة بعد.</p>`;
 
   $("#result").innerHTML = `
   <article class="result">

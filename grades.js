@@ -28,13 +28,15 @@ CREATE INDEX IF NOT EXISTS term_results_national_id ON term_results (national_id
 -- The semester an archive belongs to.
 ALTER TABLE terms ADD COLUMN IF NOT EXISTS year INT;
 ALTER TABLE terms ADD COLUMN IF NOT EXISTS semester INT;
-ALTER TABLE term_results ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN;`;
+ALTER TABLE term_results ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN;
+ALTER TABLE term_results ADD COLUMN IF NOT EXISTS homework NUMERIC;
+ALTER TABLE term_results ADD COLUMN IF NOT EXISTS final_exam NUMERIC;`;
 
 // Archived percentages, oldest term first. Each term keeps the maximum scores it was graded with.
 // With an id: that student's list. Without: { national_id: list } for everyone.
 async function history(pool, nationalId) {
   const { rows } = await pool.query(
-    `SELECT r.national_id, t.title, t.max, r.test1, r.test2, r.test_avg, r.participation, r.projects
+    `SELECT r.national_id, t.title, t.max, r.test1, r.test2, r.test_avg, r.participation, r.projects, r.homework, r.final_exam
      FROM term_results r JOIN terms t ON t.id = r.term_id ${nationalId ? "WHERE r.national_id = $1" : ""} ORDER BY t.created_at, t.id`,
     nationalId ? [nationalId] : []);
   const out = {};
@@ -45,7 +47,7 @@ async function history(pool, nationalId) {
 // The class average leaves out students with learning difficulties.
 async function classStats(pool, cls) {
   if (!cls) return null;
-  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects FROM students WHERE class = $1 AND NOT learning_difficulty", [cls]);
+  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects, homework, final_exam FROM students WHERE class = $1 AND NOT learning_difficulty", [cls]);
   return Report.classStats(rows, maxOf(getSettings()));
 }
 

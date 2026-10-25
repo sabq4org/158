@@ -3,7 +3,7 @@ const express = require("express");
 const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
-const { loadSettings, getSettings, termTitleOf } = require("./settings");
+const { loadSettings, getSettings, maxOf, termTitleOf } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
 
@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS students (
 );
 -- Set by the teacher; such a student stays in her class but out of its average.
 ALTER TABLE students ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN NOT NULL DEFAULT false;
+-- Homework and the final exam count once the teacher sets their maximum. Notes are hers alone and never leave the panel.
+-- Lateness is no longer shown or read; its column stays so nothing saved in it is lost.
+ALTER TABLE students ADD COLUMN IF NOT EXISTS homework NUMERIC;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS final_exam NUMERIC;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS notes TEXT;
 CREATE TABLE IF NOT EXISTS lookups (
   id          SERIAL PRIMARY KEY,
   national_id TEXT NOT NULL,
@@ -49,7 +54,8 @@ CREATE INDEX IF NOT EXISTS lookups_national_id ON lookups (national_id, created_
 const app = express();
 app.set("trust proxy", 1);
 app.use(compression());
-app.use(express.json({ limit: "1kb" }));
+// The lookup takes no more than an ID. The panel reads its own, bigger bodies (a student's notes), in admin.js.
+app.use("/api/lookup", express.json({ limit: "1kb" }));
 
 // Simple per-IP limit so nobody can walk through ID numbers.
 const WINDOW_MS = 10 * 60 * 1000;
@@ -98,7 +104,8 @@ app.post("/api/lookup", async (req, res) => {
       testAvg: num(s.test_avg),
       participation: num(s.participation),
       projects: num(s.projects),
-      lateness: num(s.lateness),
+      homework: num(s.homework),
+      finalExam: num(s.final_exam),
       learningStyle: s.learning_style || "",
       email: s.email || "",
       // Only the class average leaves the server, never a classmate's score or name.
@@ -118,7 +125,7 @@ app.get("/api/site", async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({
     gradeLabel: s.grade_label, termTitle: termTitleOf(s, cal), teacherName: s.teacher_name, principalName: s.principal_name,
-    max: { test: s.max_test, participation: s.max_participation, projects: s.max_projects },
+    max: maxOf(s),
     open: s.lookup_open, closedMessage: s.closed_message,
   });
 });

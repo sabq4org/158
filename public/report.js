@@ -11,29 +11,39 @@ const Report = (() => {
   // html2canvas drops the joining of "هـ" written straight after digits (1447هـ); a space keeps it intact on the sheets.
   const tx = s => esc(s).replace(/(\d)\u0647\u0640/g, "$1 \u0647\u0640");
 
+  // Homework and the final exam show, and count toward the total, once the teacher sets their maximum. For each student
+  // they count once graded, so a final exam not sat yet does not pull her percentage down.
+  const EXTRAS = { homework: "الواجبات", final: "الاختبار النهائي" };
+  const extrasOf = max => Object.keys(EXTRAS).filter(k => max[k] > 0);
+
   // One student's numbers (API or panel row). A missing participation or projects score counts as zero, as in the panel.
   function scores(r, max) {
     const t1 = num(r.test1), t2 = num(r.test2);
     let test = num(r.testAvg !== undefined ? r.testAvg : r.test_avg);
     if (test == null && t1 != null && t2 != null) test = (t1 + t2) / 2;
-    const part = num(r.participation), proj = num(r.projects), late = num(r.lateness) || 0;
-    const maxTotal = max.test + max.participation + max.projects;
-    const total = test == null ? null : test + (part || 0) + (proj || 0);
+    const part = num(r.participation), proj = num(r.projects);
+    const extra = { homework: num(r.homework), final: num(r.finalExam !== undefined ? r.finalExam : r.final_exam) };
+    const shown = extrasOf(max), counted = shown.filter(k => extra[k] != null);
+    const maxTotal = counted.reduce((a, k) => a + max[k], max.test + max.participation + max.projects);
+    const total = test == null ? null : counted.reduce((a, k) => a + extra[k], test + (part || 0) + (proj || 0));
     const pct = total == null ? null : Math.round((total / maxTotal) * 100);
-    return { t1, t2, test, part, proj, late, total, maxTotal, pct, has: pct != null, any: [t1, t2, test, part, proj].some(v => v != null) };
+    const any = [t1, t2, test, part, proj, ...shown.map(k => extra[k])].some(v => v != null);
+    return { t1, t2, test, part, proj, ...extra, total, maxTotal, pct, has: pct != null, any };
   }
 
   function classStats(list, max) {
     const graded = list.map(r => scores(r, max)).filter(s => s.has);
     if (graded.length < MIN_CLASS) return null;
-    const mean = vals => { const v = vals.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
-    const r1 = v => (v == null ? null : round1(v));
+    // Each part's average needs as many classmates as the whole, or a single score could be read from it.
+    const mean = vals => { const v = vals.filter(x => x != null); return v.length >= MIN_CLASS ? round1(v.reduce((a, b) => a + b, 0) / v.length) : null; };
     return {
       n: graded.length,
-      test: r1(mean(graded.map(s => s.test))),
-      participation: r1(mean(graded.map(s => s.part))),
-      projects: r1(mean(graded.map(s => s.proj))),
-      pct: Math.round((mean(graded.map(s => s.total)) / graded[0].maxTotal) * 100),
+      test: mean(graded.map(s => s.test)),
+      participation: mean(graded.map(s => s.part)),
+      projects: mean(graded.map(s => s.proj)),
+      homework: mean(graded.map(s => s.homework)),
+      final: mean(graded.map(s => s.final)),
+      pct: Math.round((graded.reduce((a, s) => a + s.total / s.maxTotal, 0) / graded.length) * 100),
     };
   }
 
@@ -126,21 +136,18 @@ const Report = (() => {
     test: "ركّزي على الاختبارات: خصّصي وقتاً ثابتاً كل يوم لحل أسئلة تدريبية، وراجعي أخطاءك في الاختبار السابق.",
     part: "ارفعي درجة المشاركة: جهّزي سؤالاً أو إجابة واحدة على الأقل في كل حصة.",
     proj: "اهتمي بالمشاريع والمهام: سلّمي كل مهمة في موعدها، واسألي معلمتك عن المطلوب قبل أن تبدئي.",
-    late: "احرصي على الحضور مبكراً، فبداية الحصة فيها أهم الشرح.",
+    homework: "اهتمي بالواجبات: حلّي واجب كل درس في يومه، وراجعي تصحيحه لتتعلمي من أخطائك.",
   };
 
-  // The weakest area decides the advice; a student at 90% or more everywhere is told to keep going.
+  // The weakest area decides the advice (a weak final exam gets the tests' advice); a student at 90% or more everywhere
+  // is told to keep going.
   function nextSteps(sc, max) {
-    const lines = [];
-    if (!sc.has) lines.push(STEPS.none);
-    else {
-      const areas = [["test", sc.test / max.test], ["part", sc.part == null ? null : sc.part / max.participation], ["proj", sc.proj == null ? null : sc.proj / max.projects]]
-        .filter(a => a[1] != null);
-      const weakest = areas.reduce((a, b) => (b[1] < a[1] ? b : a));
-      lines.push(weakest[1] >= 0.9 ? STEPS.keep : STEPS[weakest[0]]);
-    }
-    if (sc.late > 0) lines.push(STEPS.late);
-    return lines;
+    if (!sc.has) return [STEPS.none];
+    const of = (v, m) => (v == null ? null : v / m);
+    const areas = [["test", of(sc.test, max.test)], ["part", of(sc.part, max.participation)], ["proj", of(sc.proj, max.projects)],
+      ...extrasOf(max).map(k => [k === "final" ? "test" : k, of(sc[k], max[k])])].filter(a => a[1] != null);
+    const weakest = areas.reduce((a, b) => (b[1] < a[1] ? b : a));
+    return [weakest[1] >= 0.9 ? STEPS.keep : STEPS[weakest[0]]];
   }
 
   function versusClass(sc, cs) {
@@ -186,8 +193,8 @@ const Report = (() => {
   </div>`;
   const foot = right => `<div class="rp-foot"><span>تاريخ الإصدار: ${issued()}</span><span>${esc(right)}</span></div><div class="rp-band"><i></i><i></i></div>`;
   const lvTag = p => { const [c, t] = level(p); return `<span class="rp-lvl rp-${c}">${t}</span>`; };
-  const lateTag = n => { const [c, t] = n === 0 ? ["good", "منضبطة"] : n <= 2 ? ["warn", "قليل"] : ["low", "متكرر"]; return `<span class="rp-lvl rp-${c}">${t}</span>`; };
   const score = (v, m) => `<b>${fmt(v)}</b>${v == null ? "" : ` <small>/ ${m}</small>`}`;
+  const scoreCell = (v, m, cls) => `<td${cls ? ` class="${cls}"` : ""}>${score(v, m)}${v == null ? "" : "<br>" + lvTag(v / m)}</td>`;
 
   // r: the lookup API shape (camelCase) plus optional classStats and history.
   function cardSheet(r, ctx) {
@@ -198,20 +205,21 @@ const Report = (() => {
     const pg = progress(r.history, sc, site.termTitle);
     const showProgress = (r.history || []).length > 0 && pg.rows.length > 0;
     const pr = sc.has ? praiseFor(sc.pct, String(r.name).split(" ")[0]) : null;
+    const ex = extrasOf(max), hw = ex.includes("homework"), fin = ex.includes("final");
     const results = sc.any ? `
     <table class="rp-grades">
-      <tr><th colspan="3">الاختبارات</th><th colspan="3">التقييم المستمر</th></tr>
-      <tr class="rp-sub"><th>الاختبار الأول</th><th>الاختبار الثاني</th><th>متوسط الاختبارين</th><th>المشاركة</th><th>المشاريع والمهام</th><th>التأخير</th></tr>
-      <tr><td>${score(sc.t1, max.test)}</td><td>${score(sc.t2, max.test)}</td><td class="rp-key">${score(sc.test, max.test)}${sc.test == null ? "" : "<br>" + lvTag(sc.test / max.test)}</td>
-      <td>${score(sc.part, max.participation)}${sc.part == null ? "" : "<br>" + lvTag(sc.part / max.participation)}</td><td>${score(sc.proj, max.projects)}${sc.proj == null ? "" : "<br>" + lvTag(sc.proj / max.projects)}</td><td><b>${sc.late === 0 ? "لا يوجد" : fmt(sc.late)}</b><br>${lateTag(sc.late)}</td></tr>
+      <tr><th colspan="3">الاختبارات</th><th colspan="${hw ? 3 : 2}">التقييم المستمر</th>${fin ? '<th rowspan="2">الاختبار النهائي</th>' : ""}</tr>
+      <tr class="rp-sub"><th>الاختبار الأول</th><th>الاختبار الثاني</th><th>متوسط الاختبارين</th><th>المشاركة</th><th>المشاريع والمهام</th>${hw ? "<th>الواجبات</th>" : ""}</tr>
+      <tr><td>${score(sc.t1, max.test)}</td><td>${score(sc.t2, max.test)}</td>${scoreCell(sc.test, max.test, "rp-key")}
+      ${scoreCell(sc.part, max.participation)}${scoreCell(sc.proj, max.projects)}${hw ? scoreCell(sc.homework, max.homework) : ""}${fin ? scoreCell(sc.final, max.final) : ""}</tr>
     </table>` : `<div class="rp-empty">لم تُرصد درجات هذه الفترة بعد.</div>`;
+    const cmpRow = (label, v, m, avg) => `<tr><td>${label}</td><td>${fmt(v)} <small>/ ${m}</small></td><td>${fmt(avg)}</td></tr>`;
     const cmp = cs ? `
       <div class="rp-box">
         <h3>مقارنة بمتوسط الفصل</h3>
         <table class="rp-mini"><tr><th></th><th>درجتك</th><th>متوسط الفصل</th></tr>
-        <tr><td>الاختبارات</td><td>${fmt(sc.test)} <small>/ ${max.test}</small></td><td>${fmt(cs.test)}</td></tr>
-        <tr><td>المشاركة</td><td>${fmt(sc.part)} <small>/ ${max.participation}</small></td><td>${fmt(cs.participation)}</td></tr>
-        <tr><td>المشاريع والمهام</td><td>${fmt(sc.proj)} <small>/ ${max.projects}</small></td><td>${fmt(cs.projects)}</td></tr>
+        ${cmpRow("الاختبارات", sc.test, max.test, cs.test)}${cmpRow("المشاركة", sc.part, max.participation, cs.participation)}${cmpRow("المشاريع والمهام", sc.proj, max.projects, cs.projects)}
+        ${ex.map(k => cmpRow(EXTRAS[k], sc[k], max[k], cs[k])).join("")}
         <tr class="rp-sum"><td>النسبة الكلية</td><td>${sc.pct}%</td><td>${cs.pct}%</td></tr></table>
       </div>` : "";
     // Room on the page for the last four periods; the lookup page lists them all.
@@ -256,8 +264,16 @@ const Report = (() => {
   // A student with learning difficulties is marked with an asterisk and left out of the class average.
   function classSheets(cls, list, ctx) {
     const { max, site, track } = ctx;
+    const ex = extrasOf(max);
     const rows = list.map(r => ({ r, sc: scores(r, max) })).sort((a, b) => String(a.r.name).localeCompare(String(b.r.name), "ar"));
     const graded = rows.filter(x => x.sc.has), counted = graded.filter(x => !x.r.learningDifficulty);
+    // A student not graded yet in homework or the final has a smaller total. The header names the total most of the
+    // class is out of, and a total out of another one says so in its cell.
+    const outOf = graded.map(x => x.sc.maxTotal);
+    const top = outOf.length ? outOf.reduce((a, b) => (outOf.filter(v => v === b).length > outOf.filter(v => v === a).length ? b : a))
+      : ex.reduce((a, k) => a + max[k], max.test + max.participation + max.projects);
+    // With homework and the final the score columns narrow a little (all but "المشاريع", the widest heading), to leave the names room.
+    const w = ex.length ? 11 : 12, widths = [6, 0, w, w, w, w, 12, ...ex.map(() => w), 13, 12, ex.length ? 18 : 20];
     const avg = counted.length ? Math.round(counted.reduce((a, x) => a + x.sc.pct, 0) / counted.length) : null;
     const count = test => graded.filter(x => test(x.sc.pct)).length;
     const per = Math.max(1, Math.ceil(rows.length / sheetPages(rows.length)));
@@ -279,9 +295,9 @@ const Report = (() => {
       <div><span>يحتاج دعم</span><b>${count(v => v < 60)}</b></div>
     </div>`}
     <table class="rp-list">
-      <colgroup><col style="width:6mm"><col><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"><col style="width:10mm"><col style="width:13mm"><col style="width:12mm"><col style="width:20mm"></colgroup>
-      <tr><th>م</th><th class="rp-nm">اسم الطالبة</th><th>الاختبار الأول<small>/ ${max.test}</small></th><th>الاختبار الثاني<small>/ ${max.test}</small></th><th>المتوسط<small>/ ${max.test}</small></th><th>المشاركة<small>/ ${max.participation}</small></th><th>المشاريع<small>/ ${max.projects}</small></th><th>التأخير</th><th>المجموع<small>/ ${rows[0]?.sc.maxTotal ?? ""}</small></th><th>النسبة</th><th>المستوى</th></tr>
-      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}${x.r.learningDifficulty ? " *" : ""}</td><td>${fmt(x.sc.t1)}</td><td>${fmt(x.sc.t2)}</td><td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td><td>${x.sc.late || "—"}</td><td>${fmt(x.sc.total)}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
+      <colgroup>${widths.map(w => (w ? `<col style="width:${w}mm">` : "<col>")).join("")}</colgroup>
+      <tr><th>م</th><th class="rp-nm">اسم الطالبة</th><th>الاختبار الأول<small>/ ${max.test}</small></th><th>الاختبار الثاني<small>/ ${max.test}</small></th><th>المتوسط<small>/ ${max.test}</small></th><th>المشاركة<small>/ ${max.participation}</small></th><th>المشاريع<small>/ ${max.projects}</small></th>${ex.map(k => `<th>${k === "final" ? "النهائي" : EXTRAS[k]}<small>/ ${max[k]}</small></th>`).join("")}<th>المجموع<small>/ ${top}</small></th><th>النسبة</th><th>المستوى</th></tr>
+      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}${x.r.learningDifficulty ? " *" : ""}</td><td>${fmt(x.sc.t1)}</td><td>${fmt(x.sc.t2)}</td><td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td>${ex.map(k => `<td>${fmt(x.sc[k])}</td>`).join("")}<td>${fmt(x.sc.total)}${x.sc.has && x.sc.maxTotal !== top ? `<small>/${x.sc.maxTotal}</small>` : ""}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
     </table>
   </div>
   ${p === pages.length - 1 ? signs(site) : ""}
@@ -349,7 +365,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;

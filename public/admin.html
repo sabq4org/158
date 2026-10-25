@@ -39,7 +39,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.65; min-height: 100vh; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 
 .topbar { background: var(--navy); color: #fff; }
@@ -60,8 +60,9 @@ button, input, select { font: inherit; }
 .login p { margin: 0; color: var(--muted); }
 
 label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
-input.in, select.in { border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 8px 12px; font-size: 15px; min-width: 0; width: 100%; }
-input.in:focus, select.in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+input.in, select.in, textarea.in { border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 8px 12px; font-size: 15px; min-width: 0; width: 100%; }
+input.in:focus, select.in:focus, textarea.in:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea.in { resize: vertical; line-height: 1.6; }
 input.ltr { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
 
 .btn { border: 0; border-radius: 10px; padding: 8px 18px; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
@@ -101,6 +102,16 @@ td.name { font-weight: 600; white-space: normal; min-width: 180px; }
 td.num { text-align: center; }
 th.num { text-align: center; }
 td.ltr { direction: ltr; text-align: right; }
+td.mail { font-size: 13px; }
+/* The students tables scroll sideways on a narrow screen; the name and the edit button stay in view. */
+.ends th:first-child, .ends td:first-child, .ends th:last-child, .ends td:last-child { position: sticky; z-index: 1; background: var(--surface); }
+.ends th:first-child, .ends td:first-child { inset-inline-start: 0; box-shadow: inset -1px 0 0 var(--line); }
+.ends th:last-child, .ends td:last-child { inset-inline-end: 0; box-shadow: inset 1px 0 0 var(--line); }
+.ends th:first-child, .ends th:last-child { background: var(--surface-2); z-index: 2; }
+.ends tr:hover td { background: var(--surface-2); }
+.ends th.num { white-space: normal; min-width: 52px; line-height: 1.35; }
+/* A long note is cut to one line here; the dialog and the cell's tooltip show it whole. */
+td.notes { max-width: 240px; min-width: 110px; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; }
 td.muted { color: var(--muted); }
 .pill { font-size: 12px; font-weight: 600; padding: 1px 10px; border-radius: 99px; display: inline-block; }
 .pill.good { color: var(--good); background: var(--good-soft); }
@@ -396,12 +407,12 @@ body.viewer [data-admin] { display: none !important; }
         <a class="btn quiet" href="/api/admin/export" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</a>
       </div>
       <div class="table-wrap">
-        <table>
+        <table class="ends">
           <thead><tr>
-            <th>اسم الطالبة</th><th>رقم الهوية</th><th class="num">الفصل</th>
+            <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th><th>الصف</th><th class="num">الشعبة</th>
             <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
-            <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">التأخير</th>
-            <th>نمط التعلم</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
+            <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th>
+            <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
           </tr></thead>
           <tbody id="rows"></tbody>
         </table>
@@ -443,12 +454,12 @@ body.viewer [data-admin] { display: none !important; }
             <a class="btn sm quiet" id="cvExport" href="#">تنزيل إكسل الفصل</a>
           </div>
           <div class="table-wrap">
-            <table>
+            <table class="ends">
               <thead><tr>
-                <th>اسم الطالبة</th><th>رقم الهوية</th>
+                <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th>
                 <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
-                <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">التأخير</th>
-                <th>نمط التعلم</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
+                <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th>
+                <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
               </tr></thead>
               <tbody id="cvRows"></tbody>
             </table>
@@ -491,6 +502,7 @@ body.viewer [data-admin] { display: none !important; }
           ما يتغيّر شي قبل ما تراجعين المعاينة وتضغطين "اعتماد".
           <ul>
             <li>الطالبات يتطابقن برقم الهوية.</li>
+            <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، المشاركة، المشاريع، الواجبات، الاختبار النهائي، ملاحظات.</li>
             <li>لملف فصل واحد اختاري الفصل فوق، أو ارفعيه من صفحة الفصل في تبويب "الفصول".</li>
             <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
             <li>الطالبة اللي مو موجودة في الملف ما تنحذف، تظهر لك في المعاينة فقط.</li>
@@ -548,8 +560,10 @@ body.viewer [data-admin] { display: none !important; }
           <label class="f">كل اختبار<input class="in ltr" name="max_test" inputmode="decimal"></label>
           <label class="f">المشاركة<input class="in ltr" name="max_participation" inputmode="decimal"></label>
           <label class="f">المشاريع والمهام<input class="in ltr" name="max_projects" inputmode="decimal"></label>
+          <label class="f">الواجبات<input class="in ltr" name="max_homework" inputmode="decimal"><span class="hj">فاضية = خارج النسبة</span></label>
+          <label class="f">الاختبار النهائي<input class="in ltr" name="max_final" inputmode="decimal"><span class="hj">فاضية = خارج النسبة</span></label>
         </div>
-        <p class="note" style="margin:8px 0 0">النسبة الكلية تُحسب من متوسط الاختبارين + المشاركة + المشاريع. ما يمكن تنزيل الحد تحت درجة محفوظة.</p>
+        <p class="note" style="margin:8px 0 0">النسبة الكلية تُحسب من متوسط الاختبارين + المشاركة + المشاريع. الواجبات والاختبار النهائي يدخلون فيها ويظهرون للطالبات لما تحددين درجتهم العظمى، وينحسبون لكل طالبة من وقت ما تنرصد درجتها فيهم. ما يمكن تنزيل الحد تحت درجة محفوظة.</p>
       </fieldset>
       <p class="msg err" id="setErr" hidden></p>
       <div><button class="btn" type="submit" id="setSave">حفظ الإعدادات</button></div>
@@ -584,15 +598,17 @@ body.viewer [data-admin] { display: none !important; }
     <fieldset class="plain" id="editFields"><div class="grid2">
       <label class="f full" for="e_name">اسم الطالبة<input class="in" id="e_name" name="name" required></label>
       <label class="f" for="e_id">رقم الهوية<input class="in ltr" id="e_id" name="national_id" inputmode="numeric" maxlength="10" required></label>
-      <label class="f" for="e_class">الفصل<select class="in" id="e_class" name="class"><option value="">بدون فصل</option></select></label>
+      <label class="f" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
+      <label class="f" for="e_class">الصف والشعبة<select class="in" id="e_class" name="class"><option value="">بدون فصل</option></select></label>
+      <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
       <label class="f" for="e_t1"><span>الاختبار الأول (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
       <label class="f" for="e_t2"><span>الاختبار الثاني (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
       <label class="f" for="e_part"><span>المشاركة (من <span data-max="participation">10</span>)</span><input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
       <label class="f" for="e_proj"><span>المشاريع والمهام (من <span data-max="projects">10</span>)</span><input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
-      <label class="f" for="e_late">التأخير (عدد المرات)<input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
-      <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
+      <label class="f" for="e_hw"><span>الواجبات <span data-part="homework"></span></span><input class="in ltr" id="e_hw" name="homework" inputmode="decimal"></label>
+      <label class="f" for="e_fin"><span>الاختبار النهائي <span data-part="final"></span></span><input class="in ltr" id="e_fin" name="final_exam" inputmode="decimal"></label>
+      <label class="f full" for="e_notes"><span>ملاحظات <span style="font-weight:400">(تظهر في اللوحة فقط، والطالبة ما تشوفها)</span></span><textarea class="in" id="e_notes" name="notes" rows="2" maxlength="1000"></textarea></label>
       <label class="switch full" for="e_ld"><input type="checkbox" id="e_ld" name="learning_difficulty"> صعوبات التعلم <span class="note" style="font-weight:400">تبقى في فصلها، وما تدخل درجاتها في متوسطه</span></label>
-      <label class="f full" for="e_email">الإيميل الوزاري<input class="in ltr" id="e_email" name="email" type="email"></label>
     </div></fieldset>
     <p class="note" id="avgNote"></p>
     <p class="hist" id="histNote" hidden></p>
@@ -647,7 +663,7 @@ body.viewer [data-admin] { display: none !important; }
     <label class="switch"><input type="checkbox" id="t_clear"> <span id="t_clearText">مسح الدرجات بعد الأرشفة لبدء فترة جديدة</span></label>
     <div id="t_nextWrap" hidden style="display:flex;flex-direction:column;gap:8px">
       <label class="f" for="t_next">عنوان الفترة الجديدة (يظهر في صفحة الاستعلام)<input class="in" id="t_next" maxlength="80"><span class="hj">اتركيه فاضي ويتسمّى تلقائياً حسب التقويم.</span></label>
-      <p class="note" style="margin:0">يبقى الاسم ورقم الهوية والفصل ونمط التعلم والإيميل، وتنحفظ نسخة احتياطية قبل المسح.</p>
+      <p class="note" style="margin:0">يبقى الاسم ورقم الهوية والإيميل والفصل ونمط التعلم والملاحظات، وتنحفظ نسخة احتياطية قبل المسح.</p>
     </div>
     <p class="msg err" id="termErr" hidden></p>
     <div class="row">
@@ -692,7 +708,7 @@ body.viewer [data-admin] { display: none !important; }
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = n => n == null || n === "" ? "—" : (Math.round(Number(n) * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
-const MAX = { test: 20, participation: 10, projects: 10 };
+const MAX = { test: 20, participation: 10, projects: 10, homework: null, final: null };
 
 let students = [];
 let settings = null;
@@ -820,13 +836,16 @@ const LEVEL_FILTERS = {
   support: s => (pctOf(s) ?? 100) < 60, nostyle: s => !s.learning_style, ld: s => s.learning_difficulty,
   looked: s => s.last_lookup, notlooked: s => !s.last_lookup,
 };
-// One student's row, in the students tab and on a class's page (which leaves the class out).
+// The grade and section a class name stands for. A class from before the grades shows as it is named.
+const gradeAndSection = name => { const p = Report.classParts(name); return p ? [Report.GRADES[p.grade - 1], p.section] : [name ? classLabel(name) : "—", "—"]; };
+// One student's row, in the students tab and on a class's page (which leaves out the grade and section).
 const studentRow = (s, withClass) => `<tr>
     <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
-    ${withClass ? `<td class="num">${s.class ? esc(shortClass(s.class)) : "—"}</td>` : ""}
+    <td class="ltr mail">${s.email ? esc(s.email) : "—"}</td>
+    ${withClass ? gradeAndSection(s.class).map((v, i) => `<td${i ? ' class="num"' : ""}>${esc(v)}</td>`).join("") : ""}
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
-    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${s.lateness ? fmt(s.lateness) : "—"}</td>
-    <td>${s.learning_style ? esc(s.learning_style) : '<span class="pill none">لم يُحدَّد</span>'}</td>
+    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${fmt(s.homework)}</td><td class="num">${fmt(s.final_exam)}</td>
+    <td class="notes"${s.notes ? ` title="${esc(s.notes)}"` : ""}>${s.notes ? esc(s.notes) : "—"}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
     <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
     <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">${role === "viewer" ? "عرض" : "تعديل"}</button></td>
@@ -890,7 +909,7 @@ async function showHistory(s) {
 
 function updateAvg() {
   const t1 = parseFloat($("#e_t1").value), t2 = parseFloat($("#e_t2").value);
-  $("#avgNote").textContent = Number.isFinite(t1) && Number.isFinite(t2) ? `المتوسط يُحسب تلقائياً: ${fmt((t1 + t2) / 2)} من 20` : "المتوسط يُحسب تلقائياً من الاختبارين.";
+  $("#avgNote").textContent = Number.isFinite(t1) && Number.isFinite(t2) ? `المتوسط يُحسب تلقائياً: ${fmt((t1 + t2) / 2)} من ${MAX.test}` : "المتوسط يُحسب تلقائياً من الاختبارين.";
 }
 ["#e_t1", "#e_t2"].forEach(s => $(s).addEventListener("input", updateAvg));
 document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
@@ -923,8 +942,9 @@ async function deleteCurrent() {
 // ---------- Settings ----------
 function applySettings(s) {
   settings = s;
-  Object.assign(MAX, { test: s.max_test, participation: s.max_participation, projects: s.max_projects });
+  Object.assign(MAX, { test: s.max_test, participation: s.max_participation, projects: s.max_projects, homework: s.max_homework || null, final: s.max_final || null });
   document.querySelectorAll("[data-max]").forEach(el => (el.textContent = MAX[el.dataset.max]));
+  document.querySelectorAll("[data-part]").forEach(el => (el.textContent = MAX[el.dataset.part] ? `(من ${MAX[el.dataset.part]})` : "(خارج النسبة)"));
   const f = $("#setForm");
   for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s[el.name]) : (el.value = s[el.name] ?? "");
   renderGate();
@@ -982,7 +1002,7 @@ const semTitle = (year, n) => `${semName(n)} ${year}هـ`;
 // A title the teacher typed wins; otherwise the period is named after the open semester.
 const termTitle = () => settings?.term_title || cal?.now?.current.title || "";
 const weeksText = n => (n === 1 ? "أسبوع واحد" : n === 2 ? "أسبوعان" : n <= 10 ? `${n} أسابيع` : `${n} أسبوعاً`);
-const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects].some(v => v != null);
+const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects, s.homework, s.final_exam].some(v => v != null);
 
 function renderWho() {
   $("#whoLine").textContent = [settings?.teacher_name, settings?.subject, termTitle()].filter(Boolean).join(" · ");
@@ -1140,6 +1160,7 @@ function renderOverview() {
     ["الاختبارات", avgOf(counted.map(s => s.test_avg)), MAX.test],
     ["المشاركة", avgOf(counted.map(s => s.participation)), MAX.participation],
     ["المشاريع والمهام", avgOf(counted.map(s => s.projects)), MAX.projects],
+    ...Report.extrasOf(MAX).map(k => [Report.EXTRAS[k], avgOf(counted.map(s => (k === "final" ? s.final_exam : s[k]))), MAX[k]]),
   ];
   const pcts = counted.map(pctOf).filter(p => p != null);
   $("#itemBars").innerHTML = items.map(([k, v, m]) => {
@@ -1260,8 +1281,10 @@ const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", impor
   term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم",
   class_track: "مسار فصل", classes_migrate: "ترتيب الفصول" };
 const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
-const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
-  grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
+const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع",
+  homework: "الواجبات", final_exam: "الاختبار النهائي", notes: "الملاحظات", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
+  grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع",
+  max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
 function auditDetails(a) {
@@ -1454,13 +1477,13 @@ for (const ui of [importUi, classUi]) {
 // Where the upload tab sends a file.
 function renderImportClass() {
   const sel = $("#importClass"), cur = sel.value;
-  sel.innerHTML = '<option value="">حسب عمود "الفصل" في الملف</option>' + classOptions(true);
+  sel.innerHTML = '<option value="">حسب الصف والشعبة المكتوبة في الملف</option>' + classOptions(true);
   sel.value = classByName.has(cur) ? cur : "";
   syncImportClass();
 }
 function syncImportClass() {
   const t = $("#importClass").value;
-  $("#importClassNote").textContent = t ? `كل طالبات الملف يدخلن ${classLabel(t)}، حتى لو الملف مكتوب فيه فصل ثاني.` : "كل طالبة تروح للفصل المكتوب لها في الملف.";
+  $("#importClassNote").textContent = t ? `كل طالبات الملف يدخلن ${classLabel(t)}، حتى لو الملف مكتوب فيه فصل ثاني.` : "كل طالبة تروح للصف والشعبة المكتوبين لها في الملف.";
 }
 $("#importClass").addEventListener("change", syncImportClass);
 $("#importNewClass").addEventListener("click", () => openClassDlg(null, 1, name => { $("#importClass").value = name; syncImportClass(); }));
@@ -1743,7 +1766,7 @@ const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: term
 const asCard = (s, classStats, history) => ({
   id: s.national_id, name: s.name, class: s.class, classLabel: classLabel(s.class), track: classByName.get(s.class)?.track || "",
   learningDifficulty: !!s.learning_difficulty, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
-  participation: s.participation, projects: s.projects, lateness: s.lateness, learningStyle: s.learning_style || "", email: s.email || "",
+  participation: s.participation, projects: s.projects, homework: s.homework, finalExam: s.final_exam, learningStyle: s.learning_style || "", email: s.email || "",
   classStats, history: history[s.national_id] || [],
 });
 let pdfClass = null;
