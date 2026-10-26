@@ -188,7 +188,8 @@ const DONE_KEY = "attendance-done:" + WORKSHOP;
 const JOBS = [["leader", "قائدة مدرسة"], ["supervisor", "مشرفة تربوية"], ["deputy", "وكيلة"], ["math", "معلمة رياضيات"], ["teacher", "معلمة تخصص آخر"], ["admin", "إدارية"], ["other", "أخرى"]];
 let job = null;
 
-try { $("#today").textContent = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()); } catch { $("#today").hidden = true; }
+// The lesson is on Tuesday 27 October 2026; the date is fixed so the form reads the same whenever it is opened.
+try { $("#today").textContent = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Riyadh" }).format(new Date("2026-10-27T09:00:00+03:00")); } catch { $("#today").hidden = true; }
 
 $("#jobs").innerHTML = JOBS.map(([k, l]) => `<button type="button" role="radio" aria-pressed="false" aria-checked="false" data-k="${k}">${esc(l)}</button>`).join("");
 $("#jobs").addEventListener("click", e => {
