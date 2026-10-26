@@ -143,6 +143,8 @@ app.get("/healthz", (req, res) => res.send("ok"));
 const WEEK = 7 * 24 * 3600 * 1000;
 app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js"), { maxAge: WEEK }));
 app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js"), { maxAge: WEEK }));
+// Interactive lessons: separate pages, not linked from the lookup.
+app.get(["/lessons/polynomials", "/lessons/polynomials/"], (req, res) => res.sendFile(path.join(__dirname, "public", "lessons", "polynomials.html"), { headers: { "Cache-Control": "no-cache" } }));
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
