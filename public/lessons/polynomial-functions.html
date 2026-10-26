@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مرصد المنحنيات</title>
+<meta name="description" content="درس تفاعلي: دوال كثيرات الحدود، رياضيات 2، الدرس 3-5">
+<meta name="theme-color" content="#0b1530">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* "The curve observatory": lesson 3-5 told as a journey of full-screen stations under a night sky. One station at a time; every graph is live. */
+:root {
+  --sky-1: #0b1530;
+  --sky-2: #14244d;
+  --ink: #eaf2ff;
+  --muted: #9fb0d0;
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-2: rgba(255, 255, 255, 0.1);
+  --edge: rgba(255, 255, 255, 0.14);
+  --cyan: #4fd1c5;
+  --pink: #ff7ab6;
+  --gold: #ffd166;
+  --violet: #a78bfa;
+  --good: #5fe39a;
+  --bad: #ff8a8a;
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font); color: var(--ink); font-size: 16px; line-height: 1.75;
+  background: radial-gradient(120% 90% at 80% 0%, #24386e 0%, var(--sky-2) 35%, var(--sky-1) 75%) fixed;
+  overflow: hidden;
+}
+#stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* Top bar: logo pill, station title, progress */
+.top {
+  position: fixed; top: 0; inset-inline: 0; z-index: 5;
+  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(var(--sky-1), rgba(11, 21, 48, 0));
+}
+.brand { font-weight: 700; font-size: 14px; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.brand i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+.dots { flex: 1; display: flex; gap: 6px; justify-content: center; }
+.dots button {
+  width: 30px; height: 6px; border-radius: 6px; border: 0; padding: 0; cursor: pointer;
+  background: var(--glass-2); transition: background .3s, width .3s;
+}
+.dots button.seen { background: color-mix(in srgb, var(--cyan) 45%, transparent); }
+.dots button.on { background: var(--cyan); width: 44px; box-shadow: 0 0 10px var(--cyan); }
+.count { direction: ltr; font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Stations */
+.track { position: fixed; inset: 0; z-index: 1; display: flex; transition: transform .6s cubic-bezier(.7, 0, .2, 1); }
+.station {
+  flex: 0 0 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+  padding: calc(64px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  scrollbar-width: thin; scroll-padding: 80px 0 120px;
+}
+.inner { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.kicker { color: var(--gold); font-weight: 700; font-size: 14px; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; }
+.kicker b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--gold); font-size: 13px; }
+h1 { margin: 0; font-size: clamp(34px, 8vw, 64px); line-height: 1.15; text-wrap: balance; }
+h2 { margin: 0; font-size: clamp(24px, 4.6vw, 36px); line-height: 1.3; text-wrap: balance; }
+h3 { margin: 0; font-size: 18px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
+.panel {
+  background: var(--glass); border: 1px solid var(--edge); border-radius: 22px; padding: 18px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.glow { box-shadow: 0 0 0 1px rgba(79, 209, 197, .25), 0 20px 60px -20px rgba(79, 209, 197, .35); }
+.say { font-size: 15px; color: var(--muted); }
+.tip { border-inline-start: 3px solid var(--gold); padding: 8px 12px; background: rgba(255, 209, 102, .08); border-radius: 10px; font-size: 15px; }
+.tip b:first-child { color: var(--gold); }
+
+/* Controls */
+.btn, .ghost, .chipbtn, .seg button, .opt {
+  font: inherit; cursor: pointer; border-radius: 14px; transition: transform .1s, background .2s, border-color .2s, box-shadow .2s;
+}
+.btn { border: 0; padding: 10px 22px; font-weight: 700; color: #06213a; background: linear-gradient(135deg, var(--cyan), #7be3ff); box-shadow: 0 8px 24px -8px rgba(79, 209, 197, .7); }
+.btn:active, .ghost:active, .opt:active { transform: translateY(1px); }
+.ghost { border: 1px solid var(--edge); background: var(--glass); color: var(--ink); padding: 9px 18px; font-weight: 600; }
+.ghost:hover { border-color: var(--cyan); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px solid var(--edge); }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 14px; font-weight: 600; font-size: 14.5px; border-radius: 12px; }
+.seg button[aria-pressed="true"] { background: var(--cyan); color: #06213a; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.slider { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: 14.5px; }
+.slider output { min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; direction: ltr; background: rgba(0,0,0,.25); border-radius: 8px; padding: 2px 6px; }
+input[type="range"] { width: 100%; accent-color: var(--cyan); direction: ltr; }
+
+/* Canvas graphs */
+.plot { width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 16px; background: rgba(4, 10, 28, .55); border: 1px solid var(--edge); touch-action: pan-y; }
+.plot.wide { aspect-ratio: 16 / 9; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; white-space: nowrap; }
+.m i { font-style: italic; font-family: "Cambria Math", "Times New Roman", Georgia, serif; font-size: 1.12em; }
+.m sup { font-size: .68em; line-height: 0; vertical-align: .62em; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin-inline: .12em; }
+.fr > span { padding-inline: .2em; line-height: 1.5; }
+.fr > span:first-child { border-bottom: 1.5px solid currentColor; }
+.cC { color: var(--cyan); font-weight: 700; }
+.cP { color: var(--pink); font-weight: 700; }
+.cG { color: var(--gold); font-weight: 700; }
+.cV { color: var(--violet); font-weight: 700; }
+.big { font-size: 1.35em; }
+.huge { font-size: clamp(22px, 4.4vw, 34px); }
+
+/* Cover */
+.cover { min-height: calc(100dvh - 180px); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+.logos { display: inline-flex; align-items: center; gap: 14px; background: #fff; border-radius: 16px; padding: 8px 16px; align-self: flex-start; }
+.logos img { height: 52px; width: auto; display: block; }
+.logos span { width: 1px; align-self: stretch; background: #d7e4e1; }
+.goals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.goals li { display: flex; gap: 10px; align-items: center; }
+.goals li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.map button { font: inherit; font-size: 13px; color: var(--ink); background: var(--glass); border: 1px solid var(--edge); border-radius: 12px; padding: 8px 6px; cursor: pointer; text-align: center; line-height: 1.4; }
+.map button b { display: block; color: var(--gold); font-size: 12px; }
+.map button:hover { border-color: var(--cyan); }
+
+/* Lungs */
+.lungs { width: 100%; max-width: 260px; margin: 0 auto; display: block; overflow: visible; }
+.lung { transform-origin: 50% 30%; transform-box: fill-box; }
+.vol { font-size: clamp(28px, 6vw, 44px); font-weight: 700; color: var(--cyan); direction: ltr; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(79, 209, 197, .6); }
+
+/* Anatomy */
+.anatomy { text-align: center; font-size: clamp(22px, 5vw, 38px); padding: 30px 8px 46px; position: relative; }
+.anatomy .term { position: relative; display: inline-block; padding: 0 .08em; border-radius: 8px; transition: background .2s; }
+.anatomy .term.lit { background: rgba(255, 209, 102, .18); box-shadow: 0 0 0 2px var(--gold); }
+.tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.tag { border-radius: 999px; padding: 4px 14px; font-size: 14px; font-weight: 600; border: 1px solid var(--edge); background: var(--glass); }
+.tag.c { border-color: var(--cyan); color: var(--cyan); }
+.tag.p { border-color: var(--pink); color: var(--pink); }
+.tag.g { border-color: var(--gold); color: var(--gold); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kind { border-radius: 16px; padding: 12px; background: var(--glass); border: 1px solid var(--edge); cursor: pointer; color: var(--ink); font: inherit; text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.kind[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset, 0 10px 30px -12px rgba(79, 209, 197, .6); }
+.kind small { color: var(--muted); }
+.kind canvas { width: 100%; height: 64px; }
+
+/* Sorting game */
+.q { font-size: 1.35em; text-align: center; padding: 14px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px dashed var(--edge); }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.opt { border: 1.5px solid var(--edge); background: var(--glass); color: var(--ink); padding: 10px; font-weight: 600; text-align: center; }
+.opt:hover:not(:disabled) { border-color: var(--cyan); }
+.opt:disabled { cursor: default; }
+.opt.ok { border-color: var(--good); background: rgba(95, 227, 154, .14); color: var(--good); }
+.opt.no { border-color: var(--bad); background: rgba(255, 138, 138, .12); color: var(--bad); }
+.opt svg { width: 70px; height: 44px; display: block; margin: 0 auto; }
+.fb { border-radius: 12px; padding: 10px 14px; font-size: 15px; animation: rise .3s ease-out both; }
+.fb.ok { background: rgba(95, 227, 154, .12); }
+.fb.no { background: rgba(255, 138, 138, .1); }
+.fb b:first-child { margin-inline-end: 6px; }
+.fb.ok b:first-child { color: var(--good); }
+.fb.no b:first-child { color: var(--bad); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Function machine */
+.machine { width: 100%; max-width: 520px; margin: 0 auto; display: block; overflow: visible; }
+.keys { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; direction: ltr; }
+.keys button { width: 48px; height: 44px; border-radius: 12px; border: 1px solid var(--edge); background: var(--glass); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.keys button:hover { border-color: var(--gold); }
+.ftable { border-collapse: collapse; margin: 0 auto; direction: ltr; font-variant-numeric: tabular-nums; }
+.ftable td, .ftable th { border: 1px solid var(--edge); padding: 4px 12px; text-align: center; min-width: 46px; }
+.ftable th { color: var(--muted); font-weight: 600; }
+
+/* Steps */
+.steps { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.panel { min-width: 0; }
+.sline { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 10px; animation: rise .3s ease-out both; }
+.sline .m { justify-self: end; order: 2; }
+.sline .why { order: 1; font-size: 13.5px; color: var(--cyan); font-weight: 600; }
+.sline:last-child { background: rgba(79, 209, 197, .1); }
+
+/* End behaviour */
+.arms { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.arm { border-radius: 16px; padding: 10px; border: 1px solid var(--edge); background: var(--glass); text-align: center; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.arm svg { width: 100%; max-width: 120px; height: 70px; }
+.arm.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 12px 30px -14px rgba(255, 209, 102, .7); }
+.arm b { color: var(--gold); }
+.badge { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; border-radius: 999px; padding: 4px 12px; background: rgba(0, 0, 0, .3); border: 1px solid var(--edge); direction: rtl; }
+
+/* Score */
+.stars { font-size: 44px; letter-spacing: 6px; text-align: center; }
+.stars span { color: rgba(255, 255, 255, .15); transition: color .4s, text-shadow .4s; }
+.stars span.on { color: var(--gold); text-shadow: 0 0 18px rgba(255, 209, 102, .8); }
+.score { text-align: center; font-size: 46px; font-weight: 700; color: var(--cyan); direction: ltr; }
+.meter { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted); }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.summary .panel h3 { color: var(--gold); }
+
+/* Bottom nav */
+.nav {
+  position: fixed; bottom: 0; inset-inline: 0; z-index: 5;
+  padding: 12px max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: linear-gradient(rgba(11, 21, 48, 0), var(--sky-1) 55%);
+}
+.nav { pointer-events: none; }
+.nav button { pointer-events: auto; }
+.nav .ttl { color: var(--muted); font-size: 14px; text-align: center; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav button:disabled { opacity: .3; cursor: default; }
+.foot { text-align: center; color: var(--muted); font-size: 12.5px; }
+
+@media (max-width: 760px) {
+  .grid2, .cover { grid-template-columns: 1fr; }
+  .cover { min-height: 0; }
+  .dots button { width: 14px; }
+  .dots button.on { width: 26px; }
+  .brand span { display: none; }
+  .map { grid-template-columns: repeat(2, 1fr); }
+  .plot { aspect-ratio: 1 / 1; }
+  .plot.wide { aspect-ratio: 4 / 3; }
+  .sline { grid-template-columns: 1fr; gap: 0; }
+  .sline .m { justify-self: center; order: 1; }
+  .sline .why { order: 2; text-align: center; }
+  .sline .m { white-space: normal; text-align: center; }
+  .anatomy { font-size: 19px; padding: 16px 0 24px; }
+  .anatomy .m { white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) { .track { transition: none; } *, *::before { animation: none !important; } }
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<header class="top">
+  <div class="brand"><i aria-hidden="true"></i><span>مرصد المنحنيات</span></div>
+  <div class="dots" id="dots" role="tablist" aria-label="محطات الرحلة"></div>
+  <div class="count" id="count"></div>
+</header>
+
+<main class="track" id="track">
+
+  <!-- 0. Cover -->
+  <section class="station" data-title="البداية">
+    <div class="inner">
+      <div class="cover">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم" width="69" height="52"><span></span><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة" width="60" height="52"></div>
+          <div class="kicker">رياضيات 2 · الفصل 3 · الدرس 3-5</div>
+          <h1>دوال كثيرات الحدود</h1>
+          <p class="muted" style="direction:ltr;text-align:end">Polynomial Functions</p>
+          <p>رحلة في <b>مرصد المنحنيات</b>: ثمان محطات، في كل وحدة منها شي تحرّكينه وتجرّبينه بنفسك، وفي النهاية تحدي «محققة المنحنيات».</p>
+          <ul class="goals">
+            <li>أجد قيم دوال كثيرات الحدود</li>
+            <li>أتعرف الأشكال العامة للتمثيل البياني لدوال كثيرات الحدود</li>
+            <li>أحدد سلوك طرفي التمثيل البياني وعدد الأصفار الحقيقية</li>
+          </ul>
+          <div class="row"><button type="button" class="btn" data-go="1">ابدئي الرحلة ←</button></div>
+        </div>
+        <div class="panel glow">
+          <canvas class="plot" id="coverPlot" aria-label="منحنى يرسم نفسه"></canvas>
+          <div class="map" id="map"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. Why: breathing -->
+  <section class="station" data-title="لماذا؟ نَفَس واحد">
+    <div class="inner">
+      <div class="kicker"><b>1</b>لماذا؟</div>
+      <h2>رئتاك ترسمان كثيرة حدود مع كل نَفَس</h2>
+      <p>يمكن تمثيل حجم الهواء في رئتي الإنسان خلال دورة تنفس مدتها <span data-tex="t"></span> ثانية بالدالة:</p>
+      <p class="huge" style="text-align:center"><span data-tex="v(t) = \cC{-0.037t^{3}} + 0.152t^{2} + 0.173t"></span></p>
+      <div class="grid2">
+        <div class="panel glow">
+          <canvas class="plot" id="breathPlot" aria-label="حجم الهواء مع الزمن"></canvas>
+          <div class="slider"><span>الزمن <span data-tex="t"></span></span><input type="range" id="breathT" min="0" max="5" step="0.05" value="2"><output id="breathTv">2 s</output></div>
+          <div class="row" style="justify-content:center"><button type="button" class="btn" id="breathPlay">▶ تنفّسي معي</button><button type="button" class="ghost" data-t="2">t = 2</button><button type="button" class="ghost" data-t="4">t = 4</button></div>
+        </div>
+        <div class="panel">
+          <svg class="lungs" viewBox="0 0 240 230" aria-hidden="true">
+            <defs>
+              <radialGradient id="lg" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb3cf"/><stop offset=".6" stop-color="#ff7ab6"/><stop offset="1" stop-color="#c2477f"/></radialGradient>
+              <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+            </defs>
+            <ellipse cx="120" cy="140" rx="100" ry="70" fill="#ff7ab6" opacity=".18" filter="url(#soft)" id="lungGlow"/>
+            <path d="M120 10 v58 M120 68 l-30 26 M120 68 l30 26" stroke="#cfe3ff" stroke-width="9" stroke-linecap="round" fill="none"/>
+            <g id="lungs">
+              <path class="lung" d="M104 66 C70 56 32 96 26 150 C22 190 44 214 74 210 C98 206 108 186 108 160 L108 88 C108 76 108 68 104 66 Z" fill="url(#lg)"/>
+              <path class="lung" d="M136 66 C170 56 208 96 214 150 C218 190 196 214 166 210 C142 206 132 186 132 160 L132 88 C132 76 132 68 136 66 Z" fill="url(#lg)"/>
+            </g>
+            <path d="M50 150 q20 -16 40 0 M150 150 q20 -16 40 0 M56 176 q16 -12 32 0 M152 176 q16 -12 32 0" stroke="#fff" stroke-opacity=".35" stroke-width="2" fill="none"/>
+          </svg>
+          <div style="text-align:center"><div class="vol" id="breathV">0.658 L</div><div class="say" id="breathSay"></div></div>
+          <div class="steps" id="breathSteps"></div>
+          <p class="tip"><b>معلومة:</b> تصل سعة الرئة لدى الشخص البالغ السليم إلى 6 لترات تقريبًا.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Anatomy -->
+  <section class="station" data-title="تشريح كثيرة الحدود">
+    <div class="inner">
+      <div class="kicker"><b>2</b>تشريح كثيرة الحدود</div>
+      <h2>كثيرة الحدود بمتغير واحد</h2>
+      <p>هي عبارة جبرية على الصورة الآتية، حيث المعاملات أعداد حقيقية، <span data-tex="a_{n} \ne 0"></span>، و <span data-tex="n"></span> عدد صحيح غير سالب، وتُكتب <b>بالصيغة القياسية</b> إذا رُتبت أسس المتغير تنازليًّا. مرّري على الأجزاء:</p>
+      <div class="panel glow">
+        <div class="anatomy" id="anatomy"></div>
+        <div class="tags">
+          <button type="button" class="tag p" data-part="lead">المعامل الرئيس <span data-tex="a_{n}"></span></button>
+          <button type="button" class="tag c" data-part="deg">الدرجة <span data-tex="n"></span>: أكبر أس</button>
+          <button type="button" class="tag g" data-part="const">الحد الثابت <span data-tex="a_{0}"></span></button>
+        </div>
+        <p class="say" id="anatomySay" style="text-align:center">اختاري جزءًا لتشوفين وين مكانه.</p>
+      </div>
+      <h3>عائلة كثيرات الحدود</h3>
+      <div class="cards" id="family"></div>
+      <div class="panel" id="familyOut" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 3. Sort game -->
+  <section class="station" data-title="فرز العبارات">
+    <div class="inner">
+      <div class="kicker"><b>3</b>تحدي الفرز</div>
+      <h2>كثيرة حدود بمتغير واحد؟ وكم درجتها ومعاملها الرئيس؟</h2>
+      <p class="tip"><b>تذكّري:</b> رتّبي الحدود تنازليًّا أولًا. المعامل الرئيس هو معامل الحد ذي <b>أكبر أس</b>، حتى لو ما كان مكتوب أول. وأي متغير ثانٍ أو متغير في المقام يُخرج العبارة من اللعبة.</p>
+      <div class="panel glow" id="sortGame" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 4. Function machine -->
+  <section class="station" data-title="آلة الدالة">
+    <div class="inner">
+      <div class="kicker"><b>4</b>قيمة دالة كثيرة الحدود</div>
+      <h2>آلة الدالة: أدخلي عددًا، وتطلع لك قيمته</h2>
+      <div class="grid2">
+        <div class="panel glow">
+          <p style="text-align:center" class="big"><span data-tex="f(x) = x^{2} + 2x - 3"></span></p>
+          <svg class="machine" id="machine" viewBox="0 0 520 210" role="img" aria-label="آلة الدالة"></svg>
+          <div class="keys" id="keys"></div>
+          <table class="ftable" id="ftable"><tr><th>x</th></tr><tr><th>f(x)</th></tr></table>
+        </div>
+        <div class="panel">
+          <canvas class="plot" id="machinePlot" aria-label="نقاط الدالة"></canvas>
+          <p class="say">كل عدد تدخلينه يصير نقطة على المنحنى. جرّبي كل الأعداد وشوفي المنحنى يكتمل.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>نعوّض بعبارة بدل العدد (مثال 3)</h3>
+        <p>إذا كانت <span data-tex="f(x) = x^{2} + 2x - 3"></span>، فأوجدي <span data-tex="f(3c - 4) - 5f(c)"></span>.</p>
+        <div class="steps" id="ex3"></div>
+        <div class="row"><button type="button" class="btn" id="ex3Next">الخطوة التالية</button><button type="button" class="ghost" id="ex3All">اعرضي الكل</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Shapes gallery -->
+  <section class="station" data-title="أشكال المنحنيات">
+    <div class="inner">
+      <div class="kicker"><b>5</b>التمثيل البياني</div>
+      <h2>الدرجة تحدد أقصى عدد لمرات قطع المحور <span data-tex="x"></span></h2>
+      <div class="grid2">
+        <div class="panel glow">
+          <canvas class="plot" id="shapePlot" aria-label="منحنى حسب الدرجة"></canvas>
+          <div class="slider"><span>الدرجة</span><input type="range" id="shapeDeg" min="0" max="5" step="1" value="3"><output id="shapeDegV">3</output></div>
+        </div>
+        <div class="panel">
+          <div class="huge" id="shapeName" style="color:var(--gold);font-weight:700"></div>
+          <p class="big" id="shapeEq"></p>
+          <p id="shapeSay"></p>
+          <p class="tip"><b>قراءة الرياضيات:</b> الرمز <span data-tex="+\infty"></span> يُقرأ «ما لا نهاية» ويعبّر عن التزايد غير المحدود، و <span data-tex="-\infty"></span> «سالب ما لا نهاية» للتناقص غير المحدود.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. End behaviour -->
+  <section class="station" data-title="سلوك الطرفين">
+    <div class="inner">
+      <div class="kicker"><b>6</b>سلوك طرفي التمثيل البياني</div>
+      <h2>وين تروح ذراعا المنحنى؟ عاملان يحددان الجواب</h2>
+      <p>سلوك الطرفين يصف ماذا يحدث لـ <span data-tex="f(x)"></span> عندما <span data-tex="x \to +\infty"></span> أو <span data-tex="x \to -\infty"></span>، ويحدده: <b class="cC">درجة</b> كثيرة الحدود (زوجية أو فردية) و<b class="cP">إشارة المعامل الرئيس</b>.</p>
+      <div class="grid2">
+        <div class="panel glow">
+          <canvas class="plot" id="endPlot" aria-label="المنحنى وسلوك طرفيه"></canvas>
+          <div class="row" style="justify-content:center"><div class="seg" id="endDeg" role="group" aria-label="الدرجة"></div></div>
+          <div class="slider"><span>المعامل الرئيس</span><input type="range" id="endA" min="-3" max="3" step="0.25" value="1"><output id="endAv">1</output></div>
+          <div class="row" style="justify-content:center"><button type="button" class="btn" id="zoomOut">🔭 ابتعدي بالمرصد</button></div>
+          <p class="say" style="text-align:center" id="zoomSay">من بعيد، كل التعرجات تختفي ويبقى سلوك الطرفين فقط.</p>
+        </div>
+        <div class="panel">
+          <div class="row" style="justify-content:center"><span class="badge" id="endLeft"></span><span class="badge" id="endRight"></span></div>
+          <div class="arms" id="arms"></div>
+          <p class="tip" id="endRule"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Zeros -->
+  <section class="station" data-title="الأصفار الحقيقية">
+    <div class="inner">
+      <div class="kicker"><b>7</b>أصفار الدالة</div>
+      <h2>صفر الدالة: النقطة اللي يلمس فيها المنحنى المحور <span data-tex="x"></span></h2>
+      <p>عدد مرات تقاطع التمثيل البياني مع المحور <span data-tex="x"></span> يساوي عدد الأصفار الحقيقية. حرّكي المنحنى للأعلى والأسفل وراقبي العدد.</p>
+      <div class="grid2">
+        <div class="panel glow">
+          <canvas class="plot" id="zeroPlot" aria-label="الأصفار الحقيقية"></canvas>
+          <div class="row" style="justify-content:center"><div class="seg" id="zeroDeg" role="group" aria-label="نوع الدالة"></div></div>
+          <div class="slider"><span>إزاحة رأسية</span><input type="range" id="zeroK" min="-4" max="4" step="0.05" value="0"><output id="zeroKv">0</output></div>
+        </div>
+        <div class="panel">
+          <div style="text-align:center"><div class="vol" id="zeroN">4</div><div class="say">أصفار حقيقية</div></div>
+          <p id="zeroSay"></p>
+          <div class="tip"><b>مفهوم أساسي:</b> يكون للدوال <b>الفردية</b> الدرجة عدد فردي من الأصفار الحقيقية (صفر واحد على الأقل). ويكون للدوال <b>الزوجية</b> الدرجة عدد زوجي من الأصفار، أو لا يكون لها أصفار حقيقية أبدًا.</div>
+          <p class="say"><b>الصفر المكرر:</b> عندما يمس المنحنى المحور <span data-tex="x"></span> بدون ما يقطعه، يكون للدالة صفران متساويان.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Detective challenge -->
+  <section class="station" data-title="تحدي المحققة">
+    <div class="inner">
+      <div class="kicker"><b>8</b>تحدي «محققة المنحنيات»</div>
+      <h2>اقرئي المنحنى واكشفي أسراره</h2>
+      <p class="muted">خمس قضايا. في كل قضية منحنى جديد وثلاثة أسئلة: سلوك الطرفين، والدرجة فردية أم زوجية، وعدد الأصفار الحقيقية.</p>
+      <div class="grid2">
+        <div class="panel glow"><canvas class="plot" id="caseView" aria-label="منحنى القضية"></canvas></div>
+        <div class="panel" id="caseBox" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Summary -->
+  <section class="station" data-title="الخلاصة">
+    <div class="inner">
+      <div class="kicker"><b>★</b>نهاية الرحلة</div>
+      <h2 id="endTitle">خلاصة المرصد</h2>
+      <div class="stars" id="finalStars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div>
+      <div class="summary">
+        <div class="panel"><h3>الدرجة والمعامل الرئيس</h3><p>رتّبي تنازليًّا: الدرجة أكبر أس، والمعامل الرئيس معامل ذلك الحد.</p></div>
+        <div class="panel"><h3>قيمة الدالة</h3><p>عوّضي بالعدد أو العبارة بدل <span data-tex="x"></span> في كل مكان، ثم بسّطي.</p></div>
+        <div class="panel"><h3>زوجية الدرجة</h3><p>الطرفان في <b>الاتجاه نفسه</b>: لأعلى إذا المعامل الرئيس موجب، ولأسفل إذا سالب.</p></div>
+        <div class="panel"><h3>فردية الدرجة</h3><p>الطرفان في <b>اتجاهين مختلفين</b>: يصعد يمينًا إذا المعامل الرئيس موجب، وينزل يمينًا إذا سالب.</p></div>
+        <div class="panel"><h3>الأصفار الحقيقية</h3><p>عددها = عدد نقاط قطع المحور <span data-tex="x"></span>، ولا يزيد على الدرجة.</p></div>
+      </div>
+      <div class="row" style="justify-content:center"><button type="button" class="ghost" data-go="0">ارجعي لبداية الرحلة</button><button type="button" class="btn" data-go="8">العبي التحدي مرة ثانية</button></div>
+      <p class="foot" id="foot">رياضيات 2 · الفصل الدراسي الأول</p>
+    </div>
+  </section>
+</main>
+
+<nav class="nav" aria-label="التنقل بين المحطات">
+  <button type="button" class="ghost" id="prev">→ السابقة</button>
+  <div class="ttl" id="ttl"></div>
+  <button type="button" class="btn" id="next">التالية ←</button>
+</nav>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const C = { cyan: "#4fd1c5", pink: "#ff7ab6", gold: "#ffd166", violet: "#a78bfa", good: "#5fe39a", bad: "#ff8a8a" };
+
+/* Tiny math renderer: ^{..}, _{..}, \frac, \cdot, \infty, \to, \ne, colour wrappers \cC \cP \cG \cV. */
+function tex(src) {
+  let i = 0;
+  const atom = ch => /[a-zA-Z]/.test(ch) ? `<i>${ch}</i>` : ch === "-" ? "−" : esc(ch);
+  const cmd = n => (src.startsWith(n, i) ? ((i += n.length), true) : false);
+  const group = () => (src[i] === "{" ? (i++, parse("}")) : atom(src[i++] || ""));
+  function parse(stop) {
+    let out = "";
+    while (i < src.length) {
+      const ch = src[i];
+      if (stop && ch === stop) { i++; return out; }
+      if (ch === "^") { i++; out += `<sup>${group()}</sup>`; }
+      else if (ch === "_") { i++; out += `<sub style="font-size:.68em">${group()}</sub>`; }
+      else if (cmd("\\frac")) { const a = group(), b = group(); out += `<span class="fr"><span>${a}</span><span>${b}</span></span>`; }
+      else if (cmd("\\cdot")) out += " · ";
+      else if (cmd("\\infty")) out += "∞";
+      else if (cmd("\\to")) out += " → ";
+      else if (cmd("\\ne")) out += " ≠ ";
+      else if (cmd("\\cC")) out += `<span class="cC">${group()}</span>`;
+      else if (cmd("\\cP")) out += `<span class="cP">${group()}</span>`;
+      else if (cmd("\\cG")) out += `<span class="cG">${group()}</span>`;
+      else if (cmd("\\cV")) out += `<span class="cV">${group()}</span>`;
+      else if (ch === "{") { i++; out += parse("}"); }
+      else { out += atom(ch); i++; }
+    }
+    return out;
+  }
+  return `<span class="m">${parse()}</span>`;
+}
+const why = s => String(s).split("$").map((p, k) => (k % 2 ? tex(p) : esc(p))).join("");
+function renderTex(root = document) { root.querySelectorAll("[data-tex]").forEach(el => { el.innerHTML = tex(el.dataset.tex); el.removeAttribute("data-tex"); }); }
+const fmt = (n, d = 3) => String(+n.toFixed(d)).replace("-", "−");
+const ri = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+const shuffle = a => { for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+
+/* ---------- Starfield ---------- */
+(function stars() {
+  const cv = $("#stars"), ctx = cv.getContext("2d");
+  let pts = [];
+  function size() {
+    const d = devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    pts = Array.from({ length: Math.round(innerWidth * innerHeight / 5000) }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, r: Math.random() * 1.3 + .2, p: Math.random() * 6.28 }));
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const s of pts) { ctx.globalAlpha = .35 + .35 * Math.sin(t / 900 + s.p); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.29); ctx.fill(); }
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(draw);
+  }
+  size(); addEventListener("resize", size); requestAnimationFrame(draw);
+})();
+
+/* ---------- Plotter: a canvas with math axes (x grows to the right even in an RTL page) ---------- */
+function Plot(cv, view) {
+  const ctx = cv.getContext("2d");
+  const P = { cv, ctx, view: { ...view }, w: 0, h: 0 };
+  P.size = () => {
+    const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1;
+    if (!r.width) return false;
+    P.w = r.width; P.h = r.height; cv.width = r.width * d; cv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0); return true;
+  };
+  P.X = x => ((x - P.view.x0) / (P.view.x1 - P.view.x0)) * P.w;
+  P.Y = y => P.h - ((y - P.view.y0) / (P.view.y1 - P.view.y0)) * P.h;
+  P.clear = () => ctx.clearRect(0, 0, P.w, P.h);
+  P.axes = (opts = {}) => {
+    const { x0, x1, y0, y1 } = P.view;
+    const step = opts.step || niceStep(x1 - x0);
+    ctx.direction = "ltr"; ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,255,255,.07)";
+    ctx.beginPath();
+    for (let x = Math.ceil(x0 / step) * step; x <= x1; x += step) { ctx.moveTo(P.X(x), 0); ctx.lineTo(P.X(x), P.h); }
+    const ys = opts.ystep || niceStep(y1 - y0);
+    for (let y = Math.ceil(y0 / ys) * ys; y <= y1; y += ys) { ctx.moveTo(0, P.Y(y)); ctx.lineTo(P.w, P.Y(y)); }
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.45)"; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.moveTo(0, P.Y(0)); ctx.lineTo(P.w, P.Y(0)); ctx.moveTo(P.X(0), 0); ctx.lineTo(P.X(0), P.h); ctx.stroke();
+    if (opts.bare) return;
+    ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.font = "italic 15px 'Times New Roman', serif";
+    ctx.textAlign = "right"; ctx.fillText(opts.xl || "x", P.w - 6, P.Y(0) - 8);
+    ctx.textAlign = "left"; ctx.fillText(opts.yl || "f(x)", P.X(0) + 8, 16);
+    if (opts.labels) {
+      ctx.font = "11px 'IBM Plex Sans Arabic', sans-serif"; ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.textAlign = "center";
+      for (let x = Math.ceil(x0 / step) * step; x <= x1; x += step) if (Math.abs(x) > 1e-9) ctx.fillText(fmt(x, 2), P.X(x), P.Y(0) + 15);
+      ctx.textAlign = "right";
+      for (let y = Math.ceil(y0 / ys) * ys; y <= y1; y += ys) if (Math.abs(y) > 1e-9) ctx.fillText(fmt(y, 2), P.X(0) - 5, P.Y(y) + 4);
+    }
+  };
+  // Draws f over [a, b] with a glow; arrows at the ends where the curve keeps going.
+  P.curve = (f, opts = {}) => {
+    const { x0, x1, y0, y1 } = P.view;
+    const a = opts.from ?? x0, b = opts.to ?? x1, n = opts.n || 600;
+    const pts = [];
+    for (let k = 0; k <= n; k++) { const x = a + (b - a) * k / n, y = f(x); pts.push([P.X(x), P.Y(Math.max(y0 - (y1 - y0), Math.min(y1 + (y1 - y0), y)))]); }
+    ctx.save(); ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.strokeStyle = opts.color || C.cyan; ctx.lineWidth = opts.width || 3.5; ctx.shadowColor = opts.color || C.cyan; ctx.shadowBlur = opts.glow ?? 14;
+    ctx.beginPath(); pts.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+    if (opts.arrows !== false && !opts.from && !opts.to) { arrowAt(pts, 0, opts); arrowAt(pts, pts.length - 1, opts); }
+    ctx.restore();
+  };
+  function arrowAt(pts, k, opts) {
+    // Walk back from the end to the last point inside the canvas, and point the head along the curve.
+    const dir = k === 0 ? 1 : -1;
+    let j = k;
+    while (pts[j] && (pts[j][1] < -2 || pts[j][1] > P.h + 2)) j += dir;
+    if (!pts[j] || !pts[j + dir * 6]) return;
+    const [x, y] = pts[j], [px, py] = pts[j + dir * 6];
+    const ang = Math.atan2(y - py, x - px), s = 13;
+    ctx.fillStyle = opts.color || C.cyan; ctx.beginPath();
+    ctx.moveTo(x + Math.cos(ang) * 4, y + Math.sin(ang) * 4);
+    ctx.lineTo(x - Math.cos(ang - .45) * s, y - Math.sin(ang - .45) * s);
+    ctx.lineTo(x - Math.cos(ang + .45) * s, y - Math.sin(ang + .45) * s);
+    ctx.closePath(); ctx.fill();
+  }
+  P.dot = (x, y, opts = {}) => {
+    ctx.save(); ctx.fillStyle = opts.color || C.gold; ctx.shadowColor = opts.color || C.gold; ctx.shadowBlur = opts.glow ?? 18;
+    ctx.beginPath(); ctx.arc(P.X(x), P.Y(y), opts.r || 7, 0, 6.29); ctx.fill();
+    if (opts.ring) { ctx.shadowBlur = 0; ctx.strokeStyle = opts.color || C.gold; ctx.lineWidth = 2; ctx.globalAlpha = .5; ctx.beginPath(); ctx.arc(P.X(x), P.Y(y), (opts.r || 7) + 7, 0, 6.29); ctx.stroke(); }
+    ctx.restore();
+  };
+  P.text = (s, x, y, opts = {}) => {
+    ctx.save(); ctx.font = opts.font || "600 14px 'IBM Plex Sans Arabic', sans-serif"; ctx.fillStyle = opts.color || "#eaf2ff";
+    ctx.textAlign = opts.align || "center"; ctx.direction = opts.dir || "ltr"; ctx.fillText(s, P.X(x) + (opts.dx || 0), P.Y(y) + (opts.dy || 0)); ctx.restore();
+  };
+  return P;
+}
+function niceStep(span) { const raw = span / 8, p = 10 ** Math.floor(Math.log10(raw)), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
+const poly = (lead, roots, extra = 0) => x => lead * roots.reduce((s, r) => s * (x - r), 1) + extra;
+
+/* Each station registers a draw() that runs when it is shown and on resize. */
+const drawers = {};
+function redraw(k) { (drawers[k] || []).forEach(f => f()); }
+
+/* ---------- Navigation ---------- */
+const stations = $$(".station"), N = stations.length;
+let cur = 0;
+const seen = new Set([0]);
+$("#dots").innerHTML = stations.map((s, k) => `<button type="button" role="tab" aria-label="${esc(s.dataset.title)}"></button>`).join("");
+$("#map").innerHTML = stations.slice(1, -1).map((s, k) => `<button type="button" data-go="${k + 1}"><b>${k + 1}</b>${esc(s.dataset.title)}</button>`).join("");
+function go(k, push = true) {
+  cur = Math.max(0, Math.min(N - 1, k)); seen.add(cur);
+  $("#track").style.transform = `translateX(${cur * 100}%)`; // RTL: the row runs right to left
+  $$("#dots button").forEach((b, j) => { b.classList.toggle("on", j === cur); b.classList.toggle("seen", seen.has(j)); b.setAttribute("aria-selected", j === cur); });
+  $("#count").textContent = `${cur} / ${N - 1}`;
+  $("#ttl").textContent = stations[cur].dataset.title;
+  $("#prev").disabled = cur === 0; $("#next").disabled = cur === N - 1;
+  $("#next").textContent = cur === 0 ? "ابدئي ←" : cur === N - 2 ? "الخلاصة ←" : "التالية ←";
+  stations.forEach((s, j) => { s.inert = j !== cur; });
+  stations[cur].scrollTop = 0;
+  if (push) history.replaceState(null, "", `#${cur}`);
+  requestAnimationFrame(() => redraw(cur));
+  if (cur === N - 1) finalStars();
+}
+document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) go(+g.dataset.go); });
+$("#dots").addEventListener("click", e => { const b = e.target.closest("button"); if (b) go([...b.parentNode.children].indexOf(b)); });
+$("#prev").onclick = () => go(cur - 1);
+$("#next").onclick = () => go(cur + 1);
+addEventListener("keydown", e => {
+  if (e.target.closest("input")) return;
+  if (e.key === "ArrowLeft") go(cur + 1); else if (e.key === "ArrowRight") go(cur - 1);
+});
+// Swipe: in RTL, a swipe to the right brings the next station.
+let sx = null, sy = 0;
+$("#track").addEventListener("touchstart", e => { if (e.target.closest("canvas, input")) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+$("#track").addEventListener("touchend", e => {
+  if (sx === null) return;
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) go(cur + (dx > 0 ? 1 : -1));
+});
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => redraw(cur), 120); });
+
+/* ---------- 0. Cover: a curve drawing itself ---------- */
+(function cover() {
+  const P = Plot($("#coverPlot"), { x0: -4, x1: 4, y0: -4, y1: 4 });
+  const f = poly(.18, [-3, -1.2, .8, 2.6]);
+  let start = null, raf;
+  function frame(t) {
+    if (!P.size()) return;
+    start ??= t;
+    const prog = Math.min(1, (t - start) / 2600);
+    P.clear(); P.axes();
+    if (prog > 0) P.curve(f, { from: -4, to: -4 + 8 * prog });
+    if (prog === 1) {
+      P.clear(); P.axes(); P.curve(f);
+      [-3, -1.2, .8, 2.6].forEach((r, k) => P.dot(r, 0, { color: C.gold, r: 5 + Math.sin(t / 300 + k) * 1.5 }));
+    }
+    if (cur === 0) raf = requestAnimationFrame(frame);
+  }
+  drawers[0] = [() => { cancelAnimationFrame(raf); start = null; raf = requestAnimationFrame(frame); }];
+})();
+
+/* ---------- 1. Breathing ---------- */
+(function breath() {
+  const v = t => -0.037 * t ** 3 + 0.152 * t ** 2 + 0.173 * t;
+  const P = Plot($("#breathPlot"), { x0: -0.4, x1: 5.4, y0: -0.12, y1: 1.05 });
+  let t = 2, playing = false, raf, last;
+  function draw() {
+    if (!P.size()) return;
+    P.clear(); P.axes({ labels: true, step: 1, ystep: .2, xl: "t (s)", yl: "v (L)" });
+    P.curve(v, { from: 0, to: 5, color: C.pink, arrows: false });
+    P.curve(v, { from: 0, to: t, color: C.cyan, glow: 20 });
+    const ctx = P.ctx; ctx.save(); ctx.setLineDash([4, 5]); ctx.strokeStyle = "rgba(255,209,102,.6)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(P.X(t), P.Y(0)); ctx.lineTo(P.X(t), P.Y(v(t))); ctx.lineTo(P.X(0), P.Y(v(t))); ctx.stroke(); ctx.restore();
+    P.dot(t, v(t), { ring: true });
+    const vol = Math.max(0, v(t));
+    $("#breathV").textContent = `${vol.toFixed(3)} L`;
+    $("#breathT").value = t; $("#breathTv").textContent = `${(+t).toFixed(2).replace(/\.?0+$/, "") || 0} s`;
+    const s = .82 + vol * .32;
+    $$("#lungs .lung").forEach(l => (l.style.transform = `scale(${s})`));
+    $("#lungGlow").setAttribute("opacity", (.1 + vol * .4).toFixed(2));
+    $("#breathSay").textContent = t < 0.05 ? "بداية الشهيق" : t < 3.2 ? "شهيق: الرئتان تمتلئان" : t < 4.95 ? "زفير: الرئتان تفرغان" : "نهاية الدورة";
+    stepsFor(t);
+  }
+  function stepsFor(t) {
+    const r = Math.round(t * 100) / 100;
+    if (r !== 2 && r !== 4) { $("#breathSteps").innerHTML = `<p class="say" style="text-align:center">اضغطي <b>t = 2</b> لتشوفين حل مثال 2 خطوة بخطوة، أو <b>t = 4</b> لتحقّقي من فهمك.</p>`; return; }
+    const a = -0.037 * r ** 3, b = 0.152 * r ** 2, c = 0.173 * r;
+    const lines = [
+      [`v(${r}) = -0.037(${r})^{3} + 0.152(${r})^{2} + 0.173(${r})`, `عوّضي ${r} بدلًا من t`],
+      [`= ${fmt(a)} + ${fmt(b)} + ${fmt(c)}`.replace("+ −", "- "), "بسّطي"],
+      [`= ${fmt(a + b + c)}`, "اجمعي (باللتر)"],
+    ];
+    $("#breathSteps").innerHTML = lines.map(([m, w]) => `<div class="sline">${tex(m)}<span class="why">${esc(w)}</span></div>`).join("") +
+      `<p class="say" style="text-align:center">${r === 2 ? "حجم الهواء في الرئتين خلال دورة تنفس مدتها ثانيتان." : "تحقّقي من فهمك: حجم الهواء خلال دورة مدتها 4 ثوانٍ."}</p>`;
+  }
+  function tick(now) {
+    if (!playing) return;
+    t += (now - last) / 1000; last = now;
+    if (t >= 5) { t = 5; playing = false; $("#breathPlay").textContent = "▶ تنفّسي معي"; }
+    draw(); if (playing) raf = requestAnimationFrame(tick);
+  }
+  $("#breathPlay").onclick = () => {
+    if (playing) { playing = false; $("#breathPlay").textContent = "▶ تنفّسي معي"; return; }
+    if (t >= 5) t = 0;
+    playing = true; last = performance.now(); $("#breathPlay").textContent = "⏸ إيقاف"; raf = requestAnimationFrame(tick);
+  };
+  $("#breathT").addEventListener("input", e => { playing = false; $("#breathPlay").textContent = "▶ تنفّسي معي"; t = +e.target.value; draw(); });
+  $$("[data-t]").forEach(b => (b.onclick = () => { playing = false; $("#breathPlay").textContent = "▶ تنفّسي معي"; t = +b.dataset.t; draw(); }));
+  drawers[1] = [draw];
+})();
+
+/* ---------- 2. Anatomy + family ---------- */
+(function anatomy() {
+  $("#anatomy").innerHTML =
+    `<span class="m"><span class="term" data-p="lead deg"><span class="cP"><i>a</i><sub style="font-size:.6em">n</sub></span><i>x</i><sup class="cC">n</sup></span> + <span class="term"><i>a</i><sub style="font-size:.6em">n−1</sub><i>x</i><sup>n−1</sup></span> + … + <span class="term"><i>a</i><sub style="font-size:.6em">2</sub><i>x</i><sup>2</sup></span> + <span class="term"><i>a</i><sub style="font-size:.6em">1</sub><i>x</i></span> + <span class="term" data-p="const"><span class="cG"><i>a</i><sub style="font-size:.6em">0</sub></span></span></span>`;
+  const SAY = {
+    lead: "المعامل الرئيس هو معامل الحد الأول في الصيغة القياسية، أي معامل الحد ذي أكبر أس، ولا يساوي صفرًا.",
+    deg: "الدرجة هي أكبر أس للمتغير، وتحدد شكل المنحنى العام.",
+    const: "الحد الثابت ما فيه متغير، وهو قيمة الدالة عند x = 0 (مقطع المحور الرأسي).",
+  };
+  $$("[data-part]").forEach(b => b.addEventListener("click", () => {
+    const p = b.dataset.part;
+    $$("#anatomy .term").forEach(t => t.classList.toggle("lit", (t.dataset.p || "").split(" ").includes(p)));
+    $("#anatomySay").textContent = SAY[p];
+  }));
+  const FAM = [
+    { n: "الثابتة", e: "12", deg: 0, lead: "12", f: x => 2 },
+    { n: "الخطية", e: "4x - 9", deg: 1, lead: "4", f: x => 1.2 * x - .4 },
+    { n: "التربيعية", e: "5x^{2} - 6x - 9", deg: 2, lead: "5", f: x => .5 * x * x - 2.2 },
+    { n: "التكعيبية", e: "8x^{3} + 12x^{2} - 3x + 1", deg: 3, lead: "8", f: x => .12 * x ** 3 - .9 * x },
+    { n: "الصيغة العامة", e: "a_{n}x^{n} + a_{n-1}x^{n-1} + \\cdot\\cdot\\cdot + a_{1}x + a_{0}", deg: "n", lead: "a_{n}", f: x => .03 * (x + 3) * (x + 1) * (x - 1.5) * (x - 3) },
+  ];
+  $("#family").innerHTML = FAM.map((k, j) => `<button type="button" class="kind" data-f="${j}" aria-pressed="${j === 3}"><b>${esc(k.n)}</b><canvas></canvas><small>الدرجة ${esc(k.deg)}</small></button>`).join("");
+  function show(j) {
+    const k = FAM[j];
+    $$("#family .kind").forEach((b, i) => b.setAttribute("aria-pressed", i === j));
+    const e = typeof k.deg === "number" ? k.e.replace(/^(\d+)/, "\\cP{$1}") : k.e;
+    $("#familyOut").innerHTML = `<p class="huge" style="text-align:center">${tex(e)}</p>
+      <div class="tags"><span class="tag c">الدرجة: ${typeof k.deg === "number" ? k.deg : tex("n")}</span><span class="tag p">المعامل الرئيس: ${tex(k.lead)}</span></div>`;
+  }
+  $("#family").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) show(+b.dataset.f); });
+  show(3);
+  drawers[2] = [() => $$("#family canvas").forEach((cv, j) => {
+    const P = Plot(cv, { x0: -4, x1: 4, y0: -3.5, y1: 3.5 }); if (!P.size()) return;
+    P.clear(); P.axes({ bare: true }); P.curve(FAM[j].f, { width: 2.5, glow: 8, color: j % 2 ? C.pink : C.cyan, arrows: false });
+  })];
+})();
+
+/* ---------- 3. Sorting game ---------- */
+(function sortGame() {
+  const ITEMS = [
+    { e: "8x^{5} - 4x^{3} + 2x^{2} - x - 3", ok: true, deg: 5, lead: 8, why: "متغير واحد، وأكبر أس 5، فدرجتها 5 والمعامل الرئيس 8." },
+    { e: "12x^{2} - 3xy + 8x", ok: false, why: "ليست كثيرة حدود بمتغير واحد؛ فيها متغيران $x$ و $y$." },
+    { e: "3x^{4} + 6x^{3} - 4x^{8} + 2x", ok: true, deg: 8, lead: -4, why: "أكبر أس هو 8 في الحد $-4x^{8}$، فدرجتها 8 والمعامل الرئيس −4 حتى لو ما كان الحد الأول." },
+    { e: "5x^{3} - 4x^{2} - 8x + \\frac{4}{x}", ok: false, why: "ليست كثيرة حدود؛ لأن $\\frac{4}{x}$ فيها متغير في المقام." },
+    { e: "5x^{6} - 3x^{4} + 12x^{3} - 14", ok: true, deg: 6, lead: 5, why: "أكبر أس 6، فدرجتها 6 والمعامل الرئيس 5." },
+    { e: "8x^{4} - 2x^{3} - x^{6} + 3", ok: true, deg: 6, lead: -1, why: "بالصيغة القياسية: $-x^{6} + 8x^{4} - 2x^{3} + 3$، فدرجتها 6 والمعامل الرئيس −1." },
+  ];
+  const g = { k: 0, right: 0 };
+  function draw() {
+    const box = $("#sortGame");
+    if (g.k >= ITEMS.length) {
+      box.innerHTML = `<div class="score">${g.right} / ${ITEMS.length}</div><p style="text-align:center">${g.right === ITEMS.length ? "ممتاز! عين محققة 🔍" : "زين! انتبهي للحد ذي أكبر أس حتى لو كان في النص."}</p>
+        <div class="row" style="justify-content:center"><button type="button" class="ghost" id="sortAgain">العبي مرة ثانية</button><button type="button" class="btn" data-go="4">المحطة التالية ←</button></div>`;
+      $("#sortAgain").onclick = () => { g.k = 0; g.right = 0; draw(); };
+      return;
+    }
+    const it = ITEMS[g.k];
+    let clean = true;
+    box.innerHTML = `<div class="meter"><span>العبارة ${g.k + 1} من ${ITEMS.length}</span><span>صحيحة: ${g.right}</span></div>
+      <div class="q">${tex(it.e)}</div><p>هل هي كثيرة حدود بمتغير واحد؟</p>
+      <div class="opts" id="s1"><button type="button" class="opt" data-v="1">نعم</button><button type="button" class="opt" data-v="0">لا</button></div><div id="s2"></div><div id="s3"></div><div id="sfb"></div>`;
+    $("#s1").onclick = e => {
+      const b = e.target.closest(".opt"); if (!b) return;
+      $$("#s1 .opt").forEach(x => { x.disabled = true; if ((x.dataset.v === "1") === it.ok) x.classList.add("ok"); });
+      if ((b.dataset.v === "1") !== it.ok) { b.classList.add("no"); return done(false); }
+      if (!it.ok) return done(true);
+      ask("#s2", "كم درجتها؟", shuffle([...new Set([it.deg, it.deg - 1, it.deg + 1, 3])]).slice(0, 3).concat().sort((a, b) => a - b), it.deg, ok => {
+        if (!ok) clean = false;
+        ask("#s3", "وما معاملها الرئيس؟", [...new Set([it.lead, -it.lead, 3, 8])].slice(0, 3).sort((a, b) => a - b), it.lead, ok2 => done(ok2 && clean));
+      });
+    };
+    function ask(sel, q, opts, want, then) {
+      if (!opts.includes(want)) opts[0] = want;
+      $(sel).innerHTML = `<p>${q}</p><div class="opts">${opts.map(o => `<button type="button" class="opt" data-o="${o}">${String(o).replace("-", "−")}</button>`).join("")}</div>`;
+      $(sel).onclick = e => {
+        const b = e.target.closest(".opt"); if (!b || b.disabled) return;
+        $$(sel + " .opt").forEach(x => { x.disabled = true; if (+x.dataset.o === want) x.classList.add("ok"); });
+        if (+b.dataset.o !== want) b.classList.add("no");
+        then(+b.dataset.o === want);
+      };
+    }
+    function done(ok) {
+      if (ok && clean) g.right++;
+      $("#sfb").innerHTML = `<div class="fb ${ok ? "ok" : "no"}"><b>${ok ? "صح!" : "قريبة!"}</b>${why(it.why)}</div><div class="row" style="justify-content:flex-end;margin-top:8px"><button type="button" class="btn" id="sNext">${g.k + 1 < ITEMS.length ? "التالية" : "النتيجة"}</button></div>`;
+      $("#sNext").onclick = () => { g.k++; draw(); };
+    }
+  }
+  draw();
+})();
+
+/* ---------- 4. Function machine ---------- */
+(function machine() {
+  const f = x => x * x + 2 * x - 3;
+  const done = new Map();
+  const svg = $("#machine");
+  svg.innerHTML = `
+    <defs><linearGradient id="mg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2b4a8f"/><stop offset="1" stop-color="#16285a"/></linearGradient></defs>
+    <rect x="170" y="40" width="180" height="120" rx="22" fill="url(#mg)" stroke="#4fd1c5" stroke-width="2"/>
+    <rect x="186" y="56" width="148" height="40" rx="10" fill="#0b1530" stroke="rgba(255,255,255,.2)"/>
+    <text id="mScreen" x="260" y="83" text-anchor="middle" fill="#4fd1c5" font-size="18" font-family="Times New Roman,serif" font-style="italic">f(x)</text>
+    <g id="gears" fill="none" stroke="#ffd166" stroke-width="3" opacity=".8">
+      <circle cx="228" cy="128" r="14" stroke-dasharray="6 4"/><circle cx="262" cy="128" r="10" stroke-dasharray="5 3"/><circle cx="292" cy="128" r="14" stroke-dasharray="6 4"/>
+    </g>
+    <path d="M40 100 H170" stroke="rgba(255,255,255,.3)" stroke-width="3" stroke-dasharray="6 6"/>
+    <path d="M350 100 H480" stroke="rgba(255,255,255,.3)" stroke-width="3" stroke-dasharray="6 6"/>
+    <text x="70" y="70" fill="#9fb0d0" font-size="14" text-anchor="middle" font-family="IBM Plex Sans Arabic">المُدخل</text>
+    <text x="450" y="70" fill="#9fb0d0" font-size="14" text-anchor="middle" font-family="IBM Plex Sans Arabic">المُخرج</text>
+    <g id="ballIn" opacity="0"><circle r="22" fill="#ffd166"/><text id="ballInT" y="7" text-anchor="middle" font-size="18" font-weight="700" fill="#06213a" font-family="IBM Plex Sans Arabic"></text></g>
+    <g id="ballOut" opacity="0"><circle r="24" fill="#4fd1c5"/><text id="ballOutT" y="7" text-anchor="middle" font-size="17" font-weight="700" fill="#06213a" font-family="IBM Plex Sans Arabic"></text></g>`;
+  $("#keys").innerHTML = [-4, -3, -2, -1, 0, 1, 2].map(n => `<button type="button" data-x="${n}">${String(n).replace("-", "−")}</button>`).join("");
+  const P = Plot($("#machinePlot"), { x0: -5, x1: 3, y0: -5, y1: 7 });
+  function draw() {
+    if (!P.size()) return;
+    P.clear(); P.axes({ labels: true, step: 1, ystep: 1 });
+    if (done.size >= 7) P.curve(f, { color: C.violet, glow: 10 });
+    for (const [x, y] of done) P.dot(x, y, { r: 6 });
+  }
+  function table() {
+    const xs = [...done.keys()].sort((a, b) => a - b);
+    $("#ftable").innerHTML = `<tr><th>x</th>${xs.map(x => `<td>${String(x).replace("-", "−")}</td>`).join("")}</tr><tr><th>f(x)</th>${xs.map(x => `<td>${String(done.get(x)).replace("-", "−")}</td>`).join("")}</tr>`;
+  }
+  let busy = false;
+  function run(x) {
+    if (busy) return; busy = true;
+    const y = f(x), sx = String(x).replace("-", "−"), sy = String(y).replace("-", "−");
+    $("#ballInT").textContent = sx; $("#ballOutT").textContent = sy;
+    const bi = $("#ballIn"), bo = $("#ballOut"), gears = $("#gears");
+    const t0 = performance.now();
+    function step(now) {
+      const k = (now - t0) / 1600;
+      if (k < .4) { const p = k / .4; bi.setAttribute("transform", `translate(${40 + p * 170},100)`); bi.setAttribute("opacity", p < .9 ? 1 : 1 - (p - .9) * 10); }
+      else bi.setAttribute("opacity", 0);
+      gears.setAttribute("transform", k > .35 && k < .7 ? `rotate(${(k - .35) * 720} 260 128)` : "");
+      $("#mScreen").textContent = k > .4 && k < .75 ? `(${sx})² + 2(${sx}) − 3` : "f(x)";
+      if (k > .7) { const p = Math.min(1, (k - .7) / .3); bo.setAttribute("opacity", 1); bo.setAttribute("transform", `translate(${350 + p * 120},100)`); }
+      if (k < 1) requestAnimationFrame(step);
+      else { busy = false; done.set(x, y); table(); draw(); }
+    }
+    bo.setAttribute("opacity", 0); requestAnimationFrame(step);
+  }
+  $("#keys").addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (b) run(+b.dataset.x); });
+  table();
+  drawers[4] = [draw];
+
+  const EX3 = [
+    ["f(\\cP{3c - 4}) = (\\cP{3c - 4})^{2} + 2(\\cP{3c - 4}) - 3", "عوّضي 3c − 4 بدلًا من x"],
+    ["= 9c^{2} - 24c + 16 + 6c - 8 - 3", "اضربي"],
+    ["= 9c^{2} - 18c + 5", "بسّطي"],
+    ["5f(\\cG{c}) = 5(\\cG{c}^{2} + 2\\cG{c} - 3) = 5c^{2} + 10c - 15", "عوّضي c بدل x واضربي في 5"],
+    ["f(3c - 4) - 5f(c) = (9c^{2} - 18c + 5) - (5c^{2} + 10c - 15)", "اطرحي"],
+    ["= 4c^{2} - 28c + 20", "خاصية التوزيع ثم بسّطي"],
+  ];
+  let shown = 0;
+  const add = () => { const [m, w] = EX3[shown++]; $("#ex3").insertAdjacentHTML("beforeend", `<div class="sline">${tex(m)}<span class="why">${esc(w)}</span></div>`); };
+  const sync = () => { $("#ex3Next").textContent = shown >= EX3.length ? "من البداية" : "الخطوة التالية"; $("#ex3All").hidden = shown >= EX3.length; };
+  $("#ex3Next").onclick = () => { if (shown >= EX3.length) { shown = 0; $("#ex3").innerHTML = ""; } else add(); sync(); };
+  $("#ex3All").onclick = () => { while (shown < EX3.length) add(); sync(); };
+})();
+
+/* ---------- 5. Shapes by degree ---------- */
+(function shapes() {
+  const SH = [
+    { n: "الدالة الثابتة", e: "f(x) = c", f: () => 1.5, z: "لا تقطع المحور x (إلا إذا كانت c = 0)." },
+    { n: "الدالة الخطية", e: "f(x) = x - 1", f: x => x - 1, z: "تقطع المحور x مرة واحدة." },
+    { n: "الدالة التربيعية", e: "f(x) = -x^{2} + 3", f: x => -x * x + 3, z: "تقطع المحور x مرتين على الأكثر." },
+    { n: "الدالة التكعيبية", e: "f(x) = x^{3} - 3x", f: x => .5 * (x ** 3 - 4 * x), z: "تقطع المحور x ثلاث مرات على الأكثر." },
+    { n: "دالة من الدرجة الرابعة", e: "f(x) = -x^{4} + 5x^{2} - 4", f: x => -.5 * (x * x - 1) * (x * x - 4.5), z: "تقطع المحور x أربع مرات على الأكثر." },
+    { n: "دالة من الدرجة الخامسة", e: "f(x) = x^{5} - 5x^{3} + 4x", f: x => .25 * x * (x * x - 1) * (x * x - 5), z: "تقطع المحور x خمس مرات على الأكثر." },
+  ];
+  const P = Plot($("#shapePlot"), { x0: -4, x1: 4, y0: -4, y1: 4 });
+  let from = 3, to = 3, t0 = 0, raf;
+  function frame(now) {
+    if (!P.size()) return;
+    const k = Math.min(1, (now - t0) / 500), e = k * k * (3 - 2 * k);
+    const f = x => SH[from].f(x) * (1 - e) + SH[to].f(x) * e;
+    P.clear(); P.axes(); P.curve(f, { color: C.cyan });
+    if (k === 1) {
+      const zs = zeros(SH[to].f, -4, 4); zs.forEach(z => P.dot(z, 0, { r: 6 }));
+    }
+    if (k < 1) raf = requestAnimationFrame(frame);
+  }
+  function set(d) {
+    from = to; to = d; t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+    $("#shapeDegV").textContent = d; $("#shapeName").textContent = SH[d].n;
+    $("#shapeEq").innerHTML = `مثال: ${tex(SH[d].e)}`; $("#shapeSay").textContent = `الدرجة ${d}: ${SH[d].z}`;
+  }
+  $("#shapeDeg").addEventListener("input", e => set(+e.target.value));
+  drawers[5] = [() => { from = to; set(to); }];
+  set(3);
+})();
+
+/* Real zeros by sign change, plus touching zeros (double) where |f| dips to ~0 without crossing. */
+function zeros(f, a, b, n = 2000) {
+  const out = []; let px = a, py = f(a);
+  for (let k = 1; k <= n; k++) {
+    const x = a + (b - a) * k / n, y = f(x);
+    if (py === 0) out.push(px);
+    else if (py * y < 0) { let lo = px, hi = x; for (let j = 0; j < 40; j++) { const m = (lo + hi) / 2; f(lo) * f(m) <= 0 ? (hi = m) : (lo = m); } out.push((lo + hi) / 2); }
+    px = x; py = y;
+  }
+  return out;
+}
+function touches(f, a, b, n = 2000, eps = .015) {
+  const out = []; const h = (b - a) / n;
+  for (let k = 1; k < n; k++) {
+    const x = a + k * h, y = f(x), l = f(x - h), r = f(x + h);
+    if (Math.abs(y) < eps && Math.abs(y) <= Math.abs(l) && Math.abs(y) <= Math.abs(r) && l * r > 0 && y * l > 0) out.push(x);
+  }
+  return out;
+}
+
+/* ---------- 6. End behaviour ---------- */
+(function ends() {
+  const ROOTS = { 1: [.5], 2: [-1.5, 1.5], 3: [-2, 0, 2], 4: [-2.4, -.8, .8, 2.4], 5: [-2.6, -1.4, 0, 1.4, 2.6], 6: [-2.8, -1.8, -.6, .6, 1.8, 2.8] };
+  const SCALE = { 1: 1, 2: .6, 3: .3, 4: .14, 5: .06, 6: .028 };
+  let deg = 3, a = 1, zoom = 1, raf;
+  $("#endDeg").innerHTML = [1, 2, 3, 4, 5, 6].map(d => `<button type="button" data-d="${d}" aria-pressed="${d === 3}">الدرجة ${d}</button>`).join("");
+  const mini = (l, r) => `<svg viewBox="0 0 120 70" aria-hidden="true"><path d="M10 ${l ? 10 : 60} C 40 ${l ? 70 : 0}, 80 ${r ? 70 : 0}, 110 ${r ? 10 : 60}" fill="none" stroke="${C.cyan}" stroke-width="4" stroke-linecap="round"/></svg>`;
+  const ARMS = [
+    { even: true, pos: true, l: 1, r: 1, t: "زوجية، المعامل موجب", s: "الطرفان لأعلى" },
+    { even: true, pos: false, l: 0, r: 0, t: "زوجية، المعامل سالب", s: "الطرفان لأسفل" },
+    { even: false, pos: true, l: 0, r: 1, t: "فردية، المعامل موجب", s: "ينزل يسارًا ويصعد يمينًا" },
+    { even: false, pos: false, l: 1, r: 0, t: "فردية، المعامل سالب", s: "يصعد يسارًا وينزل يمينًا" },
+  ];
+  $("#arms").innerHTML = ARMS.map((r, k) => `<div class="arm" data-k="${k}">${mini(r.l, r.r)}<b>${r.t}</b><span>${r.s}</span></div>`).join("");
+  const P = Plot($("#endPlot"), { x0: -4, x1: 4, y0: -4, y1: 4 });
+  const f = () => { const g = poly(a * SCALE[deg], ROOTS[deg]); return x => g(x); };
+  function draw() {
+    if (!P.size()) return;
+    const s = zoom;
+    P.view = { x0: -4 * s, x1: 4 * s, y0: -4 * s ** Math.max(1, deg), y1: 4 * s ** Math.max(1, deg) };
+    P.clear(); P.axes();
+    P.curve(f(), { color: a > 0 ? C.cyan : C.pink, n: 900 });
+    const even = deg % 2 === 0, pos = a > 0;
+    $$("#arms .arm").forEach((el, k) => el.classList.toggle("on", ARMS[k].even === even && ARMS[k].pos === pos));
+    const up = "+\\infty", dn = "-\\infty";
+    const right = pos ? up : dn, left = even ? right : pos ? dn : up;
+    $("#endLeft").innerHTML = `${tex(`x \\to -\\infty`)} عندما ${tex(`f(x) \\to ${left}`)}`;
+    $("#endRight").innerHTML = `${tex(`x \\to +\\infty`)} عندما ${tex(`f(x) \\to ${right}`)}`;
+    $("#endRule").innerHTML = even
+      ? `<b>الدرجة ${deg} زوجية:</b> الطرفان في <b>الاتجاه نفسه</b>، ${pos ? "لأعلى لأن المعامل الرئيس موجب 🙌" : "لأسفل لأن المعامل الرئيس سالب 👇"}.`
+      : `<b>الدرجة ${deg} فردية:</b> الطرفان في <b>اتجاهين مختلفين</b>، ${pos ? "يصعد يمينًا لأن المعامل الرئيس موجب ↗" : "ينزل يمينًا لأن المعامل الرئيس سالب ↘"}.`;
+  }
+  $("#endDeg").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if (!b) return; deg = +b.dataset.d; $$("#endDeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); zoom = 1; draw(); });
+  $("#endA").addEventListener("input", e => { a = +e.target.value || .25; if (+e.target.value === 0) e.target.value = .25; $("#endAv").textContent = String(a).replace("-", "−"); zoom = 1; draw(); });
+  $("#zoomOut").onclick = () => {
+    const t0 = performance.now(), z0 = zoom, z1 = zoom > 1.5 ? 1 : 6;
+    cancelAnimationFrame(raf);
+    $("#zoomOut").textContent = z1 > 1 ? "🔭 جاري الابتعاد…" : "🔭 جاري الاقتراب…";
+    (function step(now) {
+      const k = Math.min(1, (now - t0) / 1400), e = k * k * (3 - 2 * k);
+      zoom = z0 + (z1 - z0) * e; draw();
+      if (k < 1) raf = requestAnimationFrame(step);
+      else $("#zoomOut").textContent = z1 > 1 ? "🔭 اقتربي مرة ثانية" : "🔭 ابتعدي بالمرصد";
+    })(t0);
+  };
+  drawers[6] = [draw];
+})();
+
+/* ---------- 7. Zeros explorer ---------- */
+(function zerosLab() {
+  const KINDS = [
+    { n: "تكعيبية", d: 3, f: x => .5 * (x ** 3 - 4 * x) },
+    { n: "رابعة", d: 4, f: x => .35 * (x * x - 1) * (x * x - 5.5) },
+    { n: "خامسة", d: 5, f: x => .18 * x * (x * x - 1.2) * (x * x - 6) },
+    { n: "تربيعية", d: 2, f: x => .6 * x * x - 2 },
+  ];
+  let kind = 1, k = 0;
+  $("#zeroDeg").innerHTML = KINDS.map((q, j) => `<button type="button" data-z="${j}" aria-pressed="${j === kind}">${q.n}</button>`).join("");
+  const P = Plot($("#zeroPlot"), { x0: -3.5, x1: 3.5, y0: -5, y1: 5 });
+  function draw() {
+    if (!P.size()) return;
+    const g = x => KINDS[kind].f(x) + k;
+    const zs = zeros(g, -3.5, 3.5), ts = touches(g, -3.5, 3.5);
+    P.clear(); P.axes();
+    P.curve(g, { color: C.cyan });
+    zs.forEach(z => P.dot(z, 0, { r: 7, ring: true }));
+    ts.forEach(z => P.dot(z, 0, { r: 8, ring: true, color: C.pink }));
+    const n = zs.length + 2 * ts.length, d = KINDS[kind].d;
+    $("#zeroN").textContent = n;
+    $("#zeroKv").textContent = fmt(k, 2);
+    const parity = d % 2 ? "فردية" : "زوجية";
+    $("#zeroSay").innerHTML = ts.length
+      ? `المنحنى <b style="color:var(--pink)">يمس</b> المحور بدون ما يقطعه: هذا <b>صفر مكرر</b> يُحسب مرتين.`
+      : n === 0
+        ? `ما في ولا نقطة تقاطع! الدالة ${parity} الدرجة (${d}) وليس لها أصفار حقيقية، وهذا ممكن فقط للدوال الزوجية الدرجة.`
+        : `الدرجة ${d} (${parity}) والمنحنى يقطع المحور ${n} ${n === 1 ? "مرة" : n === 2 ? "مرتين" : "مرات"}. لاحظي أن العدد ${n % 2 ? "فردي" : "زوجي"} مثل الدرجة، ولا يزيد على ${d}.`;
+  }
+  $("#zeroDeg").addEventListener("click", e => { const b = e.target.closest("[data-z]"); if (!b) return; kind = +b.dataset.z; $$("#zeroDeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); });
+  $("#zeroK").addEventListener("input", e => { k = +e.target.value; if (Math.abs(k) < .06) k = 0; draw(); });
+  drawers[7] = [draw];
+})();
+
+/* ---------- 8. Detective challenge ---------- */
+const best = { score: null };
+(function detective() {
+  const ROUNDS = 5;
+  const st = { r: 0, pts: 0, cs: null };
+  const P = Plot($("#caseView"), { x0: -4, x1: 4, y0: -4, y1: 4 });
+  // Distinct real roots spaced apart; the remaining degree comes from (x² + q) factors, which add no real zeros.
+  function makeCase() {
+    const n = ri(2, 5), sign = Math.random() < .5 ? 1 : -1;
+    const choices = []; for (let m = n % 2; m <= n; m += 2) choices.push(m);
+    // Mostly curves that cross the axis; now and then an even one that never does.
+    const pool = choices.length > 1 && Math.random() < .8 ? choices.filter(c => c > 0) : choices;
+    const m = pool[ri(0, pool.length - 1)];
+    const roots = [];
+    // Spread the roots across the view with a little jitter, so they never crowd together.
+    const span = m > 1 ? Math.min(6, 1.6 * (m - 1)) : 0, left = (Math.random() - .5) * (6 - span);
+    for (let k = 0; k < m; k++) roots.push(Math.round((left - span / 2 + (m > 1 ? span * k / (m - 1) : 0) + (Math.random() - .5) * .4) * 10) / 10);
+    const qs = Array.from({ length: (n - m) / 2 }, () => ri(1, 3) * .6);
+    const raw = x => sign * roots.reduce((s, r) => s * (x - r), 1) * qs.reduce((s, q) => s * (x * x + q), 1);
+    // Scale by the wiggles between the roots, not by the steep ends, so every crossing stays visible.
+    const lo = m ? Math.min(...roots) - .5 : -1.5, hi = m ? Math.max(...roots) + .5 : 1.5;
+    let peak = 0; for (let x = lo; x <= hi; x += .02) peak = Math.max(peak, Math.abs(raw(x)));
+    const sc = 2.6 / (peak || 1);
+    if (!m) {
+      // No real zeros: lift the curve well clear of the axis so it cannot be mistaken for a touch.
+      const base = Math.abs(raw(0)) * sc;
+      return { n, sign, m, f: x => sign * (Math.abs(raw(x)) * sc - base + 1.4) };
+    }
+    return { n, sign, m, f: x => raw(x) * sc };
+  }
+  // A case is readable when every hump and dip sits clearly off the axis, so no crossing looks like a touch.
+  function readable(f) {
+    let prev = f(-3.9), slope = 0;
+    for (let x = -3.88; x <= 3.9; x += .02) {
+      const y = f(x), d = Math.sign(y - prev);
+      if (slope && d && d !== slope && Math.abs(prev) < .45) return false;
+      if (d) slope = d; prev = y;
+    }
+    return true;
+  }
+  function goodCase() { for (let k = 0; k < 60; k++) { const c = makeCase(); if (readable(c.f)) return c; } return makeCase(); }
+  function drawCase() { if (!P.size() || !st.cs) return; P.clear(); P.axes(); P.curve(st.cs.f, { color: C.violet, n: 900 }); }
+  const mini = (l, r) => `<svg viewBox="0 0 120 70" aria-hidden="true"><path d="M10 ${l ? 10 : 60} C 40 ${l ? 70 : 0}, 80 ${r ? 70 : 0}, 110 ${r ? 10 : 60}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>`;
+  function start() { st.r = 0; st.pts = 0; next(); }
+  function next() {
+    if (st.r >= ROUNDS) return finish();
+    st.cs = goodCase(); drawCase();
+    const cs = st.cs, even = cs.n % 2 === 0;
+    const endKey = even ? (cs.sign > 0 ? "uu" : "dd") : (cs.sign > 0 ? "du" : "ud");
+    const zOpts = [0, 1, 2, 3, 4, 5].filter(z => Math.abs(z - cs.m) <= 2).slice(0, 4);
+    const Q = [
+      { q: "١) كيف سلوك الطرفين؟", o: [["uu", mini(1, 1), "الطرفان لأعلى"], ["dd", mini(0, 0), "الطرفان لأسفل"], ["du", mini(0, 1), "ينزل يسارًا ويصعد يمينًا"], ["ud", mini(1, 0), "يصعد يسارًا وينزل يمينًا"]], a: endKey,
+        w: even ? "الطرفان في الاتجاه نفسه." : "الطرفان في اتجاهين مختلفين." },
+      { q: "٢) درجة الدالة:", o: [["e", "", "زوجية"], ["o", "", "فردية"]], a: even ? "e" : "o",
+        w: even ? "الطرفان بنفس الاتجاه، إذن الدرجة زوجية." : "الطرفان باتجاهين مختلفين، إذن الدرجة فردية." },
+      { q: "٣) عدد الأصفار الحقيقية:", o: zOpts.map(z => [String(z), "", String(z)]), a: String(cs.m),
+        w: `المنحنى يقطع المحور x في ${cs.m} ${cs.m === 1 ? "نقطة" : "نقاط"}.` },
+    ];
+    let qi = 0;
+    const box = $("#caseBox");
+    function ask() {
+      if (qi >= Q.length) {
+        box.insertAdjacentHTML("beforeend", `<div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="caseNext">${st.r + 1 < ROUNDS ? "القضية التالية" : "النتيجة"}</button></div>`);
+        $("#caseNext").onclick = () => { st.r++; next(); };
+        // Reveal the zeros once the case is closed.
+        drawCase(); zeros(cs.f, -4, 4).forEach(z => P.dot(z, 0, { r: 6, ring: true }));
+        return;
+      }
+      const q = Q[qi];
+      const wrap = document.createElement("div"); wrap.style.cssText = "display:flex;flex-direction:column;gap:8px";
+      wrap.innerHTML = `<p><b>${q.q}</b></p><div class="opts">${q.o.map(([v, pic, label]) => `<button type="button" class="opt" data-v="${v}">${pic}${esc(label)}</button>`).join("")}</div>`;
+      box.appendChild(wrap);
+      wrap.querySelector(".opts").onclick = e => {
+        const b = e.target.closest(".opt"); if (!b || b.disabled) return;
+        const ok = b.dataset.v === q.a; if (ok) st.pts++;
+        wrap.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add("ok"); });
+        if (!ok) b.classList.add("no");
+        wrap.insertAdjacentHTML("beforeend", `<div class="fb ${ok ? "ok" : "no"}"><b>${ok ? "صح!" : "لا،"}</b>${esc(q.w)}</div>`);
+        $("#casePts").textContent = st.pts;
+        qi++; ask();
+        wrap.nextElementSibling?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      };
+    }
+    box.innerHTML = `<div class="meter"><span>القضية ${st.r + 1} من ${ROUNDS}</span><span>النقاط: <b id="casePts">${st.pts}</b> / ${ROUNDS * 3}</span></div>`;
+    ask();
+  }
+  function finish() {
+    const max = ROUNDS * 3, s = st.pts; best.score = s;
+    const stars = s >= max - 1 ? 3 : s >= max * .65 ? 2 : s >= max * .35 ? 1 : 0;
+    const msg = ["تحتاجين جولة ثانية في المحطات 6 و 7، وبعدها ارجعي للتحدي.", "بداية طيبة! راجعي سلوك الطرفين وجرّبي مرة ثانية.", "محققة ممتازة! باقي القليل وتصيرين خبيرة.", "محققة المنحنيات الأولى! 🕵️‍♀️ ما فاتك ولا سر."][stars];
+    $("#caseBox").innerHTML = `<div class="stars">${[0, 1, 2].map(k => `<span class="${k < stars ? "on" : ""}">★</span>`).join("")}</div>
+      <div class="score">${s} / ${max}</div><p style="text-align:center">${msg}</p>
+      <div class="row" style="justify-content:center"><button type="button" class="ghost" id="caseAgain">العبي مرة ثانية</button><button type="button" class="btn" data-go="9">الخلاصة ←</button></div>`;
+    $("#caseAgain").onclick = start;
+  }
+  drawers[8] = [() => { if (!st.cs) start(); else drawCase(); }];
+})();
+
+function finalStars() {
+  const s = best.score, max = 15;
+  const n = s === null ? 0 : s >= max - 1 ? 3 : s >= max * .65 ? 2 : s >= max * .35 ? 1 : 0;
+  $$("#finalStars span").forEach((el, k) => setTimeout(() => el.classList.toggle("on", k < n), 250 * (k + 1)));
+  $("#endTitle").textContent = s === null ? "خلاصة المرصد" : `أتممتِ الرحلة! نتيجتك في التحدي ${s} من ${max}`;
+}
+
+renderTex();
+go(Math.min(N - 1, Math.max(0, parseInt(location.hash.slice(1), 10) || 0)), false);
+fetch("/api/site").then(r => (r.ok ? r.json() : null)).then(site => {
+  if (site?.teacherName) $("#foot").textContent = `رياضيات 2 · المعلمة: ${site.teacherName}` + (site.principalName ? ` · المديرة: ${site.principalName}` : "");
+}).catch(() => {});
+</script>
+</body>
+</html>
