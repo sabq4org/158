@@ -292,8 +292,8 @@ function renderAtt(att) {
   $("#attSub").textContent = att.length ? `${att.length} حاضرة` : "";
   const del = role === "admin";
   $("#attTable").innerHTML = !att.length ? '<p class="empty">لم يسجّل أحد حضوره بعد. افتحي «روابط و QR» واعرضي الرمز للحضور.</p>' :
-    `<table><thead><tr><th>م</th><th>الاسم</th><th>العمل الحالي</th><th>جهة العمل</th><th>الجوال</th><th>التوقيع</th><th>الوقت</th>${del ? '<th class="noprint"></th>' : ""}</tr></thead><tbody>
-    ${att.map((a, i) => `<tr><td class="n">${i + 1}</td><td>${esc(a.name)}</td><td>${esc(JOBS[a.job] || a.job)}</td><td>${esc(a.workplace)}</td><td class="ph">${esc(a.phone || "")}</td>
+    `<table><thead><tr><th>م</th><th>الاسم</th><th>المدرسة / جهة العمل</th><th>العمل الحالي</th><th>السجل المدني</th><th>الجوال</th><th>التوقيع</th><th>الوقت</th>${del ? '<th class="noprint"></th>' : ""}</tr></thead><tbody>
+    ${att.map((a, i) => `<tr><td class="n">${i + 1}</td><td>${esc(a.name)}</td><td>${esc(a.workplace)}</td><td>${esc(JOBS[a.job] || a.job || "")}</td><td class="ph">${esc(a.national_id || "")}</td><td class="ph">${esc(a.phone || "")}</td>
       <td class="sig"><img src="${esc(a.signature)}" alt="توقيع ${esc(a.name)}"></td><td class="time">${time(a.created_at)}</td>
       ${del ? `<td class="noprint"><button class="btn del" data-del="attendance/${a.id}" title="حذف">حذف</button></td>` : ""}</tr>`).join("")}</tbody></table>`;
 }
@@ -365,8 +365,8 @@ function csv(name, rows) {
   const blob = new Blob(["\ufeff" + rows.map(r => r.map(q).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-$("#csvAtt").addEventListener("click", () => csv("كشف-الحضور.csv", [["م", "الاسم", "العمل الحالي", "جهة العمل", "الجوال", "الوقت"],
-  ...data.attendance.map((a, i) => [i + 1, a.name, JOBS[a.job] || a.job, a.workplace, a.phone, new Date(a.created_at).toLocaleString("ar-SA-u-nu-latn")])]));
+$("#csvAtt").addEventListener("click", () => csv("كشف-الحضور.csv", [["م", "الاسم", "المدرسة / جهة العمل", "العمل الحالي", "السجل المدني", "الجوال", "الوقت"],
+  ...data.attendance.map((a, i) => [i + 1, a.name, a.workplace, JOBS[a.job] || a.job || "", a.national_id, a.phone, new Date(a.created_at).toLocaleString("ar-SA-u-nu-latn")])]));
 $("#csvEval").addEventListener("click", () => csv("تقييم-الدرس.csv", [["الوقت", "الاسم", "الصفة", "التقييم العام", ...Object.values(ITEM), "اللحظات", "سينقله لصفه", "نقاط القوة", "مقترحات"],
   ...data.responses.map(r => [new Date(r.created_at).toLocaleString("ar-SA-u-nu-latn"), r.name, ROLES[r.role] || "", r.overall, ...Object.keys(ITEM).map(k => r.ratings?.[k] ?? ""),
     (r.moments || []).map(k => MOMENTS[k]).join("، "), (r.apply || []).map(k => APPLY[k]).join("، "), r.strengths, r.suggestions])]));
