@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS workshop_attendance (
   phone      TEXT,
   signature  TEXT NOT NULL
 );
+ALTER TABLE workshop_attendance ADD COLUMN IF NOT EXISTS national_id TEXT;
+ALTER TABLE workshop_attendance ALTER COLUMN job DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS workshop_attendance_workshop ON workshop_attendance (workshop, created_at);`;
 
 const WORKSHOPS = {
@@ -95,21 +97,26 @@ function mount(app, pool) {
     if (!w) return res.status(404).json({ error: "not_found" });
     if (limited(req.ip)) return res.status(429).json({ error: "rate_limited" });
     const b = req.body || {};
+    const digits = v => String(v ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\D/g, "");
     const name = text(b.name, 80), workplace = text(b.workplace, 120);
     const job = w.jobs.includes(b.job) ? b.job : null;
-    const phone = String(b.phone ?? "").replace(/[^\d+]/g, "").slice(0, 15) || null;
+    const nationalId = digits(b.nationalId);
+    // Kept in the local form 05XXXXXXXX whether typed with +966, 966 or without the leading zero.
+    const phone = digits(b.phone).replace(/^(00)?966/, "0").replace(/^5/, "05");
     const sig = String(b.signature ?? "");
     const errors = [];
     if (!name || name.split(/\s+/).length < 2) errors.push("name");
-    if (!job) errors.push("job");
     if (!workplace) errors.push("workplace");
+    // Saudi national ID or iqama: ten digits starting with 1 or 2.
+    if (!/^[12]\d{9}$/.test(nationalId)) errors.push("nationalId");
+    if (!/^05\d{8}$/.test(phone)) errors.push("phone");
     if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(sig) || sig.length > 150000) errors.push("signature");
     if (errors.length) return res.status(400).json({ error: "invalid", fields: errors });
     try {
       const { rows } = await pool.query(
-        `INSERT INTO workshop_attendance (workshop, name, job, workplace, phone, signature) VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO workshop_attendance (workshop, name, job, workplace, national_id, phone, signature) VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id, (SELECT count(*) FROM workshop_attendance WHERE workshop = $1)::int + 1 AS n`,
-        [req.params.workshop, name, job, workplace, phone, sig]);
+        [req.params.workshop, name, job, workplace, nationalId, phone, sig]);
       res.json({ ok: true, n: rows[0].n });
     } catch (err) {
       console.error(err);
@@ -126,14 +133,14 @@ function mount(app, pool) {
   });
 }
 
-// Everything the dashboard draws, in one read. Names, phones, signatures and comments only ever reach the teacher's panel.
+// Everything the dashboard draws, in one read. Names, national IDs, phones, signatures and comments only ever reach the teacher's panel.
 async function results(pool, workshop) {
   if (!WORKSHOPS[workshop]) return null;
   const { rows } = await pool.query(
     `SELECT id, created_at, role, name, overall, ratings, moments, apply, strengths, suggestions
      FROM workshop_feedback WHERE workshop = $1 ORDER BY created_at DESC`, [workshop]);
   const att = await pool.query(
-    `SELECT id, created_at, name, job, workplace, phone, signature FROM workshop_attendance WHERE workshop = $1 ORDER BY created_at`, [workshop]);
+    `SELECT id, created_at, name, job, workplace, national_id, phone, signature FROM workshop_attendance WHERE workshop = $1 ORDER BY created_at`, [workshop]);
   return { workshop, responses: rows, attendance: att.rows };
 }
 

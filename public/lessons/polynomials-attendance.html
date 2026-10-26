@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <style>
-/* The attendance sheet for the model lesson: name, job, workplace, an optional phone and a drawn signature.
+/* The attendance sheet for the model lesson: name, school, national ID, phone, an optional job and a drawn signature (the fields of the school's Google Form).
    The teacher prints the sheet with the signatures from the dashboard. */
 :root {
   --bg: #eef4f2;
@@ -155,11 +155,12 @@ input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px 
     <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4"/></svg></div>
       <div><h2>بيانات الحضور</h2><small>الحقول المعلَّمة بـ <span class="req">*</span> مطلوبة</small></div></div>
     <div class="fields">
-      <label class="f" id="f-name"><span>الاسم الثلاثي <span class="req" aria-hidden="true">*</span></span><input type="text" id="name" maxlength="80" autocomplete="name" required><span class="hint-err">اكتب الاسم الثلاثي</span></label>
-      <div id="f-job"><div class="lbl"><span>العمل الحالي <span class="req" aria-hidden="true">*</span></span></div>
-        <div class="chips" id="jobs" role="radiogroup" aria-label="العمل الحالي" style="margin-top:6px"></div><span class="hint-err">اختر العمل الحالي</span></div>
-      <label class="f" id="f-workplace"><span>جهة العمل <span class="req" aria-hidden="true">*</span></span><small>اسم المدرسة أو مكتب التعليم</small><input type="text" id="workplace" maxlength="120" autocomplete="organization" required><span class="hint-err">اكتب جهة العمل</span></label>
-      <label class="f" id="f-phone"><span>رقم الجوال <small>اختياري</small></span><input type="tel" id="phone" maxlength="15" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx"><span class="hint-err">رقم الجوال غير صحيح</span></label>
+      <label class="f" id="f-name"><span>الاسم <span class="req" aria-hidden="true">*</span></span><small>الاسم الثلاثي</small><input type="text" id="name" maxlength="80" autocomplete="name" required><span class="hint-err">اكتب الاسم الثلاثي</span></label>
+      <label class="f" id="f-workplace"><span>المدرسة <span class="req" aria-hidden="true">*</span></span><small>أو جهة العمل، مثل مكتب التعليم</small><input type="text" id="workplace" maxlength="120" autocomplete="organization" required><span class="hint-err">اكتب اسم المدرسة</span></label>
+      <label class="f" id="f-nid"><span>السجل المدني <span class="req" aria-hidden="true">*</span></span><input type="tel" id="nid" maxlength="10" inputmode="numeric" autocomplete="off" placeholder="1xxxxxxxxx"><span class="hint-err">السجل المدني عشرة أرقام يبدأ بـ 1 أو 2</span></label>
+      <label class="f" id="f-phone"><span>رقم الجوال <span class="req" aria-hidden="true">*</span></span><input type="tel" id="phone" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx"><span class="hint-err">رقم الجوال يبدأ بـ 05 ومكوّن من عشرة أرقام</span></label>
+      <div id="f-job"><div class="lbl"><span>العمل الحالي <small>اختياري</small></span></div>
+        <div class="chips" id="jobs" role="radiogroup" aria-label="العمل الحالي" style="margin-top:6px"></div></div>
       <div id="f-sig"><div class="lbl"><span>التوقيع <span class="req" aria-hidden="true">*</span></span><button type="button" class="clear" id="clear">مسح التوقيع</button></div>
         <div class="pad" id="pad" style="margin-top:6px"><canvas id="sig" aria-label="مساحة التوقيع"></canvas><div class="ph">وقّع هنا بإصبعك أو بالفأرة</div></div><span class="hint-err">التوقيع مطلوب</span></div>
       <button type="submit" class="send" id="send">تسجيل الحضور</button>
@@ -194,9 +195,8 @@ $("#jobs").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   job = b.dataset.k;
   $("#jobs").querySelectorAll("button").forEach(x => { x.setAttribute("aria-pressed", x === b); x.setAttribute("aria-checked", x === b); });
-  $("#f-job").classList.remove("bad");
 });
-for (const id of ["name", "workplace", "phone"]) $("#" + id).addEventListener("input", () => $("#f-" + id).classList.remove("bad"));
+for (const id of ["name", "workplace", "nid", "phone"]) $("#" + id).addEventListener("input", () => $("#f-" + id).classList.remove("bad"));
 
 /* Signature pad: strokes are kept as points so a resize (phone rotation) can redraw them. */
 const cv = $("#sig"), ctx = cv.getContext("2d");
@@ -238,12 +238,13 @@ function signature() {
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const name = $("#name").value.trim().replace(/\s+/g, " "), workplace = $("#workplace").value.trim();
-  const phone = $("#phone").value.replace(/[\s-]/g, "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  const digits = v => v.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\D/g, "");
+  const nationalId = digits($("#nid").value), phone = digits($("#phone").value).replace(/^(00)?966/, "0").replace(/^5/, "05");
   const bad = [];
   if (name.split(" ").length < 2) bad.push("name");
-  if (!job) bad.push("job");
   if (!workplace) bad.push("workplace");
-  if (phone && !/^\+?\d{9,14}$/.test(phone)) bad.push("phone");
+  if (!/^[12]\d{9}$/.test(nationalId)) bad.push("nid");
+  if (!/^05\d{8}$/.test(phone)) bad.push("phone");
   if (!strokes.length) bad.push("sig");
   bad.forEach(k => $("#f-" + k).classList.add("bad"));
   if (bad.length) { $("#f-" + bad[0]).scrollIntoView({ behavior: "smooth", block: "center" }); $("#err").textContent = "أكمل الحقول المطلوبة"; return; }
@@ -251,7 +252,7 @@ $("#form").addEventListener("submit", async e => {
   $("#send").disabled = true; $("#send").textContent = "جارٍ التسجيل…";
   try {
     const r = await fetch(`/api/attendance/${WORKSHOP}`, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, job, workplace, phone, signature: signature() }) });
+      body: JSON.stringify({ name, job, workplace, nationalId, phone, signature: signature() }) });
     if (!r.ok) throw new Error(r.status);
     const { n } = await r.json();
     try { localStorage.setItem(DONE_KEY, JSON.stringify({ name, n })); } catch {}
