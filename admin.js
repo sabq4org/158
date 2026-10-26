@@ -9,6 +9,7 @@ const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, maxOf } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
+const feedback = require("./feedback");
 
 const scrypt = util.promisify(crypto.scrypt);
 
@@ -302,6 +303,23 @@ module.exports = function mountAdmin(app, pool) {
 
   router.get("/me", async (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings(),
     calendar: await calendarInfo(), school: { stage: school.STAGE, tracks: school.TRACKS } }));
+
+  // ---------- Workshop feedback ----------
+  router.get("/feedback/:workshop", async (req, res) => {
+    const out = await feedback.results(pool, req.params.workshop);
+    if (!out) return res.status(404).json({ error: "not_found" });
+    res.set("Cache-Control", "no-store").json({ ...out, role: req.role });
+  });
+
+  // For clearing a test answer before the real attendees arrive.
+  router.delete("/feedback/:workshop/:id", async (req, res) => {
+    const { rowCount } = await pool.query("DELETE FROM workshop_feedback WHERE workshop = $1 AND id = $2", [req.params.workshop, Number(req.params.id) || 0]);
+    res.json({ ok: rowCount > 0 });
+  });
+  router.delete("/attendance/:workshop/:id", async (req, res) => {
+    const { rowCount } = await pool.query("DELETE FROM workshop_attendance WHERE workshop = $1 AND id = $2", [req.params.workshop, Number(req.params.id) || 0]);
+    res.json({ ok: rowCount > 0 });
+  });
 
   // ---------- School calendar ----------
   router.get("/calendar", async (req, res) => res.json(await calendarInfo()));
