@@ -6,6 +6,7 @@ const mountAdmin = require("./admin");
 const { loadSettings, getSettings, maxOf, termTitleOf } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
+const feedback = require("./feedback");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -144,13 +145,17 @@ const WEEK = 7 * 24 * 3600 * 1000;
 app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js"), { maxAge: WEEK }));
 app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js"), { maxAge: WEEK }));
 // Interactive lessons: separate pages, not linked from the lookup.
-for (const name of ["polynomials", "polynomial-functions"]) {
-  app.get([`/lessons/${name}`, `/lessons/${name}/`], (req, res) => res.sendFile(path.join(__dirname, "public", "lessons", `${name}.html`), { headers: { "Cache-Control": "no-cache" } }));
-}
+const page = file => (req, res) => res.sendFile(path.join(__dirname, "public", "lessons", file), { headers: { "Cache-Control": "no-cache" } });
+for (const name of ["polynomials", "polynomial-functions"]) app.get([`/lessons/${name}`, `/lessons/${name}/`], page(`${name}.html`));
+// The model lesson's attendees sign in and rate it here; the teacher reads both on the dashboard after signing in to the panel.
+app.get(["/lessons/polynomials/attendance", "/lessons/polynomials/attendance/"], page("polynomials-attendance.html"));
+app.get(["/lessons/polynomials/feedback", "/lessons/polynomials/feedback/"], page("polynomials-feedback.html"));
+app.get(["/lessons/polynomials/dashboard", "/lessons/polynomials/feedback/results"], page("polynomials-dashboard.html"));
+feedback.mount(app, pool);
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
-const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
+const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => pool.query(feedback.SCHEMA)).then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
 adminReady

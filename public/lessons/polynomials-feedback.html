@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أثر الدرس</title>
+<meta name="description" content="تقييم الحضور لورشة: العمليات على كثيرات الحدود">
+<meta name="theme-color" content="#0d6e6a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* "أثر الدرس": the attendees' evaluation of the model lesson. A hero card for the lesson and its teacher, one overall rating,
+   six axes built from the lesson's own moments, then what stayed with them and what they will carry to their classes. */
+:root {
+  --bg: #eef4f2;
+  --surface: #ffffff;
+  --surface-2: #f5f9f8;
+  --ink: #142a2e;
+  --muted: #5b7277;
+  --line: #d7e4e1;
+  --accent: #0d6e6a;
+  --accent-2: #12a39a;
+  --accent-soft: #d6ece9;
+  --gold: #e0a100;
+  --gold-soft: #fff4d6;
+  --coral: #e8505b;
+  --indigo: #1f2a5a;
+  --s4: #0d8a5f;
+  --s3: #12a39a;
+  --s2: #e0a100;
+  --s1: #e8505b;
+  --shadow: 0 1px 2px rgba(20, 42, 46, .06), 0 14px 36px -14px rgba(20, 42, 46, .22);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae; --line: #26403f;
+    --accent: #4fc2b8; --accent-2: #4fc2b8; --accent-soft: #163a3a; --gold: #f0bf47; --gold-soft: #3a2e14; --coral: #f27a82; --indigo: #c9d2ff;
+    --s4: #45d08f; --s3: #4fc2b8; --s2: #f0bf47; --s1: #f27a82;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px -14px rgba(0,0,0,.6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae; --line: #26403f;
+  --accent: #4fc2b8; --accent-2: #4fc2b8; --accent-soft: #163a3a; --gold: #f0bf47; --gold-soft: #3a2e14; --coral: #f27a82; --indigo: #c9d2ff;
+  --s4: #45d08f; --s3: #4fc2b8; --s2: #f0bf47; --s1: #f27a82;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px -14px rgba(0,0,0,.6); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { direction: rtl; scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.75;
+  background-image: radial-gradient(circle at 1px 1px, rgba(13, 110, 106, .07) 1.5px, transparent 0); background-size: 22px 22px;
+}
+.wrap {
+  max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
+  padding: 24px max(16px, env(safe-area-inset-right)) 120px max(16px, env(safe-area-inset-left));
+}
+
+/* Hero */
+.hero {
+  position: relative; overflow: hidden; border-radius: 26px; color: #fff; padding: 26px 22px 22px;
+  background: linear-gradient(135deg, #0d3f3d 0%, #0d6e6a 55%, #12a39a 100%); box-shadow: var(--shadow);
+}
+.hero svg.deco { position: absolute; inset-inline-start: -30px; bottom: -20px; width: 300px; opacity: .22; pointer-events: none; }
+.hero-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; position: relative; }
+.logos { display: inline-flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 6px 12px; }
+.logos img { height: 40px; width: auto; display: block; }
+.logos span { width: 1px; align-self: stretch; background: #d7e4e1; }
+.pill { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 600; }
+.hero h1 { margin: 16px 0 2px; font-size: clamp(26px, 6vw, 38px); line-height: 1.3; position: relative; }
+.hero .sub { opacity: .9; margin: 0; position: relative; }
+.teacher { margin-top: 16px; display: flex; align-items: center; gap: 12px; position: relative; background: rgba(255,255,255,.12); border-radius: 16px; padding: 10px 12px; }
+.avatar { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #0d6e6a; font-weight: 700; font-size: 20px; }
+.teacher b { display: block; font-size: 17px; }
+.teacher small { opacity: .85; }
+.flow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; position: relative; }
+.flow span { font-size: 12.5px; background: rgba(0,0,0,.18); border-radius: 999px; padding: 2px 10px; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 80px; }
+.card-h { display: flex; align-items: center; gap: 12px; }
+.ico { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.ico svg { width: 24px; height: 24px; }
+.card h2 { margin: 0; font-size: 19px; line-height: 1.4; }
+.card-h small { display: block; color: var(--muted); font-size: 13.5px; font-weight: 500; }
+.card-h .done { margin-inline-start: auto; font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.card-h .done.full { color: var(--s4); font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Overall stars */
+.stars { display: flex; justify-content: center; gap: 6px; direction: ltr; }
+.stars button { border: 0; background: none; padding: 4px; cursor: pointer; color: var(--line); transition: transform .15s; }
+.stars button svg { width: 46px; height: 46px; display: block; }
+.stars button.on { color: var(--gold); }
+.stars button:hover { transform: scale(1.12); }
+.stars button:active { transform: scale(.95); }
+.star-label { text-align: center; font-weight: 700; min-height: 1.8em; color: var(--gold); }
+
+/* Items with a 4-step scale */
+.item { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid transparent; transition: border-color .2s; }
+.item.missing { border-color: var(--coral); }
+.item-q { font-weight: 600; font-size: 15.5px; }
+.item-q small { display: block; color: var(--muted); font-weight: 500; font-size: 13px; }
+.scale { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.scale button {
+  font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; border-radius: 12px; padding: 8px 4px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.3;
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+.scale button i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+.scale button:active { transform: scale(.97); }
+.scale button[aria-pressed="true"] { color: #fff; border-color: transparent; }
+.scale button[data-v="4"] i { background: var(--s4); } .scale button[data-v="4"][aria-pressed="true"] { background: var(--s4); }
+.scale button[data-v="3"] i { background: var(--s3); } .scale button[data-v="3"][aria-pressed="true"] { background: var(--s3); }
+.scale button[data-v="2"] i { background: var(--s2); } .scale button[data-v="2"][aria-pressed="true"] { background: var(--s2); color: #2a1d00; }
+.scale button[data-v="1"] i { background: var(--s1); } .scale button[data-v="1"][aria-pressed="true"] { background: var(--s1); }
+.scale button[aria-pressed="true"] i { background: #fff !important; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button {
+  font: inherit; font-size: 14.5px; cursor: pointer; border-radius: 999px; padding: 7px 14px; border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; transition: all .15s;
+}
+.chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.chips button[aria-pressed="true"]::before { content: "✓"; font-weight: 700; }
+
+label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 15px; }
+label.f small { color: var(--muted); font-weight: 500; }
+textarea, input[type="text"] {
+  font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); resize: vertical;
+}
+textarea { min-height: 92px; }
+textarea:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Submit bar */
+.bar {
+  position: fixed; bottom: 0; inset-inline: 0; z-index: 10;
+  padding: 10px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+}
+.bar-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.ring { flex: none; width: 46px; height: 46px; position: relative; }
+.ring svg { width: 46px; height: 46px; transform: rotate(-90deg); }
+.ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-variant-numeric: tabular-nums; direction: ltr; }
+.bar-txt { flex: 1; font-size: 14px; color: var(--muted); line-height: 1.4; }
+.bar-txt b { color: var(--ink); display: block; font-size: 15px; }
+.send { font: inherit; font-weight: 700; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 26px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #0d6e6a, #12a39a); box-shadow: 0 10px 24px -10px rgba(13, 110, 106, .8); }
+.send:disabled { opacity: .6; cursor: wait; }
+.err { color: var(--coral); font-weight: 600; font-size: 14px; }
+
+/* Thanks */
+.thanks { text-align: center; align-items: center; padding: 34px 20px; }
+.thanks .big { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); animation: pop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+.thanks .big svg { width: 50px; height: 50px; }
+.thanks h2 { font-size: 26px; }
+.echo { display: flex; justify-content: center; gap: 4px; direction: ltr; color: var(--gold); }
+.echo svg { width: 26px; height: 26px; }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; width: 100%; height: 100%; }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+.foot { text-align: center; color: var(--muted); font-size: 12.5px; }
+
+@media (max-width: 520px) {
+  .card { padding: 16px; border-radius: 18px; }
+  .stars button svg { width: 40px; height: 40px; }
+  .scale button { font-size: 12.5px; }
+  .send { padding: 12px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="hero">
+    <svg class="deco" viewBox="0 0 300 200" aria-hidden="true"><path d="M0 160 C 40 20, 90 20, 120 100 S 200 190, 240 60 S 290 10, 300 40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="100" r="8" fill="#ffd166"/><circle cx="240" cy="60" r="8" fill="#ffd166"/></svg>
+    <div class="hero-top">
+      <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم" width="53" height="40"><span></span><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة" width="46" height="40"></div>
+      <span class="pill">ورشة عمل · درس نموذجي</span>
+    </div>
+    <h1>أثر الدرس</h1>
+    <p class="sub">تقييم الحضور لدرس <b>العمليات على كثيرات الحدود</b> · رياضيات 2 · الفصل 3</p>
+    <div class="teacher">
+      <div class="avatar" aria-hidden="true">ف</div>
+      <div><b id="teacherName">أ. فائزة محمد جبوع</b><small>معلمة الرياضيات · الثانوية 158 · 1448هـ</small></div>
+    </div>
+    <div class="flow" aria-label="مراحل الدرس">
+      <span>قياس المعرفة القبلي</span><span>مهمة أداء</span><span>خصائص الأسس</span><span>الدرس التفاعلي</span><span>جمع وطرح وضرب</span><span>منصة الألعاب</span><span>الإغلاق</span>
+    </div>
+  </header>
+
+  <form id="form" novalidate>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <section class="card" id="sec-overall">
+        <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 17.3l-5.9 3.2 1.3-6.5L2.5 9.4l6.6-.8z"/></svg></div>
+          <div><h2>التقييم العام للدرس</h2><small>انطباعك الأول بنقرة واحدة</small></div></div>
+        <div class="stars" id="stars" role="radiogroup" aria-label="التقييم العام"></div>
+        <div class="star-label" id="starLabel" aria-live="polite"></div>
+      </section>
+
+      <div id="axes" style="display:flex;flex-direction:column;gap:18px"></div>
+
+      <section class="card" id="sec-moments">
+        <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.4-9.3-9A5.3 5.3 0 0 1 12 6.2 5.3 5.3 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg></div>
+          <div><h2>ما اللحظة التي تركت أثرًا؟</h2><small>اختيار متعدد</small></div></div>
+        <div class="chips" id="moments"></div>
+      </section>
+
+      <section class="card" id="sec-apply">
+        <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          <div><h2>ما الذي ستنقله إلى صفك؟</h2><small>الممارسات التي تنوي تطبيقها، اختيار متعدد</small></div></div>
+        <div class="chips" id="apply"></div>
+      </section>
+
+      <section class="card" id="sec-words">
+        <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg></div>
+          <div><h2>كلمة للمعلمة</h2><small>اختياري، وتصل للمعلمة فقط</small></div></div>
+        <label class="f">أبرز نقاط القوة<textarea id="strengths" maxlength="1500" placeholder="مثلًا: مهمة الأداء بثلاث طرق كشفت الخطأ الشائع بذكاء…"></textarea></label>
+        <label class="f">مقترحات للتطوير<textarea id="suggestions" maxlength="1500" placeholder="فكرة تجعل الدرس أقوى في المرة القادمة…"></textarea></label>
+        <label class="f">صفتك<small>اختياري</small></label>
+        <div class="chips" id="roles"></div>
+        <label class="f">الاسم<small>اختياري، اتركه فارغًا ليكون التقييم بلا اسم</small><input type="text" id="name" maxlength="80" autocomplete="name"></label>
+      </section>
+    </div>
+  </form>
+
+  <section class="card thanks" id="thanks" hidden>
+    <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>شكرًا لك، وصل تقييمك</h2>
+    <div class="echo" id="echo"></div>
+    <p class="muted">رأيك يصنع أثرًا في الدرس القادم.</p>
+  </section>
+
+  <p class="foot" id="foot">الثانوية الثامنة والخمسون بعد المائة · 1448هـ</p>
+</div>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="ring" aria-hidden="true">
+      <svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="none" stroke="var(--line)" stroke-width="5"/><circle id="ringArc" cx="23" cy="23" r="19" fill="none" stroke="var(--accent-2)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4" style="transition:stroke-dashoffset .3s"/></svg>
+      <b id="ringPct">0%</b>
+    </div>
+    <div class="bar-txt" id="barTxt" aria-live="polite"><b>ابدأ بالتقييم العام</b>بنود المحاور تُكمل الصورة</div>
+    <button type="button" class="send" id="send">إرسال التقييم</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const WORKSHOP = "polynomials";
+const DONE_KEY = "feedback-done:" + WORKSHOP;
+
+const ICONS = {
+  plan: '<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  science: '<path d="M4 19l5-14h2l5 14"/><path d="M6.5 13h7"/><path d="M17 5v6M14 8h6"/>',
+  think: '<circle cx="12" cy="10" r="6"/><path d="M9 21h6M10 17.5h4"/>',
+  tech: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  assess: '<path d="M9 11l2.5 2.5L16 9"/><rect x="4" y="3" width="16" height="18" rx="2"/>',
+  values: '<path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/>',
+};
+// Six axes built from what happened in this lesson, in the order it was taught.
+const AXES = [
+  { k: "plan", t: "التخطيط وبناء الدرس", s: "من الأهداف إلى التمهيد", items: [
+    ["goals", "وضوح الأهداف الثلاثة وارتباط الأنشطة بها", "الجمع والطرح والضرب، ضرب وحيدات الحد وقسمتها، التبسيط"],
+    ["warmup", "التمهيد وتنشيط المتطلبات السابقة", "الفهم القرائي ومراجعة خصائص الأسس"],
+    ["time", "إدارة الوقت والانتقال السلس بين مراحل الدرس", ""],
+  ] },
+  { k: "science", t: "المحتوى العلمي", s: "دقة وتدرّج ومعالجة للأخطاء", items: [
+    ["accuracy", "دقة عرض خصائص الأسس وتبسيط وحيدات الحد", "ضرب القوى وقسمتها، الأس السالب، قوة القوة، القوة الصفرية"],
+    ["sequence", "التدرج من وحيدة الحد إلى العمليات على كثيرات الحدود", "درجة كثيرة الحدود ثم الجمع والطرح ثم الضرب"],
+    ["errors", "تشخيص الأخطاء الشائعة ومعالجتها", "مثل خطأ الطريقة C في جمع الحدود المتشابهة"],
+  ] },
+  { k: "think", t: "الاستراتيجيات والتفكير", s: "كيف فكّرت الطالبات", items: [
+    ["task", "مهمة الأداء والتفكير الناقد", "مقارنة ثلاث طرق للحل واختيار الأكفأ"],
+    ["knowledge", "استراتيجية قياس درجة المعرفة قبل الدرس وبعده", "أستطيع شرحها، سمعت عنها، لا أعرفها"],
+    ["minute", "أنشطة «في دقيقة واحدة» والعصف الذهني «ماذا لو؟»", ""],
+  ] },
+  { k: "tech", t: "التقنية والتفاعل", s: "أدوات رقمية في خدمة الفهم", items: [
+    ["interactive", "توظيف الدرس التفاعلي", "مختبر القوى، جدول الضرب، البلاطات الجبرية"],
+    ["platforms", "توظيف Padlet ومنصة الألعاب التعليمية", ""],
+    ["engagement", "مشاركة الطالبات وتفاعلهن", ""],
+  ] },
+  { k: "assess", t: "التقويم والإغلاق", s: "هل تحقّق الفهم؟", items: [
+    ["assessment", "تنوع أساليب التقويم وتوزيعها على الدرس", "تحقق من فهمك، تأكد، تمارين ومسائل"],
+    ["closure", "الإغلاق والواجب", "عرفنا، نحتاج أن نعرف، توصلنا، وواجب منصة مدرستي"],
+  ] },
+  { k: "values", t: "القيم وبيئة التعلم", s: "ما وراء الرياضيات", items: [
+    ["values", "تعزيز القيم والأمن الفكري وربط الدرس بالوطن", "عبارات خالدة، شبابنا والأمن الفكري"],
+    ["climate", "إدارة بيئة التعلم وقوانين الصف", ""],
+  ] },
+];
+const SCALE = [[4, "متميز"], [3, "جيد جدًا"], [2, "جيد"], [1, "يحتاج تطوير"]];
+const MOMENTS = [["task", "مهمة أداء فاطمة والطرق الثلاث"], ["interactive", "الدرس التفاعلي"], ["knowledge", "قياس درجة المعرفة"], ["game", "منصة الألعاب"],
+  ["examples", "الأمثلة خطوة بخطوة"], ["whatif", "عصف ذهني «ماذا لو؟»"], ["closure", "الإغلاق: عرفنا ونحتاج وتوصلنا"], ["values", "القيم وعبارات ولي العهد"]];
+const APPLY = [["task", "مهام الأداء متعددة الحلول"], ["errors", "تحليل الحل الخاطئ"], ["knowledge", "قياس المعرفة قبل وبعد"], ["minute", "في دقيقة واحدة"],
+  ["interactive", "الدروس التفاعلية"], ["game", "الألعاب التعليمية"], ["closure", "إغلاق عرفنا ونحتاج وتوصلنا"]];
+const ROLES = [["leader", "قائدة مدرسة"], ["supervisor", "مشرفة تربوية"], ["deputy", "وكيلة"], ["math", "معلمة رياضيات"], ["teacher", "معلمة تخصص آخر"], ["other", "أخرى"]];
+const STAR_TXT = ["", "يحتاج إلى تطوير", "مقبول", "جيد", "جيد جدًا", "متميز ومُلهم"];
+const STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 17.3l-5.9 3.2 1.3-6.5L2.5 9.4l6.6-.8z"/></svg>';
+
+const st = { overall: 0, ratings: {}, moments: new Set(), apply: new Set(), role: null };
+const TOTAL = AXES.reduce((n, a) => n + a.items.length, 0);
+
+/* Build */
+$("#stars").innerHTML = [1, 2, 3, 4, 5].map(n => `<button type="button" role="radio" aria-checked="false" aria-label="${n} من 5" data-n="${n}">${STAR}</button>`).join("");
+$("#axes").innerHTML = AXES.map(a => `<section class="card" id="sec-${a.k}">
+  <div class="card-h"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[a.k]}</svg></div>
+    <div><h2>${esc(a.t)}</h2><small>${esc(a.s)}</small></div><span class="done" data-done="${a.k}">0 / ${a.items.length}</span></div>
+  ${a.items.map(([k, q, hint]) => `<div class="item" data-item="${k}"><div class="item-q">${esc(q)}${hint ? `<small>${esc(hint)}</small>` : ""}</div>
+    <div class="scale" role="radiogroup" aria-label="${esc(q)}">${SCALE.map(([v, l]) => `<button type="button" role="radio" aria-pressed="false" aria-checked="false" data-v="${v}"><i></i>${l}</button>`).join("")}</div></div>`).join("")}
+</section>`).join("");
+const chips = (el, list, set, single) => {
+  el.innerHTML = list.map(([k, l]) => `<button type="button" aria-pressed="false" data-k="${k}">${esc(l)}</button>`).join("");
+  el.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (single) { st.role = st.role === b.dataset.k ? null : b.dataset.k; el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === st.role)); }
+    else { set.has(b.dataset.k) ? set.delete(b.dataset.k) : set.add(b.dataset.k); b.setAttribute("aria-pressed", set.has(b.dataset.k)); }
+    progress();
+  });
+};
+chips($("#moments"), MOMENTS, st.moments);
+chips($("#apply"), APPLY, st.apply);
+chips($("#roles"), ROLES, null, true);
+
+/* Interaction */
+function setStars(n, preview) {
+  $$("#stars button").forEach(b => { const on = +b.dataset.n <= n; b.classList.toggle("on", on); if (!preview) b.setAttribute("aria-checked", +b.dataset.n === n); });
+  $("#starLabel").textContent = STAR_TXT[n] || "";
+}
+$("#stars").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; st.overall = +b.dataset.n; setStars(st.overall); progress(); });
+$("#stars").addEventListener("mouseover", e => { const b = e.target.closest("button"); if (b) setStars(+b.dataset.n, true); });
+$("#stars").addEventListener("mouseleave", () => setStars(st.overall, true));
+$("#axes").addEventListener("click", e => {
+  const b = e.target.closest(".scale button"); if (!b) return;
+  const item = b.closest(".item"), k = item.dataset.item;
+  st.ratings[k] = +b.dataset.v;
+  item.classList.remove("missing");
+  item.querySelectorAll("button").forEach(x => { const on = x === b; x.setAttribute("aria-pressed", on); x.setAttribute("aria-checked", on); });
+  progress();
+  // Once an axis is complete, bring the next one into view.
+  const sec = item.closest("section"), axis = AXES.find(a => "sec-" + a.k === sec.id);
+  if (axis.items.every(([key]) => st.ratings[key]) && !sec.dataset.moved) {
+    sec.dataset.moved = 1;
+    const next = sec.nextElementSibling || $("#sec-moments");
+    setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+  }
+});
+
+function progress() {
+  const answered = Object.keys(st.ratings).length;
+  for (const a of AXES) {
+    const n = a.items.filter(([k]) => st.ratings[k]).length, el = $(`[data-done="${a.k}"]`);
+    el.textContent = n === a.items.length ? "✓ مكتمل" : `${n} / ${a.items.length}`; el.classList.toggle("full", n === a.items.length);
+  }
+  const parts = (st.overall ? 1 : 0) + answered + (st.moments.size ? 1 : 0) + (st.apply.size ? 1 : 0);
+  const pct = Math.round(parts / (TOTAL + 3) * 100);
+  $("#ringArc").style.strokeDashoffset = 119.4 * (1 - pct / 100);
+  $("#ringPct").textContent = pct + "%";
+  $("#barTxt").innerHTML = !st.overall ? "<b>ابدأ بالتقييم العام</b>بنود المحاور تُكمل الصورة"
+    : answered < TOTAL ? `<b>${answered} من ${TOTAL} بندًا</b>تقدر ترسل الآن، وكل بند يزيد دقة التقييم`
+    : "<b>اكتملت كل البنود ✓</b>أضف كلمة للمعلمة إن أحببت ثم أرسل";
+}
+
+/* Send */
+$("#send").addEventListener("click", async () => {
+  if (!st.overall) {
+    $("#sec-overall").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#barTxt").innerHTML = '<span class="err">اختر التقييم العام بالنجوم أولًا</span>';
+    return;
+  }
+  const missing = AXES.flatMap(a => a.items.map(([k]) => k)).filter(k => !st.ratings[k]);
+  if (missing.length && !$("#send").dataset.warned) {
+    $("#send").dataset.warned = 1;
+    missing.forEach(k => $(`[data-item="${k}"]`).classList.add("missing"));
+    $(`[data-item="${missing[0]}"]`).scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#barTxt").innerHTML = `<b>بقي ${missing.length} ${missing.length > 10 ? "بندًا" : "بنود"} بلا تقييم</b>اضغط «إرسال» مرة ثانية لو تبي ترسل كذا`;
+    $("#send").textContent = "أرسل على كل حال";
+    return;
+  }
+  const body = {
+    overall: st.overall, ratings: st.ratings, moments: [...st.moments], apply: [...st.apply], role: st.role,
+    strengths: $("#strengths").value, suggestions: $("#suggestions").value, name: $("#name").value,
+  };
+  $("#send").disabled = true; $("#send").textContent = "جارٍ الإرسال…";
+  try {
+    const r = await fetch(`/api/feedback/${WORKSHOP}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(r.status);
+    try { localStorage.setItem(DONE_KEY, String(st.overall)); } catch {}
+    thanks(st.overall);
+  } catch (err) {
+    $("#send").disabled = false; $("#send").textContent = "إعادة المحاولة";
+    $("#barTxt").innerHTML = '<span class="err">ما وصل التقييم، تأكد من الاتصال وحاول مرة ثانية</span>';
+  }
+});
+
+function thanks(n) {
+  $("#form").hidden = true; $("#bar").hidden = true; $("#thanks").hidden = false;
+  $("#echo").innerHTML = Array.from({ length: 5 }, (_, k) => `<span style="opacity:${k < n ? 1 : .2}">${STAR}</span>`).join("");
+  scrollTo({ top: 0, behavior: "smooth" });
+  confetti();
+}
+
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("#confetti"), ctx = cv.getContext("2d"), d = devicePixelRatio || 1;
+  cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.scale(d, d);
+  const colors = ["#0d6e6a", "#12a39a", "#e0a100", "#e8505b", "#1f2a5a"];
+  const ps = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 160, y: innerHeight * .3, vx: (Math.random() - .5) * 9, vy: -Math.random() * 10 - 3, r: Math.random() * 6.28, s: Math.random() * 6 + 4, c: colors[Math.floor(Math.random() * colors.length)] }));
+  const t0 = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of ps) { p.vy += .25; p.x += p.vx; p.y += p.vy; p.r += .1; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); }
+    if (t - t0 < 2600) requestAnimationFrame(frame); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+  })(t0);
+}
+
+// One answer per device: a returning attendee sees the thank-you card instead of a fresh form.
+try { const prev = localStorage.getItem(DONE_KEY); if (prev && !location.search.includes("again")) thanks(+prev); } catch {}
+progress();
+</script>
+</body>
+</html>

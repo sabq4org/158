@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة الدرس التطبيقي</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d6e6a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* The teacher's dashboard for the model lesson: the attendance sheet (printable, with signatures), the evaluation results,
+   and the QR codes to show attendees. Behind the same sign-in as the admin panel. */
+:root {
+  --bg: #eef4f2;
+  --surface: #ffffff;
+  --surface-2: #f5f9f8;
+  --ink: #142a2e;
+  --muted: #5b7277;
+  --line: #d7e4e1;
+  --accent: #0d6e6a;
+  --accent-2: #12a39a;
+  --accent-soft: #d6ece9;
+  --gold: #e0a100;
+  --gold-soft: #fff4d6;
+  --coral: #e8505b;
+  --indigo: #1f2a5a;
+  --s4: #0d8a5f;
+  --s3: #12a39a;
+  --s2: #e0a100;
+  --s1: #e8505b;
+  --shadow: 0 1px 2px rgba(20, 42, 46, .06), 0 14px 36px -14px rgba(20, 42, 46, .22);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae; --line: #26403f;
+    --accent: #4fc2b8; --accent-2: #4fc2b8; --accent-soft: #163a3a; --gold: #f0bf47; --gold-soft: #3a2e14; --coral: #f27a82; --indigo: #c9d2ff;
+    --s4: #45d08f; --s3: #4fc2b8; --s2: #f0bf47; --s1: #f27a82;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px -14px rgba(0,0,0,.6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1a1c; --surface: #142427; --surface-2: #192d31; --ink: #e6f0ee; --muted: #93aaae; --line: #26403f;
+  --accent: #4fc2b8; --accent-2: #4fc2b8; --accent-soft: #163a3a; --gold: #f0bf47; --gold-soft: #3a2e14; --coral: #f27a82; --indigo: #c9d2ff;
+  --s4: #45d08f; --s3: #4fc2b8; --s2: #f0bf47; --s1: #f27a82;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px -14px rgba(0,0,0,.6); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { direction: rtl; scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.75;
+  background-image: radial-gradient(circle at 1px 1px, rgba(13, 110, 106, .07) 1.5px, transparent 0); background-size: 22px 22px;
+}
+.wrap {
+  max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
+  padding: 24px max(16px, env(safe-area-inset-right)) 120px max(16px, env(safe-area-inset-left));
+}
+
+
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding: 18px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+.top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logos { display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 5px 10px; }
+.logos img { height: 34px; width: auto; display: block; }
+.top h1 { margin: 0; font-size: 20px; line-height: 1.4; }
+.top small { display: block; color: var(--muted); font-size: 13px; font-weight: 500; }
+.live { margin-inline-start: auto; font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--s4); box-shadow: 0 0 0 0 var(--s4); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--s4) 60%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
+.tabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 5px; overflow-x: auto; }
+.tabs button { flex: 1; font: inherit; font-weight: 600; font-size: 15px; border: 0; border-radius: 12px; padding: 9px 12px; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+.tabs b { font-variant-numeric: tabular-nums; opacity: .85; font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card h2 { margin: 0; font-size: 17px; }
+.card h2 small { color: var(--muted); font-weight: 500; font-size: 13px; margin-inline-start: 6px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { font: inherit; font-size: 14px; font-weight: 600; border-radius: 12px; padding: 8px 14px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn svg { width: 18px; height: 18px; }
+.btn.del { border: 0; background: none; color: var(--muted); padding: 4px 6px; font-size: 13px; }
+.btn.del:hover { color: var(--coral); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow); }
+.kpi span { color: var(--muted); font-size: 13px; font-weight: 600; }
+.kpi b { display: block; font-size: 30px; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.kpi b small { font-size: 15px; color: var(--muted); font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.bars { display: flex; flex-direction: column; gap: 9px; }
+.bar { display: grid; grid-template-columns: minmax(0, 11rem) 1fr 3.4rem; gap: 10px; align-items: center; font-size: 14px; }
+.bar .l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .t { height: 12px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.bar .t i { display: block; height: 100%; border-radius: 99px; background: var(--accent-2); }
+.bar .v { font-variant-numeric: tabular-nums; font-weight: 700; text-align: end; direction: ltr; }
+.bar.gold .t i { background: var(--gold); }
+.items { display: flex; flex-direction: column; gap: 4px; }
+.it { display: grid; grid-template-columns: 1fr 9rem 3rem; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 10px; font-size: 14px; }
+.it:nth-child(odd) { background: var(--surface-2); }
+.it .dist { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--line); }
+.it .dist i:nth-child(1) { background: var(--s4); } .it .dist i:nth-child(2) { background: var(--s3); } .it .dist i:nth-child(3) { background: var(--s2); } .it .dist i:nth-child(4) { background: var(--s1); }
+.it .v { font-weight: 700; font-variant-numeric: tabular-nums; text-align: end; direction: ltr; }
+.axis-h { font-weight: 700; color: var(--accent); margin-top: 8px; font-size: 14px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 1px 9px; margin-inline-start: 6px; }
+.tag.top { background: color-mix(in srgb, var(--s4) 18%, transparent); color: var(--s4); }
+.tag.low { background: color-mix(in srgb, var(--s1) 18%, transparent); color: var(--s1); }
+.notes { display: flex; flex-direction: column; gap: 10px; }
+.note { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--surface-2); }
+.note header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.note header b { color: var(--ink); }
+.note .stars { color: var(--gold); letter-spacing: 1px; direction: ltr; }
+.note p { margin: 6px 0 0; white-space: pre-wrap; }
+.note p em { font-style: normal; font-weight: 700; color: var(--accent); }
+.empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: middle; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
+td.n { font-variant-numeric: tabular-nums; color: var(--muted); width: 2.5rem; }
+td.ph { direction: ltr; text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.sig img { height: 40px; max-width: 150px; display: block; background: #fff; border-radius: 6px; }
+td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qrs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.qr { align-items: center; text-align: center; }
+.qr img { width: min(280px, 100%); aspect-ratio: 1; background: #fff; border-radius: 16px; padding: 10px; border: 1px solid var(--line); }
+.qr code { direction: ltr; font-size: 13px; color: var(--muted); word-break: break-all; }
+.login { max-width: 400px; margin: 10vh auto 0; text-align: center; align-items: stretch; }
+.login input { font: inherit; font-size: 16px; padding: 11px 13px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); text-align: center; }
+.login input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.err { color: var(--coral); font-weight: 600; font-size: 14px; min-height: 1.4em; }
+.print-only { display: none !important; }
+@media (max-width: 760px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .grid2, .qrs { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: minmax(0, 8rem) 1fr 3rem; }
+  .it { grid-template-columns: 1fr 5.5rem 2.6rem; font-size: 13.5px; }
+  .top h1 { font-size: 17px; }
+}
+/* Print: the attendance sheet or the evaluation report, on white A4 with the official header. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  :root { --bg: #fff; --surface: #fff; --surface-2: #f4f7f6; --ink: #000; --muted: #444; --line: #bbb; --shadow: none; }
+  body { background: #fff; font-size: 12px; }
+  .noprint, .tabs, .top, .btn, .live { display: none !important; }
+  .print-only { display: block !important; }
+  .signs.print-only { display: flex !important; }
+  .wrap { padding: 0; max-width: none; gap: 10px; }
+  .card, .kpi { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+  th, td { border: 1px solid #999; padding: 5px 6px; }
+  td.sig img { height: 34px; }
+  .bar .t, .it .dist { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .tbl-wrap { overflow: visible; }
+}
+.phead { text-align: center; border-bottom: 2px solid #0d6e6a; padding-bottom: 8px; margin-bottom: 6px; }
+.phead .lg { display: flex; justify-content: space-between; align-items: center; }
+.phead .lg img { height: 50px; }
+.phead h2 { margin: 6px 0 2px; font-size: 16px; }
+.phead p { margin: 0; font-size: 12px; color: #444; }
+.signs { display: flex; justify-content: space-between; margin-top: 26px; font-size: 13px; }
+.signs div { width: 40%; text-align: center; }
+.signs span { display: block; border-top: 1px dotted #555; margin-top: 34px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="card login" id="login" hidden novalidate>
+    <div class="logos" style="align-self:center"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h2>لوحة الدرس التطبيقي</h2>
+    <p class="muted">بكلمة مرور لوحة التحكم نفسها</p>
+    <input type="password" id="pw" autocomplete="current-password" aria-label="كلمة المرور" placeholder="كلمة المرور">
+    <button class="btn primary" style="justify-content:center">دخول</button>
+    <p class="err" id="loginErr"></p>
+  </form>
+
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="top">
+      <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+      <div><h1>الدرس التطبيقي: العمليات على كثيرات الحدود</h1><small>أ. فايزه جبوع · ثانوية 158 · الصف الثاني ثانوي</small></div>
+      <span class="live"><i></i><span id="updated">يتحدّث تلقائيًا</span></span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="att" aria-selected="true">الحضور <b id="nAtt"></b></button>
+      <button role="tab" data-tab="eval" aria-selected="false">التقييم <b id="nEval"></b></button>
+      <button role="tab" data-tab="share" aria-selected="false">روابط و QR</button>
+    </div>
+
+    <section id="tab-att" class="tabp">
+      <div class="print-only phead" id="pheadAtt"></div>
+      <div class="card">
+        <div class="row noprint"><h2 style="flex:1">كشف الحضور <small id="attSub"></small></h2>
+          <button class="btn primary" data-print="att"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>طباعة الكشف</button>
+          <button class="btn" id="csvAtt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</button></div>
+        <div class="tbl-wrap" id="attTable"></div>
+        <div class="print-only signs"><div>معلمة المادة<br>فايزه جبوع<span></span></div><div>قائدة المدرسة<span></span></div></div>
+      </div>
+    </section>
+
+    <section id="tab-eval" class="tabp" hidden>
+      <div class="print-only phead" id="pheadEval"></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="row noprint" style="justify-content:flex-end">
+          <button class="btn primary" data-print="eval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>طباعة التقرير</button>
+          <button class="btn" id="csvEval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</button>
+        </div>
+        <div id="evalBody"></div>
+      </div>
+    </section>
+
+    <section id="tab-share" class="tabp" hidden>
+      <div class="qrs">
+        <div class="card qr"><h2>تسجيل الحضور</h2><img src="/lessons/polynomials/attendance/qr.svg" alt="رمز QR لتسجيل الحضور"><code id="uAtt"></code>
+          <div class="row" style="justify-content:center"><button class="btn" data-copy="uAtt">نسخ الرابط</button><a class="btn" id="oAtt" target="_blank" rel="noopener">فتح</a></div></div>
+        <div class="card qr"><h2>تقييم الدرس</h2><img src="/lessons/polynomials/feedback/qr.svg" alt="رمز QR لتقييم الدرس"><code id="uEval"></code>
+          <div class="row" style="justify-content:center"><button class="btn" data-copy="uEval">نسخ الرابط</button><a class="btn" id="oEval" target="_blank" rel="noopener">فتح</a></div></div>
+      </div>
+      <p class="muted" style="text-align:center;font-size:13.5px">اعرضي الرمز على الشاشة في بداية الدرس للحضور، وفي نهايته للتقييم. بعد تسجيل الحضور يظهر للحاضرة زر ينقلها للتقييم مباشرة.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const WORKSHOP = "polynomials";
+const TITLE = "حضور درس تطبيقي لمادة الرياضيات للمعلمة فايزه جبوع في ثانوية 158 للصف الثاني ثانوي";
+
+// Labels match the attendance and evaluation pages.
+const JOBS = { leader: "قائدة مدرسة", supervisor: "مشرفة تربوية", deputy: "وكيلة", math: "معلمة رياضيات", teacher: "معلمة تخصص آخر", admin: "إدارية", other: "أخرى" };
+const AXES = [
+  ["التخطيط وبناء الدرس", [["goals", "وضوح الأهداف وارتباط الأنشطة بها"], ["warmup", "التمهيد وتنشيط المتطلبات السابقة"], ["time", "إدارة الوقت والانتقال بين المراحل"]]],
+  ["المحتوى العلمي", [["accuracy", "دقة عرض خصائص الأسس وتبسيط وحيدات الحد"], ["sequence", "التدرج من وحيدة الحد إلى العمليات"], ["errors", "تشخيص الأخطاء الشائعة ومعالجتها"]]],
+  ["الاستراتيجيات والتفكير", [["task", "مهمة الأداء والتفكير الناقد"], ["knowledge", "قياس درجة المعرفة قبل وبعد"], ["minute", "«في دقيقة واحدة» و«ماذا لو؟»"]]],
+  ["التقنية والتفاعل", [["interactive", "توظيف الدرس التفاعلي"], ["platforms", "توظيف Padlet ومنصة الألعاب"], ["engagement", "مشاركة الطالبات وتفاعلهن"]]],
+  ["التقويم والإغلاق", [["assessment", "تنوع أساليب التقويم"], ["closure", "الإغلاق والواجب"]]],
+  ["القيم وبيئة التعلم", [["values", "تعزيز القيم والأمن الفكري"], ["climate", "إدارة بيئة التعلم وقوانين الصف"]]],
+];
+const ITEM = Object.fromEntries(AXES.flatMap(([, it]) => it));
+const MOMENTS = { task: "مهمة أداء فاطمة والطرق الثلاث", interactive: "الدرس التفاعلي", knowledge: "قياس درجة المعرفة", game: "منصة الألعاب", examples: "الأمثلة خطوة بخطوة", whatif: "عصف ذهني «ماذا لو؟»", closure: "الإغلاق: عرفنا ونحتاج وتوصلنا", values: "القيم وعبارات ولي العهد" };
+const APPLY = { task: "مهام الأداء متعددة الحلول", errors: "تحليل الحل الخاطئ", knowledge: "قياس المعرفة قبل وبعد", minute: "في دقيقة واحدة", interactive: "الدروس التفاعلية", game: "الألعاب التعليمية", closure: "إغلاق عرفنا ونحتاج وتوصلنا" };
+const ROLES = { leader: "قائدة مدرسة", supervisor: "مشرفة تربوية", deputy: "وكيلة", math: "معلمة رياضيات", teacher: "معلمة تخصص آخر", other: "أخرى" };
+
+let data = null, role = "viewer", tab = "att";
+const fmt = new Intl.NumberFormat("ar-SA-u-nu-latn", { maximumFractionDigits: 1 });
+const time = d => new Date(d).toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" });
+const hijri = d => { try { return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d); } catch { return ""; } };
+
+const url = p => location.origin + "/lessons/" + WORKSHOP + "/" + p;
+$("#uAtt").textContent = url("attendance"); $("#oAtt").href = url("attendance");
+$("#uEval").textContent = url("feedback"); $("#oEval").href = url("feedback");
+
+async function load() {
+  const r = await fetch(`/api/admin/feedback/${WORKSHOP}`, { cache: "no-store" });
+  if (r.status === 401) { $("#app").hidden = true; $("#login").hidden = false; $("#pw").focus(); return false; }
+  if (!r.ok) throw new Error(r.status);
+  data = await r.json(); role = data.role;
+  $("#login").hidden = true; $("#app").hidden = false;
+  render();
+  $("#updated").textContent = "آخر تحديث " + time(new Date());
+  return true;
+}
+
+$("#login").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("#loginErr").textContent = "";
+  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("#pw").value }) });
+  if (r.ok) return load();
+  const j = await r.json().catch(() => ({}));
+  $("#loginErr").textContent = r.status === 429 ? "محاولات كثيرة، انتظري قليلًا" : "كلمة المرور غير صحيحة";
+});
+
+$$(".tabs button").forEach(b => b.addEventListener("click", () => {
+  tab = b.dataset.tab;
+  $$(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  $$(".tabp").forEach(p => p.hidden = p.id !== "tab-" + tab);
+}));
+
+function render() {
+  const att = data.attendance, res = data.responses;
+  $("#nAtt").textContent = att.length; $("#nEval").textContent = res.length;
+  const head = sub => `<div class="lg"><img src="/img/moe.webp" alt=""><div><h2>${esc(TITLE)}</h2><p>${esc(sub)} · درس العمليات على كثيرات الحدود · ${esc(hijri(new Date(att[0]?.created_at || res.at(-1)?.created_at || Date.now())))}</p></div><img src="/img/school.webp" alt=""></div>`;
+  $("#pheadAtt").innerHTML = head("كشف الحضور"); $("#pheadEval").innerHTML = head("تقرير تقييم الحضور للدرس");
+  renderAtt(att); renderEval(res);
+}
+
+function renderAtt(att) {
+  $("#attSub").textContent = att.length ? `${att.length} حاضرة` : "";
+  const del = role === "admin";
+  $("#attTable").innerHTML = !att.length ? '<p class="empty">لم يسجّل أحد حضوره بعد. افتحي «روابط و QR» واعرضي الرمز للحضور.</p>' :
+    `<table><thead><tr><th>م</th><th>الاسم</th><th>العمل الحالي</th><th>جهة العمل</th><th>الجوال</th><th>التوقيع</th><th>الوقت</th>${del ? '<th class="noprint"></th>' : ""}</tr></thead><tbody>
+    ${att.map((a, i) => `<tr><td class="n">${i + 1}</td><td>${esc(a.name)}</td><td>${esc(JOBS[a.job] || a.job)}</td><td>${esc(a.workplace)}</td><td class="ph">${esc(a.phone || "")}</td>
+      <td class="sig"><img src="${esc(a.signature)}" alt="توقيع ${esc(a.name)}"></td><td class="time">${time(a.created_at)}</td>
+      ${del ? `<td class="noprint"><button class="btn del" data-del="attendance/${a.id}" title="حذف">حذف</button></td>` : ""}</tr>`).join("")}</tbody></table>`;
+}
+
+const bar = (label, v, max, txt, cls = "") => `<div class="bar ${cls}"><span class="l" title="${esc(label)}">${esc(label)}</span><span class="t"><i style="width:${max ? v / max * 100 : 0}%"></i></span><span class="v">${txt}</span></div>`;
+const avg = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+
+function renderEval(res) {
+  if (!res.length) { $("#evalBody").innerHTML = '<div class="card"><p class="empty">لا توجد تقييمات بعد.</p></div>'; return; }
+  const n = res.length, overall = avg(res.map(r => r.overall));
+  const happy = res.filter(r => r.overall >= 4).length;
+  const itemStats = Object.keys(ITEM).map(k => { const v = res.map(r => r.ratings?.[k]).filter(Boolean); return { k, n: v.length, avg: avg(v), dist: [4, 3, 2, 1].map(s => v.filter(x => x === s).length) }; });
+  const rated = itemStats.filter(s => s.n);
+  const allAvg = avg(rated.map(s => s.avg));
+  const sorted = [...rated].sort((a, b) => b.avg - a.avg);
+  const top = new Set(sorted.slice(0, 3).map(s => s.k)), low = new Set(sorted.length > 6 ? sorted.slice(-3).map(s => s.k) : []);
+  const count = (key, labels) => Object.entries(labels).map(([k, l]) => [l, res.filter(r => (r[key] || []).includes(k)).length]).sort((a, b) => b[1] - a[1]);
+  const moments = count("moments", MOMENTS), apply = count("apply", APPLY);
+  const roles = Object.entries(ROLES).map(([k, l]) => [l, res.filter(r => r.role === k).length]).filter(x => x[1]);
+  const notes = res.filter(r => r.strengths || r.suggestions);
+  const del = role === "admin";
+
+  $("#evalBody").innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="kpis">
+      <div class="kpi"><span>عدد التقييمات</span><b>${n}</b></div>
+      <div class="kpi"><span>التقييم العام</span><b>${fmt.format(overall)} <small>من 5 ★</small></b></div>
+      <div class="kpi"><span>راضون (4 نجوم فأكثر)</span><b>${Math.round(happy / n * 100)}<small>%</small></b></div>
+      <div class="kpi"><span>متوسط بنود المحاور</span><b>${fmt.format(allAvg)} <small>من 4</small></b></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>توزيع التقييم العام</h2><div class="bars">${[5, 4, 3, 2, 1].map(s => { const c = res.filter(r => r.overall === s).length; return bar("★".repeat(s), c, n, c, "gold"); }).join("")}</div></div>
+      <div class="card"><h2>متوسط المحاور <small>من 4</small></h2><div class="bars">${AXES.map(([t, it]) => { const v = avg(it.map(([k]) => itemStats.find(s => s.k === k)).filter(s => s.n).map(s => s.avg)); return bar(t, v, 4, fmt.format(v)); }).join("")}</div></div>
+    </div>
+    <div class="card"><h2>البنود بالتفصيل</h2>
+      <div class="legend"><span><i style="background:var(--s4)"></i>متميز</span><span><i style="background:var(--s3)"></i>جيد جدًا</span><span><i style="background:var(--s2)"></i>جيد</span><span><i style="background:var(--s1)"></i>يحتاج تطوير</span></div>
+      <div class="items">${AXES.map(([t, it]) => `<div class="axis-h">${esc(t)}</div>` + it.map(([k, l]) => { const s = itemStats.find(x => x.k === k); return `<div class="it"><span>${esc(l)}${top.has(k) ? '<span class="tag top">الأعلى</span>' : ""}${low.has(k) ? '<span class="tag low">فرصة تطوير</span>' : ""}</span>
+        <span class="dist" title="${s.dist.join(" / ")}">${s.dist.map(c => `<i style="width:${s.n ? c / s.n * 100 : 0}%"></i>`).join("")}</span><span class="v">${s.n ? fmt.format(s.avg) : "—"}</span></div>`; }).join("")).join("")}</div></div>
+    <div class="grid2">
+      <div class="card"><h2>اللحظات التي تركت أثرًا</h2><div class="bars">${moments.map(([l, c]) => bar(l, c, n, c)).join("")}</div></div>
+      <div class="card"><h2>ما سينقله الحضور لصفوفهم</h2><div class="bars">${apply.map(([l, c]) => bar(l, c, n, c)).join("")}</div></div>
+    </div>
+    ${roles.length ? `<div class="card"><h2>صفة المقيّمين</h2><div class="bars">${roles.map(([l, c]) => bar(l, c, n, c)).join("")}</div></div>` : ""}
+    <div class="card"><h2>كلمات للمعلمة <small>${notes.length}</small></h2>
+      <div class="notes">${notes.length ? notes.map(r => `<article class="note"><header><span class="stars">${"★".repeat(r.overall)}</span><b>${esc(r.name || "بلا اسم")}</b>${r.role ? `<span>${esc(ROLES[r.role])}</span>` : ""}<span>${time(r.created_at)}</span></header>
+        ${r.strengths ? `<p><em>قوة: </em>${esc(r.strengths)}</p>` : ""}${r.suggestions ? `<p><em>مقترح: </em>${esc(r.suggestions)}</p>` : ""}</article>`).join("") : '<p class="muted">لا توجد تعليقات مكتوبة بعد.</p>'}</div></div>
+    ${del ? `<details class="card noprint"><summary style="cursor:pointer;font-weight:600">كل الردود (لحذف رد تجريبي)</summary><div class="tbl-wrap"><table><thead><tr><th>الوقت</th><th>الاسم</th><th>العام</th><th>بنود مقيّمة</th><th></th></tr></thead><tbody>
+      ${res.map(r => `<tr><td class="time">${time(r.created_at)}</td><td>${esc(r.name || "بلا اسم")}</td><td>${"★".repeat(r.overall)}</td><td>${Object.keys(r.ratings || {}).length}</td><td><button class="btn del" data-del="feedback/${r.id}">حذف</button></td></tr>`).join("")}</tbody></table></div></details>` : ""}
+  </div>`;
+}
+
+document.addEventListener("click", async e => {
+  const d = e.target.closest("[data-del]");
+  if (d) {
+    if (!confirm("حذف هذا السجل نهائيًا؟")) return;
+    const [kind, id] = d.dataset.del.split("/");
+    await fetch(`/api/admin/${kind}/${WORKSHOP}/${id}`, { method: "DELETE" });
+    return load();
+  }
+  const p = e.target.closest("[data-print]");
+  if (p) return print();
+  const c = e.target.closest("[data-copy]");
+  if (c) { try { await navigator.clipboard.writeText($("#" + c.dataset.copy).textContent); c.textContent = "✓ نُسخ"; setTimeout(() => c.textContent = "نسخ الرابط", 1500); } catch {} }
+});
+
+// CSV with a BOM so Excel opens the Arabic correctly.
+function csv(name, rows) {
+  const q = v => /[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? "");
+  const blob = new Blob(["\ufeff" + rows.map(r => r.map(q).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$("#csvAtt").addEventListener("click", () => csv("كشف-الحضور.csv", [["م", "الاسم", "العمل الحالي", "جهة العمل", "الجوال", "الوقت"],
+  ...data.attendance.map((a, i) => [i + 1, a.name, JOBS[a.job] || a.job, a.workplace, a.phone, new Date(a.created_at).toLocaleString("ar-SA-u-nu-latn")])]));
+$("#csvEval").addEventListener("click", () => csv("تقييم-الدرس.csv", [["الوقت", "الاسم", "الصفة", "التقييم العام", ...Object.values(ITEM), "اللحظات", "سينقله لصفه", "نقاط القوة", "مقترحات"],
+  ...data.responses.map(r => [new Date(r.created_at).toLocaleString("ar-SA-u-nu-latn"), r.name, ROLES[r.role] || "", r.overall, ...Object.keys(ITEM).map(k => r.ratings?.[k] ?? ""),
+    (r.moments || []).map(k => MOMENTS[k]).join("، "), (r.apply || []).map(k => APPLY[k]).join("، "), r.strengths, r.suggestions])]));
+
+load().catch(() => { $("#app").hidden = false; $("#updated").textContent = "تعذّر التحميل"; });
+// Refresh while the page is open so new sign-ins appear during the lesson.
+setInterval(() => { if (!document.hidden && !$("#app").hidden && !$("#pw").matches(":focus")) load().catch(() => {}); }, 20000);
+</script>
+</body>
+</html>
