@@ -6,7 +6,7 @@ const express = require("express");
 const multer = require("multer");
 const util = require("util");
 const ExcelJS = require("exceljs");
-const { DEFAULTS, getSettings, saveSettings, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
+const { DEFAULTS, getSettings, saveSettings, saveSchool, getSchool, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
@@ -222,6 +222,9 @@ const CLASS_ORDER = "c.grade NULLS LAST, c.section, s.class NULLS LAST";
 const CLASS_JOIN = "LEFT JOIN classes c ON c.teacher_id = s.teacher_id AND c.name = s.class";
 // The lessons and their feedback belong to the first teacher, who gave them.
 const LESSONS_OWNER = 1;
+// The platform admin runs the school, not a class: these are the only routes that account reaches. No teacher's
+// students, classes, archives or log are among them.
+const ADMIN_ROUTES = /^\/(me|logout|calendar|viewer|staff|school|catalog|feedback|attendance)(\/|$)/;
 
 module.exports = function mountAdmin(app, pool) {
   const PASSWORD = process.env.ADMIN_PASSWORD || "";
@@ -327,8 +330,8 @@ module.exports = function mountAdmin(app, pool) {
 
   router.post("/logout", (req, res) => { setSession(res, 0); res.json({ ok: true }); });
 
-  // Whose data a request reads and writes. A teacher only ever her own; the admin and the principal pick a teacher
-  // (the X-Teacher header, or ?t= on a download link), the first one by default.
+  // Whose data a request reads and writes. A teacher only ever her own; the principal picks a teacher
+  // (the X-Teacher header, or ?t= on a download link), the first one by default. The admin reads none.
   router.use((req, res, next) => {
     const s = readSession(req);
     if (!s) return res.status(401).json({ error: "unauthorized" });
@@ -338,6 +341,9 @@ module.exports = function mountAdmin(app, pool) {
       const want = Number(req.get("x-teacher") || req.query.t);
       req.tid = getTeacher(want) ? want : listTeachers()[0]?.id ?? 1;
     }
+    // The admin reads the school's own log, never a teacher's (nor undoes anything in it).
+    const schoolLog = req.path === "/audit" && req.method === "GET";
+    if (req.role === "admin" && !schoolLog && !ADMIN_ROUTES.test(req.path)) return res.status(403).json({ error: "school_only", errors: ["حساب الإدارة ما يعرض بيانات المعلمات"] });
     // The principal's account sees everything and changes nothing.
     if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
     next();
@@ -348,14 +354,19 @@ module.exports = function mountAdmin(app, pool) {
   const log = (q, tid, action, nationalId, details) =>
     q.query("INSERT INTO audit_log (teacher_id, action, national_id, details) VALUES ($1, $2, $3, $4)", [tid, action, nationalId ?? null, JSON.stringify(details ?? {})]);
 
-  const calendarInfo = async tid => ({ years: school.getYears(), now: await school.now(pool, tid) });
+  // The admin sees the school's calendar as it stands; a teacher's semester also follows her own archives.
+  const calendarInfo = async (tid, role) => ({ years: school.getYears(), now: role === "admin" ? school.situation() : await school.now(pool, tid) });
   const teacherInfo = t => ({ id: t.id, name: t.name, subject: t.subject || "", active: t.active });
 
   router.get("/me", async (req, res) => {
+    if (req.role === "admin") {
+      return res.json({ ok: true, role: "admin", schoolSettings: getSchool(), calendar: await calendarInfo(null, "admin"),
+        school: { stage: school.STAGE, tracks: school.TRACKS } });
+    }
     const t = getTeacher(req.tid);
     res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null,
-      // The admin and the principal switch between teachers; a teacher sees no one else.
-      teachers: req.role === "teacher" ? undefined : listTeachers().map(teacherInfo),
+      // The principal switches between teachers; a teacher sees no one else.
+      teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : undefined,
       user: req.role === "teacher" ? t.national_id || t.phone : undefined,
       max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
       calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
@@ -395,7 +406,7 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   // ---------- School calendar (the school's; only the admin edits it) ----------
-  router.get("/calendar", async (req, res) => res.json(await calendarInfo(req.tid)));
+  router.get("/calendar", async (req, res) => res.json(await calendarInfo(req.tid, req.role)));
 
   router.put("/calendar/:hijri", adminOnly, async (req, res) => {
     const hijri = Number(req.params.hijri);
@@ -404,7 +415,7 @@ module.exports = function mountAdmin(app, pool) {
     if (y.errors.length) return res.status(400).json({ error: "invalid", errors: y.errors });
     await school.saveYear(pool, hijri, y);
     await log(pool, null, "calendar", null, { year: hijri });
-    res.json(await calendarInfo(req.tid));
+    res.json(await calendarInfo(req.tid, req.role));
   });
 
   router.get("/viewer", adminOnly, (req, res) => res.json({ enabled: !!viewer.hash }));
@@ -427,7 +438,8 @@ module.exports = function mountAdmin(app, pool) {
 
   router.get("/settings", (req, res) => res.json(getSettings(req.tid)));
 
-  // The teacher's own settings. The principal's name is the school's: only the admin's change to it is kept.
+  // The teacher's own settings. The principal's name is the school's and stays as the admin set it.
+  // Her subject is one on the school's list, once the list has any.
   router.put("/settings", async (req, res) => {
     const T = req.tid, b = req.body || {}, errors = [];
     const before = getSettings(T);
@@ -435,7 +447,9 @@ module.exports = function mountAdmin(app, pool) {
     for (const k of ["subject", "term_title", "teacher_name", "principal_name", "closed_message"]) {
       next[k] = norm(b[k] ?? DEFAULTS[k]).slice(0, 200);
     }
-    if (req.role !== "admin") next.principal_name = before.principal_name;
+    next.principal_name = before.principal_name;
+    const subjects = (await pool.query("SELECT name FROM subjects")).rows.map(r => r.name);
+    if (subjects.length && next.subject !== before.subject && !subjects.includes(next.subject)) errors.push("اختاري المادة من القائمة");
     if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
     if (!next.closed_message) next.closed_message = DEFAULTS.closed_message;
     for (const k of ["max_test", "max_participation", "max_projects"]) {
@@ -463,7 +477,7 @@ module.exports = function mountAdmin(app, pool) {
     if (errors.length) return res.status(409).json({ error: "scores_above_max", errors });
 
     const changes = Object.keys(next).filter(k => before[k] !== next[k]).map(k => ({ field: k, from: before[k], to: next[k] }));
-    await saveSettings(pool, T, next, { withSchool: req.role === "admin" });
+    await saveSettings(pool, T, next);
     if (changes.length) await log(pool, T, "settings", null, changes);
     res.json(getSettings(T));
   });
@@ -471,7 +485,7 @@ module.exports = function mountAdmin(app, pool) {
   router.get("/audit", async (req, res) => {
     const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, s.name AS current_name
       FROM audit_log a LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id
-      WHERE a.teacher_id = $1 ORDER BY a.id DESC LIMIT 300`, [req.tid]);
+      WHERE a.teacher_id IS NOT DISTINCT FROM $1 ORDER BY a.id DESC LIMIT 300`, [req.role === "admin" ? null : req.tid]);
     res.json(rows);
   });
 
@@ -856,8 +870,12 @@ module.exports = function mountAdmin(app, pool) {
       const to = resolveClass(name, known);
       if (!known.some(c => c.name === to)) {
         const p = grades.Report.classParts(to);
+        const sc = p && (await q.query("SELECT track FROM school_classes WHERE name = $1", [to])).rows[0];
+        const track = p ? (sc ? sc.track : school.trackFor(p.grade)) : null;
         await q.query("INSERT INTO classes (teacher_id, name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
-          [tid, to, p ? school.currentYear() : null, p?.grade ?? null, p?.section ?? null, p ? school.trackFor(p.grade) : null]);
+          [tid, to, p ? school.currentYear() : null, p?.grade ?? null, p?.section ?? null, track]);
+        // A class a teacher's sheet names joins the school's list.
+        if (p && !sc) await q.query("INSERT INTO school_classes (name, grade, section, track) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", [to, p.grade, p.section, track]);
         known.push({ name: to, aliases: [] });
       }
       if (to !== name) await q.query(`UPDATE students SET class = $2${school.isLdGroup(name) ? ", learning_difficulty = true" : ""} WHERE teacher_id = $1 AND class = $3`, [tid, to, name]);
@@ -866,6 +884,11 @@ module.exports = function mountAdmin(app, pool) {
   // A class taken by name is nobody's old name any more.
   const freeName = (q, tid, name) => q.query("UPDATE classes SET aliases = array_remove(aliases, $2) WHERE teacher_id = $1 AND name <> $2", [tid, name]);
 
+  // A teacher's class is one of the school's, picked by name.
+  const schoolClass = async name => {
+    const c = (await pool.query("SELECT name, grade, section, track FROM school_classes WHERE name = $1", [norm(name)])).rows[0];
+    return c ? { ...c, errors: [] } : { errors: ["اختاري الفصل من قائمة فصول المدرسة"] };
+  };
   const classOf = body => {
     const grade = Number(body?.grade), section = Number(body?.section), errors = [];
     if (![1, 2, 3].includes(grade)) errors.push("اختاري الصف");
@@ -899,7 +922,7 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   router.post("/classes", async (req, res) => {
-    const T = req.tid, c = classOf(req.body);
+    const T = req.tid, c = await schoolClass(req.body?.name);
     if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
     const out = await inTransaction(async q => {
       const { rowCount } = await q.query("INSERT INTO classes (teacher_id, name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
@@ -915,7 +938,7 @@ module.exports = function mountAdmin(app, pool) {
   // A new grade or section renames the class, keeping an unstructured old name ("1") as an alias.
   // Onto a class that exists, it merges the two. The same grade and section only changes the track.
   router.put("/classes/:name", async (req, res) => {
-    const T = req.tid, from = req.params.name, c = classOf(req.body);
+    const T = req.tid, from = req.params.name, c = await schoolClass(req.body?.name);
     if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
     const out = await inTransaction(async q => {
       await syncClasses(q, T);
@@ -975,6 +998,110 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true, count: out.count });
   });
 
+  // ---------- The school's lists and settings (the platform admin) ----------
+  const schoolClasses = () => pool.query(`SELECT sc.name, sc.grade, sc.section, sc.track,
+      coalesce(array_agg(t.name ORDER BY t.id) FILTER (WHERE t.id IS NOT NULL), '{}') AS teachers,
+      (SELECT count(DISTINCT s.national_id)::int FROM students s WHERE s.class = sc.name) AS students
+    FROM school_classes sc LEFT JOIN classes c ON c.name = sc.name LEFT JOIN teachers t ON t.id = c.teacher_id
+    GROUP BY sc.name ORDER BY sc.grade, sc.section`).then(r => r.rows);
+  const subjectList = () => pool.query(`SELECT s.name, coalesce(array_agg(t.name ORDER BY t.id) FILTER (WHERE t.id IS NOT NULL), '{}') AS teachers
+    FROM subjects s LEFT JOIN teachers t ON t.subject = s.name GROUP BY s.name ORDER BY s.name`).then(r => r.rows);
+  const addSubject = (q, name) => (name ? q.query("INSERT INTO subjects (name) VALUES ($1) ON CONFLICT DO NOTHING", [name]) : null);
+
+  // What a teacher picks from: the school's classes and subjects.
+  router.get("/catalog", async (req, res) => {
+    const [classes, subjects] = await Promise.all([pool.query("SELECT name, grade, section, track FROM school_classes ORDER BY grade, section"),
+      pool.query("SELECT name FROM subjects ORDER BY name")]);
+    res.json({ classes: classes.rows, subjects: subjects.rows.map(r => r.name) });
+  });
+
+  router.get("/school/settings", adminOnly, (req, res) => res.json(getSchool()));
+  router.put("/school/settings", adminOnly, async (req, res) => {
+    const b = req.body || {}, before = getSchool();
+    const next = {
+      principal_name: norm(b.principal_name ?? before.principal_name).slice(0, 80),
+      site_open: b.site_open === undefined ? before.site_open : b.site_open !== false,
+      site_closed_message: norm(b.site_closed_message ?? before.site_closed_message).slice(0, 200) || DEFAULTS.site_closed_message,
+    };
+    if (!next.principal_name) return res.status(400).json({ error: "invalid", errors: ["اسم المديرة مطلوب"] });
+    const changes = Object.keys(next).filter(k => before[k] !== next[k]).map(k => ({ field: k, from: before[k], to: next[k] }));
+    await saveSchool(pool, next);
+    if (changes.length) await log(pool, null, "school_settings", null, changes);
+    res.json(getSchool());
+  });
+
+  // Every teacher at a glance: her classes, students, average and lookups. Names and numbers only, no student's grades.
+  router.get("/school/overview", adminOnly, async (req, res) => {
+    const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, t.last_login, t.pw_hash IS NOT NULL AS has_password,
+        (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes,
+        (SELECT count(*)::int FROM lookups l WHERE l.teacher_id = t.id AND l.kind = 'view') AS lookups
+      FROM teachers t ORDER BY t.id`)).rows;
+    const rows = (await pool.query("SELECT teacher_id, test1, test2, test_avg, participation, projects, homework, final_exam, learning_difficulty FROM students")).rows;
+    for (const t of teachers) {
+      const mine = rows.filter(r => r.teacher_id === t.id), max = maxOf(getSettings(t.id));
+      const pcts = mine.filter(r => !r.learning_difficulty).map(r => grades.Report.scores(r, max).pct).filter(p => p != null);
+      Object.assign(t, { students: mine.length, avg: pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null,
+        open: getSettings(t.id).lookup_open });
+    }
+    const totals = (await pool.query(`SELECT (SELECT count(DISTINCT national_id)::int FROM students) AS students,
+      (SELECT count(*)::int FROM school_classes) AS classes, (SELECT count(*)::int FROM subjects) AS subjects,
+      (SELECT count(*)::int FROM lookups WHERE kind = 'view' AND created_at > now() - interval '7 days') AS week`)).rows[0];
+    res.json({ teachers, totals, settings: getSchool() });
+  });
+
+  router.get("/school/classes", adminOnly, async (req, res) => res.json({ classes: await schoolClasses(), subjects: await subjectList() }));
+
+  router.post("/school/classes", adminOnly, async (req, res) => {
+    const c = classOf(req.body);
+    if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
+    const { rowCount } = await pool.query("INSERT INTO school_classes (name, grade, section, track) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+      [c.name, c.grade, c.section, c.track]);
+    if (!rowCount) return res.status(409).json({ error: "exists", errors: [`${c.name} موجود`] });
+    await log(pool, null, "school_class_add", null, { name: c.name, track: c.track });
+    res.json({ name: c.name });
+  });
+
+  // Only the track changes; every teacher's copy of the class follows it.
+  router.put("/school/classes/:name", adminOnly, async (req, res) => {
+    const old = (await pool.query("SELECT * FROM school_classes WHERE name = $1", [req.params.name])).rows[0];
+    if (!old) return res.status(404).json({ error: "not_found" });
+    const track = old.grade === 1 ? null : norm(req.body?.track);
+    if (old.grade > 1 && !school.TRACKS.includes(track)) return res.status(400).json({ error: "invalid", errors: ["اختر المسار"] });
+    await inTransaction(async q => {
+      await q.query("UPDATE school_classes SET track = $2 WHERE name = $1", [old.name, track]);
+      await q.query("UPDATE classes SET track = $2 WHERE name = $1", [old.name, track]);
+      await log(q, null, "school_class_track", null, { name: old.name, from: old.track, to: track });
+    });
+    res.json({ ok: true });
+  });
+
+  router.delete("/school/classes/:name", adminOnly, async (req, res) => {
+    const used = (await pool.query("SELECT t.name FROM classes c JOIN teachers t ON t.id = c.teacher_id WHERE c.name = $1", [req.params.name])).rows;
+    if (used.length) return res.status(409).json({ error: "in_use", errors: [`الفصل عند: ${used.map(r => r.name).join("، ")}`] });
+    const { rowCount } = await pool.query("DELETE FROM school_classes WHERE name = $1", [req.params.name]);
+    if (!rowCount) return res.status(404).json({ error: "not_found" });
+    await log(pool, null, "school_class_delete", null, { name: req.params.name });
+    res.json({ ok: true });
+  });
+
+  router.post("/school/subjects", adminOnly, async (req, res) => {
+    const name = norm(req.body?.name).slice(0, 40);
+    if (!name) return res.status(400).json({ error: "invalid", errors: ["اكتب اسم المادة"] });
+    const { rowCount } = await pool.query("INSERT INTO subjects (name) VALUES ($1) ON CONFLICT DO NOTHING", [name]);
+    if (!rowCount) return res.status(409).json({ error: "exists", errors: [`${name} موجودة`] });
+    await log(pool, null, "subject_add", null, { name });
+    res.json({ name });
+  });
+
+  router.delete("/school/subjects/:name", adminOnly, async (req, res) => {
+    const used = listTeachers().filter(t => t.subject === req.params.name);
+    if (used.length) return res.status(409).json({ error: "in_use", errors: [`المادة عند: ${used.map(t => t.name).join("، ")}`] });
+    const { rowCount } = await pool.query("DELETE FROM subjects WHERE name = $1", [req.params.name]);
+    if (!rowCount) return res.status(404).json({ error: "not_found" });
+    await log(pool, null, "subject_delete", null, { name: req.params.name });
+    res.json({ ok: true });
+  });
+
   // ---------- School staff (the platform admin only) ----------
   // A teacher signs in with her ID, or her mobile when the ID is missing.
   const userOf = t => t.national_id || t.phone;
@@ -1008,6 +1135,7 @@ module.exports = function mountAdmin(app, pool) {
       const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, settings) VALUES ($1, $2, $3, $4, '{}') RETURNING *",
         [t.name, t.subject, t.national_id, t.phone]);
       const password = await issuePassword(q, rows[0].id);
+      await addSubject(q, t.subject);
       await log(q, null, "staff_add", null, { id: rows[0].id, name: t.name });
       return credentials(rows[0], password);
     });
@@ -1026,6 +1154,7 @@ module.exports = function mountAdmin(app, pool) {
     // Turning an account off ends its sessions.
     await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
       [id, t.name, t.subject, t.national_id, t.phone, active, cur.active && !active ? 1 : 0]);
+    await addSubject(pool, t.subject);
     await log(pool, null, "staff_edit", null, { id, name: t.name, active });
     await reloadTeachers(pool);
     res.json({ ok: true });
@@ -1100,6 +1229,7 @@ module.exports = function mountAdmin(app, pool) {
           [t.name, t.subject, t.national_id, t.phone]);
         out.push(credentials(rows[0], await issuePassword(q, rows[0].id)));
       }
+      for (const t of [...p.added, ...p.changed.map(c => c.next)]) await addSubject(q, t.subject);
       await log(q, null, "staff_import", null, { added: p.added.length, changed: p.changed.length });
       return out;
     });

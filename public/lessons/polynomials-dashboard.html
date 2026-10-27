@@ -214,7 +214,8 @@ td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabula
   <form class="card login" id="login" hidden novalidate>
     <div class="logos" style="align-self:center"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
     <h2>لوحة الدرس التطبيقي</h2>
-    <p class="muted">بكلمة مرور لوحة التحكم نفسها</p>
+    <p class="muted">بنفس دخول لوحة التحكم: رقم الهوية أو الجوال والرقم السري</p>
+    <input id="user" inputmode="numeric" autocomplete="username" aria-label="رقم الهوية أو الجوال" placeholder="رقم الهوية أو الجوال" dir="ltr">
     <input type="password" id="pw" autocomplete="current-password" aria-label="كلمة المرور" placeholder="كلمة المرور">
     <button class="btn primary" style="justify-content:center">دخول</button>
     <p class="err" id="loginErr"></p>
@@ -303,7 +304,9 @@ $("#uEval").textContent = url("feedback"); $("#oEval").href = url("feedback");
 
 async function load() {
   const r = await fetch(`/api/admin/feedback/${WORKSHOP}`, { cache: "no-store" });
-  if (r.status === 401) { $("#app").hidden = true; $("#login").hidden = false; $("#pw").focus(); return false; }
+  if (r.status === 401) { $("#app").hidden = true; $("#login").hidden = false; $("#user").focus(); return false; }
+  // Signed in as another teacher: the lesson is not hers.
+  if (r.status === 403) { $("#app").hidden = true; $("#login").hidden = false; $("#loginErr").textContent = "هذي اللوحة لصاحبة الدرس"; return false; }
   if (!r.ok) throw new Error(r.status);
   data = await r.json(); role = data.role;
   $("#login").hidden = true; $("#app").hidden = false;
@@ -315,10 +318,10 @@ async function load() {
 $("#login").addEventListener("submit", async e => {
   e.preventDefault();
   $("#loginErr").textContent = "";
-  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("#pw").value }) });
+  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: $("#user").value.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim(), password: $("#pw").value }) });
   if (r.ok) return load();
   const j = await r.json().catch(() => ({}));
-  $("#loginErr").textContent = r.status === 429 ? "محاولات كثيرة، انتظري قليلًا" : "كلمة المرور غير صحيحة";
+  $("#loginErr").textContent = r.status === 429 ? "محاولات كثيرة، انتظري قليلًا" : "بيانات الدخول غير صحيحة";
 });
 
 $$(".tabs button").forEach(b => b.addEventListener("click", () => {

@@ -326,8 +326,20 @@ body:not(.is-teacher) [data-only-teacher] { display: none !important; }
 a.wa { background: #1f8f4e; }
 [data-panel="staff"] fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; }
 [data-panel="staff"] legend { font-weight: 700; padding: 0 6px; }
-/* The staff tab is the school's: the chosen teacher's bar and numbers step aside while it is open. */
-body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { display: none !important; }
+/* The platform admin runs the school and sees no teacher's students, classes or grades. */
+body.is-admin [data-teacher] { display: none !important; }
+.stats.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 760px) { .stats.five { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 8px 5px 14px; background: var(--surface-2); }
+.chip .note { font-size: 12px; }
+.chip button { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 50%; }
+.chip button:hover { color: var(--low); background: var(--surface); }
+.add-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 0 16px 12px; }
+.add-row label.f { flex: 1 1 220px; }
+.sec-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 16px 10px; }
+.sec-head h3 { margin: 0; font-size: 16px; }
+.sec-head .note { flex: 1 1 200px; }
 </style>
 </head>
 <body>
@@ -355,7 +367,7 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
 
   <!-- App -->
   <section id="app" hidden>
-    <div class="card tbar" id="teacherBar" hidden>
+    <div class="card tbar" id="teacherBar" data-teacher hidden>
       <label for="teacherSel">لوحة المعلمة<select class="in" id="teacherSel"></select></label>
       <span class="note" id="teacherNote"></span>
     </div>
@@ -365,18 +377,21 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
       <div class="note" id="ybNote"></div>
       <div class="yb-alert" id="ybAlert" hidden><span id="ybAlertText"></span><button class="btn sm" type="button" id="ybArchive" data-admin>أرشفة الدرجات</button></div>
     </div>
-    <div class="stats" id="stats"></div>
+    <div class="stats" id="stats" data-teacher></div>
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
-      <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview">نظرة عامة</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students">الطالبات</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes">الفصول</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms">الفترات</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import" data-admin>رفع ملف إكسل</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups" data-admin>النسخ<span class="hide-sm"> الاحتياطية</span></button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings" data-admin>الإعدادات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="school" id="tab-school" data-only-admin>نظرة عامة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="staff" id="tab-staff" data-only-admin>منسوبات المدرسة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="catalog" id="tab-catalog" data-only-admin>الفصول والمواد</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="platform" id="tab-platform" data-only-admin>إعدادات المنصة</button>
+      <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview" data-teacher>نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students" data-teacher>الطالبات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes" data-teacher>الفصول</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms" data-teacher>الفترات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import" data-admin data-teacher>رفع ملف إكسل</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups" data-admin data-teacher>النسخ<span class="hide-sm"> الاحتياطية</span></button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings" data-admin data-teacher>الإعدادات</button>
     </nav>
 
     <!-- Students -->
@@ -542,7 +557,7 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
       <div class="help" style="padding-top:16px">كل تعديل على طالبة يقدر يتراجع عنه. لو الحقل تعدّل مرة ثانية بعده، يبقى على آخر قيمة. رفع الإكسل والاسترجاع يرجعون من "النسخ الاحتياطية".</div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>الوقت</th><th>العملية</th><th>الطالبة</th><th>التفاصيل</th><th></th></tr></thead>
+          <thead><tr><th>الوقت</th><th>العملية</th><th id="auditWho">الطالبة</th><th>التفاصيل</th><th></th></tr></thead>
           <tbody id="auditRows"></tbody>
         </table>
       </div>
@@ -582,10 +597,79 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
           <li>كل معلمة جديدة ينصرف لها رقم سري من 8 أرقام، يظهر مرة وحدة بعد الاعتماد مع زر إرسال واتساب وصفحة بطاقات للطباعة.</li>
           <li>المعلمة الموجودة تتطابق برقم الهوية أو الجوال، ويتحدث اسمها ومادتها بدون ما يتغير رقمها السري.</li>
           <li>"رقم سري جديد" يلغي القديم ويطلّعها من أي جهاز داخلة منه.</li>
-          <li>"فتح اللوحة" يعرض لوحة المعلمة بكل صلاحياتها، والرجوع لأي معلمة ثانية من القائمة فوق.</li>
+          <li>المادة تنختار من قائمة المواد في تبويب "الفصول والمواد"، والمادة الجديدة في ملف الإكسل تنضاف للقائمة.</li>
         </ul>
       </div>
-      <fieldset style="margin:0 16px 16px">
+    </div>
+
+    <!-- The school at a glance (the platform admin) -->
+    <div data-panel="school" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
+      <div class="card gate" id="siteGate"><span class="dot"></span><b id="siteGateText"></b><button class="btn sm quiet" type="button" id="siteGateBtn"></button></div>
+      <div class="stats five" id="schoolStats"></div>
+      <div class="card">
+        <div class="sec-head"><h3>المعلمات</h3><span class="note">أرقام عامة لكل معلمة. الإدارة ما تشوف درجات الطالبات، والمديرة تتابعها من حسابها.</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المعلمة</th><th>المادة</th><th class="num">الفصول</th><th class="num">الطالبات</th><th class="num">المتوسط</th><th class="num">الاستعلامات</th><th>صفحتها</th><th>آخر دخول</th></tr></thead>
+            <tbody id="schoolRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- The school's classes and subjects (the platform admin) -->
+    <div data-panel="catalog" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
+      <div class="card">
+        <div class="sec-head"><h3>فصول المدرسة</h3><span class="note" id="scNote">كل معلمة تختار فصولها من هذي القائمة.</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الفصل</th><th>المسار</th><th>المعلمات</th><th class="num">الطالبات</th><th></th></tr></thead>
+            <tbody id="scRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-head"><h3>المواد</h3><span class="note">كل معلمة تختار مادتها من هذي القائمة، وتظهر في بطاقة الطالبة وتقاريرها.</span></div>
+        <form class="add-row" id="subjectForm" novalidate>
+          <label class="f" for="subjectName">مادة جديدة<input class="in" id="subjectName" maxlength="40" placeholder="مثل: كيمياء"></label>
+          <button class="btn" type="submit">إضافة المادة</button>
+        </form>
+        <p class="msg err" id="subjectErr" hidden style="margin:0 16px 12px"></p>
+        <div class="chips" id="subjectList"></div>
+      </div>
+    </div>
+
+    <!-- Platform settings (the platform admin) -->
+    <div data-panel="platform" style="margin-top:16px" hidden>
+      <form class="card set" id="schoolForm" novalidate>
+        <fieldset>
+          <legend>صفحة الاستعلام لكل المدرسة</legend>
+          <label class="switch"><input type="checkbox" id="sc_open"> صفحة الاستعلام مفتوحة</label>
+          <p class="note" style="margin:6px 0 0">لما تقفلها هنا تنقفل لكل المعلمات مهما كان إعداد كل وحدة. لما تكون مفتوحة، كل معلمة تتحكم بنتائج مادتها.</p>
+          <label class="f" style="margin-top:10px">الرسالة اللي تظهر للطالبات وقت القفل<input class="in" id="sc_msg" maxlength="200"></label>
+        </fieldset>
+        <fieldset>
+          <legend>بيانات المدرسة</legend>
+          <div class="grid2">
+            <label class="f">اسم المديرة<input class="in" id="sc_principal" maxlength="80"><span class="hj">يظهر في بطاقات وتقارير كل المعلمات.</span></label>
+            <label class="f">المرحلة<input class="in" id="sc_stage" disabled></label>
+          </div>
+        </fieldset>
+        <p class="msg err" id="schoolErr" hidden></p>
+        <div><button class="btn" type="submit" id="schoolSave">حفظ</button></div>
+      </form>
+      <div class="card set" style="margin-top:16px">
+      <fieldset>
+        <legend>التقويم الدراسي <span id="calYear"></span></legend>
+        <div class="cal-sems" id="calSems"></div>
+        <h4>الإجازات</h4>
+        <div id="calBreaks"></div>
+        <button class="btn sm quiet" type="button" id="calAdd">إضافة إجازة</button>
+        <p class="note" style="margin:10px 0 0">التواريخ بالميلادي والهجري يظهر تحتها. أسابيع الدراسة تُحسب من الأحد إلى الخميس، والأسبوع اللي كله إجازة ما يُحسب.</p>
+        <p class="msg err" id="calErr" hidden style="margin-top:10px"></p>
+        <div style="margin-top:12px"><button class="btn" type="button" id="calSave">حفظ التقويم</button></div>
+      </fieldset>
+      <fieldset>
         <legend>حساب المديرة (عرض فقط)</legend>
         <p class="note" id="viewerState" style="margin:0 0 10px"></p>
         <div class="grid2" style="align-items:end">
@@ -595,6 +679,7 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
         <p class="note" style="margin:10px 0 0">تدخل المديرة من رابط لوحة التحكم بهذي الكلمة بدون رقم هوية، وتختار أي معلمة وتشوف بياناتها ورسومها وتقاريرها بدون ما تقدر تعدّل شي. تغيير الكلمة يطلّع أي دخول قديم لها.</p>
         <p class="msg err" id="viewerErr" hidden style="margin-top:10px"></p>
       </fieldset>
+      </div>
     </div>
 
     <!-- Settings -->
@@ -607,10 +692,9 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
       <fieldset>
         <legend>البيانات اللي تظهر في البطاقة والـ PDF</legend>
         <div class="grid2">
-          <label class="f">المادة<input class="in" name="subject" maxlength="40" placeholder="رياضيات"><span class="hj">تظهر بعد "المرحلة الثانوية" في صفحة الاستعلام والتقارير.</span></label>
+          <label class="f">المادة<select class="in" name="subject" id="s_subject"></select><span class="hj">من قائمة مواد المدرسة. تظهر بعد "المرحلة الثانوية" في صفحة الاستعلام والتقارير.</span></label>
           <label class="f">عنوان الفترة<input class="in" name="term_title" id="s_term" maxlength="80"><span class="hj" id="termAuto"></span></label>
           <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
-          <label class="f" data-only-admin>اسم المديرة<input class="in" name="principal_name" maxlength="80"><span class="hj">للمدرسة كلها، يظهر في بطاقات كل المعلمات.</span></label>
           <label class="f">شكل المقارنة بمتوسط الفصل<select class="in" name="compare_chart" id="s_chart"></select><span class="hj">تقدر الطالبة تغيّره من صفحتها، وتقارير الفصل تطلع بهذا الشكل.</span></label>
         </div>
       </fieldset>
@@ -636,16 +720,6 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
           <div><button class="btn" type="button" id="pwSave">تغيير الرقم السري</button></div>
         </div>
         <p class="msg err" id="pwErr" hidden style="margin-top:10px"></p>
-      </fieldset>
-      <fieldset data-only-admin>
-        <legend>التقويم الدراسي <span id="calYear"></span></legend>
-        <div class="cal-sems" id="calSems"></div>
-        <h4>الإجازات</h4>
-        <div id="calBreaks"></div>
-        <button class="btn sm quiet" type="button" id="calAdd">إضافة إجازة</button>
-        <p class="note" style="margin:10px 0 0">التواريخ بالميلادي والهجري يظهر تحتها. أسابيع الدراسة تُحسب من الأحد إلى الخميس، والأسبوع اللي كله إجازة ما يُحسب.</p>
-        <p class="msg err" id="calErr" hidden style="margin-top:10px"></p>
-        <div style="margin-top:12px"><button class="btn" type="button" id="calSave">حفظ التقويم</button></div>
       </fieldset>
     </form>
   </section>
@@ -698,8 +772,9 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
     <h2 id="classDlgTitle"></h2>
     <p class="note" id="classDlgYear" style="margin:0"></p>
     <div class="grid2">
-      <label class="f" for="c_grade">الصف<select class="in" id="c_grade"></select></label>
-      <label class="f" for="c_section">رقم الفصل<input class="in ltr" id="c_section" inputmode="numeric" maxlength="2" autocomplete="off"></label>
+      <label class="f full" for="c_pick" id="c_pickWrap">الفصل<select class="in" id="c_pick"></select></label>
+      <label class="f" for="c_grade" id="c_gradeWrap">الصف<select class="in" id="c_grade"></select></label>
+      <label class="f" for="c_section" id="c_sectionWrap">رقم الفصل<input class="in ltr" id="c_section" inputmode="numeric" maxlength="2" autocomplete="off"></label>
       <label class="f full" for="c_track" id="c_trackWrap">المسار<select class="in" id="c_track"></select></label>
     </div>
     <p class="hist" id="classDlgName" style="margin:0"></p>
@@ -768,7 +843,7 @@ body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { displa
       <label class="f full" for="m_name">اسم المعلمة<input class="in" id="m_name" name="name" maxlength="80" required></label>
       <label class="f" for="m_id">رقم الهوية<input class="in ltr" id="m_id" name="national_id" inputmode="numeric" maxlength="10"></label>
       <label class="f" for="m_phone">الجوال<input class="in ltr" id="m_phone" name="phone" inputmode="tel" placeholder="05XXXXXXXX"></label>
-      <label class="f full" for="m_subject">المادة<input class="in" id="m_subject" name="subject" maxlength="40"></label>
+      <label class="f full" for="m_subject">المادة<select class="in" id="m_subject" name="subject"></select></label>
       <label class="switch full" for="m_active" id="m_activeWrap"><input type="checkbox" id="m_active" name="active"> الحساب مفعّل <span class="note" style="font-weight:400">الحساب الموقوف ما يقدر يدخل، وطالباته ما تظهر في صفحة الاستعلام</span></label>
     </div>
     <p class="note" style="margin:0">تدخل برقم الهوية، أو بالجوال لو ما فيه هوية.</p>
@@ -817,7 +892,7 @@ let role = "admin";
 let me = null;
 // Whose panel the admin or the principal is looking at, remembered on this device. A teacher only ever sees her own.
 let T = (() => { try { return Number(localStorage.getItem("teacher")) || null; } catch { return null; } })();
-const picking = () => role !== "teacher" && T;
+const picking = () => role === "viewer" && T;
 // A download link carries the teacher, as a request carries her in its header.
 const withT = url => (picking() ? url + (url.includes("?") ? "&" : "?") + "t=" + T : url);
 let terms = [];
@@ -825,6 +900,9 @@ let historyCache = null;
 let cal = null;
 let schoolInfo = { stage: "المرحلة الثانوية", tracks: [] };
 let classByName = new Map();
+// The school's lists a teacher picks from. The admin's carry who uses each class and subject.
+let catalog = { classes: [], subjects: [] };
+let schoolSettings = null;
 const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const classLabel = n => Report.classLabel(n), shortClass = n => Report.shortClass(n);
 // Averages leave out students with learning difficulties; counts and lists keep them.
@@ -872,7 +950,7 @@ function showLogin() {
 async function showApp(info) {
   me = info;
   role = me.role;
-  if (role !== "teacher") T = me.teacher?.id ?? null;
+  if (role === "viewer") T = me.teacher?.id ?? null;
   document.body.classList.toggle("viewer", role === "viewer");
   document.body.classList.toggle("is-admin", role === "admin");
   document.body.classList.toggle("is-teacher", role === "teacher");
@@ -882,11 +960,22 @@ async function showApp(info) {
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   if (role === "teacher") $("#myUser").textContent = me.user || "";
   renderTeacherBar();
-  // A tab the account can't see (the staff tab, after switching accounts) falls back to the overview.
-  const sel = document.querySelector('.tab[aria-selected="true"]');
-  if (sel && getComputedStyle(sel).display === "none") $("#tab-overview").click();
-  await loadTeacher(me);
-  if (role === "admin") { loadViewer().catch(() => {}); loadStaff().catch(() => {}); }
+  $("#auditWho").textContent = role === "admin" ? "" : "الطالبة";
+  if (role === "admin") await loadSchool(me); else await loadTeacher(me);
+  // An open tab this account can't see (after switching accounts) gives way to its first one.
+  const tabs = [...document.querySelectorAll(".tab")].filter(t => getComputedStyle(t).display !== "none");
+  const sel = tabs.find(t => t.getAttribute("aria-selected") === "true");
+  (sel || tabs[0]).click();
+}
+
+// The platform admin's panel: the school, its staff and lists, and no teacher's data.
+async function loadSchool(info) {
+  cal = info.calendar || null;
+  if (info.school) schoolInfo = info.school;
+  students = []; classes = []; settings = null;
+  applySchool(info.schoolSettings);
+  renderWho(); renderYearBar(); renderCalendarForm();
+  loadViewer().catch(() => {}); loadStaff().catch(() => {}); loadCatalog().catch(() => {});
 }
 
 // Everything on the panel that belongs to one teacher, from /me.
@@ -894,6 +983,8 @@ async function loadTeacher(info) {
   cal = info.calendar || null;
   if (info.school) schoolInfo = info.school;
   historyCache = null; lastSeenId = null;
+  catalog = await api("/catalog").catch(() => catalog);
+  subjectOptions($("#s_subject"), info.settings?.subject, false);
   applySettings(info.settings);
   $("#exportBtn").href = withT("/api/admin/export");
   await loadStudents();
@@ -1109,9 +1200,10 @@ function applySettings(s) {
   renderWho();
 }
 function renderGate() {
-  const open = settings?.lookup_open;
-  $("#gate").classList.toggle("off", !open);
-  $("#gateText").textContent = open ? "صفحة الاستعلام مفتوحة، والطالبات يقدرن يشوفن نتائجهن." : "صفحة الاستعلام مقفلة، والطالبات يشوفن رسالة القفل.";
+  const open = settings?.lookup_open, site = settings?.site_open !== false;
+  $("#gate").classList.toggle("off", !open || !site);
+  $("#gateText").textContent = (open ? "صفحة الاستعلام مفتوحة، والطالبات يقدرن يشوفن نتائجهن." : "صفحة الاستعلام مقفلة، والطالبات يشوفن رسالة القفل.")
+    + (site ? "" : " إدارة المنصة قافلة الصفحة للمدرسة كلها حالياً، فما تظهر النتائج لين تفتحها.");
   $("#gateBtn").textContent = open ? "قفل الصفحة" : "فتح الصفحة";
 }
 async function saveSettings(next) {
@@ -1163,6 +1255,7 @@ const weeksText = n => (n === 1 ? "أسبوع واحد" : n === 2 ? "أسبوع�
 const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects, s.homework, s.final_exam].some(v => v != null);
 
 function renderWho() {
+  if (role === "admin") { $("#whoLine").textContent = ["إدارة المنصة", schoolInfo.stage].join(" · "); return; }
   $("#whoLine").textContent = [settings?.teacher_name, settings?.subject, termTitle()].filter(Boolean).join(" · ");
   const auto = cal?.now?.current.title || "";
   $("#s_term").placeholder = auto;
@@ -1287,6 +1380,11 @@ async function loadLookups(announce) {
 setInterval(async () => {
   if ($("#app").hidden || document.hidden) return;
   try {
+    if (role === "admin") {
+      if (cal?.now && cal.now.today !== riyadhToday()) { cal = await api("/calendar"); renderYearBar(); }
+      if ($("#tab-school").getAttribute("aria-selected") === "true") await loadSchoolOverview();
+      return;
+    }
     students = await api("/students"); renderStats(); renderRows(); renderOverview(); await loadLookups(true);
     if (cal?.now && cal.now.today !== riyadhToday()) cal = await api("/calendar");
     renderCalendar();
@@ -1437,12 +1535,16 @@ document.querySelector('[data-panel="overview"]').addEventListener("click", e =>
 // ---------- Audit log ----------
 const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل",
   term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم",
-  class_track: "مسار فصل", classes_migrate: "ترتيب الفصول" };
+  class_track: "مسار فصل", classes_migrate: "ترتيب الفصول",
+  staff_add: "إضافة معلمة", staff_edit: "تعديل معلمة", staff_delete: "حذف معلمة", staff_password: "رقم سري جديد", staff_import: "رفع ملف المعلمات",
+  school_settings: "إعدادات المنصة", school_class_add: "إضافة فصل للمدرسة", school_class_delete: "حذف فصل من المدرسة", school_class_track: "مسار فصل",
+  subject_add: "إضافة مادة", subject_delete: "حذف مادة" };
 const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
 const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع",
   homework: "الواجبات", final_exam: "الاختبار النهائي", notes: "الملاحظات", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
   grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع",
-  max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", compare_chart: "شكل المقارنة", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل" };
+  max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", compare_chart: "شكل المقارنة", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل",
+  site_open: "صفحة الاستعلام للمدرسة", site_closed_message: "رسالة القفل العامة" };
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
   : field === "compare_chart" && Report.isChart(v) ? Report.CHARTS[v]
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
@@ -1452,9 +1554,12 @@ function auditDetails(a) {
   if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة` + (d?.class ? ` في ${esc(classLabel(d.class))}` : "");
   if (a.action === "restore") return `نسخة رقم ${d?.backup}`;
   if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
-  if (a.action === "class_add" || a.action === "class_delete") return esc(classLabel(d?.name)) + (d?.track ? ` · ${esc(d.track)}` : "");
+  if (["staff_add", "staff_edit", "staff_delete", "staff_password"].includes(a.action)) return esc(d?.name) + (a.action === "staff_edit" && d?.active === false ? " · موقوف" : "");
+  if (a.action === "staff_import") return `جديدات ${d?.added ?? 0} · تحديث ${d?.changed ?? 0}`;
+  if (a.action === "subject_add" || a.action === "subject_delete") return esc(d?.name);
+  if (["class_add", "class_delete", "school_class_add", "school_class_delete"].includes(a.action)) return esc(classLabel(d?.name)) + (d?.track ? ` · ${esc(d.track)}` : "");
   if (a.action === "class_rename") return `${esc(classLabel(d?.from))} ← ${esc(classLabel(d?.to))}` + (d?.students ? ` (${girls(d.students)})` : "") + (d?.merged ? " · دمج" : "") + (d?.learning_difficulty ? " · عُلّمن بصعوبات التعلم" : "");
-  if (a.action === "class_track") return `${esc(classLabel(d?.name))}: ${esc(d?.from || "—")} ← ${esc(d?.to || "—")}`;
+  if (a.action === "class_track" || a.action === "school_class_track") return `${esc(classLabel(d?.name))}: ${esc(d?.from || "—")} ← ${esc(d?.to || "—")}`;
   if (a.action === "classes_migrate") return (d?.moves || []).map(m => `${esc(m.from)} ← ${esc(m.to)}`).join("<br>") + (d?.flagged ? `<br>صعوبات التعلم: ${girls(d.flagged)}` : "");
   if (a.action === "term_archive") return `${esc(d?.title)} · ${girls(d?.count ?? 0)}` + (d?.cleared ? " · مُسحت الدرجات لبدء فترة جديدة" : "") + (d?.next_title ? ` · الفترة الجديدة: ${esc(d.next_title)}` : "");
   if (a.action === "term_rename") return `${esc(d?.from)} ← ${esc(d?.to)}`;
@@ -1545,54 +1650,98 @@ $("#classRows").addEventListener("click", async e => {
   }
 });
 
-// The add and edit dialog. The year and stage are fixed; the section starts at the first free number in the grade.
-// `then` gets the saved class's name (after a merge, the class it joined).
+// The add and edit dialog. A teacher picks one of the school's classes; the platform admin adds a class to the
+// school's list (grade, section, track) or changes its track. `then` gets the saved class's name (after a merge, the
+// class it joined).
 let classEdit = null, classThen = null;
-const freeSection = grade => { const used = new Set(classes.filter(c => c.grade === grade).map(c => c.section)); let n = 1; while (used.has(n)) n++; return n; };
+const schoolMode = () => role === "admin";
+const freeSection = (grade, list) => { const used = new Set(list.filter(c => c.grade === grade).map(c => c.section)); let n = 1; while (used.has(n)) n++; return n; };
 const dlgClass = () => {
+  if (!schoolMode()) {
+    const sc = catalog.classes.find(x => x.name === $("#c_pick").value);
+    return sc ? { grade: sc.grade, section: sc.section, track: sc.track, name: sc.name } : { name: "" };
+  }
   const grade = Number($("#c_grade").value), section = Number(toLatin($("#c_section").value).trim() || NaN);
   const ok = Number.isInteger(section) && section >= 1 && section <= 99;
   return { grade, section, track: grade === 1 ? null : $("#c_track").value, name: ok ? Report.className(grade, section) : "" };
 };
+// The school's classes a teacher can pick: the ones she doesn't have, and when she edits a class, hers too (to merge into).
+function pickOptions(c) {
+  const list = catalog.classes.filter(x => x.name !== c?.name && (c || !classByName.has(x.name)));
+  return Report.GRADES.map((g, i) => [g, list.filter(x => x.grade === i + 1)]).filter(([, l]) => l.length).map(([g, l]) =>
+    `<optgroup label="${esc(g)}">${l.map(x => `<option value="${esc(x.name)}">${esc(classLabel(x.name))}${x.track ? ` · ${esc(x.track)}` : ""}${classByName.has(x.name) ? " (عندك)" : ""}</option>`).join("")}</optgroup>`).join("");
+}
 function openClassDlg(c, grade, then) {
   classEdit = c || null; classThen = then || null;
-  const g = c?.grade || grade || 1;
-  $("#classDlgTitle").textContent = !c ? "إضافة فصل" : c.grade ? `تعديل ${c.name}` : `تحديد صف ${classLabel(c.name)}`;
+  const g = c?.grade || grade || 1, school = schoolMode();
+  $("#classDlgTitle").textContent = school ? (c ? `مسار ${c.name}` : "إضافة فصل للمدرسة")
+    : !c ? "إضافة فصل" : c.grade ? `تعديل ${c.name}` : `تحديد صف ${classLabel(c.name)}`;
   $("#classDlgYear").textContent = [cal?.now ? `العام الدراسي ${cal.now.year}هـ` : "", schoolInfo.stage].filter(Boolean).join(" · ");
-  $("#c_grade").innerHTML = Report.GRADES.map((x, i) => `<option value="${i + 1}">${esc(x)}</option>`).join("");
-  $("#c_track").innerHTML = schoolInfo.tracks.map(t => `<option>${esc(t)}</option>`).join("");
-  $("#c_grade").value = String(g);
-  $("#c_section").value = c ? c.section || "" : freeSection(g);
-  $("#c_track").value = c?.track || schoolInfo.tracks[0] || "";
+  $("#c_pickWrap").hidden = school;
+  $("#c_gradeWrap").hidden = $("#c_sectionWrap").hidden = !school;
+  $("#c_grade").disabled = $("#c_section").disabled = school && !!c;
+  if (school) {
+    $("#c_grade").innerHTML = Report.GRADES.map((x, i) => `<option value="${i + 1}">${esc(x)}</option>`).join("");
+    $("#c_track").innerHTML = schoolInfo.tracks.map(t => `<option>${esc(t)}</option>`).join("");
+    $("#c_grade").value = String(g);
+    $("#c_section").value = c ? c.section || "" : freeSection(g, catalog.classes);
+    $("#c_track").value = c?.track || schoolInfo.tracks[0] || "";
+  } else {
+    $("#c_pick").innerHTML = pickOptions(c);
+    const opts = [...$("#c_pick").options];
+    const first = opts.find(o => Report.classParts(o.value)?.grade === g && !classByName.has(o.value)) || opts.find(o => !classByName.has(o.value)) || opts[0];
+    if (first) $("#c_pick").value = first.value;
+  }
   $("#classDlgErr").hidden = true;
   syncClassDlg();
   $("#classDlg").showModal();
 }
 function syncClassDlg() {
-  const c = dlgClass();
-  $("#c_trackWrap").hidden = c.grade === 1;
-  const taken = c.name && c.name !== classEdit?.name && classByName.has(c.name);
-  $("#classDlgName").innerHTML = !c.name ? "اكتبي رقم الفصل من 1 إلى 99."
-    : `اسم الفصل: <b>${esc(c.name)}</b>${c.track ? ` · ${esc(c.track)}` : ""}` + (taken ? ` · <span class="warn-t">${classEdit ? "موجود، وبيندمج الفصلان" : "موجود"}</span>` : "");
+  const c = dlgClass(), school = schoolMode();
+  $("#c_trackWrap").hidden = !school || c.grade === 1;
+  $("#classDlgSave").disabled = !school && !c.name;
+  if (!school) {
+    $("#classDlgName").innerHTML = !catalog.classes.length ? "ما فيه فصول في قائمة المدرسة بعد. اطلبي من إدارة المنصة تضيف فصولك."
+      : !c.name ? "كل فصول المدرسة عندك. لو تحتاجين فصل غيرها اطلبيه من إدارة المنصة."
+      : (c.grade === 1 ? "السنة الأولى المشتركة" : c.track ? `المسار: ${esc(c.track)}` : "")
+        + (classEdit && classByName.has(c.name) ? ` · <span class="warn-t">عندك، وبيندمج الفصلان</span>` : "");
+    return;
+  }
+  const taken = !classEdit && c.name && catalog.classes.some(x => x.name === c.name);
+  $("#classDlgName").innerHTML = !c.name ? "اكتب رقم الفصل من 1 إلى 99."
+    : `اسم الفصل: <b>${esc(c.name)}</b>${c.track ? ` · ${esc(c.track)}` : ""}` + (taken ? ' · <span class="warn-t">موجود</span>' : "")
+      + (classEdit ? '<br><span class="note">يتغيّر المسار عند كل معلمة عندها هذا الفصل.</span>' : "");
 }
 $("#c_grade").addEventListener("change", () => {
-  if (!classEdit) $("#c_section").value = freeSection(Number($("#c_grade").value));
+  if (!classEdit) $("#c_section").value = freeSection(Number($("#c_grade").value), catalog.classes);
   syncClassDlg();
 });
-["#c_section", "#c_track"].forEach(sel => $(sel).addEventListener("input", syncClassDlg));
+["#c_section", "#c_track", "#c_pick"].forEach(sel => $(sel).addEventListener("input", syncClassDlg));
+$("#c_pick").addEventListener("change", syncClassDlg);
 $("#classDlgForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const c = dlgClass(), err = $("#classDlgErr");
+  const c = dlgClass(), err = $("#classDlgErr"), school = schoolMode();
   err.hidden = true;
-  if (!c.name) { err.textContent = "رقم الفصل لازم يكون من 1 إلى 99"; err.hidden = false; return; }
-  if (!classEdit && classByName.has(c.name)) { err.textContent = `${c.name} موجود`; err.hidden = false; return; }
-  if (classEdit && c.name !== classEdit.name && classByName.has(c.name)) {
+  if (!c.name) { err.textContent = school ? "رقم الفصل لازم يكون من 1 إلى 99" : "اختاري الفصل"; err.hidden = false; return; }
+  if (school) {
+    const btn = $("#classDlgSave"); btn.disabled = true;
+    try {
+      if (classEdit) await api("/school/classes/" + encodeURIComponent(classEdit.name), { method: "PUT", body: { track: c.track } });
+      else await api("/school/classes", { method: "POST", body: { grade: c.grade, section: c.section, track: c.track } });
+      $("#classDlg").close();
+      toast(classEdit ? "تم حفظ المسار" : `تمت إضافة ${c.name}`);
+      await loadCatalog();
+    } catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
+    finally { btn.disabled = false; }
+    return;
+  }
+  if (classEdit && classByName.has(c.name)) {
     $("#classDlg").close();
-    if (!(await confirmBox("دمج الفصلين", `${c.name} موجود. طالبات ${classLabel(classEdit.name)} بينتقلن له ويصيرون فصل واحد.`, "دمج"))) return;
+    if (!(await confirmBox("دمج الفصلين", `${c.name} عندك. طالبات ${classLabel(classEdit.name)} بينتقلن له ويصيرون فصل واحد.`, "دمج"))) return;
   }
   const btn = $("#classDlgSave"); btn.disabled = true;
   try {
-    const body = { grade: c.grade, section: c.section, track: c.track };
+    const body = { name: c.name };
     const r = classEdit ? await api("/classes/" + encodeURIComponent(classEdit.name), { method: "PUT", body }) : await api("/classes", { method: "POST", body });
     $("#classDlg").close();
     toast(!classEdit ? `تمت إضافة ${c.name}` : r.merged ? `تم الدمج ونقل ${girls(r.moved)}` : "تم حفظ الفصل");
@@ -1607,6 +1756,114 @@ $("#classDlgForm").addEventListener("submit", async e => {
   } finally { btn.disabled = false; }
 });
 
+// ---------- The school (the platform admin) ----------
+// A subject picker: the school's list, with the current one kept even if it left the list.
+function subjectOptions(sel, current, blank) {
+  const names = [...new Set([...catalog.subjects.map(x => x.name ?? x), current].filter(Boolean))];
+  sel.innerHTML = (blank || !current ? '<option value="">بدون مادة</option>' : "") + names.map(n => `<option>${esc(n)}</option>`).join("");
+  sel.value = current || "";
+}
+function applySchool(s) {
+  if (!s) return;
+  schoolSettings = s;
+  $("#sc_open").checked = !!s.site_open;
+  $("#sc_msg").value = s.site_closed_message || "";
+  $("#sc_principal").value = s.principal_name || "";
+  $("#sc_stage").value = schoolInfo.stage;
+  $("#siteGate").classList.toggle("off", !s.site_open);
+  $("#siteGateText").textContent = s.site_open ? "صفحة الاستعلام مفتوحة، وكل معلمة تتحكم بنتائج مادتها." : "صفحة الاستعلام مقفلة للمدرسة كلها، والطالبات يشوفن رسالة القفل.";
+  $("#siteGateBtn").textContent = s.site_open ? "قفل الصفحة للجميع" : "فتح الصفحة";
+}
+async function saveSchool(next) {
+  applySchool(await api("/school/settings", { method: "PUT", body: { ...schoolSettings, ...next } }));
+}
+$("#siteGateBtn").addEventListener("click", async () => {
+  const open = !schoolSettings.site_open;
+  if (!open && !(await confirmBox("قفل صفحة الاستعلام", "الصفحة تنقفل لكل المعلمات، وما تقدر أي طالبة تشوف نتائجها لين تفتحها.", "قفل"))) return;
+  try { await saveSchool({ site_open: open }); toast(open ? "تم فتح صفحة الاستعلام" : "تم قفل صفحة الاستعلام"); loadSchoolOverview(); }
+  catch { toast("تعذّر الحفظ"); }
+});
+$("#schoolForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#schoolErr"), btn = $("#schoolSave");
+  err.hidden = true; btn.disabled = true;
+  try { await saveSchool({ site_open: $("#sc_open").checked, site_closed_message: $("#sc_msg").value, principal_name: $("#sc_principal").value }); toast("تم حفظ إعدادات المنصة"); }
+  catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
+async function loadSchoolOverview() {
+  if (role !== "admin") return;
+  const o = await api("/school/overview");
+  applySchool(o.settings);
+  const active = o.teachers.filter(t => t.active);
+  $("#schoolStats").innerHTML = [
+    ["المعلمات", active.length, o.teachers.length > active.length ? `+${o.teachers.length - active.length} موقوف` : ""],
+    ["الطالبات", o.totals.students, ""],
+    ["فصول المدرسة", o.totals.classes, ""],
+    ["المواد", o.totals.subjects, ""],
+    ["استعلامات آخر 7 أيام", o.totals.week, ""],
+  ].map(([k, v, u]) => `<div class="card stat"><div class="k">${k}</div><div class="v">${v}<small> ${esc(u)}</small></div></div>`).join("");
+  $("#schoolRows").innerHTML = o.teachers.map(t => `<tr${t.active ? "" : ' class="st-off"'}>
+      <td class="name">${esc(t.name)}${t.active ? "" : ' <span class="pill low">موقوف</span>'}${t.has_password ? "" : ' <span class="pill warn">بدون رقم سري</span>'}</td>
+      <td>${esc(t.subject || "—")}</td><td class="num">${t.classes}</td><td class="num">${t.students}</td>
+      <td class="num">${t.students ? levelPill(t.avg) : "—"}</td><td class="num">${t.lookups}</td>
+      <td>${!t.students ? '<span class="note">—</span>' : t.open ? '<span class="pill good">مفتوحة</span>' : '<span class="pill none">مقفلة</span>'}</td>
+      <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td></tr>`).join("");
+}
+
+async function loadCatalog() {
+  if (role !== "admin") return;
+  catalog = await api("/school/classes");
+  renderCatalog();
+}
+function renderCatalog() {
+  const row = c => `<tr>
+    <td class="name">${esc(classLabel(c.name))}</td>
+    <td>${c.grade === 1 ? '<span class="note">السنة الأولى المشتركة</span>' : esc(c.track || "—")}</td>
+    <td>${c.teachers.length ? esc(c.teachers.join("، ")) : '<span class="note">ما اختارته معلمة بعد</span>'}</td>
+    <td class="num">${c.students}</td>
+    <td style="white-space:nowrap">${c.grade > 1 ? `<button class="btn sm quiet" type="button" data-sc-edit="${esc(c.name)}">المسار</button>` : ""}
+      <button class="btn sm quiet" type="button" data-sc-del="${esc(c.name)}" ${c.teachers.length ? 'disabled title="الفصل عند معلمة. يتحذف بعد ما تشيله من فصولها."' : ""}>حذف</button></td></tr>`;
+  $("#scRows").innerHTML = Report.GRADES.map((g, i) => {
+    const list = catalog.classes.filter(c => c.grade === i + 1);
+    return `<tr class="grp"><td colspan="5"><div class="grp-in"><b>${esc(g)}</b><span class="note">${list.length ? sectionsText(list.length) : "ما فيه فصول بعد"}</span>
+      <button class="btn sm ghost" type="button" data-sc-add="${i + 1}">إضافة فصل</button></div></td></tr>` + list.map(row).join("");
+  }).join("");
+  $("#subjectList").innerHTML = catalog.subjects.length ? catalog.subjects.map(x => `<span class="chip"><b>${esc(x.name)}</b>
+      <span class="note">${x.teachers.length ? esc(x.teachers.join("، ")) : "بدون معلمة"}</span>
+      <button type="button" data-sub-del="${esc(x.name)}" aria-label="حذف ${esc(x.name)}" ${x.teachers.length ? 'disabled title="المادة عند معلمة"' : ""}>×</button></span>`).join("")
+    : '<span class="note">ما فيه مواد بعد.</span>';
+}
+$("#scRows").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.scAdd) openClassDlg(null, Number(b.dataset.scAdd));
+  else if (b.dataset.scEdit) openClassDlg(catalog.classes.find(c => c.name === b.dataset.scEdit));
+  else if (b.dataset.scDel) {
+    const name = b.dataset.scDel;
+    if (!(await confirmBox("حذف الفصل", `سيتم حذف ${classLabel(name)} من فصول المدرسة.`, "حذف"))) return;
+    try { await api("/school/classes/" + encodeURIComponent(name), { method: "DELETE" }); toast("تم حذف الفصل"); }
+    catch (x) { toast((x.data?.errors || ["تعذّر الحذف"])[0]); }
+    await loadCatalog();
+  }
+});
+$("#subjectForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#subjectErr"); err.hidden = true;
+  try {
+    const r = await api("/school/subjects", { method: "POST", body: { name: $("#subjectName").value } });
+    $("#subjectName").value = ""; toast(`تمت إضافة ${r.name}`);
+    await loadCatalog();
+  } catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
+});
+$("#subjectList").addEventListener("click", async e => {
+  const name = e.target.closest("[data-sub-del]")?.dataset.subDel; if (!name) return;
+  if (!(await confirmBox("حذف المادة", `سيتم حذف "${name}" من قائمة المواد.`, "حذف"))) return;
+  try { await api("/school/subjects/" + encodeURIComponent(name), { method: "DELETE" }); toast("تم حذف المادة"); }
+  catch (x) { toast((x.data?.errors || ["تعذّر الحذف"])[0]); }
+  await loadCatalog();
+});
+
 // ---------- Tabs ----------
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t ? "true" : "false"));
@@ -1618,7 +1875,8 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "terms") loadTerms();
   if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
   if (t.dataset.tab === "staff") loadStaff();
-  document.body.classList.toggle("on-staff", t.dataset.tab === "staff");
+  if (t.dataset.tab === "school") loadSchoolOverview();
+  if (t.dataset.tab === "catalog") loadCatalog();
 }));
 
 // ---------- Import ----------
@@ -1941,9 +2199,6 @@ async function loadStaff() {
   const data = await api("/staff");
   staffList = data.teachers;
   renderStaff();
-  // Names and subjects in the teacher picker follow any change made here.
-  me.teachers = staffList.map(t => ({ id: t.id, name: t.name, subject: t.subject || "", active: t.active }));
-  renderTeacherBar();
 }
 function renderStaff() {
   $("#staffRows").innerHTML = staffList.map(t => `<tr${t.active ? "" : ' class="st-off"'}>
@@ -1954,7 +2209,6 @@ function renderStaff() {
       <td class="num">${t.classes}</td><td class="num">${t.students}</td>
       <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td>
       <td><div class="acts">
-        <button class="btn sm" type="button" data-open-t="${t.id}">فتح اللوحة</button>
         <button class="btn sm quiet" type="button" data-pw="${t.id}"${t.user ? "" : " disabled"}>رقم سري جديد</button>
         <button class="btn sm quiet" type="button" data-edit-t="${t.id}">تعديل</button>
       </div></td>
@@ -1962,14 +2216,9 @@ function renderStaff() {
 }
 $("#staffRows").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
-  const t = staffList.find(x => String(x.id) === (b.dataset.openT || b.dataset.pw || b.dataset.editT));
+  const t = staffList.find(x => String(x.id) === (b.dataset.pw || b.dataset.editT));
   if (!t) return;
-  if (b.dataset.openT) {
-    await switchTeacher(t.id);
-    $("#tab-overview").click();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    toast(`لوحة ${t.name}`);
-  } else if (b.dataset.pw) {
+  if (b.dataset.pw) {
     if (t.has_password && !(await confirmBox("رقم سري جديد", `الرقم السري الحالي لـ ${t.name} يتوقف، وتطلع من أي جهاز داخلة منه.`, "إصدار رقم جديد"))) return;
     try { showCredentials([await api(`/staff/${t.id}/password`, { method: "POST" })]); loadStaff(); }
     catch (x) { toast((x.data?.errors || ["تعذّر إصدار الرقم"]).join(" ")); }
@@ -1979,7 +2228,7 @@ $("#staffRows").addEventListener("click", async e => {
 function openStaffDlg(t) {
   staffEdit = t;
   $("#staffDlgTitle").textContent = t ? "تعديل بيانات المعلمة" : "إضافة معلمة";
-  $("#m_name").value = t?.name || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; $("#m_subject").value = t?.subject || "";
+  $("#m_name").value = t?.name || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; subjectOptions($("#m_subject"), t?.subject, true);
   $("#m_active").checked = t ? t.active : true;
   $("#m_activeWrap").hidden = !t;
   $("#staffDel").hidden = !t;
@@ -1995,7 +2244,7 @@ $("#staffForm").addEventListener("submit", async e => {
   try {
     if (staffEdit) { await api(`/staff/${staffEdit.id}`, { method: "PUT", body }); toast("تم حفظ بيانات المعلمة"); $("#staffDlg").close(); }
     else { const c = await api("/staff", { method: "POST", body }); $("#staffDlg").close(); showCredentials([c]); }
-    await loadStaff();
+    await Promise.all([loadStaff(), loadCatalog()]);
   } catch (x) {
     $("#staffDlgErr").innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); $("#staffDlgErr").hidden = false;
   } finally { btn.disabled = false; }
@@ -2038,7 +2287,7 @@ function renderStaffPreview(p) {
     try {
       const r = await api(`/staff/import/${p.token}/apply`, { method: "POST" });
       pv.hidden = true; pv.innerHTML = "";
-      await loadStaff();
+      await Promise.all([loadStaff(), loadCatalog()]);
       if (r.issued.length) showCredentials(r.issued); else toast("تم تحديث بيانات المعلمات");
     } catch (x) {
       $("#staffErr").textContent = x.message === "expired" ? "انتهت صلاحية المعاينة. يلزم رفع الملف مرة ثانية." : (x.data?.errors || ["تعذّر الاعتماد."]).join(" ");
