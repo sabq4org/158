@@ -108,13 +108,14 @@ function situation(closed = [], date = today(), { empty = false } = {}) {
   };
 }
 
-// Read from the log, so deleting an archived period later does not reopen its semester; undoing the archive does.
-const closedSemesters = pool => pool.query(`SELECT DISTINCT (details->>'year')::int AS year, (details->>'semester')::int AS semester
-  FROM audit_log WHERE action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean AND details ? 'semester'`).then(r => r.rows);
+// Read from the teacher's log, so deleting an archived period later does not reopen its semester; undoing the archive does.
+const closedSemesters = (pool, tid) => pool.query(`SELECT DISTINCT (details->>'year')::int AS year, (details->>'semester')::int AS semester
+  FROM audit_log WHERE teacher_id = $1 AND action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean AND details ? 'semester'`, [tid]).then(r => r.rows);
 const currentYear = () => situation()?.year ?? null;
-const now = async pool => {
-  const [closed, graded] = await Promise.all([closedSemesters(pool),
-    pool.query("SELECT 1 FROM students WHERE coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL LIMIT 1")]);
+// Each teacher archives on her own, so the semester her grades belong to is hers.
+const now = async (pool, tid) => {
+  const [closed, graded] = await Promise.all([closedSemesters(pool, tid),
+    pool.query("SELECT 1 FROM students WHERE teacher_id = $1 AND coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL LIMIT 1", [tid])]);
   return situation(closed, today(), { empty: !graded.rowCount });
 };
 

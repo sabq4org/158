@@ -3,10 +3,11 @@ const express = require("express");
 const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
-const { loadSettings, getSettings, maxOf, termTitleOf } = require("./settings");
+const { loadSettings, getSettings, listTeachers, maxOf, termTitleOf } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
+const staff = require("./staff");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -76,42 +77,80 @@ setInterval(() => {
 
 const num = v => (v === null ? null : Number(v));
 
-// The teacher sees who looked up their result and when; a failed log must never block the student.
+// Each teacher sees who looked up her card and when; a failed log must never block the student.
 const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
-const logLookup = (id, kind, req) =>
-  pool.query("INSERT INTO lookups (national_id, kind, device) VALUES ($1, $2, $3)", [id, kind, deviceOf(req)])
+const logLookup = (tid, id, kind, req) =>
+  pool.query("INSERT INTO lookups (teacher_id, national_id, kind, device) VALUES ($1, $2, $3, $4)", [tid, id, kind, deviceOf(req)])
     .catch(err => console.error("lookup log failed", err.message));
 
+// What a card prints besides the grades: the teacher's own texts and limits.
+async function siteOf(tid) {
+  const s = getSettings(tid);
+  const cal = await school.now(pool, tid).catch(() => null);
+  return { teacher: tid, subject: s.subject, gradeLabel: s.grade_label, termTitle: termTitleOf(s, cal), teacherName: s.teacher_name,
+    principalName: s.principal_name, max: maxOf(s), compareChart: s.compare_chart };
+}
+
+// A student taught by several teachers gets a card from each, in the subjects whose teachers opened their results.
 app.post("/api/lookup", async (req, res) => {
-  if (!getSettings().lookup_open) return res.status(403).json({ error: "closed" });
   if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
   const id = String(req.body?.id || "").replace(/\D/g, "");
   if (id.length < 9 || id.length > 10) return res.status(400).json({ error: "invalid_id" });
   try {
-    const { rows } = await pool.query("SELECT s.*, c.track FROM students s LEFT JOIN classes c ON c.name = s.class WHERE s.national_id = $1", [id]);
+    const { rows } = await pool.query(`SELECT s.*, c.track FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active
+      LEFT JOIN classes c ON c.teacher_id = s.teacher_id AND c.name = s.class WHERE s.national_id = $1 ORDER BY s.teacher_id`, [id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
-    const s = rows[0];
-    logLookup(s.national_id, "view", req);
-    // A student with learning difficulties is not compared with her class.
-    const [history, classStats] = await Promise.all([grades.history(pool, s.national_id), s.learning_difficulty ? null : grades.classStats(pool, s.class)]);
+    const open = rows.filter(s => getSettings(s.teacher_id).lookup_open);
+    if (!open.length) return res.status(403).json({ error: "closed", message: getSettings(rows[0].teacher_id).closed_message });
+    const results = await Promise.all(open.map(async s => {
+      logLookup(s.teacher_id, s.national_id, "view", req);
+      // A student with learning difficulties is not compared with her class.
+      const [history, classStats, site] = await Promise.all([grades.history(pool, s.teacher_id, s.national_id),
+        s.learning_difficulty ? null : grades.classStats(pool, s.teacher_id, s.class), siteOf(s.teacher_id)]);
+      return {
+        id: s.national_id,
+        name: s.name,
+        class: s.class,
+        classLabel: grades.Report.classLabel(s.class),
+        track: s.track || "",
+        test1: num(s.test1),
+        test2: num(s.test2),
+        testAvg: num(s.test_avg),
+        participation: num(s.participation),
+        projects: num(s.projects),
+        homework: num(s.homework),
+        finalExam: num(s.final_exam),
+        learningStyle: s.learning_style || "",
+        email: s.email || "",
+        // Only the class average leaves the server, never a classmate's score or name.
+        classStats,
+        history,
+        site,
+      };
+    }));
+    res.json({ results });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+// Public texts and limits the lookup page opens with. With one teacher they are hers, as before there were several;
+// with more, each card brings its own and the page names only the school's.
+app.get("/api/site", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const { rows } = await pool.query("SELECT DISTINCT teacher_id FROM students");
+    const ids = new Set(rows.map(r => r.teacher_id));
+    const teaching = listTeachers().filter(t => t.active && ids.has(t.id));
+    const first = teaching[0] || listTeachers()[0];
+    const one = teaching.length <= 1 && first ? await siteOf(first.id) : null;
+    const s = getSettings(first?.id);
     res.json({
-      id: s.national_id,
-      name: s.name,
-      class: s.class,
-      classLabel: grades.Report.classLabel(s.class),
-      track: s.track || "",
-      test1: num(s.test1),
-      test2: num(s.test2),
-      testAvg: num(s.test_avg),
-      participation: num(s.participation),
-      projects: num(s.projects),
-      homework: num(s.homework),
-      finalExam: num(s.final_exam),
-      learningStyle: s.learning_style || "",
-      email: s.email || "",
-      // Only the class average leaves the server, never a classmate's score or name.
-      classStats,
-      history,
+      ...(one || { gradeLabel: school.STAGE, termTitle: "", teacherName: "", principalName: s.principal_name, max: maxOf(s), compareChart: s.compare_chart }),
+      teachers: teaching.length,
+      open: !teaching.length || teaching.some(t => getSettings(t.id).lookup_open),
+      closedMessage: s.closed_message,
     });
   } catch (err) {
     console.error(err);
@@ -119,23 +158,12 @@ app.post("/api/lookup", async (req, res) => {
   }
 });
 
-// Public texts and limits the lookup page renders with.
-app.get("/api/site", async (req, res) => {
-  const s = getSettings();
-  const cal = await school.now(pool).catch(() => null);
-  res.set("Cache-Control", "no-store");
-  res.json({
-    gradeLabel: s.grade_label, termTitle: termTitleOf(s, cal), teacherName: s.teacher_name, principalName: s.principal_name,
-    max: maxOf(s), compareChart: s.compare_chart,
-    open: s.lookup_open, closedMessage: s.closed_message,
-  });
-});
-
 app.post("/api/lookup/pdf", async (req, res) => {
   if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
   const id = String(req.body?.id || "").replace(/\D/g, "");
-  const { rowCount } = await pool.query("SELECT 1 FROM students WHERE national_id = $1", [id]).catch(() => ({ rowCount: 0 }));
-  if (rowCount) logLookup(id, "pdf", req);
+  const tid = Number(req.body?.teacher) || 0;
+  const { rowCount } = await pool.query("SELECT 1 FROM students WHERE teacher_id = $1 AND national_id = $2", [tid, id]).catch(() => ({ rowCount: 0 }));
+  if (rowCount) logLookup(tid, id, "pdf", req);
   res.json({ ok: true });
 });
 
@@ -155,7 +183,9 @@ feedback.mount(app, pool);
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
-const adminReady = pool.query(SCHEMA).then(() => pool.query(grades.SCHEMA)).then(() => pool.query(feedback.SCHEMA)).then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
+// The teachers' table and the teacher on every row come last, once every table they touch exists.
+const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
+  .then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
 adminReady

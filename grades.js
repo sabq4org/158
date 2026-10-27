@@ -33,22 +33,22 @@ ALTER TABLE term_results ADD COLUMN IF NOT EXISTS homework NUMERIC;
 ALTER TABLE term_results ADD COLUMN IF NOT EXISTS final_exam NUMERIC;`;
 
 // Archived percentages, oldest term first. Each term keeps the maximum scores it was graded with.
-// With an id: that student's list. Without: { national_id: list } for everyone.
-async function history(pool, nationalId) {
+// A teacher's archives only. With an id: that student's list. Without: { national_id: list } for everyone.
+async function history(pool, tid, nationalId) {
   const { rows } = await pool.query(
     `SELECT r.national_id, t.title, t.max, r.test1, r.test2, r.test_avg, r.participation, r.projects, r.homework, r.final_exam
-     FROM term_results r JOIN terms t ON t.id = r.term_id ${nationalId ? "WHERE r.national_id = $1" : ""} ORDER BY t.created_at, t.id`,
-    nationalId ? [nationalId] : []);
+     FROM term_results r JOIN terms t ON t.id = r.term_id WHERE t.teacher_id = $1 ${nationalId ? "AND r.national_id = $2" : ""} ORDER BY t.created_at, t.id`,
+    nationalId ? [tid, nationalId] : [tid]);
   const out = {};
   for (const r of rows) (out[r.national_id] ||= []).push({ title: r.title, pct: Report.scores(r, r.max).pct });
   return nationalId ? out[nationalId] || [] : out;
 }
 
-// The class average leaves out students with learning difficulties.
-async function classStats(pool, cls) {
+// The class average (in one teacher's class) leaves out students with learning difficulties.
+async function classStats(pool, tid, cls) {
   if (!cls) return null;
-  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects, homework, final_exam FROM students WHERE class = $1 AND NOT learning_difficulty", [cls]);
-  return Report.classStats(rows, maxOf(getSettings()));
+  const { rows } = await pool.query("SELECT test1, test2, test_avg, participation, projects, homework, final_exam FROM students WHERE teacher_id = $1 AND class = $2 AND NOT learning_difficulty", [tid, cls]);
+  return Report.classStats(rows, maxOf(getSettings(tid)));
 }
 
 module.exports = { SCHEMA, history, classStats, Report };

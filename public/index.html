@@ -311,6 +311,12 @@ html.viewing { overflow: hidden; }
 .cmp-sum { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font-size: 14px; }
 .cmp-sum b { display: block; font-size: 15px; }
 /* The comparison's form: columns, rings or a table. The pick is kept on this device, and the PDF follows it. */
+/* A student taught by several teachers picks the subject; each card is its teacher's. */
+.subjects { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; scrollbar-width: thin; }
+.subjects button { flex: none; font: inherit; font-weight: 700; font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.35; }
+.subjects button small { font-weight: 500; font-size: 12px; color: var(--muted); }
+.subjects button[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft, var(--surface-2)); color: var(--accent); }
+.subjects button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
 .seg button { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 9px; padding: 3px 11px; min-height: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .seg button svg { width: 15px; height: 15px; flex: none; }
@@ -455,13 +461,18 @@ const SITE = { gradeLabel: "المرحلة الثانوية", termTitle: "", tea
 const gradeLine = () => Report.gradeLine(SITE);
 const { fmt, esc, level, praiseFor } = Report;
 
+// One card per subject: a student taught by several teachers gets each one's.
 async function findStudent(id) {
   const res = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
   if (res.status === 404) return null;
-  if (res.status === 403) return "closed";
+  if (res.status === 403) {
+    const msg = (await res.json().catch(() => null))?.message;
+    if (msg) $("#closedMsg").textContent = msg;
+    return "closed";
+  }
   if (res.status === 429) throw new Error("rate_limited");
   if (!res.ok) throw new Error("server_error");
-  return res.json();
+  return (await res.json()).results;
 }
 const $ = s => document.querySelector(s);
 
@@ -606,16 +617,16 @@ function studyBlock(style, steps) {
 }
 
 // ===== تصدير بطاقة النتيجة PDF =====
-let currentStudent = null;
+let currentStudent = null, cards = [];
 
 async function downloadPdf(btn) {
   if (!currentStudent) return;
-  fetch("/api/lookup/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentStudent.id }) }).catch(() => {});
+  fetch("/api/lookup/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentStudent.id, teacher: currentStudent.site?.teacher }) }).catch(() => {});
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = "جارٍ تجهيز الملف…";
   try {
     const blob = await Report.toPdf([Report.cardSheet(currentStudent, { max: MAX, site: SITE, chart })]);
-    Report.save(blob, `نتيجة - ${currentStudent.name}.pdf`);
+    Report.save(blob, `نتيجة ${cards.length > 1 ? SITE.subject + " " : ""}- ${currentStudent.name}.pdf`);
   } catch (err) {
     console.error(err);
     if (viewer.open) viewer.close();
@@ -646,8 +657,18 @@ $("#viewerClose").addEventListener("click", () => viewer.close());
 $("#viewerPdf").addEventListener("click", e => downloadPdf(e.currentTarget));
 addEventListener("resize", () => { if (viewer.open) fitSheet(); });
 
+// Each card prints with its own teacher's texts and maximum scores.
+function useSite(site) {
+  if (!site) return;
+  Object.assign(MAX, site.max);
+  Object.assign(SITE, { subject: site.subject, gradeLabel: site.gradeLabel, termTitle: site.termTitle, teacherName: site.teacherName, principalName: site.principalName, compareChart: Report.chartOf(site.compareChart) });
+}
+const subjectTabs = i => cards.length < 2 ? "" : `<div class="subjects" role="tablist" aria-label="المواد">${cards.map((c, k) =>
+  `<button type="button" role="tab" data-card="${k}" aria-selected="${k === i}">${esc(c.site.subject || c.site.teacherName)}<small>${esc(c.site.teacherName)}</small></button>`).join("")}</div>`;
+
 function render(r) {
   currentStudent = r;
+  useSite(r.site);
   const { id, name, class: cls, learningStyle: style, email } = r;
   const sc = Report.scores(r, MAX);
   const first = name.split(" ")[0];
@@ -671,7 +692,7 @@ function render(r) {
     </div>
     <div class="metrics" style="--cols:${tiles.length === 3 ? 3 : 2}">${tiles.join("")}</div>` : `<p class="no-grades">لم تُرصد درجات هذه الفترة بعد.</p>`;
 
-  $("#result").innerHTML = `
+  $("#result").innerHTML = subjectTabs(cards.indexOf(r)) + `
   <article class="result">
     <div class="praise ${pr.cls}">${pr.icon}<div><strong>${esc(pr.title)}</strong><span>${esc(pr.text)}</span></div></div>
     <div class="r-head">
@@ -713,10 +734,14 @@ function render(r) {
     navigator.clipboard?.writeText(email).then(() => { b.textContent = "تم النسخ"; setTimeout(() => b.textContent = "نسخ", 1600); })
       .catch(() => { const range = document.createRange(); range.selectNodeContents($("#emailText")); const s = getSelection(); s.removeAllRanges(); s.addRange(range); });
   });
+  $("#result").querySelector(".subjects")?.addEventListener("click", e => {
+    const b = e.target.closest("[data-card]");
+    if (b && cards[b.dataset.card] !== currentStudent) render(cards[b.dataset.card]);
+  });
   $("#viewBtn").addEventListener("click", openViewer);
   $("#pdfBtn").addEventListener("click", e => downloadPdf(e.currentTarget));
   $("#again").addEventListener("click", () => {
-    $("#result").hidden = true; $("#result").innerHTML = "";
+    $("#result").hidden = true; $("#result").innerHTML = ""; cards = [];
     $("#nid").value = ""; $("#nid").focus();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
@@ -742,7 +767,8 @@ $("#lookupForm").addEventListener("submit", async e => {
     if (r === "closed") return showClosed();
     if (!r) return showError("لم نجد طالبة بهذا الرقم. راجعي الرقم أو تواصلي مع المعلمة.");
     $("#err").hidden = true;
-    render(r);
+    cards = r;
+    render(r[0]);
   } catch (err) {
     showError(err.message === "rate_limited" ? "محاولات كثيرة خلال وقت قصير. حاولي بعد عشر دقائق." : "تعذّر الاتصال بالخادم. حاولي مرة أخرى بعد قليل.");
   } finally {
@@ -757,10 +783,10 @@ function showClosed() {
 
 fetch("/api/site", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(site => {
   if (!site) return;
-  Object.assign(MAX, site.max);
-  Object.assign(SITE, { gradeLabel: site.gradeLabel, termTitle: site.termTitle, teacherName: site.teacherName, principalName: site.principalName, compareChart: Report.chartOf(site.compareChart) });
+  useSite(site);
   $("#gradeLabel").textContent = gradeLine();
-  $("#foot").textContent = `المعلمة: ${site.teacherName}` + (site.principalName ? ` · المديرة: ${site.principalName}` : "");
+  // With several teachers the page names only the school's principal; each card names its teacher.
+  $("#foot").textContent = [site.teacherName && `المعلمة: ${site.teacherName}`, site.principalName && `المديرة: ${site.principalName}`].filter(Boolean).join(" · ");
   $("#closedMsg").textContent = site.closedMessage;
   if (!site.open) showClosed();
 }).catch(() => {});
