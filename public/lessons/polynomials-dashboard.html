@@ -133,6 +133,49 @@ td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabula
 .login input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .err { color: var(--coral); font-weight: 600; font-size: 14px; min-height: 1.4em; }
 .print-only { display: none !important; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 3px; }
+.seg button { font: inherit; font-size: 14px; font-weight: 600; border: 0; border-radius: 9px; padding: 6px 12px; background: none; color: var(--muted); cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); }
+.each { display: flex; flex-direction: column; gap: 16px; }
+.resp-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.resp-h .num { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
+.resp-h b { font-size: 16px; }
+.resp-h .who { color: var(--muted); font-size: 13px; }
+.resp-h .stars { margin-inline-start: auto; color: var(--gold); font-size: 18px; letter-spacing: 1px; direction: ltr; }
+.rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
+.rax { font-weight: 700; color: var(--accent); font-size: 13.5px; grid-column: 1 / -1; margin-top: 6px; }
+.ri { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.pill-r { flex: none; font-size: 12.5px; font-weight: 700; border-radius: 99px; padding: 1px 10px; color: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.pill-r.v4 { background: var(--s4); } .pill-r.v3 { background: var(--s3); } .pill-r.v2 { background: var(--s2); color: #2a1d00; } .pill-r.v1 { background: var(--s1); } .pill-r.v0 { background: var(--line); color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags span { font-size: 13px; border: 1px solid var(--line); border-radius: 99px; padding: 1px 10px; background: var(--surface-2); }
+.lbl2 { font-size: 13px; color: var(--muted); font-weight: 600; }
+@media (max-width: 760px) { .rgrid { grid-template-columns: 1fr; } }
+/* A4 evaluation form, one per attendee, drawn off-screen and turned into PDF pages. Fixed light colours: it is paper. */
+.es-host { position: fixed; left: -10000px; top: 0; }
+.es-sheet { width: 794px; min-height: 1123px; background: #fff; color: #111; font-family: var(--font); direction: rtl; padding: 34px 40px 30px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.6; }
+.es-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #0d6e6a; padding-bottom: 10px; }
+.es-head img { height: 58px; }
+.es-head .t { text-align: center; flex: 1; padding: 0 12px; }
+.es-head h1 { margin: 0; font-size: 16px; line-height: 1.5; color: #0d3f3d; }
+.es-head p { margin: 2px 0 0; font-size: 12px; color: #444; }
+.es-title { text-align: center; font-weight: 700; font-size: 15px; background: #e6f2f0; color: #0d3f3d; border-radius: 8px; padding: 5px; }
+.es-info { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #9bb; border-radius: 8px; overflow: hidden; }
+.es-info div { padding: 5px 10px; border-bottom: 1px solid #d5e2e0; }
+.es-info div:nth-child(odd) { border-left: 1px solid #d5e2e0; }
+.es-info b { color: #0d3f3d; margin-left: 6px; }
+.es-stars { color: #d99a00; letter-spacing: 1px; }
+.es-sheet table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.es-sheet th, .es-sheet td { border: 1px solid #9bb; padding: 3px 8px; text-align: center; position: static; white-space: normal; background: none; }
+.es-sheet th { background: #0d6e6a; color: #fff; font-weight: 600; }
+.es-sheet td.q { text-align: right; }
+.es-sheet tr.ax td { background: #e6f2f0; color: #0d3f3d; font-weight: 700; text-align: right; }
+.es-sheet td.on { font-weight: 700; color: #0d6e6a; font-size: 15px; }
+.es-box { border: 1px solid #9bb; border-radius: 8px; padding: 6px 10px; }
+.es-box b { color: #0d3f3d; display: block; font-size: 12.5px; }
+.es-box p { margin: 2px 0 0; white-space: pre-wrap; }
+.es-foot { margin-top: auto; display: flex; justify-content: space-between; font-size: 11.5px; color: #555; border-top: 1px solid #ccd; padding-top: 6px; }
+
 @media (max-width: 760px) {
   .kpis { grid-template-columns: 1fr 1fr; }
   .grid2, .qrs { grid-template-columns: 1fr; }
@@ -154,6 +197,7 @@ td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabula
   td.sig img { height: 34px; }
   .bar .t, .it .dist { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .tbl-wrap { overflow: visible; }
+  .each .card { break-inside: avoid; }
 }
 .phead { text-align: center; border-bottom: 2px solid #0d6e6a; padding-bottom: 8px; margin-bottom: 6px; }
 .phead .lg { display: flex; justify-content: space-between; align-items: center; }
@@ -202,7 +246,10 @@ td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabula
     <section id="tab-eval" class="tabp" hidden>
       <div class="print-only phead" id="pheadEval"></div>
       <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="row noprint" style="justify-content:flex-end">
+        <div class="row noprint">
+          <div class="seg" role="tablist" aria-label="طريقة العرض"><button data-view="all" aria-selected="true">مجمّع</button><button data-view="each" aria-selected="false">كل تقييم لحاله</button></div>
+          <span style="flex:1"></span>
+          <button class="btn" id="pdfAll" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M12 11v7M9 15l3 3 3-3"/></svg>PDF لكل التقييمات</button>
           <button class="btn primary" data-print="eval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>طباعة التقرير</button>
           <button class="btn" id="csvEval"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</button>
         </div>
@@ -245,7 +292,7 @@ const MOMENTS = { task: "مهمة أداء", interactive: "الدرس التفا
 const APPLY = { task: "مهام الأداء متعددة الحلول", errors: "تحليل الحل الخاطئ", knowledge: "قياس المعرفة قبل وبعد", minute: "في دقيقة واحدة", interactive: "الدروس التفاعلية", game: "الألعاب التعليمية", closure: "إغلاق عرفنا ونحتاج وتوصلنا" };
 const ROLES = { leader: "قائدة مدرسة", supervisor: "مشرفة تربوية", deputy: "وكيلة", math: "معلمة رياضيات", teacher: "معلمة تخصص آخر", other: "أخرى" };
 
-let data = null, role = "viewer", tab = "att";
+let data = null, role = "viewer", tab = "att", view = "all";
 const fmt = new Intl.NumberFormat("ar-SA-u-nu-latn", { maximumFractionDigits: 1 });
 const time = d => new Date(d).toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" });
 const hijri = d => { try { return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d); } catch { return ""; } };
@@ -301,8 +348,37 @@ function renderAtt(att) {
 const bar = (label, v, max, txt, cls = "") => `<div class="bar ${cls}"><span class="l" title="${esc(label)}">${esc(label)}</span><span class="t"><i style="width:${max ? v / max * 100 : 0}%"></i></span><span class="v">${txt}</span></div>`;
 const avg = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
 
+const SCALE = { 4: "متميز", 3: "جيد جدًا", 2: "جيد", 1: "يحتاج تطوير" };
+
+// One card per attendee, oldest first, with every item she rated: the answers side by side, never summed.
+function renderEach(res) {
+  const list = [...res].reverse(), n = list.length;
+  $("#evalBody").innerHTML = `<div class="each">${list.map((r, i) => {
+    const rated = Object.keys(r.ratings || {}).length;
+    return `<article class="card">
+      <div class="resp-h"><span class="num">${i + 1}</span><div><b>${esc(r.name || "بلا اسم")}</b><div class="who">${esc(ROLES[r.role] || "الصفة غير محددة")} · ${time(r.created_at)} · تقييم ${i + 1} من ${n}</div></div>
+        <span class="stars" title="${r.overall} من 5">${"★".repeat(r.overall)}<span style="opacity:.25">${"★".repeat(5 - r.overall)}</span></span>
+        <button class="btn noprint" data-pdf="${r.id}">PDF</button></div>
+      ${rated ? `<div class="rgrid">${AXES.map(([t, it]) => `<div class="rax">${esc(t)}</div>` + it.map(([k, l]) => { const v = r.ratings?.[k] || 0;
+        return `<div class="ri"><span>${esc(l)}</span><span class="pill-r v${v}">${v ? SCALE[v] : "لم يُقيَّم"}</span></div>`; }).join("")).join("")}</div>`
+        : '<p class="muted">اكتفت بالتقييم العام بالنجوم ولم تقيّم البنود.</p>'}
+      ${(r.moments || []).length ? `<div><div class="lbl2">اللحظات التي تركت أثرًا</div><div class="tags">${r.moments.map(k => `<span>${esc(MOMENTS[k] || k)}</span>`).join("")}</div></div>` : ""}
+      ${(r.apply || []).length ? `<div><div class="lbl2">ما ستنقله لصفها</div><div class="tags">${r.apply.map(k => `<span>${esc(APPLY[k] || k)}</span>`).join("")}</div></div>` : ""}
+      ${r.strengths ? `<div class="note"><p><em>نقاط القوة: </em>${esc(r.strengths)}</p></div>` : ""}
+      ${r.suggestions ? `<div class="note"><p><em>مقترحات: </em>${esc(r.suggestions)}</p></div>` : ""}
+    </article>`; }).join("")}</div>`;
+}
+
+$$("[data-view]").forEach(b => b.addEventListener("click", () => {
+  view = b.dataset.view;
+  $$("[data-view]").forEach(x => x.setAttribute("aria-selected", x === b));
+  $("#pdfAll").hidden = view !== "each";
+  if (data) renderEval(data.responses);
+}));
+
 function renderEval(res) {
   if (!res.length) { $("#evalBody").innerHTML = '<div class="card"><p class="empty">لا توجد تقييمات بعد.</p></div>'; return; }
+  if (view === "each") return renderEach(res);
   const n = res.length, overall = avg(res.map(r => r.overall));
   const happy = res.filter(r => r.overall >= 4).length;
   const itemStats = Object.keys(ITEM).map(k => { const v = res.map(r => r.ratings?.[k]).filter(Boolean); return { k, n: v.length, avg: avg(v), dist: [4, 3, 2, 1].map(s => v.filter(x => x === s).length) }; });
@@ -345,7 +421,61 @@ function renderEval(res) {
   </div>`;
 }
 
+/* ---------- One A4 PDF page per evaluation, for the school's files ---------- */
+const hijriFull = d => { try { return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d); } catch { return ""; } };
+const ORDER = () => [...data.responses].reverse();
+function sheet(r) {
+  const list = ORDER(), i = list.findIndex(x => x.id === r.id) + 1, d = new Date(r.created_at);
+  const rated = Object.keys(r.ratings || {}).length;
+  const tags = (ids, labels) => ids && ids.length ? ids.map(k => labels[k] || k).join("، ") : "—";
+  return `<div class="es-sheet">
+    <div class="es-head"><img src="/img/moe.webp" alt=""><div class="t"><h1>${esc(TITLE)}</h1><p>درس العمليات على كثيرات الحدود · رياضيات 2 · الفصل الأول · 1448 هـ</p></div><img src="/img/school.webp" alt=""></div>
+    <div class="es-title">استمارة تقييم الحضور للدرس التطبيقي</div>
+    <div class="es-info">
+      <div><b>المقيِّمة:</b>${esc(r.name || "بلا اسم")}</div><div><b>الصفة:</b>${esc(ROLES[r.role] || "غير محددة")}</div>
+      <div><b>التاريخ:</b>${esc(hijriFull(d))}</div><div><b>الوقت:</b>${time(r.created_at)}</div>
+      <div style="border-bottom:0"><b>التقييم العام:</b><span class="es-stars">${"★".repeat(r.overall)}</span><span style="color:#ccc">${"★".repeat(5 - r.overall)}</span> ${r.overall} من 5</div><div style="border-bottom:0"><b>رقم الاستمارة:</b>${i} من ${list.length}</div>
+    </div>
+    ${rated ? `<table><thead><tr><th style="text-align:right">البند</th><th>متميز</th><th>جيد جدًا</th><th>جيد</th><th>يحتاج تطوير</th></tr></thead><tbody>
+      ${AXES.map(([t, it]) => `<tr class="ax"><td colspan="5">${esc(t)}</td></tr>` + it.map(([k, l]) => { const v = r.ratings?.[k];
+        return `<tr><td class="q">${esc(l)}</td>${[4, 3, 2, 1].map(x => `<td class="${v === x ? "on" : ""}">${v === x ? "✓" : ""}</td>`).join("")}</tr>`; }).join("")).join("")}</tbody></table>`
+      : '<div class="es-box"><p>اكتفت المقيِّمة بالتقييم العام ولم تقيّم البنود.</p></div>'}
+    <div class="es-box"><b>اللحظات التي تركت أثرًا</b><p>${esc(tags(r.moments, MOMENTS))}</p></div>
+    <div class="es-box"><b>الممارسات التي ستنقلها إلى صفها</b><p>${esc(tags(r.apply, APPLY))}</p></div>
+    <div class="es-box"><b>أبرز نقاط القوة</b><p>${esc(r.strengths || "—")}</p></div>
+    <div class="es-box"><b>مقترحات للتطوير</b><p>${esc(r.suggestions || "—")}</p></div>
+    <div class="es-foot"><span>معلمة المادة: فايزه جبوع</span><span>الثانوية الثامنة والخمسون بعد المائة</span></div>
+  </div>`;
+}
+const loadScript = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+async function pdfOf(rows, name, btn) {
+  const label = btn.textContent; btn.disabled = true;
+  try {
+    await Promise.all([loadScript("/vendor/html2canvas.min.js"), loadScript("/vendor/jspdf.umd.min.js")]);
+    await document.fonts.ready;
+    const pdf = new jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    const host = document.createElement("div"); host.className = "es-host"; document.body.appendChild(host);
+    try {
+      for (let i = 0; i < rows.length; i++) {
+        btn.textContent = rows.length > 1 ? `جارٍ التجهيز ${i + 1}/${rows.length}` : "جارٍ التجهيز…";
+        host.innerHTML = sheet(rows[i]);
+        await Promise.all([...host.querySelectorAll("img")].map(img => img.complete ? 0 : new Promise(ok => { img.onload = img.onerror = ok; })));
+        const c = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+        if (i) pdf.addPage();
+        pdf.addImage(c.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
+        c.width = c.height = 0;
+      }
+    } finally { host.remove(); }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(pdf.output("blob")); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  } catch (err) { alert("تعذّر تجهيز الملف، حاولي مرة ثانية"); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+$("#pdfAll").addEventListener("click", e => pdfOf(ORDER(), "تقييمات-الدرس-التطبيقي.pdf", e.currentTarget));
+
 document.addEventListener("click", async e => {
+  const pd = e.target.closest("[data-pdf]");
+  if (pd) { const list = ORDER(), r = list.find(x => x.id === +pd.dataset.pdf); return pdfOf([r], `تقييم-${list.indexOf(r) + 1}${r.name ? "-" + r.name.replace(/\s+/g, "-") : ""}.pdf`, pd); }
   const d = e.target.closest("[data-del]");
   if (d) {
     if (!confirm("حذف هذا السجل نهائيًا؟")) return;
