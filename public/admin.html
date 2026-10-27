@@ -955,8 +955,8 @@ async function showApp(info) {
   document.body.classList.toggle("is-admin", role === "admin");
   document.body.classList.toggle("is-teacher", role === "teacher");
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : role === "admin" ? "لوحة إدارة المنصة" : "لوحة تحكم المعلمة";
-  // The model lessons are the first teacher's.
-  $("#lessonsLink").hidden = role === "teacher" && me.teacher?.id !== 1;
+  // The model lessons are the first teacher's; the platform admin's panel doesn't link them.
+  $("#lessonsLink").hidden = role === "admin" || (role === "teacher" && me.teacher?.id !== 1);
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   if (role === "teacher") $("#myUser").textContent = me.user || "";
   renderTeacherBar();
