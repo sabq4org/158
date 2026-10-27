@@ -57,7 +57,25 @@ DO $$ BEGIN
 END $$;
 CREATE INDEX IF NOT EXISTS students_national_id ON students (national_id);
 CREATE INDEX IF NOT EXISTS lookups_teacher ON lookups (teacher_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS audit_log_teacher ON audit_log (teacher_id, id DESC);`;
+CREATE INDEX IF NOT EXISTS audit_log_teacher ON audit_log (teacher_id, id DESC);
+
+-- The school's lists, kept by the platform admin: the classes (grade, section, track) and the subjects.
+-- A teacher picks her classes and her subject from them. Whatever is already in use joins them.
+CREATE TABLE IF NOT EXISTS school_classes (
+  name        TEXT PRIMARY KEY,
+  grade       INT NOT NULL,
+  section     INT NOT NULL,
+  track       TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS subjects (
+  name        TEXT PRIMARY KEY,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO school_classes (name, grade, section, track)
+  SELECT DISTINCT ON (name) name, grade, section, track FROM classes WHERE grade IS NOT NULL AND section IS NOT NULL ORDER BY name, teacher_id
+  ON CONFLICT DO NOTHING;
+INSERT INTO subjects (name) SELECT DISTINCT subject FROM teachers WHERE coalesce(subject, '') <> '' ON CONFLICT DO NOTHING;`;
 
 // ---------- Passwords ----------
 // Eight digits: easy to read out or type on a phone. Logins are rate limited per device and per account.

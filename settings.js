@@ -17,8 +17,11 @@ const DEFAULTS = {
   compare_chart: "bars",
   lookup_open: true,
   closed_message: "النتائج غير متاحة حالياً، ترقّبي إعلانها قريباً.",
+  // The whole lookup page, for every teacher: the platform admin's switch, on top of each teacher's own.
+  site_open: true,
+  site_closed_message: "صفحة النتائج مقفلة حالياً، ترقّبي فتحها قريباً.",
 };
-const SCHOOL_KEYS = ["principal_name"];
+const SCHOOL_KEYS = ["principal_name", "site_open", "site_closed_message"];
 // What a teacher's `settings` column holds; her name and subject have columns of their own.
 const TEACHER_KEYS = ["term_title", "max_test", "max_participation", "max_projects", "max_homework", "max_final", "compare_chart", "lookup_open", "closed_message"];
 const pick = (o, keys) => Object.fromEntries(keys.filter(k => o[k] !== undefined).map(k => [k, o[k]]));
@@ -66,24 +69,27 @@ const getTeacher = tid => teachers.get(tid) || null;
 const listTeachers = () => [...teachers.values()];
 const getSchool = () => ({ ...school });
 
-// Saves what belongs to the teacher on her row, and the school's part only when `withSchool` (the platform admin).
-async function saveSettings(pool, tid, next, { withSchool = false } = {}) {
+// What belongs to the teacher, on her row.
+async function saveSettings(pool, tid, next) {
   const t = teachers.get(tid);
   await pool.query("UPDATE teachers SET settings = $2, name = $3, subject = $4 WHERE id = $1",
     [tid, JSON.stringify(pick({ ...DEFAULTS, ...(t?.settings || {}), ...next }, TEACHER_KEYS)), next.teacher_name ?? t?.name, next.subject ?? t?.subject ?? ""]);
-  if (withSchool) {
-    const value = { ...school, ...pick(next, SCHOOL_KEYS) };
-    await pool.query(
-      "INSERT INTO settings (key, value) VALUES ('site', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()",
-      [JSON.stringify(value)]);
-    school = value;
-  }
   await reloadTeachers(pool);
   return getSettings(tid);
+}
+
+// The school's own, set by the platform admin. The old site row keeps the first teacher's keys it had.
+async function saveSchool(pool, next) {
+  const { rows } = await pool.query("SELECT value FROM settings WHERE key = 'site'");
+  school = { ...school, ...pick(next, SCHOOL_KEYS) };
+  await pool.query(
+    "INSERT INTO settings (key, value) VALUES ('site', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()",
+    [JSON.stringify({ ...(rows[0]?.value || {}), ...school })]);
+  return getSchool();
 }
 
 const maxOf = s => ({ test: s.max_test, participation: s.max_participation, projects: s.max_projects, homework: s.max_homework || null, final: s.max_final || null });
 // A title the teacher typed wins; otherwise the period is named after the open semester in the calendar.
 const termTitleOf = (s, cal) => s.term_title || cal?.current.title || "";
 
-module.exports = { DEFAULTS, SCHOOL_KEYS, TEACHER_KEYS, loadSettings, reloadTeachers, saveSettings, getSettings, getTeacher, listTeachers, getSchool, maxOf, termTitleOf };
+module.exports = { DEFAULTS, SCHOOL_KEYS, TEACHER_KEYS, loadSettings, reloadTeachers, saveSettings, saveSchool, getSettings, getTeacher, listTeachers, getSchool, maxOf, termTitleOf };

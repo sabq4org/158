@@ -3,7 +3,7 @@ const express = require("express");
 const compression = require("compression");
 const { Pool } = require("pg");
 const mountAdmin = require("./admin");
-const { loadSettings, getSettings, listTeachers, maxOf, termTitleOf } = require("./settings");
+const { loadSettings, getSettings, getSchool, listTeachers, maxOf, termTitleOf } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
@@ -96,6 +96,8 @@ app.post("/api/lookup", async (req, res) => {
   if (rateLimited(req.ip)) return res.status(429).json({ error: "rate_limited" });
   const id = String(req.body?.id || "").replace(/\D/g, "");
   if (id.length < 9 || id.length > 10) return res.status(400).json({ error: "invalid_id" });
+  // The platform admin's switch closes the page for every teacher.
+  if (!getSchool().site_open) return res.status(403).json({ error: "closed", message: getSchool().site_closed_message });
   try {
     const { rows } = await pool.query(`SELECT s.*, c.track FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active
       LEFT JOIN classes c ON c.teacher_id = s.teacher_id AND c.name = s.class WHERE s.national_id = $1 ORDER BY s.teacher_id`, [id]);
@@ -149,8 +151,8 @@ app.get("/api/site", async (req, res) => {
     res.json({
       ...(one || { gradeLabel: school.STAGE, termTitle: "", teacherName: "", principalName: s.principal_name, max: maxOf(s), compareChart: s.compare_chart }),
       teachers: teaching.length,
-      open: !teaching.length || teaching.some(t => getSettings(t.id).lookup_open),
-      closedMessage: s.closed_message,
+      open: getSchool().site_open && (!teaching.length || teaching.some(t => getSettings(t.id).lookup_open)),
+      closedMessage: getSchool().site_open ? s.closed_message : getSchool().site_closed_message,
     });
   } catch (err) {
     console.error(err);
