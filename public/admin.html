@@ -310,8 +310,24 @@ tr[data-open]:hover .cls-link { color: var(--accent); }
   .cal-row > label:nth-child(2) { grid-area: 2 / 1; }
   .cal-row > label:nth-child(3) { grid-area: 2 / 2 / 3 / 4; }
 }
-/* The principal's read-only view hides every control that changes data. */
+/* The principal's read-only view hides every control that changes data. The school's own controls (staff, calendar,
+   the principal's name) are the platform admin's; a teacher's own password is hers. */
 body.viewer [data-admin] { display: none !important; }
+body:not(.is-admin) [data-only-admin] { display: none !important; }
+body:not(.is-teacher) [data-only-teacher] { display: none !important; }
+/* The admin and the principal pick whose panel they are looking at. */
+.tbar { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-color: var(--accent); }
+.tbar label { display: flex; align-items: center; gap: 10px; font-weight: 700; flex: 1 1 320px; }
+.tbar select.in { flex: 1; max-width: 420px; }
+.tbar .note { flex: 1 1 200px; }
+.st-off td { opacity: .6; }
+.cred { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; letter-spacing: 1px; direction: ltr; display: inline-block; }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+a.wa { background: #1f8f4e; }
+[data-panel="staff"] fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; }
+[data-panel="staff"] legend { font-weight: 700; padding: 0 6px; }
+/* The staff tab is the school's: the chosen teacher's bar and numbers step aside while it is open. */
+body.on-staff #teacherBar, body.on-staff #yearBar, body.on-staff #stats { display: none !important; }
 </style>
 </head>
 <body>
@@ -320,7 +336,7 @@ body.viewer [data-admin] { display: none !important; }
   <div class="topbar-in">
     <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
     <div class="brand"><b id="brandTitle">لوحة تحكم المعلمة</b><span id="whoLine">فائزة محمد جبوع · الصف الثاني</span></div>
-    <a class="link" href="/lessons/polynomials/dashboard" target="_blank" rel="noopener"><span class="hide-sm">الدرس </span>التطبيقي</a>
+    <a class="link" href="/lessons/polynomials/dashboard" target="_blank" rel="noopener" id="lessonsLink"><span class="hide-sm">الدرس </span>التطبيقي</a>
     <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
     <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
   </div>
@@ -330,14 +346,19 @@ body.viewer [data-admin] { display: none !important; }
   <!-- Login -->
   <form class="card login" id="loginForm" hidden novalidate>
     <h1>تسجيل الدخول</h1>
-    <p>اكتبي كلمة المرور للدخول إلى لوحة التحكم.</p>
-    <label class="f" for="pw">كلمة المرور<input class="in" id="pw" type="password" autocomplete="current-password" required></label>
+    <p>المعلمة تكتب رقم هويتها أو جوالها والرقم السري. الإدارة والمديرة تكتب كلمة المرور فقط.</p>
+    <label class="f" for="user">رقم الهوية أو الجوال<input class="in ltr" id="user" inputmode="numeric" autocomplete="username" placeholder="للمعلمات"></label>
+    <label class="f" for="pw">الرقم السري أو كلمة المرور<input class="in" id="pw" type="password" autocomplete="current-password" required></label>
     <p class="msg err" id="loginErr" hidden></p>
     <button class="btn" type="submit">دخول</button>
   </form>
 
   <!-- App -->
   <section id="app" hidden>
+    <div class="card tbar" id="teacherBar" hidden>
+      <label for="teacherSel">لوحة المعلمة<select class="in" id="teacherSel"></select></label>
+      <span class="note" id="teacherNote"></span>
+    </div>
     <div class="card yearbar" id="yearBar" hidden>
       <div class="yb-top"><b id="ybTitle"></b><span id="ybDate"></span></div>
       <div class="bar" id="ybTrack"><i id="ybBar" style="width:0"></i></div>
@@ -355,6 +376,7 @@ body.viewer [data-admin] { display: none !important; }
       <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups" data-admin>النسخ<span class="hide-sm"> الاحتياطية</span></button>
       <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings" data-admin>الإعدادات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="staff" id="tab-staff" data-only-admin>منسوبات المدرسة</button>
     </nav>
 
     <!-- Students -->
@@ -539,6 +561,42 @@ body.viewer [data-admin] { display: none !important; }
       <div class="empty" id="noBackups" hidden>لا توجد نسخ احتياطية بعد. أول نسخة تنحفظ عند أول رفع لملف إكسل.</div>
     </div>
 
+    <!-- School staff (the platform admin) -->
+    <div class="card" data-panel="staff" style="margin-top:16px" hidden>
+      <div class="toolbar">
+        <div class="grow note">كل معلمة لها لوحة مستقلة فيها فصولها وطالباتها فقط. تدخل برقم هويتها (أو جوالها لو ما فيه هوية) والرقم السري.</div>
+        <button class="btn" type="button" id="staffAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة معلمة</button>
+        <label class="btn quiet" for="staffFile" style="cursor:pointer">رفع ملف إكسل المعلمات<input type="file" id="staffFile" accept=".xlsx" hidden></label>
+      </div>
+      <p class="msg err" id="staffErr" hidden style="margin:0 16px 12px"></p>
+      <div id="staffPreview" hidden></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>المعلمة</th><th>المادة</th><th>اسم الدخول</th><th>الجوال</th><th class="num">الفصول</th><th class="num">الطالبات</th><th>آخر دخول</th><th></th></tr></thead>
+          <tbody id="staffRows"></tbody>
+        </table>
+      </div>
+      <div class="help" style="padding-block:12px 16px">
+        ملف الإكسل يحتاج عمود اسم المعلمة، ومعه رقم الهوية (أو السجل المدني) أو الجوال، ويمكن إضافة عمود المادة أو التخصص.
+        <ul>
+          <li>كل معلمة جديدة ينصرف لها رقم سري من 8 أرقام، يظهر مرة وحدة بعد الاعتماد مع زر إرسال واتساب وصفحة بطاقات للطباعة.</li>
+          <li>المعلمة الموجودة تتطابق برقم الهوية أو الجوال، ويتحدث اسمها ومادتها بدون ما يتغير رقمها السري.</li>
+          <li>"رقم سري جديد" يلغي القديم ويطلّعها من أي جهاز داخلة منه.</li>
+          <li>"فتح اللوحة" يعرض لوحة المعلمة بكل صلاحياتها، والرجوع لأي معلمة ثانية من القائمة فوق.</li>
+        </ul>
+      </div>
+      <fieldset style="margin:0 16px 16px">
+        <legend>حساب المديرة (عرض فقط)</legend>
+        <p class="note" id="viewerState" style="margin:0 0 10px"></p>
+        <div class="grid2" style="align-items:end">
+          <label class="f">كلمة مرور جديدة للمديرة<input class="in" id="v_pw" type="password" autocomplete="new-password" minlength="6"></label>
+          <div class="row" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="button" id="viewerSave">حفظ كلمة المرور</button><button class="btn quiet" type="button" id="viewerOff" hidden>إيقاف الحساب</button></div>
+        </div>
+        <p class="note" style="margin:10px 0 0">تدخل المديرة من رابط لوحة التحكم بهذي الكلمة بدون رقم هوية، وتختار أي معلمة وتشوف بياناتها ورسومها وتقاريرها بدون ما تقدر تعدّل شي. تغيير الكلمة يطلّع أي دخول قديم لها.</p>
+        <p class="msg err" id="viewerErr" hidden style="margin-top:10px"></p>
+      </fieldset>
+    </div>
+
     <!-- Settings -->
     <form class="card set" data-panel="settings" id="setForm" style="margin-top:16px" hidden novalidate>
       <fieldset>
@@ -552,7 +610,7 @@ body.viewer [data-admin] { display: none !important; }
           <label class="f">المادة<input class="in" name="subject" maxlength="40" placeholder="رياضيات"><span class="hj">تظهر بعد "المرحلة الثانوية" في صفحة الاستعلام والتقارير.</span></label>
           <label class="f">عنوان الفترة<input class="in" name="term_title" id="s_term" maxlength="80"><span class="hj" id="termAuto"></span></label>
           <label class="f">اسم المعلمة<input class="in" name="teacher_name" maxlength="80"></label>
-          <label class="f">اسم المديرة<input class="in" name="principal_name" maxlength="80"></label>
+          <label class="f" data-only-admin>اسم المديرة<input class="in" name="principal_name" maxlength="80"><span class="hj">للمدرسة كلها، يظهر في بطاقات كل المعلمات.</span></label>
           <label class="f">شكل المقارنة بمتوسط الفصل<select class="in" name="compare_chart" id="s_chart"></select><span class="hj">تقدر الطالبة تغيّره من صفحتها، وتقارير الفصل تطلع بهذا الشكل.</span></label>
         </div>
       </fieldset>
@@ -569,7 +627,17 @@ body.viewer [data-admin] { display: none !important; }
       </fieldset>
       <p class="msg err" id="setErr" hidden></p>
       <div><button class="btn" type="submit" id="setSave">حفظ الإعدادات</button></div>
-      <fieldset>
+      <fieldset data-only-teacher>
+        <legend>الرقم السري</legend>
+        <p class="note" style="margin:0 0 10px">تدخلين بـ <b class="ltr" id="myUser"></b> والرقم السري. لو غيّرتيه يطلع أي دخول ثاني لحسابك.</p>
+        <div class="grid3" style="align-items:end">
+          <label class="f">الرقم السري الحالي<input class="in" id="pw_cur" type="password" autocomplete="current-password"></label>
+          <label class="f">الرقم السري الجديد<input class="in" id="pw_new" type="password" autocomplete="new-password" minlength="6"><span class="hj">6 أحرف أو أرقام أو أكثر</span></label>
+          <div><button class="btn" type="button" id="pwSave">تغيير الرقم السري</button></div>
+        </div>
+        <p class="msg err" id="pwErr" hidden style="margin-top:10px"></p>
+      </fieldset>
+      <fieldset data-only-admin>
         <legend>التقويم الدراسي <span id="calYear"></span></legend>
         <div class="cal-sems" id="calSems"></div>
         <h4>الإجازات</h4>
@@ -578,16 +646,6 @@ body.viewer [data-admin] { display: none !important; }
         <p class="note" style="margin:10px 0 0">التواريخ بالميلادي والهجري يظهر تحتها. أسابيع الدراسة تُحسب من الأحد إلى الخميس، والأسبوع اللي كله إجازة ما يُحسب.</p>
         <p class="msg err" id="calErr" hidden style="margin-top:10px"></p>
         <div style="margin-top:12px"><button class="btn" type="button" id="calSave">حفظ التقويم</button></div>
-      </fieldset>
-      <fieldset>
-        <legend>حساب المديرة (عرض فقط)</legend>
-        <p class="note" id="viewerState" style="margin:0 0 10px"></p>
-        <div class="grid2" style="align-items:end">
-          <label class="f">كلمة مرور جديدة للمديرة<input class="in" id="v_pw" type="password" autocomplete="new-password" minlength="6"></label>
-          <div class="row" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="button" id="viewerSave">حفظ كلمة المرور</button><button class="btn quiet" type="button" id="viewerOff" hidden>إيقاف الحساب</button></div>
-        </div>
-        <p class="note" style="margin:10px 0 0">تدخل المديرة من رابط لوحة التحكم نفسه بهذي الكلمة، وتشوف البيانات والرسوم والتقارير بدون ما تقدر تعدّل شي. تغيير الكلمة يطلّع أي دخول قديم لها.</p>
-        <p class="msg err" id="viewerErr" hidden style="margin-top:10px"></p>
       </fieldset>
     </form>
   </section>
@@ -702,6 +760,45 @@ body.viewer [data-admin] { display: none !important; }
   </div>
 </dialog>
 
+<!-- Add or edit a teacher -->
+<dialog id="staffDlg">
+  <form class="dlg" id="staffForm" method="dialog" novalidate>
+    <h2 id="staffDlgTitle"></h2>
+    <div class="grid2">
+      <label class="f full" for="m_name">اسم المعلمة<input class="in" id="m_name" name="name" maxlength="80" required></label>
+      <label class="f" for="m_id">رقم الهوية<input class="in ltr" id="m_id" name="national_id" inputmode="numeric" maxlength="10"></label>
+      <label class="f" for="m_phone">الجوال<input class="in ltr" id="m_phone" name="phone" inputmode="tel" placeholder="05XXXXXXXX"></label>
+      <label class="f full" for="m_subject">المادة<input class="in" id="m_subject" name="subject" maxlength="40"></label>
+      <label class="switch full" for="m_active" id="m_activeWrap"><input type="checkbox" id="m_active" name="active"> الحساب مفعّل <span class="note" style="font-weight:400">الحساب الموقوف ما يقدر يدخل، وطالباته ما تظهر في صفحة الاستعلام</span></label>
+    </div>
+    <p class="note" style="margin:0">تدخل برقم الهوية، أو بالجوال لو ما فيه هوية.</p>
+    <p class="msg err" id="staffDlgErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit" id="staffDlgSave">حفظ</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
+      <button class="btn ghost" type="button" id="staffDel" style="margin-inline-start:auto;color:var(--low);border-color:var(--low)">حذف</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- New passwords, shown once -->
+<dialog id="credDlg" style="width:min(760px, calc(100vw - 32px))">
+  <div class="dlg">
+    <h2>بيانات الدخول</h2>
+    <p class="msg warn" style="margin:0">الأرقام السرية تظهر الحين فقط، والنظام ما يحفظها إلا مشفّرة. الأفضل إرسالها أو طباعتها قبل إغلاق النافذة.</p>
+    <div class="table-wrap" style="max-height:55vh;overflow:auto">
+      <table>
+        <thead><tr><th>المعلمة</th><th>اسم الدخول</th><th>الرقم السري</th><th></th></tr></thead>
+        <tbody id="credRows"></tbody>
+      </table>
+    </div>
+    <div class="row">
+      <button class="btn" type="button" id="credPrint">طباعة بطاقات الدخول</button>
+      <button class="btn quiet" type="button" data-close>إغلاق</button>
+    </div>
+  </div>
+</dialog>
+
 <div class="viz-tip" id="vizTip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
@@ -717,6 +814,12 @@ let settings = null;
 let classes = [];
 let editing = null;
 let role = "admin";
+let me = null;
+// Whose panel the admin or the principal is looking at, remembered on this device. A teacher only ever sees her own.
+let T = (() => { try { return Number(localStorage.getItem("teacher")) || null; } catch { return null; } })();
+const picking = () => role !== "teacher" && T;
+// A download link carries the teacher, as a request carries her in its header.
+const withT = url => (picking() ? url + (url.includes("?") ? "&" : "?") + "t=" + T : url);
 let terms = [];
 let historyCache = null;
 let cal = null;
@@ -729,9 +832,12 @@ const regular = list => list.filter(s => !s.learning_difficulty);
 const avgPct = list => { const p = list.map(pctOf).filter(x => x != null); return p.length ? Math.round(p.reduce((a, b) => a + b, 0) / p.length) : null; };
 
 async function api(path, opts = {}) {
+  const headers = {};
+  if (opts.body && !(opts.body instanceof FormData)) headers["Content-Type"] = "application/json";
+  if (picking()) headers["X-Teacher"] = String(T);
   const res = await fetch("/api/admin" + path, {
     method: opts.method || "GET",
-    headers: opts.body && !(opts.body instanceof FormData) ? { "Content-Type": "application/json" } : undefined,
+    headers,
     body: opts.body instanceof FormData ? opts.body : opts.body ? JSON.stringify(opts.body) : undefined,
   });
   let data = null;
@@ -763,32 +869,81 @@ function showLogin() {
   $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#loginForm").hidden = false;
   setTimeout(() => $("#pw").focus(), 50);
 }
-async function showApp(me) {
-  role = me.role === "viewer" ? "viewer" : "admin";
+async function showApp(info) {
+  me = info;
+  role = me.role;
+  if (role !== "teacher") T = me.teacher?.id ?? null;
   document.body.classList.toggle("viewer", role === "viewer");
-  $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : "لوحة تحكم المعلمة";
+  document.body.classList.toggle("is-admin", role === "admin");
+  document.body.classList.toggle("is-teacher", role === "teacher");
+  $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : role === "admin" ? "لوحة إدارة المنصة" : "لوحة تحكم المعلمة";
+  // The model lessons are the first teacher's.
+  $("#lessonsLink").hidden = role === "teacher" && me.teacher?.id !== 1;
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
-  cal = me.calendar || null;
-  if (me.school) schoolInfo = me.school;
-  applySettings(me.settings);
+  if (role === "teacher") $("#myUser").textContent = me.user || "";
+  renderTeacherBar();
+  // A tab the account can't see (the staff tab, after switching accounts) falls back to the overview.
+  const sel = document.querySelector('.tab[aria-selected="true"]');
+  if (sel && getComputedStyle(sel).display === "none") $("#tab-overview").click();
+  await loadTeacher(me);
+  if (role === "admin") { loadViewer().catch(() => {}); loadStaff().catch(() => {}); }
+}
+
+// Everything on the panel that belongs to one teacher, from /me.
+async function loadTeacher(info) {
+  cal = info.calendar || null;
+  if (info.school) schoolInfo = info.school;
+  historyCache = null; lastSeenId = null;
+  applySettings(info.settings);
+  $("#exportBtn").href = withT("/api/admin/export");
   await loadStudents();
   renderCalendarForm();
   loadLookups(false).catch(() => {});
-  if (role === "admin") loadViewer().catch(() => {});
 }
+
+function renderTeacherBar() {
+  const list = me?.teachers || [];
+  $("#teacherBar").hidden = role === "teacher" || !list.length;
+  if ($("#teacherBar").hidden) return;
+  $("#teacherSel").innerHTML = list.map(t => `<option value="${t.id}">${esc(t.name)}${t.subject ? ` · ${esc(t.subject)}` : ""}${t.active ? "" : " (موقوف)"}</option>`).join("");
+  $("#teacherSel").value = String(T);
+  $("#teacherNote").textContent = role === "viewer" ? "عرض فقط." : "كل التبويبات تحت تخص المعلمة المختارة.";
+}
+
+// A later pick wins: an answer for a teacher no longer picked is dropped, and the picker waits for the current one.
+let switching = 0;
+async function switchTeacher(id) {
+  T = Number(id);
+  try { localStorage.setItem("teacher", String(T)); } catch {}
+  closeClassView();
+  const turn = ++switching;
+  $("#teacherSel").disabled = true;
+  let info;
+  try { info = await api("/me"); }
+  finally { if (turn === switching) $("#teacherSel").disabled = false; }
+  if (turn !== switching || info.teacher?.id !== T) return;
+  me = info;
+  renderTeacherBar();
+  await loadTeacher(info);
+  if ($("#tab-terms").getAttribute("aria-selected") === "true") loadTerms();
+  if ($("#tab-audit").getAttribute("aria-selected") === "true") loadAudit();
+  if ($("#tab-backups").getAttribute("aria-selected") === "true") loadBackups();
+}
+$("#teacherSel").addEventListener("change", e => switchTeacher(e.target.value).catch(() => toast("تعذّر فتح لوحة المعلمة")));
 
 $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   const err = $("#loginErr"); err.hidden = true;
   const btn = e.submitter || $("#loginForm .btn"); btn.disabled = true;
   try {
-    await api("/login", { method: "POST", body: { password: $("#pw").value } });
+    await api("/login", { method: "POST", body: { user: toLatin($("#user").value).trim(), password: $("#pw").value } });
     $("#pw").value = "";
     await showApp(await api("/me"));
   } catch (x) {
     err.textContent = x.message === "locked" ? "محاولات كثيرة. انتظري 15 دقيقة ثم حاولي مرة أخرى."
       : x.message === "wrong_password" ? `كلمة المرور غير صحيحة. باقي ${x.data?.left ?? 0} محاولات.`
       : x.message === "disabled" ? "لوحة التحكم غير مفعّلة بعد. يجب ضبط كلمة المرور في إعدادات الخادم."
+      : x.message === "inactive" ? "هذا الحساب موقوف. تواصلي مع إدارة المدرسة."
       : "تعذّر الدخول. حاولي مرة أخرى.";
     err.hidden = false;
   } finally { btn.disabled = false; }
@@ -1462,6 +1617,8 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "audit") loadAudit();
   if (t.dataset.tab === "terms") loadTerms();
   if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
+  if (t.dataset.tab === "staff") loadStaff();
+  document.body.classList.toggle("on-staff", t.dataset.tab === "staff");
 }));
 
 // ---------- Import ----------
@@ -1607,7 +1764,7 @@ function renderClassView() {
   $("#cvEmpty").textContent = role === "viewer" ? "ما فيه طالبات في هذا الفصل بعد." : "ما فيه طالبات في هذا الفصل بعد. ارفعي ملف إكسل الفصل من فوق، أو أضيفي طالبة.";
   $("#cvPdf").disabled = !n;
   $("#cvExport").hidden = !n;
-  $("#cvExport").href = "/api/admin/export?class=" + encodeURIComponent(c.name);
+  $("#cvExport").href = withT("/api/admin/export?class=" + encodeURIComponent(c.name));
 }
 $("#cvBack").addEventListener("click", closeClassView);
 $("#cvEdit").addEventListener("click", () => openClassDlg(classByName.get(viewClass)));
@@ -1646,7 +1803,7 @@ function renderTerms() {
   $("#termRows").innerHTML = terms.map(t => `<tr>
     <td class="name">${esc(t.title)}${semOf(t)}</td><td>${whenCell(t.created_at)}</td><td class="num">${t.count}</td><td class="num">${levelPill(t.avg)}</td>
     <td style="white-space:nowrap">
-      <a class="btn sm quiet" href="/api/admin/terms/${t.id}/export">تنزيل إكسل</a>
+      <a class="btn sm quiet" href="${withT(`/api/admin/terms/${t.id}/export`)}">تنزيل إكسل</a>
       <button class="btn sm quiet" type="button" data-term-rename="${t.id}" data-admin>إعادة تسمية</button>
       <button class="btn sm quiet" type="button" data-term-delete="${t.id}" data-admin>حذف</button>
     </td></tr>`).join("") + current;
@@ -1746,7 +1903,7 @@ $("#termForm").addEventListener("submit", async e => {
 // ---------- Principal's read-only account ----------
 async function loadViewer() {
   const v = await api("/viewer");
-  $("#viewerState").textContent = v.enabled ? "مفعّل: المديرة تقدر تدخل بكلمة المرور اللي حددتيها." : "غير مفعّل بعد. اكتبي كلمة مرور للمديرة (6 أحرف أو أكثر).";
+  $("#viewerState").textContent = v.enabled ? "مفعّل: المديرة تدخل بكلمة المرور المحفوظة." : "غير مفعّل بعد. كلمة المرور للمديرة 6 أحرف أو أكثر.";
   $("#viewerOff").hidden = !v.enabled;
 }
 $("#viewerSave").addEventListener("click", async () => {
@@ -1759,10 +1916,173 @@ $("#viewerSave").addEventListener("click", async () => {
   } catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
 });
 $("#viewerOff").addEventListener("click", async () => {
-  if (!(await confirmBox("إيقاف حساب المديرة", "ما راح تقدر المديرة تدخل لين تحددين كلمة مرور جديدة.", "إيقاف"))) return;
+  if (!(await confirmBox("إيقاف حساب المديرة", "ما راح تقدر المديرة تدخل لين تنحفظ لها كلمة مرور جديدة.", "إيقاف"))) return;
   await api("/viewer", { method: "DELETE" });
   toast("تم إيقاف حساب المديرة");
   await loadViewer();
+});
+
+// ---------- A teacher's own password ----------
+$("#pwSave").addEventListener("click", async () => {
+  const err = $("#pwErr"); err.hidden = true;
+  const btn = $("#pwSave"); btn.disabled = true;
+  try {
+    await api("/password", { method: "PUT", body: { current: $("#pw_cur").value, next: $("#pw_new").value } });
+    $("#pw_cur").value = ""; $("#pw_new").value = "";
+    toast("تم تغيير الرقم السري");
+  } catch (x) { err.textContent = (x.data?.errors || ["تعذّر الحفظ."]).join(" "); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
+// ---------- School staff (the platform admin) ----------
+let staffList = [], staffEdit = null;
+async function loadStaff() {
+  if (role !== "admin") return;
+  const data = await api("/staff");
+  staffList = data.teachers;
+  renderStaff();
+  // Names and subjects in the teacher picker follow any change made here.
+  me.teachers = staffList.map(t => ({ id: t.id, name: t.name, subject: t.subject || "", active: t.active }));
+  renderTeacherBar();
+}
+function renderStaff() {
+  $("#staffRows").innerHTML = staffList.map(t => `<tr${t.active ? "" : ' class="st-off"'}>
+      <td class="name">${esc(t.name)}${t.active ? "" : ' <span class="pill low">موقوف</span>'}${t.has_password ? "" : ' <span class="pill warn">بدون رقم سري</span>'}</td>
+      <td>${esc(t.subject || "—")}</td>
+      <td class="ltr">${t.user ? esc(t.user) : '<span class="note">لا يوجد</span>'}</td>
+      <td class="ltr">${esc(t.phone || "—")}</td>
+      <td class="num">${t.classes}</td><td class="num">${t.students}</td>
+      <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td>
+      <td><div class="acts">
+        <button class="btn sm" type="button" data-open-t="${t.id}">فتح اللوحة</button>
+        <button class="btn sm quiet" type="button" data-pw="${t.id}"${t.user ? "" : " disabled"}>رقم سري جديد</button>
+        <button class="btn sm quiet" type="button" data-edit-t="${t.id}">تعديل</button>
+      </div></td>
+    </tr>`).join("");
+}
+$("#staffRows").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const t = staffList.find(x => String(x.id) === (b.dataset.openT || b.dataset.pw || b.dataset.editT));
+  if (!t) return;
+  if (b.dataset.openT) {
+    await switchTeacher(t.id);
+    $("#tab-overview").click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    toast(`لوحة ${t.name}`);
+  } else if (b.dataset.pw) {
+    if (t.has_password && !(await confirmBox("رقم سري جديد", `الرقم السري الحالي لـ ${t.name} يتوقف، وتطلع من أي جهاز داخلة منه.`, "إصدار رقم جديد"))) return;
+    try { showCredentials([await api(`/staff/${t.id}/password`, { method: "POST" })]); loadStaff(); }
+    catch (x) { toast((x.data?.errors || ["تعذّر إصدار الرقم"]).join(" ")); }
+  } else openStaffDlg(t);
+});
+
+function openStaffDlg(t) {
+  staffEdit = t;
+  $("#staffDlgTitle").textContent = t ? "تعديل بيانات المعلمة" : "إضافة معلمة";
+  $("#m_name").value = t?.name || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; $("#m_subject").value = t?.subject || "";
+  $("#m_active").checked = t ? t.active : true;
+  $("#m_activeWrap").hidden = !t;
+  $("#staffDel").hidden = !t;
+  $("#staffDlgErr").hidden = true;
+  $("#staffDlg").showModal();
+}
+$("#staffAdd").addEventListener("click", () => openStaffDlg(null));
+$("#staffForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = { name: $("#m_name").value, national_id: toLatin($("#m_id").value), phone: toLatin($("#m_phone").value), subject: $("#m_subject").value };
+  if (staffEdit) body.active = $("#m_active").checked;
+  const btn = $("#staffDlgSave"); btn.disabled = true;
+  try {
+    if (staffEdit) { await api(`/staff/${staffEdit.id}`, { method: "PUT", body }); toast("تم حفظ بيانات المعلمة"); $("#staffDlg").close(); }
+    else { const c = await api("/staff", { method: "POST", body }); $("#staffDlg").close(); showCredentials([c]); }
+    await loadStaff();
+  } catch (x) {
+    $("#staffDlgErr").innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); $("#staffDlgErr").hidden = false;
+  } finally { btn.disabled = false; }
+});
+$("#staffDel").addEventListener("click", async () => {
+  const t = staffEdit;
+  $("#staffDlg").close();
+  if (!(await confirmBox("حذف المعلمة", `سيتم حذف حساب ${t.name}. الحذف متاح للحساب اللي ما عنده فصول ولا طالبات.`, "حذف"))) return;
+  try { await api(`/staff/${t.id}`, { method: "DELETE" }); toast("تم حذف المعلمة"); await loadStaff(); }
+  catch (x) { toast((x.data?.errors || ["تعذّر الحذف"]).join(" ")); }
+});
+
+// A staff sheet: preview, then approval. New teachers' passwords come back once.
+$("#staffFile").addEventListener("change", async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  const err = $("#staffErr"); err.hidden = true;
+  const fd = new FormData(); fd.append("file", file);
+  try { renderStaffPreview(await api("/staff/import", { method: "POST", body: fd })); }
+  catch (x) {
+    err.textContent = { no_table: "ما لقيت جدول معلمات في الملف. لازم يكون فيه عمود اسم المعلمة ومعه رقم الهوية أو الجوال.", unreadable: "تعذّرت قراءة الملف. لازم يكون بصيغة xlsx.", too_large: "الملف كبير جداً." }[x.message] || "تعذّر رفع الملف.";
+    err.hidden = false;
+  }
+});
+const STAFF_FIELDS = { name: "الاسم", subject: "المادة", national_id: "رقم الهوية", phone: "الجوال" };
+function renderStaffPreview(p) {
+  const pv = $("#staffPreview");
+  const can = p.added.length + p.changed.length;
+  pv.innerHTML = `<div class="summary"><span class="file">${esc(p.fileName)}</span>
+      <span class="pill good">جديدات ${p.added.length}</span><span class="pill warn">تحديث ${p.changed.length}</span>
+      <span class="pill none">بدون تغيير ${p.unchanged}</span>${p.errors.length ? `<span class="pill low">أخطاء ${p.errors.length}</span>` : ""}</div>
+    ${p.added.length ? `<div class="sec"><h3>معلمات جديدات (ينصرف لكل وحدة رقم سري)</h3>${p.added.map(t => `<div class="change"><b>${esc(t.name)}</b><span class="d">${esc(t.subject || "")}</span><span class="d ltr">${esc(t.national_id || t.phone)}</span></div>`).join("")}</div>` : ""}
+    ${p.changed.length ? `<div class="sec"><h3>تحديث بيانات</h3>${p.changed.map(c => `<div class="change"><b>${esc(c.name)}</b>${c.changes.map(x => `<span class="d">${STAFF_FIELDS[x.field]}: <s>${esc(x.from || "—")}</s> ← <ins>${esc(x.to || "—")}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
+    ${p.errors.length ? `<div class="sec"><h3>صفوف ما تنحفظ</h3>${p.errors.map(x => `<div class="change"><b>سطر ${x.line}: ${esc(x.name || "بدون اسم")}</b><span class="d">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
+    <div class="actions">${can ? `<button class="btn" type="button" id="staffApply">اعتماد</button>` : '<span class="note">ما فيه شي ينحفظ من هذا الملف.</span>'}<button class="btn quiet" type="button" id="staffBack">رجوع</button></div>`;
+  pv.hidden = false;
+  $("#staffBack").onclick = () => { pv.hidden = true; pv.innerHTML = ""; };
+  if (can) $("#staffApply").onclick = async e => {
+    e.target.disabled = true;
+    try {
+      const r = await api(`/staff/import/${p.token}/apply`, { method: "POST" });
+      pv.hidden = true; pv.innerHTML = "";
+      await loadStaff();
+      if (r.issued.length) showCredentials(r.issued); else toast("تم تحديث بيانات المعلمات");
+    } catch (x) {
+      $("#staffErr").textContent = x.message === "expired" ? "انتهت صلاحية المعاينة. يلزم رفع الملف مرة ثانية." : (x.data?.errors || ["تعذّر الاعتماد."]).join(" ");
+      $("#staffErr").hidden = false; e.target.disabled = false;
+    }
+  };
+}
+
+// Sign-in details for each teacher: a WhatsApp message ready to send, a copy, and printable cards.
+const panelUrl = () => location.origin + "/admin";
+const credText = c => `السلام عليكم أ. ${c.name}\nحسابك في منصة نتائج الطالبات جاهز:\nالرابط: ${panelUrl()}\nاسم الدخول: ${c.user}\nالرقم السري: ${c.password}\nتقدرين تغيّرين الرقم السري من الإعدادات بعد الدخول.`;
+let creds = [];
+function showCredentials(list) {
+  creds = list;
+  $("#credRows").innerHTML = list.map((c, i) => `<tr>
+      <td class="name">${esc(c.name)}${c.subject ? `<span class="sub">${esc(c.subject)}</span>` : ""}</td>
+      <td><span class="cred">${esc(c.user)}</span></td><td><span class="cred">${esc(c.password)}</span></td>
+      <td><div class="acts">${c.wa ? `<a class="btn sm wa" target="_blank" rel="noopener" href="https://wa.me/${c.wa}?text=${encodeURIComponent(credText(c))}">واتساب</a>` : ""}
+        <button class="btn sm quiet" type="button" data-copy="${i}">نسخ الرسالة</button></div></td>
+    </tr>`).join("");
+  $("#credDlg").showModal();
+}
+$("#credRows").addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  navigator.clipboard?.writeText(credText(creds[b.dataset.copy])).then(() => { b.textContent = "تم النسخ"; setTimeout(() => (b.textContent = "نسخ الرسالة"), 1600); }).catch(() => toast("تعذّر النسخ"));
+});
+$("#credPrint").addEventListener("click", () => {
+  const w = window.open("", "_blank");
+  if (!w) return toast("المتصفح منع فتح نافذة الطباعة");
+  w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>بطاقات الدخول</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
+    <style>body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;margin:16px;color:#18242b}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .c{border:1.5px dashed #8a9a9e;border-radius:12px;padding:14px 16px;break-inside:avoid}
+    .c h3{margin:0 0 2px;font-size:17px}.c .s{color:#5f7277;font-size:13px;margin-bottom:8px}
+    .r{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid #e3eae8}
+    .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;direction:ltr;letter-spacing:1px}
+    .u{direction:ltr;font-size:13px}@media print{body{margin:0}}</style></head><body>
+    <div class="grid">${creds.map(c => `<div class="c"><h3>${esc(c.name)}</h3><div class="s">لوحة تحكم المعلمة${c.subject ? " · " + esc(c.subject) : ""}</div>
+      <div class="r"><span>الرابط</span><span class="u">${esc(panelUrl())}</span></div>
+      <div class="r"><span>اسم الدخول</span><span class="v">${esc(c.user)}</span></div>
+      <div class="r"><span>الرقم السري</span><span class="v">${esc(c.password)}</span></div></div>`).join("")}</div>
+    <script>document.fonts.ready.then(() => setTimeout(() => print(), 300));<\/script></body></html>`);
+  w.document.close();
 });
 
 // ---------- Class PDF ----------

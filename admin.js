@@ -6,10 +6,11 @@ const express = require("express");
 const multer = require("multer");
 const util = require("util");
 const ExcelJS = require("exceljs");
-const { DEFAULTS, getSettings, saveSettings, maxOf } = require("./settings");
+const { DEFAULTS, getSettings, saveSettings, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
 const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
+const staff = require("./staff");
 
 const scrypt = util.promisify(crypto.scrypt);
 
@@ -128,8 +129,8 @@ function cellText(v) {
 // The preview counts the rows with this problem, to say why they can't be saved.
 const ID_EMPTY = "رقم الهوية فاضي";
 
-// Turns raw input into a clean student record, collecting problems instead of throwing.
-function cleanStudent(raw, max = maxOf(getSettings())) {
+// Turns raw input into a clean student record against the teacher's maximum scores, collecting problems instead of throwing.
+function cleanStudent(raw, max) {
   const LIMITS = limitsFor(max);
   const errors = [];
   const s = {};
@@ -217,16 +218,20 @@ async function readStudentsFromExcel(file) {
 
 // Students listed by grade and section; classes without a grade after them.
 const CLASS_ORDER = "c.grade NULLS LAST, c.section, s.class NULLS LAST";
+// A student's class, joined within her teacher's classes.
+const CLASS_JOIN = "LEFT JOIN classes c ON c.teacher_id = s.teacher_id AND c.name = s.class";
+// The lessons and their feedback belong to the first teacher, who gave them.
+const LESSONS_OWNER = 1;
 
 module.exports = function mountAdmin(app, pool) {
   const PASSWORD = process.env.ADMIN_PASSWORD || "";
   const SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
-  if (!PASSWORD) console.warn("ADMIN_PASSWORD is not set; the admin panel is disabled");
+  if (!PASSWORD) console.warn("ADMIN_PASSWORD is not set; the platform admin account is disabled");
 
   const sign = v => crypto.createHmac("sha256", SECRET).update(v).digest("base64url");
   const hash = v => crypto.createHash("sha256").update(String(v)).digest();
 
-  // The principal's read-only password, set by the teacher. Kept apart from the site settings so it is never sent out.
+  // The principal's read-only password, set by the platform admin. Kept apart from the site settings so it is never sent out.
   let viewer = { ver: 0 };
   const loadViewer = async () => {
     const { rows } = await pool.query("SELECT value FROM settings WHERE key = 'viewer'");
@@ -241,30 +246,36 @@ module.exports = function mountAdmin(app, pool) {
     return crypto.timingSafeEqual(await scrypt(pw, viewer.salt, 32), Buffer.from(viewer.hash, "hex"));
   };
 
-  // Cookie: role.expiry.version.signature. A new principal password bumps the version and ends her old sessions.
+  // Three accounts: the platform admin ("admin", ADMIN_PASSWORD), the principal ("viewer", read-only, every teacher)
+  // and each teacher ("teacher", her own data only).
+  // Cookie: role.teacher.expiry.version.signature. A new password bumps the version and ends the account's old sessions.
   function readSession(req) {
     const m = (req.headers.cookie || "").match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`));
     if (!m) return null;
     const parts = m[1].split(".");
-    if (parts.length !== 4) return null;
-    const [role, exp, ver, sig] = parts;
-    const expected = sign(`${role}.${exp}.${ver}`);
+    if (parts.length !== 5) return null;
+    const [role, tid, exp, ver, sig] = parts;
+    const expected = sign(`${role}.${tid}.${exp}.${ver}`);
     if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
     if (!(Number(exp) > Date.now())) return null;
-    if (role === "admin") return "admin";
-    if (role === "viewer" && viewer.hash && Number(ver) === viewer.ver) return "viewer";
+    if (role === "admin" && PASSWORD) return { role };
+    if (role === "viewer" && viewer.hash && Number(ver) === viewer.ver) return { role };
+    const t = role === "teacher" && getTeacher(Number(tid));
+    if (t && t.active && t.pw_hash && Number(ver) === t.pw_ver) return { role, tid: t.id };
     return null;
   }
 
-  function setSession(res, ms, role = "admin") {
-    const payload = `${role}.${Date.now() + ms}.${role === "viewer" ? viewer.ver : 0}`;
+  function setSession(res, ms, role = "admin", t = null) {
+    const ver = role === "viewer" ? viewer.ver : role === "teacher" ? t.pw_ver : 0;
+    const payload = `${role}.${t ? t.id : 0}.${Date.now() + ms}.${ver}`;
     const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
     res.setHeader("Set-Cookie", `${COOKIE}=${payload}.${sign(payload)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${Math.floor(ms / 1000)}${secure}`);
   }
 
-  // 5 wrong passwords lock that device out for 15 minutes.
-  const failures = new Map();
+  // 5 wrong passwords lock that device out for 15 minutes; 10 on one teacher's account lock the account.
+  const failures = new Map(), accountFailures = new Map();
   const LOCK_MS = 15 * 60 * 1000;
+  const recent = (map, key) => (map.get(key) || []).filter(t => Date.now() - t < LOCK_MS);
 
   const router = express.Router();
   router.use(express.json({ limit: "100kb" }));
@@ -276,90 +287,155 @@ module.exports = function mountAdmin(app, pool) {
     }));
   }
 
+  // A teacher signs in with her ID or her mobile and her password; the admin and the principal with a password alone.
+  const findTeacher = user => {
+    const id = staff.digits(user), phone = staff.phoneOf(user);
+    return listTeachers().find(t => (id && t.national_id === id) || (phone && t.phone === phone)) || null;
+  };
+
   router.post("/login", async (req, res) => {
-    if (!PASSWORD) return res.status(503).json({ error: "disabled" });
     const now = Date.now();
-    const list = (failures.get(req.ip) || []).filter(t => now - t < LOCK_MS);
+    const list = recent(failures, req.ip);
     if (list.length >= 5) return res.status(429).json({ error: "locked" });
     const pw = String(req.body?.password ?? "");
-    const role = crypto.timingSafeEqual(hash(pw), hash(PASSWORD)) ? "admin" : (await isViewerPassword(pw)) ? "viewer" : null;
-    if (!role) { list.push(now); failures.set(req.ip, list); return res.status(401).json({ error: "wrong_password", left: 5 - list.length }); }
+    const user = norm(req.body?.user);
+    let role = null, t = null;
+    if (user) {
+      t = findTeacher(user);
+      if (t && recent(accountFailures, t.id).length >= 10) return res.status(429).json({ error: "locked" });
+      if (t && (await staff.checkPassword(t, pw))) {
+        if (!t.active) return res.status(403).json({ error: "inactive" });
+        role = "teacher";
+      }
+    } else {
+      if (!PASSWORD && !viewer.hash) return res.status(503).json({ error: "disabled" });
+      role = PASSWORD && crypto.timingSafeEqual(hash(pw), hash(PASSWORD)) ? "admin" : (await isViewerPassword(pw)) ? "viewer" : null;
+    }
+    if (!role) {
+      list.push(now); failures.set(req.ip, list);
+      if (t) accountFailures.set(t.id, [...recent(accountFailures, t.id), now]);
+      return res.status(401).json({ error: "wrong_password", left: 5 - list.length });
+    }
     failures.delete(req.ip);
-    setSession(res, SESSION_HOURS * 3600 * 1000, role);
+    if (t) {
+      accountFailures.delete(t.id);
+      await pool.query("UPDATE teachers SET last_login = now() WHERE id = $1", [t.id]);
+    }
+    setSession(res, SESSION_HOURS * 3600 * 1000, role, t);
     res.json({ ok: true, role });
   });
 
   router.post("/logout", (req, res) => { setSession(res, 0); res.json({ ok: true }); });
 
+  // Whose data a request reads and writes. A teacher only ever her own; the admin and the principal pick a teacher
+  // (the X-Teacher header, or ?t= on a download link), the first one by default.
   router.use((req, res, next) => {
-    req.role = readSession(req);
-    if (!req.role) return res.status(401).json({ error: "unauthorized" });
+    const s = readSession(req);
+    if (!s) return res.status(401).json({ error: "unauthorized" });
+    req.role = s.role;
+    if (s.role === "teacher") req.tid = s.tid;
+    else {
+      const want = Number(req.get("x-teacher") || req.query.t);
+      req.tid = getTeacher(want) ? want : listTeachers()[0]?.id ?? 1;
+    }
     // The principal's account sees everything and changes nothing.
-    if (req.role !== "admin" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
+    if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
     next();
   });
+  const adminOnly = (req, res, next) => (req.role === "admin" ? next() : res.status(403).json({ error: "forbidden", errors: ["هذا الإجراء لإدارة المنصة فقط"] }));
 
-  const calendarInfo = async () => ({ years: school.getYears(), now: await school.now(pool) });
+  // Every change is logged against the teacher it touched; the school's own (calendar, staff) against none.
+  const log = (q, tid, action, nationalId, details) =>
+    q.query("INSERT INTO audit_log (teacher_id, action, national_id, details) VALUES ($1, $2, $3, $4)", [tid, action, nationalId ?? null, JSON.stringify(details ?? {})]);
 
-  router.get("/me", async (req, res) => res.json({ ok: true, role: req.role, max: maxOf(getSettings()), styles: STYLES, settings: getSettings(),
-    calendar: await calendarInfo(), school: { stage: school.STAGE, tracks: school.TRACKS } }));
+  const calendarInfo = async tid => ({ years: school.getYears(), now: await school.now(pool, tid) });
+  const teacherInfo = t => ({ id: t.id, name: t.name, subject: t.subject || "", active: t.active });
 
-  // ---------- Workshop feedback ----------
-  router.get("/feedback/:workshop", async (req, res) => {
+  router.get("/me", async (req, res) => {
+    const t = getTeacher(req.tid);
+    res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null,
+      // The admin and the principal switch between teachers; a teacher sees no one else.
+      teachers: req.role === "teacher" ? undefined : listTeachers().map(teacherInfo),
+      user: req.role === "teacher" ? t.national_id || t.phone : undefined,
+      max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
+      calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
+  });
+
+  // A teacher changes her own password. Her other sessions end; this one carries on.
+  router.put("/password", async (req, res) => {
+    if (req.role !== "teacher") return res.status(403).json({ error: "forbidden" });
+    const t = getTeacher(req.tid);
+    const next = String(req.body?.next ?? "");
+    if (!(await staff.checkPassword(t, String(req.body?.current ?? "")))) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور الحالية غير صحيحة"] });
+    if (next.length < 6) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور الجديدة لازم تكون 6 أحرف أو أرقام أو أكثر"] });
+    const h = await staff.hashPassword(next);
+    await pool.query("UPDATE teachers SET pw_salt = $2, pw_hash = $3, pw_ver = pw_ver + 1 WHERE id = $1", [t.id, h.salt, h.hash]);
+    await reloadTeachers(pool);
+    await log(pool, t.id, "password", null, {});
+    setSession(res, SESSION_HOURS * 3600 * 1000, "teacher", getTeacher(t.id));
+    res.json({ ok: true });
+  });
+
+  // ---------- Workshop feedback (the lessons' owner, the admin and the principal) ----------
+  const lessonsOnly = (req, res, next) => (req.role !== "teacher" || req.tid === LESSONS_OWNER ? next() : res.status(403).json({ error: "forbidden" }));
+  router.get("/feedback/:workshop", lessonsOnly, async (req, res) => {
     const out = await feedback.results(pool, req.params.workshop);
     if (!out) return res.status(404).json({ error: "not_found" });
-    res.set("Cache-Control", "no-store").json({ ...out, role: req.role });
+    res.set("Cache-Control", "no-store").json({ ...out, role: req.role === "viewer" ? "viewer" : "admin" });
   });
 
   // For clearing a test answer before the real attendees arrive.
-  router.delete("/feedback/:workshop/:id", async (req, res) => {
+  router.delete("/feedback/:workshop/:id", lessonsOnly, async (req, res) => {
     const { rowCount } = await pool.query("DELETE FROM workshop_feedback WHERE workshop = $1 AND id = $2", [req.params.workshop, Number(req.params.id) || 0]);
     res.json({ ok: rowCount > 0 });
   });
-  router.delete("/attendance/:workshop/:id", async (req, res) => {
+  router.delete("/attendance/:workshop/:id", lessonsOnly, async (req, res) => {
     const { rowCount } = await pool.query("DELETE FROM workshop_attendance WHERE workshop = $1 AND id = $2", [req.params.workshop, Number(req.params.id) || 0]);
     res.json({ ok: rowCount > 0 });
   });
 
-  // ---------- School calendar ----------
-  router.get("/calendar", async (req, res) => res.json(await calendarInfo()));
+  // ---------- School calendar (the school's; only the admin edits it) ----------
+  router.get("/calendar", async (req, res) => res.json(await calendarInfo(req.tid)));
 
-  router.put("/calendar/:hijri", async (req, res) => {
+  router.put("/calendar/:hijri", adminOnly, async (req, res) => {
     const hijri = Number(req.params.hijri);
     if (!school.getYears().some(y => y.hijri === hijri)) return res.status(404).json({ error: "not_found" });
     const y = school.cleanYear(req.body);
     if (y.errors.length) return res.status(400).json({ error: "invalid", errors: y.errors });
     await school.saveYear(pool, hijri, y);
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('calendar', $1)", [JSON.stringify({ year: hijri })]);
-    res.json(await calendarInfo());
+    await log(pool, null, "calendar", null, { year: hijri });
+    res.json(await calendarInfo(req.tid));
   });
 
-  router.get("/viewer", (req, res) => res.json({ enabled: !!viewer.hash }));
+  router.get("/viewer", adminOnly, (req, res) => res.json({ enabled: !!viewer.hash }));
 
-  router.put("/viewer", async (req, res) => {
+  router.put("/viewer", adminOnly, async (req, res) => {
     const pw = String(req.body?.password ?? "");
     if (pw.length < 6) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور لازم تكون 6 أحرف أو أكثر"] });
-    if (pw === PASSWORD) return res.status(400).json({ error: "invalid", errors: ["اختاري كلمة مرور غير كلمة مرور المعلمة"] });
+    if (pw === PASSWORD) return res.status(400).json({ error: "invalid", errors: ["كلمة مرور المديرة لازم تختلف عن كلمة مرور الإدارة"] });
     const salt = crypto.randomBytes(16).toString("hex");
     await saveViewer({ salt, hash: (await scrypt(pw, salt, 32)).toString("hex"), ver: viewer.ver + 1 });
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('viewer_set', '{}')");
+    await log(pool, null, "viewer_set", null, {});
     res.json({ enabled: true });
   });
 
-  router.delete("/viewer", async (req, res) => {
+  router.delete("/viewer", adminOnly, async (req, res) => {
     await saveViewer({ ver: viewer.ver + 1 });
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('viewer_off', '{}')");
+    await log(pool, null, "viewer_off", null, {});
     res.json({ enabled: false });
   });
 
-  router.get("/settings", (req, res) => res.json(getSettings()));
+  router.get("/settings", (req, res) => res.json(getSettings(req.tid)));
 
+  // The teacher's own settings. The principal's name is the school's: only the admin's change to it is kept.
   router.put("/settings", async (req, res) => {
-    const b = req.body || {}, errors = [];
+    const T = req.tid, b = req.body || {}, errors = [];
+    const before = getSettings(T);
     const next = {};
     for (const k of ["subject", "term_title", "teacher_name", "principal_name", "closed_message"]) {
       next[k] = norm(b[k] ?? DEFAULTS[k]).slice(0, 200);
     }
+    if (req.role !== "admin") next.principal_name = before.principal_name;
     if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
     if (!next.closed_message) next.closed_message = DEFAULTS.closed_message;
     for (const k of ["max_test", "max_participation", "max_projects"]) {
@@ -373,7 +449,7 @@ module.exports = function mountAdmin(app, pool) {
       if (t && (!Number.isFinite(n) || n <= 0 || n > 1000)) errors.push(`الدرجة العظمى غير صحيحة: ${t}`);
       next[k] = t ? n : null;
     }
-    next.compare_chart = grades.Report.isChart(b.compare_chart) ? b.compare_chart : getSettings().compare_chart;
+    next.compare_chart = grades.Report.isChart(b.compare_chart) ? b.compare_chart : before.compare_chart;
     next.lookup_open = b.lookup_open !== false;
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
 
@@ -381,35 +457,36 @@ module.exports = function mountAdmin(app, pool) {
     const checks = [["test1", next.max_test], ["test2", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects],
       ["homework", next.max_homework], ["final_exam", next.max_final]].filter(([, m]) => m != null);
     for (const [f, m] of checks) {
-      const { rows } = await pool.query(`SELECT name FROM students WHERE ${f} > $1 ORDER BY name LIMIT 3`, [m]);
+      const { rows } = await pool.query(`SELECT name FROM students WHERE teacher_id = $1 AND ${f} > $2 ORDER BY name LIMIT 3`, [T, m]);
       if (rows.length) errors.push(`${LABEL[f]}: فيه طالبات درجاتهن أعلى من ${m} (${rows.map(r => r.name).join("، ")})`);
     }
     if (errors.length) return res.status(409).json({ error: "scores_above_max", errors });
 
-    const before = getSettings();
     const changes = Object.keys(next).filter(k => before[k] !== next[k]).map(k => ({ field: k, from: before[k], to: next[k] }));
-    await saveSettings(pool, next);
-    if (changes.length) await pool.query("INSERT INTO audit_log (action, details) VALUES ('settings', $1)", [JSON.stringify(changes)]);
-    res.json(getSettings());
+    await saveSettings(pool, T, next, { withSchool: req.role === "admin" });
+    if (changes.length) await log(pool, T, "settings", null, changes);
+    res.json(getSettings(T));
   });
 
   router.get("/audit", async (req, res) => {
     const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, s.name AS current_name
-      FROM audit_log a LEFT JOIN students s ON s.national_id = a.national_id ORDER BY a.id DESC LIMIT 300`);
+      FROM audit_log a LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id
+      WHERE a.teacher_id = $1 ORDER BY a.id DESC LIMIT 300`, [req.tid]);
     res.json(rows);
   });
 
   // Undo one student change. Fields edited again since then are left alone and reported back.
   router.post("/audit/:id/undo", async (req, res) => {
+    const T = req.tid;
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const { rows } = await client.query("SELECT * FROM audit_log WHERE id = $1 FOR UPDATE", [req.params.id]);
+      const { rows } = await client.query("SELECT * FROM audit_log WHERE id = $1 AND teacher_id = $2 FOR UPDATE", [Number(req.params.id) || 0, T]);
       const e = rows[0];
       if (!e) { await client.query("ROLLBACK"); return res.status(404).json({ error: "not_found" }); }
       if (e.undone_at) { await client.query("ROLLBACK"); return res.status(409).json({ error: "already_undone", errors: ["تم التراجع عن هذا التعديل من قبل"] }); }
       const cols = FIELDS.map(f => f[0]);
-      const cur = (await client.query("SELECT * FROM students WHERE national_id = $1", [e.national_id])).rows[0];
+      const cur = (await client.query("SELECT * FROM students WHERE teacher_id = $1 AND national_id = $2", [T, e.national_id])).rows[0];
       let skipped = [], title = null;
       if (e.action === "edit") {
         if (!cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "gone", errors: ["الطالبة محذوفة، ما يمكن التراجع عن تعديلها"] }); }
@@ -423,42 +500,43 @@ module.exports = function mountAdmin(app, pool) {
         const next = { ...now };
         for (const c of revert) next[c.field] = c.from;
         next.test_avg = next.test1 != null && next.test2 != null ? Math.round(((Number(next.test1) + Number(next.test2)) / 2) * 100) / 100 : next.test_avg;
-        await client.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...valuesOf(next), e.national_id]);
+        await updateStudent(client, T, e.national_id, next);
       } else if (e.action === "add") {
-        if (cur) await client.query("DELETE FROM students WHERE national_id = $1", [e.national_id]);
+        if (cur) await client.query("DELETE FROM students WHERE teacher_id = $1 AND national_id = $2", [T, e.national_id]);
       } else if (e.action === "delete") {
         if (cur) { await client.query("ROLLBACK"); return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية حالياً"] }); }
-        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(e.details || {}));
-        await syncClasses(client);
+        await insertStudent(client, T, e.details || {});
+        await syncClasses(client, T);
       } else if (e.action === "term_delete") {
         const d = e.details || {};
-        if ((await client.query("SELECT 1 FROM terms WHERE title = $1", [d.title])).rowCount) {
+        if ((await client.query("SELECT 1 FROM terms WHERE teacher_id = $1 AND title = $2", [T, d.title])).rowCount) {
           await client.query("ROLLBACK");
           return res.status(409).json({ error: "exists", errors: ["توجد فترة بنفس العنوان حالياً"] });
         }
-        const t = await client.query("INSERT INTO terms (title, max, created_at, year, semester) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-          [d.title, JSON.stringify(d.max), d.created_at, d.year ?? null, d.semester ?? null]);
+        const t = await client.query("INSERT INTO terms (teacher_id, title, max, created_at, year, semester) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+          [T, d.title, JSON.stringify(d.max), d.created_at, d.year ?? null, d.semester ?? null]);
         await insertTermResults(client, t.rows[0].id, d.results || []);
       } else if (e.action === "term_archive" && e.details?.term_id) {
         const d = e.details;
-        await client.query("DELETE FROM terms WHERE id = $1", [d.term_id]);
+        await client.query("DELETE FROM terms WHERE teacher_id = $1 AND id = $2", [T, d.term_id]);
         if (d.grades?.length) {
           const graded = `coalesce(${GRADE_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
-          const g = `jsonb_to_recordset($1) AS g(national_id TEXT, ${GRADE_COLS.map(c => c + " NUMERIC").join(", ")})`;
+          const g = `jsonb_to_recordset($2) AS g(national_id TEXT, ${GRADE_COLS.map(c => c + " NUMERIC").join(", ")})`;
           const list = JSON.stringify(d.grades);
-          skipped = (await client.query(`SELECT s.name FROM students s JOIN ${g} ON g.national_id = s.national_id WHERE ${graded} ORDER BY s.name`, [list])).rows.map(r => r.name);
-          await client.query(`UPDATE students s SET ${GRADE_COLS.map(c => `${c} = g.${c}`).join(", ")} FROM ${g} WHERE g.national_id = s.national_id AND NOT (${graded})`, [list]);
+          skipped = (await client.query(`SELECT s.name FROM students s JOIN ${g} ON g.national_id = s.national_id WHERE s.teacher_id = $1 AND ${graded} ORDER BY s.name`, [T, list])).rows.map(r => r.name);
+          await client.query(`UPDATE students s SET ${GRADE_COLS.map(c => `${c} = g.${c}`).join(", ")} FROM ${g}
+            WHERE s.teacher_id = $1 AND g.national_id = s.national_id AND NOT (${graded})`, [T, list]);
         }
-        if (d.cleared && getSettings().term_title === (d.next_title || "")) title = d.prev_title ?? "";
+        if (d.cleared && getSettings(T).term_title === (d.next_title || "")) title = d.prev_title ?? "";
       } else {
         await client.query("ROLLBACK");
         return res.status(400).json({ error: "not_undoable", errors: ["هذا النوع يُسترجع من النسخ الاحتياطية"] });
       }
       await client.query("UPDATE audit_log SET undone_at = now() WHERE id = $1", [e.id]);
-      await client.query("INSERT INTO audit_log (action, national_id, details) VALUES ('undo', $1, $2)", [e.national_id, JSON.stringify({ of: e.id, action: e.action, skipped })]);
+      await log(client, T, "undo", e.national_id, { of: e.id, action: e.action, skipped });
       await client.query("COMMIT");
-      if (title != null) await saveSettings(pool, { ...getSettings(), term_title: title });
-      res.json({ ok: true, skipped, settings: getSettings() });
+      if (title != null) await saveSettings(pool, T, { ...getSettings(T), term_title: title });
+      res.json({ ok: true, skipped, settings: getSettings(T) });
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;
@@ -467,62 +545,75 @@ module.exports = function mountAdmin(app, pool) {
     }
   });
 
-  // Lookups count from the start of the current period: the last archive that cleared the grades.
+  // Lookups count from the start of the teacher's current period: her last archive that cleared the grades.
+  // The query passes the teacher as $1.
   const SINCE = `created_at > coalesce((SELECT max(created_at) FROM audit_log
-    WHERE action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean), '-infinity')`;
+    WHERE teacher_id = $1 AND action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean), '-infinity')`;
 
   router.get("/students", async (req, res) => {
     const { rows } = await pool.query(`SELECT s.*, l.last_lookup, l.lookup_count FROM students s
-      LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups WHERE ${SINCE} GROUP BY national_id) l
-      ON l.national_id = s.national_id LEFT JOIN classes c ON c.name = s.class ORDER BY ${CLASS_ORDER}, s.name`);
+      LEFT JOIN (SELECT national_id, max(created_at) AS last_lookup, count(*)::int AS lookup_count FROM lookups WHERE teacher_id = $1 AND ${SINCE} GROUP BY national_id) l
+      ON l.national_id = s.national_id ${CLASS_JOIN} WHERE s.teacher_id = $1 ORDER BY ${CLASS_ORDER}, s.name`, [req.tid]);
     res.json(rows.map(r => ({ ...fromRow(r), last_lookup: r.last_lookup, lookup_count: r.lookup_count || 0 })));
   });
 
   router.get("/lookups", async (req, res) => {
     const { rows } = await pool.query(`SELECT l.id, l.national_id, l.kind, l.device, l.created_at, s.name, s.class
-      FROM lookups l LEFT JOIN students s ON s.national_id = l.national_id WHERE l.${SINCE} ORDER BY l.id DESC LIMIT 100`);
-    const totals = (await pool.query(`SELECT kind, count(*)::int AS n FROM lookups WHERE ${SINCE} GROUP BY kind`)).rows;
+      FROM lookups l LEFT JOIN students s ON s.teacher_id = l.teacher_id AND s.national_id = l.national_id
+      WHERE l.teacher_id = $1 AND l.${SINCE} ORDER BY l.id DESC LIMIT 100`, [req.tid]);
+    const totals = (await pool.query(`SELECT kind, count(*)::int AS n FROM lookups WHERE teacher_id = $1 AND ${SINCE} GROUP BY kind`, [req.tid])).rows;
     res.json({ recent: rows, totals: Object.fromEntries(totals.map(t => [t.kind, t.n])) });
   });
 
+  // Every write of a student names her teacher.
+  const COLS = FIELDS.map(f => f[0]);
+  const insertStudent = (q, tid, s, { upsert = false } = {}) => q.query(
+    `INSERT INTO students (teacher_id, ${COLS.join(",")}) VALUES ($1, ${COLS.map((_, i) => "$" + (i + 2)).join(",")})
+     ${upsert ? `ON CONFLICT (teacher_id, national_id) DO UPDATE SET ${COLS.filter(c => c !== "national_id").map(c => `${c} = EXCLUDED.${c}`).join(", ")}` : ""}`,
+    [tid, ...valuesOf(s)]);
+  const updateStudent = (q, tid, id, s) => q.query(
+    `UPDATE students SET ${COLS.map((c, i) => `${c} = $${i + 3}`).join(", ")} WHERE teacher_id = $1 AND national_id = $2`, [tid, id, ...valuesOf(s)]);
+  const studentsOf = (q, tid) => q.query("SELECT * FROM students WHERE teacher_id = $1 ORDER BY national_id", [tid]).then(r => r.rows);
+  const backup = (q, tid, note, rows) => q.query("INSERT INTO backups (teacher_id, note, data) VALUES ($1, $2, $3)", [tid, note, JSON.stringify(rows.map(fromRow))]);
+
   router.post("/students", async (req, res) => {
-    const { student, errors } = cleanStudent(req.body || {});
+    const T = req.tid;
+    const { student, errors } = cleanStudent(req.body || {}, maxOf(getSettings(T)));
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
     student.learning_difficulty ??= false;
-    const cols = FIELDS.map(f => f[0]);
     try {
-      await pool.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(student));
+      await insertStudent(pool, T, student);
     } catch (err) {
       if (err.code === "23505") return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية"] });
       throw err;
     }
-    await pool.query("INSERT INTO audit_log (action, national_id, details) VALUES ('add', $1, $2)", [student.national_id, student]);
+    await log(pool, T, "add", student.national_id, student);
     res.json(student);
   });
 
   router.put("/students/:id", async (req, res) => {
-    const { student, errors } = cleanStudent({ ...req.body, national_id: req.body?.national_id ?? req.params.id });
+    const T = req.tid;
+    const { student, errors } = cleanStudent({ ...req.body, national_id: req.body?.national_id ?? req.params.id }, maxOf(getSettings(T)));
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
-    const { rows } = await pool.query("SELECT * FROM students WHERE national_id = $1", [req.params.id]);
+    const { rows } = await pool.query("SELECT * FROM students WHERE teacher_id = $1 AND national_id = $2", [T, req.params.id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
     student.learning_difficulty ??= rows[0].learning_difficulty;
-    const cols = FIELDS.map(f => f[0]);
     try {
-      await pool.query(`UPDATE students SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(", ")} WHERE national_id = $${cols.length + 1}`, [...valuesOf(student), req.params.id]);
+      await updateStudent(pool, T, req.params.id, student);
     } catch (err) {
       if (err.code === "23505") return res.status(409).json({ error: "exists", errors: ["توجد طالبة بنفس رقم الهوية"] });
       throw err;
     }
     const before = fromRow(rows[0]);
-    const changes = cols.filter(c => !same(before[c], student[c])).map(c => ({ field: c, from: before[c], to: student[c] }));
-    await pool.query("INSERT INTO audit_log (action, national_id, details) VALUES ('edit', $1, $2)", [req.params.id, JSON.stringify(changes)]);
+    const changes = COLS.filter(c => !same(before[c], student[c])).map(c => ({ field: c, from: before[c], to: student[c] }));
+    await log(pool, T, "edit", req.params.id, changes);
     res.json(student);
   });
 
   router.delete("/students/:id", async (req, res) => {
-    const { rows } = await pool.query("DELETE FROM students WHERE national_id = $1 RETURNING *", [req.params.id]);
+    const { rows } = await pool.query("DELETE FROM students WHERE teacher_id = $1 AND national_id = $2 RETURNING *", [req.tid, req.params.id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
-    await pool.query("INSERT INTO audit_log (action, national_id, details) VALUES ('delete', $1, $2)", [req.params.id, fromRow(rows[0])]);
+    await log(pool, req.tid, "delete", req.params.id, fromRow(rows[0]));
     res.json({ ok: true });
   });
 
@@ -555,11 +646,11 @@ module.exports = function mountAdmin(app, pool) {
     res.end();
   }
 
-  // All students, or one class (?class=) from its page.
+  // All the teacher's students, or one class (?class=) from its page.
   router.get("/export", async (req, res) => {
     const cls = typeof req.query.class === "string" && req.query.class ? req.query.class : null;
-    const { rows } = await pool.query(`SELECT s.* FROM students s LEFT JOIN classes c ON c.name = s.class
-      ${cls ? "WHERE s.class = $1" : ""} ORDER BY ${CLASS_ORDER}, s.name`, cls ? [cls] : []);
+    const { rows } = await pool.query(`SELECT s.* FROM students s ${CLASS_JOIN}
+      WHERE s.teacher_id = $1 ${cls ? "AND s.class = $2" : ""} ORDER BY ${CLASS_ORDER}, s.name`, cls ? [req.tid, cls] : [req.tid]);
     await sendExcel(res, rows, EXPORT_COLS, cls ? `نتائج ${grades.Report.classLabel(cls).replace(/\//g, "-")}` : "نتائج الطالبات");
   });
 
@@ -569,11 +660,12 @@ module.exports = function mountAdmin(app, pool) {
      SELECT $1, ${TERM_COLS.join(", ")} FROM jsonb_to_recordset($2) AS x(${TERM_COLS.map(c => `${c} ${TERM_TYPES[c] || "NUMERIC"}`).join(", ")})`,
     [termId, JSON.stringify(list)]);
   const termId = req => (/^\d+$/.test(req.params.id) ? Number(req.params.id) : null);
-  const titleTaken = (title, except = 0) => pool.query("SELECT 1 FROM terms WHERE title = $1 AND id <> $2", [title, except]).then(r => r.rowCount > 0);
+  const titleTaken = (tid, title, except = 0) => pool.query("SELECT 1 FROM terms WHERE teacher_id = $1 AND title = $2 AND id <> $3", [tid, title, except]).then(r => r.rowCount > 0);
 
   router.get("/terms", async (req, res) => {
-    const terms = (await pool.query("SELECT id, title, max, created_at, year, semester FROM terms ORDER BY created_at, id")).rows;
-    const results = (await pool.query(`SELECT term_id, ${GRADE_COLS.join(", ")}, learning_difficulty FROM term_results`)).rows;
+    const terms = (await pool.query("SELECT id, title, max, created_at, year, semester FROM terms WHERE teacher_id = $1 ORDER BY created_at, id", [req.tid])).rows;
+    const results = (await pool.query(`SELECT r.term_id, ${GRADE_COLS.map(c => "r." + c).join(", ")}, r.learning_difficulty FROM term_results r
+      JOIN terms t ON t.id = r.term_id WHERE t.teacher_id = $1`, [req.tid])).rows;
     res.json(terms.map(t => {
       const mine = results.filter(r => r.term_id === t.id);
       // Like the class average, the term average leaves out students with learning difficulties.
@@ -585,37 +677,39 @@ module.exports = function mountAdmin(app, pool) {
   // Archive the current grades under a title. Optionally empty them for the next period (a backup is kept first).
   // The archive belongs to a semester, the open one unless the teacher picks another; clearing closes it.
   router.post("/terms", async (req, res) => {
+    const T = req.tid;
     const title = norm(req.body?.title).slice(0, 80);
     const clear = req.body?.clear === true;
     const nextTitle = norm(req.body?.next_title).slice(0, 80);
-    const open = (await school.now(pool))?.current;
+    const open = (await school.now(pool, T))?.current;
     const year = req.body?.year == null ? open?.year ?? null : Number(req.body.year);
     const semester = req.body?.semester == null ? open?.num ?? null : Number(req.body.semester);
     if (!title) return res.status(400).json({ error: "invalid", errors: ["اكتبي عنوان الفترة"] });
     if ((year != null && !(year >= 1440 && year <= 1500)) || (semester != null && ![1, 2, 3].includes(semester))) {
       return res.status(400).json({ error: "invalid", errors: ["الفصل الدراسي غير صحيح"] });
     }
-    if (await titleTaken(title)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
+    if (await titleTaken(T, title)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
     const client = await pool.connect();
-    const prevTitle = getSettings().term_title;
+    const prevTitle = getSettings(T).term_title;
     let count;
     try {
       await client.query("BEGIN");
-      const t = await client.query("INSERT INTO terms (title, max, year, semester) VALUES ($1, $2, $3, $4) RETURNING id", [title, JSON.stringify(maxOf(getSettings())), year, semester]);
+      const t = await client.query("INSERT INTO terms (teacher_id, title, max, year, semester) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [T, title, JSON.stringify(maxOf(getSettings(T))), year, semester]);
       count = (await client.query(
         `INSERT INTO term_results (term_id, ${TERM_COLS.join(", ")}) SELECT $1, ${TERM_COLS.join(", ")} FROM students
-         WHERE coalesce(${GRADE_COLS.join(", ")}) IS NOT NULL`, [t.rows[0].id])).rowCount;
+         WHERE teacher_id = $2 AND coalesce(${GRADE_COLS.join(", ")}) IS NOT NULL`, [t.rows[0].id, T])).rowCount;
       if (!count) { await client.query("ROLLBACK"); return res.status(400).json({ error: "empty", errors: ["ما فيه درجات مرصودة للأرشفة"] }); }
       // The log keeps the term id and the cleared grades, so the archive can be undone from there.
       const details = { title, count, cleared: clear, next_title: clear ? nextTitle : null, term_id: t.rows[0].id, prev_title: prevTitle, year, semester };
       if (clear) {
-        const { rows } = await client.query("SELECT * FROM students ORDER BY national_id");
-        await client.query("INSERT INTO backups (note, data) VALUES ($1, $2)", ["قبل أرشفة الفترة ومسح الدرجات", JSON.stringify(rows.map(fromRow))]);
+        const rows = await studentsOf(client, T);
+        await backup(client, T, "قبل أرشفة الفترة ومسح الدرجات", rows);
         details.grades = rows.filter(r => GRADE_COLS.some(c => r[c] != null))
           .map(r => Object.fromEntries(["national_id", ...GRADE_COLS].map(c => [c, r[c]])));
-        await client.query(`UPDATE students SET ${GRADE_COLS.map(c => `${c} = NULL`).join(", ")}`);
+        await client.query(`UPDATE students SET ${GRADE_COLS.map(c => `${c} = NULL`).join(", ")} WHERE teacher_id = $1`, [T]);
       }
-      await client.query("INSERT INTO audit_log (action, details) VALUES ('term_archive', $1)", [JSON.stringify(details)]);
+      await log(client, T, "term_archive", null, details);
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");
@@ -624,51 +718,64 @@ module.exports = function mountAdmin(app, pool) {
       client.release();
     }
     // A fresh period starts with its own title on the lookup page (empty until the teacher names it).
-    if (clear) await saveSettings(pool, { ...getSettings(), term_title: nextTitle });
-    res.json({ ok: true, count, settings: getSettings() });
+    if (clear) await saveSettings(pool, T, { ...getSettings(T), term_title: nextTitle });
+    res.json({ ok: true, count, settings: getSettings(T) });
   });
 
   router.put("/terms/:id", async (req, res) => {
-    const id = termId(req), title = norm(req.body?.title).slice(0, 80);
+    const T = req.tid, id = termId(req), title = norm(req.body?.title).slice(0, 80);
     if (!title) return res.status(400).json({ error: "invalid", errors: ["اكتبي عنوان الفترة"] });
-    if (await titleTaken(title, id || 0)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
-    const old = (await pool.query("SELECT title FROM terms WHERE id = $1", [id])).rows[0];
+    if (await titleTaken(T, title, id || 0)) return res.status(409).json({ error: "exists", errors: ["توجد فترة مؤرشفة بنفس العنوان"] });
+    const old = (await pool.query("SELECT title FROM terms WHERE teacher_id = $1 AND id = $2", [T, id])).rows[0];
     if (!old) return res.status(404).json({ error: "not_found" });
     await pool.query("UPDATE terms SET title = $1 WHERE id = $2", [title, id]);
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('term_rename', $1)", [JSON.stringify({ from: old.title, to: title })]);
+    await log(pool, T, "term_rename", null, { from: old.title, to: title });
     res.json({ ok: true });
   });
 
   // The deleted results stay in the log, so the deletion can be undone from there.
   router.delete("/terms/:id", async (req, res) => {
-    const id = termId(req);
-    const t = (await pool.query("SELECT title, max, created_at, year, semester FROM terms WHERE id = $1", [id])).rows[0];
+    const T = req.tid, id = termId(req);
+    const t = (await pool.query("SELECT title, max, created_at, year, semester FROM terms WHERE teacher_id = $1 AND id = $2", [T, id])).rows[0];
     if (!t) return res.status(404).json({ error: "not_found" });
     const results = (await pool.query(`SELECT ${TERM_COLS.join(", ")} FROM term_results WHERE term_id = $1 ORDER BY national_id`, [id])).rows;
     await pool.query("DELETE FROM terms WHERE id = $1", [id]);
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('term_delete', $1)", [JSON.stringify({ ...t, count: results.length, results })]);
+    await log(pool, T, "term_delete", null, { ...t, count: results.length, results });
     res.json({ ok: true });
   });
 
   router.get("/terms/:id/export", async (req, res) => {
     const id = termId(req);
-    const t = (await pool.query("SELECT title FROM terms WHERE id = $1", [id])).rows[0];
+    const t = (await pool.query("SELECT title FROM terms WHERE teacher_id = $1 AND id = $2", [req.tid, id])).rows[0];
     if (!t) return res.status(404).json({ error: "not_found" });
     const { rows } = await pool.query("SELECT * FROM term_results WHERE term_id = $1 ORDER BY class NULLS LAST, name", [id]);
     await sendExcel(res, rows, EXPORT_COLS.filter(([k]) => k !== "email" && k !== "notes"), `نتائج ${t.title}`);
   });
 
-  router.get("/history", async (req, res) => res.json(await grades.history(pool)));
+  router.get("/history", async (req, res) => res.json(await grades.history(pool, req.tid)));
 
-  // Uploads are previewed first; the parsed result waits here until the teacher approves it.
+  // Uploads are previewed first; the parsed result waits here until it is approved, by the same teacher's panel.
   const previews = new Map();
   const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 150 * 1024 * 1024 } });
+  const keepPreview = p => {
+    const token = crypto.randomBytes(16).toString("hex");
+    previews.set(token, { at: Date.now(), ...p });
+    for (const [k, v] of previews) if (Date.now() - v.at > 30 * 60 * 1000) previews.delete(k);
+    return token;
+  };
+  const takePreview = (req, kind) => {
+    const p = previews.get(req.params.token);
+    if (!p || p.kind !== kind || p.tid !== req.tid) return null;
+    previews.delete(req.params.token);
+    return p;
+  };
 
   // A class picked before the upload takes every student in the file; without one, each row's class column decides.
   router.post("/import", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "no_file" });
+    const T = req.tid;
     const target = norm(req.body?.class) || null;
-    if (target && !(await pool.query("SELECT 1 FROM classes WHERE name = $1", [target])).rowCount) {
+    if (target && !(await pool.query("SELECT 1 FROM classes WHERE teacher_id = $1 AND name = $2", [T, target])).rowCount) {
       fs.unlink(req.file.path, () => {});
       return res.status(400).json({ error: "unknown_class" });
     }
@@ -683,13 +790,14 @@ module.exports = function mountAdmin(app, pool) {
     }
     if (!parsed) return res.status(400).json({ error: "no_table" });
 
-    const { rows } = await pool.query("SELECT * FROM students");
-    const known = (await pool.query("SELECT name, aliases FROM classes")).rows;
+    const max = maxOf(getSettings(T));
+    const rows = await studentsOf(pool, T);
+    const known = (await pool.query("SELECT name, aliases FROM classes WHERE teacher_id = $1", [T])).rows;
     const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
     const seen = new Set();
     const added = [], changed = [], errors = [], unchanged = [], elsewhere = {}, named = new Set();
     for (const { line, raw } of parsed.rows) {
-      const { student, errors: errs } = cleanStudent(raw);
+      const { student, errors: errs } = cleanStudent(raw, max);
       if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
       const fileClass = resolveClass(student.class, known);
       if (fileClass) named.add(fileClass);
@@ -711,43 +819,26 @@ module.exports = function mountAdmin(app, pool) {
     const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (target ? s.class === target : !named.size || named.has(s.class)))
       .map(s => ({ national_id: s.national_id, name: s.name }));
 
-    const token = crypto.randomBytes(16).toString("hex");
-    previews.set(token, { at: Date.now(), name: req.file.originalname, target, upserts: [...added, ...changed.map(c => c.student)] });
-    for (const [k, v] of previews) if (Date.now() - v.at > 30 * 60 * 1000) previews.delete(k);
+    const token = keepPreview({ kind: "students", tid: T, target, upserts: [...added, ...changed.map(c => c.student)] });
     res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.rows.length, added, changed, unchanged: unchanged.length, errors, missing,
       target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })),
       ignored: parsed.ignored, missingIds: errors.filter(e => e.problems.includes(ID_EMPTY)).length });
   });
 
   router.post("/import/:token/apply", async (req, res) => {
-    const p = previews.get(req.params.token);
+    const p = takePreview(req, "students");
     if (!p) return res.status(410).json({ error: "expired" });
-    previews.delete(req.params.token);
-    const cols = FIELDS.map(f => f[0]);
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-      const { rows } = await client.query("SELECT * FROM students ORDER BY national_id");
-      await client.query("INSERT INTO backups (note, data) VALUES ($1, $2)", ["قبل رفع ملف إكسل", JSON.stringify(rows.map(fromRow))]);
-      for (const s of p.upserts) {
-        await client.query(
-          `INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})
-           ON CONFLICT (national_id) DO UPDATE SET ${cols.filter(c => c !== "national_id").map(c => `${c} = EXCLUDED.${c}`).join(", ")}`,
-          valuesOf(s));
-      }
-      await syncClasses(client);
-      await client.query("INSERT INTO audit_log (action, details) VALUES ('import', $1)", [JSON.stringify({ count: p.upserts.length, class: p.target || undefined })]);
-      await client.query("COMMIT");
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    } finally {
-      client.release();
-    }
+    const T = p.tid;
+    await inTransaction(async client => {
+      await backup(client, T, "قبل رفع ملف إكسل", await studentsOf(client, T));
+      for (const s of p.upserts) await insertStudent(client, T, s, { upsert: true });
+      await syncClasses(client, T);
+      await log(client, T, "import", null, { count: p.upserts.length, class: p.target || undefined });
+    });
     res.json({ ok: true, count: p.upserts.length });
   });
 
-  // ---------- Classes ----------
+  // ---------- Classes (each teacher's own) ----------
   // A student's class always names a class on the list. An old name joins the class that kept it as an alias,
   // a short form ("2/1") becomes the full name, and any other name is listed as written, without a grade.
   const resolveClass = (name, known) => {
@@ -757,22 +848,23 @@ module.exports = function mountAdmin(app, pool) {
     const p = school.parseClass(name);
     return p ? school.className(p.grade, p.section) : name;
   };
-  async function syncClasses(q) {
-    const known = (await q.query("SELECT name, aliases FROM classes")).rows;
-    const { rows } = await q.query("SELECT DISTINCT class FROM students WHERE class IS NOT NULL AND class NOT IN (SELECT name FROM classes)");
+  async function syncClasses(q, tid) {
+    const known = (await q.query("SELECT name, aliases FROM classes WHERE teacher_id = $1", [tid])).rows;
+    const { rows } = await q.query(`SELECT DISTINCT class FROM students WHERE teacher_id = $1 AND class IS NOT NULL
+      AND class NOT IN (SELECT name FROM classes WHERE teacher_id = $1)`, [tid]);
     for (const { class: name } of rows) {
       const to = resolveClass(name, known);
       if (!known.some(c => c.name === to)) {
         const p = grades.Report.classParts(to);
-        await q.query("INSERT INTO classes (name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
-          [to, p ? school.currentYear() : null, p?.grade ?? null, p?.section ?? null, p ? school.trackFor(p.grade) : null]);
+        await q.query("INSERT INTO classes (teacher_id, name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+          [tid, to, p ? school.currentYear() : null, p?.grade ?? null, p?.section ?? null, p ? school.trackFor(p.grade) : null]);
         known.push({ name: to, aliases: [] });
       }
-      if (to !== name) await q.query(`UPDATE students SET class = $1${school.isLdGroup(name) ? ", learning_difficulty = true" : ""} WHERE class = $2`, [to, name]);
+      if (to !== name) await q.query(`UPDATE students SET class = $2${school.isLdGroup(name) ? ", learning_difficulty = true" : ""} WHERE teacher_id = $1 AND class = $3`, [tid, to, name]);
     }
   }
   // A class taken by name is nobody's old name any more.
-  const freeName = (q, name) => q.query("UPDATE classes SET aliases = array_remove(aliases, $1) WHERE name <> $1", [name]);
+  const freeName = (q, tid, name) => q.query("UPDATE classes SET aliases = array_remove(aliases, $2) WHERE teacher_id = $1 AND name <> $2", [tid, name]);
 
   const classOf = body => {
     const grade = Number(body?.grade), section = Number(body?.section), errors = [];
@@ -799,21 +891,22 @@ module.exports = function mountAdmin(app, pool) {
   }
 
   router.get("/classes", async (req, res) => {
-    await syncClasses(pool);
+    await syncClasses(pool, req.tid);
     const { rows } = await pool.query(`SELECT c.name, c.year, c.grade, c.section, c.track, c.aliases, count(s.national_id)::int AS count
-      FROM classes c LEFT JOIN students s ON s.class = c.name GROUP BY c.name ORDER BY c.grade NULLS LAST, c.section, c.name`);
+      FROM classes c LEFT JOIN students s ON s.teacher_id = c.teacher_id AND s.class = c.name WHERE c.teacher_id = $1
+      GROUP BY c.teacher_id, c.name ORDER BY c.grade NULLS LAST, c.section, c.name`, [req.tid]);
     res.json(rows);
   });
 
   router.post("/classes", async (req, res) => {
-    const c = classOf(req.body);
+    const T = req.tid, c = classOf(req.body);
     if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
     const out = await inTransaction(async q => {
-      const { rowCount } = await q.query("INSERT INTO classes (name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
-        [c.name, school.currentYear(), c.grade, c.section, c.track]);
+      const { rowCount } = await q.query("INSERT INTO classes (teacher_id, name, year, grade, section, track) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+        [T, c.name, school.currentYear(), c.grade, c.section, c.track]);
       if (!rowCount) return { rollback: true };
-      await freeName(q, c.name);
-      await q.query("INSERT INTO audit_log (action, details) VALUES ('class_add', $1)", [JSON.stringify({ name: c.name, track: c.track })]);
+      await freeName(q, T, c.name);
+      await log(q, T, "class_add", null, { name: c.name, track: c.track });
     });
     if (out?.rollback) return res.status(409).json({ error: "exists", errors: [`${c.name} موجود`] });
     res.json({ name: c.name, count: 0 });
@@ -822,30 +915,29 @@ module.exports = function mountAdmin(app, pool) {
   // A new grade or section renames the class, keeping an unstructured old name ("1") as an alias.
   // Onto a class that exists, it merges the two. The same grade and section only changes the track.
   router.put("/classes/:name", async (req, res) => {
-    const from = req.params.name, c = classOf(req.body);
+    const T = req.tid, from = req.params.name, c = classOf(req.body);
     if (c.errors.length) return res.status(400).json({ error: "invalid", errors: c.errors });
     const out = await inTransaction(async q => {
-      await syncClasses(q);
-      const old = (await q.query("SELECT * FROM classes WHERE name = $1 FOR UPDATE", [from])).rows[0];
+      await syncClasses(q, T);
+      const old = (await q.query("SELECT * FROM classes WHERE teacher_id = $1 AND name = $2 FOR UPDATE", [T, from])).rows[0];
       if (!old) return { rollback: true };
       if (c.name === from) {
         if (old.track !== c.track) {
-          await q.query("UPDATE classes SET track = $2 WHERE name = $1", [from, c.track]);
-          await q.query("INSERT INTO audit_log (action, details) VALUES ('class_track', $1)", [JSON.stringify({ name: from, from: old.track, to: c.track })]);
+          await q.query("UPDATE classes SET track = $3 WHERE teacher_id = $1 AND name = $2", [T, from, c.track]);
+          await log(q, T, "class_track", null, { name: from, from: old.track, to: c.track });
         }
         return { moved: 0, name: from };
       }
-      const target = (await q.query("SELECT track FROM classes WHERE name = $1 FOR UPDATE", [c.name])).rows[0];
+      const target = (await q.query("SELECT track FROM classes WHERE teacher_id = $1 AND name = $2 FOR UPDATE", [T, c.name])).rows[0];
       const aliases = [...old.aliases, ...(grades.Report.classParts(from) ? [] : [from])];
-      await q.query("DELETE FROM classes WHERE name = $1", [from]);
-      if (target) await q.query("UPDATE classes SET aliases = ARRAY(SELECT DISTINCT unnest(aliases || $2::text[])) WHERE name = $1", [c.name, aliases]);
-      else await q.query("INSERT INTO classes (name, year, grade, section, track, aliases, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        [c.name, old.year ?? school.currentYear(), c.grade, c.section, c.track, aliases, old.created_at]);
-      await freeName(q, c.name);
+      await q.query("DELETE FROM classes WHERE teacher_id = $1 AND name = $2", [T, from]);
+      if (target) await q.query("UPDATE classes SET aliases = ARRAY(SELECT DISTINCT unnest(aliases || $3::text[])) WHERE teacher_id = $1 AND name = $2", [T, c.name, aliases]);
+      else await q.query("INSERT INTO classes (teacher_id, name, year, grade, section, track, aliases, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        [T, c.name, old.year ?? school.currentYear(), c.grade, c.section, c.track, aliases, old.created_at]);
+      await freeName(q, T, c.name);
       const ld = school.isLdGroup(from);
-      const moved = (await q.query(`UPDATE students SET class = $1${ld ? ", learning_difficulty = true" : ""} WHERE class = $2`, [c.name, from])).rowCount;
-      await q.query("INSERT INTO audit_log (action, details) VALUES ('class_rename', $1)",
-        [JSON.stringify({ from, to: c.name, students: moved, merged: !!target, track: target ? target.track : c.track, learning_difficulty: ld && moved > 0 })]);
+      const moved = (await q.query(`UPDATE students SET class = $2${ld ? ", learning_difficulty = true" : ""} WHERE teacher_id = $1 AND class = $3`, [T, c.name, from])).rowCount;
+      await log(q, T, "class_rename", null, { from, to: c.name, students: moved, merged: !!target, track: target ? target.track : c.track, learning_difficulty: ld && moved > 0 });
       return { moved, name: c.name, merged: !!target };
     });
     if (out?.rollback) return res.status(404).json({ error: "not_found" });
@@ -853,45 +945,172 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   router.delete("/classes/:name", async (req, res) => {
-    const { rows } = await pool.query("SELECT count(*)::int AS n FROM students WHERE class = $1", [req.params.name]);
+    const T = req.tid;
+    const { rows } = await pool.query("SELECT count(*)::int AS n FROM students WHERE teacher_id = $1 AND class = $2", [T, req.params.name]);
     if (rows[0].n) return res.status(409).json({ error: "not_empty", errors: ["انقلي طالبات الفصل أولاً"] });
-    await pool.query("DELETE FROM classes WHERE name = $1", [req.params.name]);
-    await pool.query("INSERT INTO audit_log (action, details) VALUES ('class_delete', $1)", [JSON.stringify({ name: req.params.name })]);
+    await pool.query("DELETE FROM classes WHERE teacher_id = $1 AND name = $2", [T, req.params.name]);
+    await log(pool, T, "class_delete", null, { name: req.params.name });
     res.json({ ok: true });
   });
 
   router.get("/backups", async (req, res) => {
-    const { rows } = await pool.query("SELECT id, created_at, note, jsonb_array_length(data) AS count FROM backups ORDER BY id DESC LIMIT 30");
+    const { rows } = await pool.query("SELECT id, created_at, note, jsonb_array_length(data) AS count FROM backups WHERE teacher_id = $1 ORDER BY id DESC LIMIT 30", [req.tid]);
     res.json(rows);
   });
 
+  // Restoring brings back one teacher's students as they were; the other teachers' are not touched.
   router.post("/backups/:id/restore", async (req, res) => {
-    const client = await pool.connect();
+    const T = req.tid;
+    const out = await inTransaction(async client => {
+      const b = await client.query("SELECT data FROM backups WHERE teacher_id = $1 AND id = $2", [T, Number(req.params.id) || 0]);
+      if (!b.rows.length) return { rollback: true };
+      await backup(client, T, "قبل استرجاع نسخة احتياطية", await studentsOf(client, T));
+      await client.query("DELETE FROM students WHERE teacher_id = $1", [T]);
+      for (const s of b.rows[0].data) await insertStudent(client, T, s);
+      await syncClasses(client, T);
+      await log(client, T, "restore", null, { backup: Number(req.params.id) });
+      return { count: b.rows[0].data.length };
+    });
+    if (out?.rollback) return res.status(404).json({ error: "not_found" });
+    res.json({ ok: true, count: out.count });
+  });
+
+  // ---------- School staff (the platform admin only) ----------
+  // A teacher signs in with her ID, or her mobile when the ID is missing.
+  const userOf = t => t.national_id || t.phone;
+  const credentials = (t, password) => ({ id: t.id, name: t.name, subject: t.subject || "", user: userOf(t), phone: t.phone, wa: staff.waNumber(t.phone), password });
+  // Another teacher already signs in with this ID or mobile.
+  const taken = async (t, except = 0) => (await pool.query(
+    "SELECT name FROM teachers WHERE id <> $1 AND ((national_id IS NOT NULL AND national_id = $2) OR (phone IS NOT NULL AND phone = $3))",
+    [except, t.national_id, t.phone])).rows[0]?.name;
+  // A new password ends the teacher's old sessions. It is shown once and only its hash is kept.
+  async function issuePassword(q, id) {
+    const password = staff.newPassword();
+    const h = await staff.hashPassword(password);
+    await q.query("UPDATE teachers SET pw_salt = $2, pw_hash = $3, pw_ver = pw_ver + 1 WHERE id = $1", [id, h.salt, h.hash]);
+    return password;
+  }
+
+  router.get("/staff", adminOnly, async (req, res) => {
+    const { rows } = await pool.query(`SELECT t.id, t.name, t.subject, t.national_id, t.phone, t.active, t.pw_hash IS NOT NULL AS has_password, t.last_login, t.created_at,
+        (SELECT count(*)::int FROM students s WHERE s.teacher_id = t.id) AS students,
+        (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes
+      FROM teachers t ORDER BY t.id`);
+    res.json({ teachers: rows.map(t => ({ ...t, user: userOf(t), wa: staff.waNumber(t.phone) })), viewer: !!viewer.hash });
+  });
+
+  router.post("/staff", adminOnly, async (req, res) => {
+    const { teacher: t, errors } = staff.cleanTeacher(req.body || {});
+    if (errors.length) return res.status(400).json({ error: "invalid", errors });
+    const other = await taken(t);
+    if (other) return res.status(409).json({ error: "exists", errors: [`رقم الهوية أو الجوال مسجّل للمعلمة ${other}`] });
+    const out = await inTransaction(async q => {
+      const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, settings) VALUES ($1, $2, $3, $4, '{}') RETURNING *",
+        [t.name, t.subject, t.national_id, t.phone]);
+      const password = await issuePassword(q, rows[0].id);
+      await log(q, null, "staff_add", null, { id: rows[0].id, name: t.name });
+      return credentials(rows[0], password);
+    });
+    await reloadTeachers(pool);
+    res.json(out);
+  });
+
+  router.put("/staff/:id", adminOnly, async (req, res) => {
+    const id = Number(req.params.id), cur = getTeacher(id);
+    if (!cur) return res.status(404).json({ error: "not_found" });
+    const { teacher: t, errors } = staff.cleanTeacher({ ...cur, ...req.body });
+    if (errors.length) return res.status(400).json({ error: "invalid", errors });
+    const other = await taken(t, id);
+    if (other) return res.status(409).json({ error: "exists", errors: [`رقم الهوية أو الجوال مسجّل للمعلمة ${other}`] });
+    const active = req.body?.active === undefined ? cur.active : req.body.active !== false;
+    // Turning an account off ends its sessions.
+    await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
+      [id, t.name, t.subject, t.national_id, t.phone, active, cur.active && !active ? 1 : 0]);
+    await log(pool, null, "staff_edit", null, { id, name: t.name, active });
+    await reloadTeachers(pool);
+    res.json({ ok: true });
+  });
+
+  router.post("/staff/:id/password", adminOnly, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!getTeacher(id)) return res.status(404).json({ error: "not_found" });
+    const password = await issuePassword(pool, id);
+    await log(pool, null, "staff_password", null, { id, name: getTeacher(id).name });
+    await reloadTeachers(pool);
+    res.json(credentials(getTeacher(id), password));
+  });
+
+  // Only an account with nothing saved under it can go; one with data is turned off instead.
+  router.delete("/staff/:id", adminOnly, async (req, res) => {
+    const id = Number(req.params.id), t = getTeacher(id);
+    if (!t) return res.status(404).json({ error: "not_found" });
+    const { rows } = await pool.query(`SELECT (SELECT count(*) FROM students WHERE teacher_id = $1) + (SELECT count(*) FROM classes WHERE teacher_id = $1)
+      + (SELECT count(*) FROM terms WHERE teacher_id = $1) AS n`, [id]);
+    if (Number(rows[0].n)) return res.status(409).json({ error: "has_data", errors: ["المعلمة عندها فصول أو طالبات، فيُوقف حسابها بدل الحذف."] });
+    await pool.query("DELETE FROM teachers WHERE id = $1", [id]);
+    await log(pool, null, "staff_delete", null, { id, name: t.name });
+    await reloadTeachers(pool);
+    res.json({ ok: true });
+  });
+
+  // A staff sheet is previewed like a students sheet. Teachers match on their ID, or their mobile.
+  router.post("/staff/import", adminOnly, upload.single("file"), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "no_file" });
+    let rows;
     try {
-      await client.query("BEGIN");
-      const b = await client.query("SELECT data, created_at FROM backups WHERE id = $1", [req.params.id]);
-      if (!b.rows.length) { await client.query("ROLLBACK"); return res.status(404).json({ error: "not_found" }); }
-      const { rows } = await client.query("SELECT * FROM students ORDER BY national_id");
-      await client.query("INSERT INTO backups (note, data) VALUES ($1, $2)", ["قبل استرجاع نسخة احتياطية", JSON.stringify(rows.map(fromRow))]);
-      await client.query("DELETE FROM students");
-      const cols = FIELDS.map(f => f[0]);
-      for (const s of b.rows[0].data) {
-        await client.query(`INSERT INTO students (${cols.join(",")}) VALUES (${cols.map((_, i) => "$" + (i + 1)).join(",")})`, valuesOf(s));
-      }
-      await syncClasses(client);
-      await client.query("INSERT INTO audit_log (action, details) VALUES ('restore', $1)", [JSON.stringify({ backup: Number(req.params.id) })]);
-      await client.query("COMMIT");
-      res.json({ ok: true, count: b.rows[0].data.length });
+      rows = await staff.readStaffSheet(req.file.path);
     } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
+      console.error(err);
+      return res.status(400).json({ error: "unreadable" });
     } finally {
-      client.release();
+      fs.unlink(req.file.path, () => {});
     }
+    if (!rows) return res.status(400).json({ error: "no_table" });
+    const all = listTeachers();
+    const added = [], changed = [], errors = [], seen = new Set();
+    let unchanged = 0;
+    for (const { line, raw } of rows) {
+      const { teacher: t, errors: errs } = staff.cleanTeacher(raw);
+      for (const k of [t.national_id, t.phone].filter(Boolean)) { if (seen.has(k)) errs.push("مكررة في الملف"); }
+      if (errs.length) { errors.push({ line, name: t.name || norm(raw.name), problems: [...new Set(errs)] }); continue; }
+      [t.national_id, t.phone].filter(Boolean).forEach(k => seen.add(k));
+      const before = all.find(x => (t.national_id && x.national_id === t.national_id) || (t.phone && x.phone === t.phone));
+      if (!before) { added.push(t); continue; }
+      // As with students, an empty cell keeps what is saved.
+      const next = { name: t.name, subject: t.subject ?? before.subject, national_id: t.national_id ?? before.national_id, phone: t.phone ?? before.phone };
+      const changes = ["name", "subject", "national_id", "phone"].filter(k => (next[k] || null) !== (before[k] || null))
+        .map(k => ({ field: k, from: before[k], to: next[k] }));
+      if (changes.length) changed.push({ id: before.id, name: before.name, next, changes }); else unchanged++;
+    }
+    const token = keepPreview({ kind: "staff", tid: req.tid, added, changed });
+    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: rows.length, added, changed, unchanged, errors });
+  });
+
+  // New teachers get their passwords here, returned once for the admin to hand out.
+  router.post("/staff/import/:token/apply", adminOnly, async (req, res) => {
+    const p = takePreview(req, "staff");
+    if (!p) return res.status(410).json({ error: "expired" });
+    const issued = await inTransaction(async q => {
+      const out = [];
+      for (const c of p.changed) {
+        await q.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5 WHERE id = $1", [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone]);
+      }
+      for (const t of p.added) {
+        const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, settings) VALUES ($1, $2, $3, $4, '{}') RETURNING *",
+          [t.name, t.subject, t.national_id, t.phone]);
+        out.push(credentials(rows[0], await issuePassword(q, rows[0].id)));
+      }
+      await log(q, null, "staff_import", null, { added: p.added.length, changed: p.changed.length });
+      return out;
+    });
+    await reloadTeachers(pool);
+    res.json({ ok: true, issued, changed: p.changed.length });
   });
 
   router.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) return res.status(400).json({ error: err.code === "LIMIT_FILE_SIZE" ? "too_large" : "upload_failed" });
+    // Two teachers can't share an ID or a mobile; a race past the check above lands here.
+    if (err.code === "23505" && /teachers_/.test(err.constraint || "")) return res.status(409).json({ error: "exists", errors: ["رقم الهوية أو الجوال مسجّل لمعلمة ثانية"] });
     console.error(err);
     res.status(500).json({ error: "server_error" });
   });
@@ -899,5 +1118,7 @@ module.exports = function mountAdmin(app, pool) {
   app.use("/api/admin", router);
   app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
-  return pool.query(ADMIN_SCHEMA).then(loadViewer);
+  return loadViewer();
 };
+
+module.exports.SCHEMA = ADMIN_SCHEMA;
