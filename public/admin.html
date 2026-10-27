@@ -910,11 +910,18 @@ function renderTeacherBar() {
   $("#teacherNote").textContent = role === "viewer" ? "عرض فقط." : "كل التبويبات تحت تخص المعلمة المختارة.";
 }
 
+// A later pick wins: an answer for a teacher no longer picked is dropped, and the picker waits for the current one.
+let switching = 0;
 async function switchTeacher(id) {
   T = Number(id);
   try { localStorage.setItem("teacher", String(T)); } catch {}
   closeClassView();
-  const info = await api("/me");
+  const turn = ++switching;
+  $("#teacherSel").disabled = true;
+  let info;
+  try { info = await api("/me"); }
+  finally { if (turn === switching) $("#teacherSel").disabled = false; }
+  if (turn !== switching || info.teacher?.id !== T) return;
   me = info;
   renderTeacherBar();
   await loadTeacher(info);

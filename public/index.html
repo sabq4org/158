@@ -783,7 +783,8 @@ function showClosed() {
 
 fetch("/api/site", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(site => {
   if (!site) return;
-  useSite(site);
+  // A card already on screen keeps its own teacher's settings for its PDF.
+  if (!currentStudent) useSite(site);
   $("#gradeLabel").textContent = gradeLine();
   // With several teachers the page names only the school's principal; each card names its teacher.
   $("#foot").textContent = [site.teacherName && `المعلمة: ${site.teacherName}`, site.principalName && `المديرة: ${site.principalName}`].filter(Boolean).join(" · ");
