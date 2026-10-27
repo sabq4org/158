@@ -1037,10 +1037,11 @@ module.exports = function mountAdmin(app, pool) {
         (SELECT count(*)::int FROM lookups l WHERE l.teacher_id = t.id AND l.kind = 'view') AS lookups
       FROM teachers t ORDER BY t.id`)).rows;
     const rows = (await pool.query("SELECT teacher_id, test1, test2, test_avg, participation, projects, homework, final_exam, learning_difficulty FROM students")).rows;
+    // Fewer graded students than a class average needs would give away a grade: no average then.
     for (const t of teachers) {
       const mine = rows.filter(r => r.teacher_id === t.id), max = maxOf(getSettings(t.id));
       const pcts = mine.filter(r => !r.learning_difficulty).map(r => grades.Report.scores(r, max).pct).filter(p => p != null);
-      Object.assign(t, { students: mine.length, avg: pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null,
+      Object.assign(t, { students: mine.length, avg: pcts.length >= grades.Report.MIN_CLASS ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null,
         open: getSettings(t.id).lookup_open });
     }
     const totals = (await pool.query(`SELECT (SELECT count(DISTINCT national_id)::int FROM students) AS students,
