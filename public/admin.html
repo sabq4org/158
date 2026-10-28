@@ -314,6 +314,10 @@ tr[data-open]:hover .cls-link { color: var(--accent); }
    the principal's name) are the platform admin's; a teacher's own password is hers. */
 body.viewer [data-admin] { display: none !important; }
 body:not(.is-admin) [data-only-admin] { display: none !important; }
+body.is-teacher [data-school] { display: none !important; }
+body:not(.viewer) [data-viewer-only] { display: none !important; }
+/* On the school's page the principal sees no one teacher's numbers. */
+body.on-school #stats { display: none !important; }
 body:not(.is-teacher) [data-only-teacher] { display: none !important; }
 /* The admin and the principal pick whose panel they are looking at. */
 .tbar { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-color: var(--accent); }
@@ -380,7 +384,7 @@ body.is-admin [data-teacher] { display: none !important; }
     <div class="stats" id="stats" data-teacher></div>
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
-      <button class="tab" role="tab" aria-selected="false" data-tab="school" id="tab-school" data-only-admin>نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="school" id="tab-school" data-school>نظرة عامة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="staff" id="tab-staff" data-only-admin>منسوبات المدرسة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="catalog" id="tab-catalog" data-only-admin>الفصول والمواد</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="platform" id="tab-platform" data-only-admin>إعدادات المنصة</button>
@@ -604,13 +608,13 @@ body.is-admin [data-teacher] { display: none !important; }
 
     <!-- The school at a glance (the platform admin) -->
     <div data-panel="school" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
-      <div class="card gate" id="siteGate"><span class="dot"></span><b id="siteGateText"></b><button class="btn sm quiet" type="button" id="siteGateBtn"></button></div>
+      <div class="card gate" id="siteGate"><span class="dot"></span><b id="siteGateText"></b><button class="btn sm quiet" type="button" id="siteGateBtn" data-admin></button></div>
       <div class="stats five" id="schoolStats"></div>
       <div class="card">
-        <div class="sec-head"><h3>المعلمات</h3><span class="note">أرقام عامة لكل معلمة. الإدارة ما تشوف درجات الطالبات، والمديرة تتابعها من حسابها.</span></div>
+        <div class="sec-head"><h3>المعلمات</h3><span class="note" id="schoolNote">أرقام عامة لكل معلمة. الإدارة ما تشوف درجات الطالبات، والمديرة تتابعها من حسابها.</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>المعلمة</th><th>المادة</th><th class="num">الفصول</th><th class="num">الطالبات</th><th class="num">المتوسط</th><th class="num">الاستعلامات</th><th>صفحتها</th><th>آخر دخول</th></tr></thead>
+            <thead><tr><th>المعلمة</th><th>المادة</th><th class="num">الفصول</th><th class="num">الطالبات</th><th class="num">المتوسط</th><th class="num">الاستعلامات</th><th>صفحتها</th><th>آخر دخول</th><th data-viewer-only></th></tr></thead>
             <tbody id="schoolRows"></tbody>
           </table>
         </div>
@@ -953,6 +957,7 @@ async function showApp(info) {
   role = me.role;
   if (role === "viewer") T = me.teacher?.id ?? null;
   document.body.classList.toggle("viewer", role === "viewer");
+  document.body.classList.remove("on-school");
   document.body.classList.toggle("is-admin", role === "admin");
   document.body.classList.toggle("is-teacher", role === "teacher");
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : role === "admin" ? "لوحة إدارة المنصة" : "لوحة تحكم المعلمة";
@@ -961,6 +966,10 @@ async function showApp(info) {
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   if (role === "teacher") $("#myUser").textContent = me.user || "";
   renderTeacherBar();
+  // The principal's home is the whole school; a teacher's panel is one pick away.
+  $("#tab-school").textContent = role === "viewer" ? "المدرسة" : "نظرة عامة";
+  $("#schoolNote").textContent = role === "viewer" ? "أرقام عامة لكل معلمة. افتحي لوحة أي معلمة لتفاصيل فصولها وطالباتها." : "أرقام عامة لكل معلمة. الإدارة ما تشوف درجات الطالبات، والمديرة تتابعها من حسابها.";
+  if (role === "viewer") $("#tab-school").setAttribute("aria-selected", "true"), $("#tab-overview").setAttribute("aria-selected", "false");
   $("#auditWho").textContent = role === "admin" ? "" : "الطالبة";
   if (role === "admin") await loadSchool(me); else await loadTeacher(me);
   // An open tab this account can't see (after switching accounts) gives way to its first one.
@@ -1257,6 +1266,7 @@ const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.project
 
 function renderWho() {
   if (role === "admin") { $("#whoLine").textContent = ["إدارة المنصة", schoolInfo.stage].join(" · "); return; }
+  if (document.body.classList.contains("on-school")) { $("#whoLine").textContent = [schoolSettings?.principal_name, "متابعة المدرسة", schoolInfo.stage].filter(Boolean).join(" · "); return; }
   $("#whoLine").textContent = [settings?.teacher_name, settings?.subject, termTitle()].filter(Boolean).join(" · ");
   const auto = cal?.now?.current.title || "";
   $("#s_term").placeholder = auto;
@@ -1794,9 +1804,10 @@ $("#schoolForm").addEventListener("submit", async e => {
 });
 
 async function loadSchoolOverview() {
-  if (role !== "admin") return;
+  if (role === "teacher") return;
   const o = await api("/school/overview");
   applySchool(o.settings);
+  if (role === "viewer") renderWho();
   const active = o.teachers.filter(t => t.active);
   $("#schoolStats").innerHTML = [
     ["المعلمات", active.length, o.teachers.length > active.length ? `+${o.teachers.length - active.length} موقوف` : ""],
@@ -1810,7 +1821,8 @@ async function loadSchoolOverview() {
       <td>${esc(t.subject || "—")}</td><td class="num">${t.classes}</td><td class="num">${t.students}</td>
       <td class="num">${t.students ? levelPill(t.avg) : "—"}</td><td class="num">${t.lookups}</td>
       <td>${!t.students ? '<span class="note">—</span>' : t.open ? '<span class="pill good">مفتوحة</span>' : '<span class="pill none">مقفلة</span>'}</td>
-      <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td></tr>`).join("");
+      <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td>
+      <td data-viewer-only><button class="btn sm quiet" type="button" data-open-teacher="${t.id}">لوحتها</button></td></tr>`).join("");
 }
 
 async function loadCatalog() {
@@ -1878,7 +1890,20 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "staff") loadStaff();
   if (t.dataset.tab === "school") loadSchoolOverview();
   if (t.dataset.tab === "catalog") loadCatalog();
+  // The principal's teacher picker belongs to the teacher's tabs, not to the school's page.
+  if (role === "viewer") {
+    document.body.classList.toggle("on-school", t.dataset.tab === "school");
+    $("#teacherBar").hidden = t.dataset.tab === "school" || !(me?.teachers || []).length;
+    renderWho();
+  }
 }));
+// From the school's page the principal opens a teacher's panel.
+$("#schoolRows").addEventListener("click", async e => {
+  const id = e.target.closest("[data-open-teacher]")?.dataset.openTeacher; if (!id) return;
+  try { if (Number(id) !== T) await switchTeacher(id); } catch { return toast("تعذّر فتح لوحة المعلمة"); }
+  $("#tab-overview").click();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
 // ---------- Import ----------
 // A sheet is uploaded from the upload tab (to the class picked there, or by each row's class column) or from a
