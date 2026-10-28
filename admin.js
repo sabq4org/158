@@ -1157,7 +1157,7 @@ module.exports = function mountAdmin(app, pool) {
     // Turning an account off ends its sessions.
     // A new email also ends her sessions: she signs in with it.
     await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $8, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
-      [id, t.name, t.subject, t.national_id, t.phone, active, (cur.active && !active) || (cur.email && cur.email !== t.email) ? 1 : 0, t.email]);
+      [id, t.name, t.subject, t.national_id, t.phone, active, (cur.active && !active) || cur.email !== t.email ? 1 : 0, t.email]);
     await addSubject(pool, t.subject);
     await log(pool, null, "staff_edit", null, { id, name: t.name, active });
     await reloadTeachers(pool);
@@ -1231,7 +1231,7 @@ module.exports = function mountAdmin(app, pool) {
       const out = [];
       for (const c of p.changed) {
         await q.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $6, pw_ver = pw_ver + $7 WHERE id = $1",
-          [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone, c.next.email, c.changes.some(x => x.field === "email" && x.from) ? 1 : 0]);
+          [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone, c.next.email, c.changes.some(x => x.field === "email") ? 1 : 0]);
       }
       for (const t of p.added) {
         const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, email, settings) VALUES ($1, $2, $3, $4, $5, '{}') RETURNING *",
