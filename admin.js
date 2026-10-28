@@ -1031,7 +1031,8 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   // Every teacher at a glance: her classes, students, average and lookups. Names and numbers only, no student's grades.
-  router.get("/school/overview", adminOnly, async (req, res) => {
+  // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
+  router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
     const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, t.last_login, t.pw_hash IS NOT NULL AS has_password,
         (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes,
         (SELECT count(*)::int FROM lookups l WHERE l.teacher_id = t.id AND l.kind = 'view') AS lookups
