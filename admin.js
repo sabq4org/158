@@ -264,7 +264,7 @@ module.exports = function mountAdmin(app, pool) {
     if (role === "admin" && PASSWORD) return { role };
     if (role === "viewer" && viewer.hash && Number(ver) === viewer.ver) return { role };
     const t = role === "teacher" && getTeacher(Number(tid));
-    if (t && t.active && t.pw_hash && Number(ver) === t.pw_ver) return { role, tid: t.id };
+    if (t && !t.owner_id && t.active && t.pw_hash && Number(ver) === t.pw_ver) return { role, tid: t.id };
     return null;
   }
 
@@ -295,6 +295,8 @@ module.exports = function mountAdmin(app, pool) {
     const email = staff.emailOf(user);
     return (email && listTeachers().find(t => t.email === email)) || null;
   };
+  // A teacher's panels: her own, then one for each other subject she teaches.
+  const panelsOf = id => listTeachers().filter(t => t.id === id || t.owner_id === id);
 
   router.post("/login", async (req, res) => {
     const now = Date.now();
@@ -336,8 +338,12 @@ module.exports = function mountAdmin(app, pool) {
     const s = readSession(req);
     if (!s) return res.status(401).json({ error: "unauthorized" });
     req.role = s.role;
-    if (s.role === "teacher") req.tid = s.tid;
-    else {
+    // A teacher reads her own panels only: the one she signed in with, or another of her subjects (X-Teacher).
+    if (s.role === "teacher") {
+      req.login = s.tid;
+      const want = getTeacher(Number(req.get("x-teacher") || req.query.t));
+      req.tid = want && want.owner_id === s.tid ? want.id : s.tid;
+    } else {
       const want = Number(req.get("x-teacher") || req.query.t);
       req.tid = getTeacher(want) ? want : listTeachers()[0]?.id ?? 1;
     }
@@ -363,11 +369,11 @@ module.exports = function mountAdmin(app, pool) {
       return res.json({ ok: true, role: "admin", schoolSettings: getSchool(), calendar: await calendarInfo(null, "admin"),
         school: { stage: school.STAGE, tracks: school.TRACKS } });
     }
-    const t = getTeacher(req.tid);
+    const t = getTeacher(req.tid), mine = req.role === "teacher" ? panelsOf(req.login) : [];
     res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null,
-      // The principal switches between teachers; a teacher sees no one else.
-      teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : undefined,
-      user: req.role === "teacher" ? t.email : undefined,
+      // The principal switches between teachers; a teacher between her subjects, when she has several.
+      teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : mine.length > 1 ? mine.map(teacherInfo) : undefined,
+      user: req.role === "teacher" ? getTeacher(req.login).email : undefined, login: req.login,
       max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
       calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
   });
@@ -375,7 +381,7 @@ module.exports = function mountAdmin(app, pool) {
   // A teacher changes her own password. Her other sessions end; this one carries on.
   router.put("/password", async (req, res) => {
     if (req.role !== "teacher") return res.status(403).json({ error: "forbidden" });
-    const t = getTeacher(req.tid);
+    const t = getTeacher(req.login);
     const next = String(req.body?.next ?? "");
     if (!(await staff.checkPassword(t, String(req.body?.current ?? "")))) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور الحالية غير صحيحة"] });
     if (next.length < 6) return res.status(400).json({ error: "invalid", errors: ["كلمة المرور الجديدة لازم تكون 6 أحرف أو أرقام أو أكثر"] });
@@ -388,7 +394,7 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   // ---------- Workshop feedback (the lessons' owner, the admin and the principal) ----------
-  const lessonsOnly = (req, res, next) => (req.role !== "teacher" || req.tid === LESSONS_OWNER ? next() : res.status(403).json({ error: "forbidden" }));
+  const lessonsOnly = (req, res, next) => (req.role !== "teacher" || req.login === LESSONS_OWNER ? next() : res.status(403).json({ error: "forbidden" }));
   router.get("/feedback/:workshop", lessonsOnly, async (req, res) => {
     const out = await feedback.results(pool, req.params.workshop);
     if (!out) return res.status(404).json({ error: "not_found" });
@@ -450,6 +456,8 @@ module.exports = function mountAdmin(app, pool) {
     next.principal_name = before.principal_name;
     const subjects = (await pool.query("SELECT name FROM subjects")).rows.map(r => r.name);
     if (subjects.length && next.subject !== before.subject && !subjects.includes(next.subject)) errors.push("اختاري المادة من القائمة");
+    const owner = getTeacher(T)?.owner_id || T;
+    if (next.subject !== before.subject && panelsOf(owner).some(p => p.id !== T && p.subject === next.subject)) errors.push(`عندك لوحة ثانية لمادة ${next.subject}`);
     if (!next.teacher_name) errors.push("اسم المعلمة مطلوب");
     if (!next.closed_message) next.closed_message = DEFAULTS.closed_message;
     for (const k of ["max_test", "max_participation", "max_projects"]) {
@@ -478,6 +486,11 @@ module.exports = function mountAdmin(app, pool) {
 
     const changes = Object.keys(next).filter(k => before[k] !== next[k]).map(k => ({ field: k, from: before[k], to: next[k] }));
     await saveSettings(pool, T, next);
+    // Her name is the same on all her subjects' panels.
+    if (next.teacher_name !== before.teacher_name) {
+      await pool.query("UPDATE teachers SET name = $2 WHERE id = $1 OR owner_id = $1", [owner, next.teacher_name]);
+      await reloadTeachers(pool);
+    }
     if (changes.length) await log(pool, T, "settings", null, changes);
     res.json(getSettings(T));
   });
@@ -1033,10 +1046,12 @@ module.exports = function mountAdmin(app, pool) {
   // Every teacher at a glance: her classes, students, average and lookups. Names and numbers only, no student's grades.
   // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
   router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
-    const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, t.last_login, t.pw_hash IS NOT NULL AS has_password,
+    // A teacher's other subjects show as rows of their own; her sign-in is on her first one.
+    const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, coalesce(o.last_login, t.last_login) AS last_login,
+        coalesce(o.pw_hash, t.pw_hash) IS NOT NULL AS has_password,
         (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes,
         (SELECT count(*)::int FROM lookups l WHERE l.teacher_id = t.id AND l.kind = 'view') AS lookups
-      FROM teachers t ORDER BY t.id`)).rows;
+      FROM teachers t LEFT JOIN teachers o ON o.id = t.owner_id ORDER BY coalesce(t.owner_id, t.id), t.id`)).rows;
     const rows = (await pool.query("SELECT teacher_id, test1, test2, test_avg, participation, projects, homework, final_exam, learning_difficulty FROM students")).rows;
     // Fewer graded students than a class average needs would give away a grade: no average then.
     for (const t of teachers) {
@@ -1107,13 +1122,40 @@ module.exports = function mountAdmin(app, pool) {
   // ---------- School staff (the platform admin only) ----------
   // A teacher signs in with her email.
   const userOf = t => t.email || null;
-  const credentials = (t, password) => ({ id: t.id, name: t.name, subject: t.subject || "", user: userOf(t), phone: t.phone, wa: staff.waNumber(t.phone), password });
+  const credentials = (t, password) => ({ id: t.id, name: t.name,
+    subject: (t.subjects || panelsOf(t.id).map(p => p.subject).filter(Boolean)).join("، "), user: userOf(t), phone: t.phone, wa: staff.waNumber(t.phone), password });
   // Another teacher already has this email, ID or mobile.
   const taken = async (t, except = 0) => (await pool.query(
     `SELECT name FROM teachers WHERE id <> $1 AND ((email IS NOT NULL AND email = $4)
       OR (national_id IS NOT NULL AND national_id = $2) OR (phone IS NOT NULL AND phone = $3))`,
     [except, t.national_id, t.phone, t.email])).rows[0]?.name;
   const takenMsg = name => [`الإيميل أو رقم الهوية أو الجوال مسجّل للمعلمة ${name}`];
+  const hasData = async (q, id) => Number((await q.query(`SELECT (SELECT count(*) FROM students WHERE teacher_id = $1)
+    + (SELECT count(*) FROM classes WHERE teacher_id = $1) + (SELECT count(*) FROM terms WHERE teacher_id = $1) AS n`, [id])).rows[0].n) > 0;
+  const refuse = (status, msg) => Object.assign(new Error(msg), { status, errors: [msg] });
+  // A teacher's subjects, a panel each. A panel keeps its subject while it is still on the list; one taken off the
+  // list takes a new subject from it (its classes and students go with it), else it goes, if nothing is saved under it.
+  async function syncSubjects(q, id, subjects) {
+    const rows = (await q.query("SELECT id, name, subject, active FROM teachers WHERE id = $1 OR owner_id = $1 ORDER BY owner_id IS NOT NULL, id", [id])).rows;
+    const want = subjects.filter(s => !rows.some(r => r.subject === s));
+    for (const r of rows) {
+      if (r.subject && subjects.includes(r.subject)) continue;
+      if (want.length) await q.query("UPDATE teachers SET subject = $2 WHERE id = $1", [r.id, want.shift()]);
+      else if (r.id === id) {
+        // Her own panel: its saved results keep their subject, so a panel with data can't lose it. An empty one takes
+        // over a subject she keeps from an empty other panel, so she isn't left with a panel of no subject.
+        if (await hasData(q, id)) throw refuse(409, `مادة ${r.subject} عندها فصول أو طالبات، فما تنشال من المعلمة.`);
+        const o = rows.find(x => x.id !== id && subjects.includes(x.subject));
+        if (o && (await hasData(q, o.id))) throw refuse(409, `مادة ${r.subject} هي المادة الأساسية في حساب المعلمة، فما تنشال ومادة ${o.subject} عندها فصول أو طالبات.`);
+        if (o) await q.query("DELETE FROM teachers WHERE id = $1", [o.id]);
+        await q.query("UPDATE teachers SET subject = $2 WHERE id = $1", [id, o ? o.subject : null]);
+      }
+      else if (await hasData(q, r.id)) throw refuse(409, `مادة ${r.subject} عندها فصول أو طالبات، فما تنشال من المعلمة.`);
+      else await q.query("DELETE FROM teachers WHERE id = $1", [r.id]);
+    }
+    for (const s of want) await q.query("INSERT INTO teachers (name, subject, owner_id, active, settings) VALUES ($1, $2, $3, $4, '{}')", [rows[0].name, s, id, rows[0].active]);
+    for (const s of subjects) await addSubject(q, s);
+  }
   // A new password ends the teacher's old sessions. It is shown once and only its hash is kept.
   async function issuePassword(q, id) {
     const password = staff.newPassword();
@@ -1123,10 +1165,12 @@ module.exports = function mountAdmin(app, pool) {
   }
 
   router.get("/staff", adminOnly, async (req, res) => {
+    // One row a teacher, with all her subjects and what is saved under any of them.
     const { rows } = await pool.query(`SELECT t.id, t.name, t.subject, t.email, t.national_id, t.phone, t.active, t.pw_hash IS NOT NULL AS has_password, t.last_login, t.created_at,
-        (SELECT count(*)::int FROM students s WHERE s.teacher_id = t.id) AS students,
-        (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes
-      FROM teachers t ORDER BY t.id`);
+        coalesce((SELECT array_agg(p.subject ORDER BY p.owner_id IS NOT NULL, p.id) FROM teachers p WHERE (p.id = t.id OR p.owner_id = t.id) AND p.subject IS NOT NULL), '{}') AS subjects,
+        (SELECT count(*)::int FROM students s JOIN teachers p ON p.id = s.teacher_id WHERE p.id = t.id OR p.owner_id = t.id) AS students,
+        (SELECT count(*)::int FROM classes c JOIN teachers p ON p.id = c.teacher_id WHERE p.id = t.id OR p.owner_id = t.id) AS classes
+      FROM teachers t WHERE t.owner_id IS NULL ORDER BY t.id`);
     res.json({ teachers: rows.map(t => ({ ...t, user: userOf(t), wa: staff.waNumber(t.phone) })), viewer: !!viewer.hash });
   });
 
@@ -1139,9 +1183,9 @@ module.exports = function mountAdmin(app, pool) {
       const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, email, settings) VALUES ($1, $2, $3, $4, $5, '{}') RETURNING *",
         [t.name, t.subject, t.national_id, t.phone, t.email]);
       const password = await issuePassword(q, rows[0].id);
-      await addSubject(q, t.subject);
+      await syncSubjects(q, rows[0].id, t.subjects);
       await log(q, null, "staff_add", null, { id: rows[0].id, name: t.name });
-      return credentials(rows[0], password);
+      return credentials({ ...rows[0], subjects: t.subjects }, password);
     });
     await reloadTeachers(pool);
     res.json(out);
@@ -1149,25 +1193,30 @@ module.exports = function mountAdmin(app, pool) {
 
   router.put("/staff/:id", adminOnly, async (req, res) => {
     const id = Number(req.params.id), cur = getTeacher(id);
-    if (!cur) return res.status(404).json({ error: "not_found" });
-    const { teacher: t, errors } = staff.cleanTeacher({ ...cur, ...req.body });
+    if (!cur || cur.owner_id) return res.status(404).json({ error: "not_found" });
+    const subjects = req.body?.subjects ?? panelsOf(id).map(p => p.subject).filter(Boolean);
+    const { teacher: t, errors } = staff.cleanTeacher({ ...cur, ...req.body, subjects });
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
     const other = await taken(t, id);
     if (other) return res.status(409).json({ error: "exists", errors: takenMsg(other) });
     const active = req.body?.active === undefined ? cur.active : req.body.active !== false;
     // Turning an account off ends its sessions.
     // A new email also ends her sessions: she signs in with it.
-    await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $8, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
-      [id, t.name, t.subject, t.national_id, t.phone, active, (cur.active && !active) || cur.email !== t.email ? 1 : 0, t.email]);
-    await addSubject(pool, t.subject);
-    await log(pool, null, "staff_edit", null, { id, name: t.name, active });
+    // Her other subjects' panels carry her name and go on or off with her.
+    await inTransaction(async q => {
+      await q.query("UPDATE teachers SET name = $2, national_id = $3, phone = $4, email = $7, active = $5, pw_ver = pw_ver + $6 WHERE id = $1",
+        [id, t.name, t.national_id, t.phone, active, (cur.active && !active) || cur.email !== t.email ? 1 : 0, t.email]);
+      await q.query("UPDATE teachers SET name = $2, active = $3 WHERE owner_id = $1", [id, t.name, active]);
+      await syncSubjects(q, id, t.subjects);
+      await log(q, null, "staff_edit", null, { id, name: t.name, active, subjects: t.subjects });
+    });
     await reloadTeachers(pool);
     res.json({ ok: true });
   });
 
   router.post("/staff/:id/password", adminOnly, async (req, res) => {
     const id = Number(req.params.id);
-    if (!getTeacher(id)) return res.status(404).json({ error: "not_found" });
+    if (!getTeacher(id) || getTeacher(id).owner_id) return res.status(404).json({ error: "not_found" });
     if (!getTeacher(id).email) return res.status(400).json({ error: "no_email", errors: ["أضيفي إيميل المعلمة أول، تدخل فيه"] });
     const password = await issuePassword(pool, id);
     await log(pool, null, "staff_password", null, { id, name: getTeacher(id).name });
@@ -1178,11 +1227,14 @@ module.exports = function mountAdmin(app, pool) {
   // Only an account with nothing saved under it can go; one with data is turned off instead.
   router.delete("/staff/:id", adminOnly, async (req, res) => {
     const id = Number(req.params.id), t = getTeacher(id);
-    if (!t) return res.status(404).json({ error: "not_found" });
-    const { rows } = await pool.query(`SELECT (SELECT count(*) FROM students WHERE teacher_id = $1) + (SELECT count(*) FROM classes WHERE teacher_id = $1)
-      + (SELECT count(*) FROM terms WHERE teacher_id = $1) AS n`, [id]);
-    if (Number(rows[0].n)) return res.status(409).json({ error: "has_data", errors: ["المعلمة عندها فصول أو طالبات، فيُوقف حسابها بدل الحذف."] });
-    await pool.query("DELETE FROM teachers WHERE id = $1", [id]);
+    if (!t || t.owner_id) return res.status(404).json({ error: "not_found" });
+    for (const p of panelsOf(id)) {
+      if (await hasData(pool, p.id)) return res.status(409).json({ error: "has_data", errors: ["المعلمة عندها فصول أو طالبات، فيُوقف حسابها بدل الحذف."] });
+    }
+    await inTransaction(async q => {
+      await q.query("DELETE FROM teachers WHERE owner_id = $1", [id]);
+      await q.query("DELETE FROM teachers WHERE id = $1", [id]);
+    });
     await log(pool, null, "staff_delete", null, { id, name: t.name });
     await reloadTeachers(pool);
     res.json({ ok: true });
@@ -1201,7 +1253,8 @@ module.exports = function mountAdmin(app, pool) {
       fs.unlink(req.file.path, () => {});
     }
     if (!rows) return res.status(400).json({ error: "no_table" });
-    const all = listTeachers();
+    const all = listTeachers().filter(t => !t.owner_id);
+    const subjectsOf = id => panelsOf(id).map(p => p.subject).filter(Boolean);
     const added = [], changed = [], errors = [], seen = new Set();
     let unchanged = 0;
     for (const { line, raw } of rows) {
@@ -1215,9 +1268,13 @@ module.exports = function mountAdmin(app, pool) {
       if (other) { errors.push({ line, name: t.name, problems: takenMsg(other.name) }); continue; }
       if (!before) { added.push(t); continue; }
       // As with students, an empty cell keeps what is saved.
-      const next = { name: t.name, subject: t.subject ?? before.subject, email: t.email, national_id: t.national_id ?? before.national_id, phone: t.phone ?? before.phone };
-      const changes = ["name", "subject", "email", "national_id", "phone"].filter(k => (next[k] || null) !== (before[k] || null))
-        .map(k => ({ field: k, from: before[k], to: next[k] }));
+      const had = subjectsOf(before.id), subjects = t.subjects.length ? t.subjects : had;
+      const was = { ...before, subject: had.join("، ") };
+      const next = { name: t.name, subject: subjects.join("، "), subjects, email: t.email, national_id: t.national_id ?? before.national_id, phone: t.phone ?? before.phone };
+      // The same subjects in another order are no change.
+      if ([...subjects].sort().join() === [...had].sort().join()) next.subject = was.subject;
+      const changes = ["name", "subject", "email", "national_id", "phone"].filter(k => (next[k] || null) !== (was[k] || null))
+        .map(k => ({ field: k, from: was[k], to: next[k] }));
       if (changes.length) changed.push({ id: before.id, name: before.name, next, changes }); else unchanged++;
     }
     const token = keepPreview({ kind: "staff", tid: req.tid, added, changed });
@@ -1231,15 +1288,17 @@ module.exports = function mountAdmin(app, pool) {
     const issued = await inTransaction(async q => {
       const out = [];
       for (const c of p.changed) {
-        await q.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $6, pw_ver = pw_ver + $7 WHERE id = $1",
-          [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone, c.next.email, c.changes.some(x => x.field === "email") ? 1 : 0]);
+        await q.query("UPDATE teachers SET name = $2, national_id = $3, phone = $4, email = $5, pw_ver = pw_ver + $6 WHERE id = $1",
+          [c.id, c.next.name, c.next.national_id, c.next.phone, c.next.email, c.changes.some(x => x.field === "email") ? 1 : 0]);
+        await q.query("UPDATE teachers SET name = $2 WHERE owner_id = $1", [c.id, c.next.name]);
+        await syncSubjects(q, c.id, c.next.subjects);
       }
       for (const t of p.added) {
         const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, email, settings) VALUES ($1, $2, $3, $4, $5, '{}') RETURNING *",
           [t.name, t.subject, t.national_id, t.phone, t.email]);
-        out.push(credentials(rows[0], await issuePassword(q, rows[0].id)));
+        out.push(credentials({ ...rows[0], subjects: t.subjects }, await issuePassword(q, rows[0].id)));
+        await syncSubjects(q, rows[0].id, t.subjects);
       }
-      for (const t of [...p.added, ...p.changed.map(c => c.next)]) await addSubject(q, t.subject);
       await log(q, null, "staff_import", null, { added: p.added.length, changed: p.changed.length });
       return out;
     });
@@ -1248,6 +1307,7 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   router.use((err, req, res, next) => {
+    if (err.status && err.errors) return res.status(err.status).json({ error: "refused", errors: err.errors });
     if (err instanceof multer.MulterError) return res.status(400).json({ error: err.code === "LIMIT_FILE_SIZE" ? "too_large" : "upload_failed" });
     // Two teachers can't share an ID or a mobile; a race past the check above lands here.
     if (err.code === "23505" && /teachers_/.test(err.constraint || "")) return res.status(409).json({ error: "exists", errors: ["رقم الهوية أو الجوال مسجّل لمعلمة ثانية"] });

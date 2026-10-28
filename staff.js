@@ -28,6 +28,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS teachers_phone ON teachers (phone) WHERE phone
 -- A teacher signs in with her email, kept in lower case. Her ID and mobile are only on record.
 ALTER TABLE teachers ADD COLUMN IF NOT EXISTS email TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS teachers_email ON teachers (email) WHERE email IS NOT NULL;
+-- A teacher with more than one subject has a panel for each: the first is her own row (her sign-in), every other
+-- one a row of its own pointing at it, with no sign-in of its own.
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS owner_id INT REFERENCES teachers (id);
 INSERT INTO teachers (id, name) VALUES (1, 'فائزة محمد جبوع') ON CONFLICT (id) DO NOTHING;
 SELECT setval(pg_get_serial_sequence('teachers', 'id'), (SELECT max(id) FROM teachers));
 
@@ -113,7 +116,11 @@ const norm = s => String(s ?? "").replace(/\s+/g, " ").trim();
 // A teacher from a form or a sheet row. Her email is needed: she signs in with it. Her ID and mobile are optional.
 function cleanTeacher(raw) {
   const errors = [];
-  const t = { name: norm(raw.name).slice(0, 80), subject: norm(raw.subject).slice(0, 40) || null };
+  const t = { name: norm(raw.name).slice(0, 80) };
+  // Her subjects: a list from the form, or one cell of a sheet ("رياضيات، فيزياء").
+  const list = Array.isArray(raw.subjects) ? raw.subjects : String(raw.subject ?? "").split(/\s*[،,;/|+\n]\s*|\s+و\s+/);
+  t.subjects = [...new Set(list.map(x => norm(x).slice(0, 40)).filter(Boolean))].slice(0, 6);
+  t.subject = t.subjects[0] || null;
   if (!t.name) errors.push("الاسم مطلوب");
   const id = digits(raw.national_id);
   t.national_id = id || null;

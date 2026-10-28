@@ -334,6 +334,10 @@ a.wa { background: #1f8f4e; }
 body.is-admin [data-teacher] { display: none !important; }
 .stats.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 @media (max-width: 760px) { .stats.five { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* A teacher's subjects in the staff dialog: one or more. */
+.subj-picks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.subj-picks label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--surface-2); cursor: pointer; font-weight: 400; }
+.subj-picks label:has(input:checked) { border-color: var(--accent); background: var(--surface); font-weight: 700; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
 .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 8px 5px 14px; background: var(--surface-2); }
 .chip .note { font-size: 12px; }
@@ -372,7 +376,7 @@ body.is-admin [data-teacher] { display: none !important; }
   <!-- App -->
   <section id="app" hidden>
     <div class="card tbar" id="teacherBar" data-teacher hidden>
-      <label for="teacherSel">لوحة المعلمة<select class="in" id="teacherSel"></select></label>
+      <label for="teacherSel" id="teacherSelLabel">لوحة المعلمة<select class="in" id="teacherSel"></select></label>
       <span class="note" id="teacherNote"></span>
     </div>
     <div class="card yearbar" id="yearBar" hidden>
@@ -591,7 +595,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <div id="staffPreview" hidden></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>المعلمة</th><th>المادة</th><th>الإيميل (للدخول)</th><th>الجوال</th><th class="num">الفصول</th><th class="num">الطالبات</th><th>آخر دخول</th><th></th></tr></thead>
+          <thead><tr><th>المعلمة</th><th>المواد</th><th>الإيميل (للدخول)</th><th>الجوال</th><th class="num">الفصول</th><th class="num">الطالبات</th><th>آخر دخول</th><th></th></tr></thead>
           <tbody id="staffRows"></tbody>
         </table>
       </div>
@@ -602,6 +606,7 @@ body.is-admin [data-teacher] { display: none !important; }
           <li>المعلمة الموجودة تتطابق بالإيميل (أو برقم الهوية أو الجوال لو إيميلها ما انحفظ بعد)، ويتحدث اسمها ومادتها بدون ما يتغير رقمها السري.</li>
           <li>"رقم سري جديد" يلغي القديم ويطلّعها من أي جهاز داخلة منه.</li>
           <li>المادة تنختار من قائمة المواد في تبويب "الفصول والمواد"، والمادة الجديدة في ملف الإكسل تنضاف للقائمة.</li>
+          <li>المعلمة اللي تدرّس أكثر من مادة: اكتب موادها في نفس الخانة بينها فاصلة، مثل "رياضيات، فيزياء". تصير لها لوحة لكل مادة وتتنقّل بينها بنفس الإيميل والرقم السري.</li>
         </ul>
       </div>
     </div>
@@ -848,7 +853,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <label class="f full" for="m_email">الإيميل<input class="in ltr" id="m_email" name="email" type="email" inputmode="email" maxlength="120" required></label>
       <label class="f" for="m_id">رقم الهوية<input class="in ltr" id="m_id" placeholder="اختياري" name="national_id" inputmode="numeric" maxlength="10"></label>
       <label class="f" for="m_phone">الجوال<input class="in ltr" id="m_phone" name="phone" inputmode="tel" placeholder="اختياري: 05XXXXXXXX"></label>
-      <label class="f full" for="m_subject">المادة<select class="in" id="m_subject" name="subject"></select></label>
+      <div class="f full"><span>المواد <span class="note" style="font-weight:400">اختر مادة أو أكثر. كل مادة لها لوحة بفصولها وطالباتها، والمعلمة تتنقّل بينها بنفس الدخول.</span></span><div class="subj-picks" id="m_subjects"></div></div>
       <label class="switch full" for="m_active" id="m_activeWrap"><input type="checkbox" id="m_active" name="active"> الحساب مفعّل <span class="note" style="font-weight:400">الحساب الموقوف ما يقدر يدخل، وطالباته ما تظهر في صفحة الاستعلام</span></label>
     </div>
     <p class="note" style="margin:0">تدخل المعلمة بالإيميل والرقم السري. رقم الهوية والجوال اختياريين، والجوال يفيد في إرسال بيانات الدخول بالواتساب.</p>
@@ -895,9 +900,9 @@ let classes = [];
 let editing = null;
 let role = "admin";
 let me = null;
-// Whose panel the admin or the principal is looking at, remembered on this device. A teacher only ever sees her own.
+// Whose panel the principal is looking at, or which of her subjects a teacher is on. A teacher only ever sees her own.
 let T = (() => { try { return Number(localStorage.getItem("teacher")) || null; } catch { return null; } })();
-const picking = () => role === "viewer" && T;
+const picking = () => (role === "viewer" || role === "teacher") && T;
 // A download link carries the teacher, as a request carries her in its header.
 const withT = url => (picking() ? url + (url.includes("?") ? "&" : "?") + "t=" + T : url);
 let terms = [];
@@ -955,14 +960,14 @@ function showLogin() {
 async function showApp(info) {
   me = info;
   role = me.role;
-  if (role === "viewer") T = me.teacher?.id ?? null;
+  if (role !== "admin") T = me.teacher?.id ?? null;
   document.body.classList.toggle("viewer", role === "viewer");
   document.body.classList.remove("on-school");
   document.body.classList.toggle("is-admin", role === "admin");
   document.body.classList.toggle("is-teacher", role === "teacher");
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : role === "admin" ? "لوحة إدارة المنصة" : "لوحة تحكم المعلمة";
   // The model lessons are the first teacher's; the platform admin's panel doesn't link them.
-  $("#lessonsLink").hidden = role === "admin" || (role === "teacher" && me.teacher?.id !== 1);
+  $("#lessonsLink").hidden = role === "admin" || (role === "teacher" && me.login !== 1);
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   if (role === "teacher") $("#myUser").textContent = me.user || "";
   renderTeacherBar();
@@ -1004,11 +1009,14 @@ async function loadTeacher(info) {
 
 function renderTeacherBar() {
   const list = me?.teachers || [];
-  $("#teacherBar").hidden = role === "teacher" || !list.length;
+  // A teacher with several subjects switches between them; with one, she has nothing to pick.
+  $("#teacherBar").hidden = role === "teacher" ? list.length < 2 : !list.length;
   if ($("#teacherBar").hidden) return;
-  $("#teacherSel").innerHTML = list.map(t => `<option value="${t.id}">${esc(t.name)}${t.subject ? ` · ${esc(t.subject)}` : ""}${t.active ? "" : " (موقوف)"}</option>`).join("");
+  $("#teacherSel").innerHTML = list.map(t => `<option value="${t.id}">${role === "teacher" ? esc(t.subject || "بدون مادة")
+    : `${esc(t.name)}${t.subject ? ` · ${esc(t.subject)}` : ""}${t.active ? "" : " (موقوف)"}`}</option>`).join("");
   $("#teacherSel").value = String(T);
-  $("#teacherNote").textContent = role === "viewer" ? "عرض فقط." : "كل التبويبات تحت تخص المعلمة المختارة.";
+  $("#teacherSelLabel").firstChild.textContent = role === "teacher" ? "المادة" : "لوحة المعلمة";
+  $("#teacherNote").textContent = role === "viewer" ? "عرض فقط." : role === "teacher" ? "كل مادة لها فصولها وطالباتها وإعداداتها." : "كل التبويبات تحت تخص المعلمة المختارة.";
 }
 
 // A later pick wins: an answer for a teacher no longer picked is dropped, and the picker waits for the current one.
@@ -2229,7 +2237,7 @@ async function loadStaff() {
 function renderStaff() {
   $("#staffRows").innerHTML = staffList.map(t => `<tr${t.active ? "" : ' class="st-off"'}>
       <td class="name">${esc(t.name)}${t.active ? "" : ' <span class="pill low">موقوف</span>'}${t.has_password ? "" : ' <span class="pill warn">بدون رقم سري</span>'}</td>
-      <td>${esc(t.subject || "—")}</td>
+      <td>${t.subjects.length ? esc(t.subjects.join("، ")) : "—"}</td>
       <td class="ltr">${t.user ? esc(t.user) : '<span class="pill warn">بدون إيميل</span>'}</td>
       <td class="ltr">${esc(t.phone || "—")}</td>
       <td class="num">${t.classes}</td><td class="num">${t.students}</td>
@@ -2254,7 +2262,11 @@ $("#staffRows").addEventListener("click", async e => {
 function openStaffDlg(t) {
   staffEdit = t;
   $("#staffDlgTitle").textContent = t ? "تعديل بيانات المعلمة" : "إضافة معلمة";
-  $("#m_name").value = t?.name || ""; $("#m_email").value = t?.email || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; subjectOptions($("#m_subject"), t?.subject, true);
+  $("#m_name").value = t?.name || ""; $("#m_email").value = t?.email || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || "";
+  const mine = t?.subjects || [];
+  const names = [...new Set([...mine, ...catalog.subjects.map(x => x.name ?? x)])];
+  $("#m_subjects").innerHTML = names.length ? names.map(n => `<label><input type="checkbox" value="${esc(n)}"${mine.includes(n) ? " checked" : ""}> ${esc(n)}</label>`).join("")
+    : '<span class="note">ما فيه مواد بعد. أضفها من تبويب "الفصول والمواد".</span>';
   $("#m_active").checked = t ? t.active : true;
   $("#m_activeWrap").hidden = !t;
   $("#staffDel").hidden = !t;
@@ -2264,7 +2276,8 @@ function openStaffDlg(t) {
 $("#staffAdd").addEventListener("click", () => openStaffDlg(null));
 $("#staffForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const body = { name: $("#m_name").value, email: toLatin($("#m_email").value).trim(), national_id: toLatin($("#m_id").value), phone: toLatin($("#m_phone").value), subject: $("#m_subject").value };
+  const body = { name: $("#m_name").value, email: toLatin($("#m_email").value).trim(), national_id: toLatin($("#m_id").value), phone: toLatin($("#m_phone").value),
+    subjects: [...document.querySelectorAll("#m_subjects input:checked")].map(x => x.value) };
   if (staffEdit) body.active = $("#m_active").checked;
   const btn = $("#staffDlgSave"); btn.disabled = true;
   try {
