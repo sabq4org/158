@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أقصر طريق</title>
+<meta name="description" content="درس تفاعلي: الأعمدة والمسافة، رياضيات 1، الدرس 2-6">
+<meta name="theme-color" content="#1f5fa8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* «أقصر طريق»: lesson 2-6 drawn as an engineer's blueprint. It opens on the textbook's plumb line, lets the
+   student discover that the perpendicular is the shortest path, constructs it with an animated compass, then
+   computes point-to-line and parallel-line distances on a draggable coordinate plane with the book's four steps. */
+:root {
+  --bg: #e4edf7;
+  --sheet: #f7fafe;
+  --grid: rgba(31, 95, 168, .08);
+  --grid2: rgba(31, 95, 168, .17);
+  --ink: #0f2440;
+  --muted: #5a6f8a;
+  --line: #c6d5e8;
+  --blue: #1f5fa8;
+  --blue-soft: #dde9f8;
+  --cyan: #0b879e;
+  --orange: #e1622a;
+  --orange-soft: #fde5d7;
+  --green: #18905c;
+  --green-soft: #d8f1e5;
+  --brass: #b5821f;
+  --red: #c4423a;
+  --shadow: 0 1px 1px rgba(15, 36, 64, .06), 0 14px 34px -16px rgba(15, 36, 64, .35);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #071426; --sheet: #0d2442; --grid: rgba(150, 195, 255, .06); --grid2: rgba(150, 195, 255, .13);
+    --ink: #e6f0fc; --muted: #93a9c6; --line: #23436a; --blue: #86b6ff; --blue-soft: #163559; --cyan: #5fd0e3;
+    --orange: #ff9b5e; --orange-soft: #4a2a17; --green: #5bd59b; --green-soft: #123d2c; --brass: #e8bb5a; --red: #ff7b72;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 16px 36px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #071426; --sheet: #0d2442; --grid: rgba(150, 195, 255, .06); --grid2: rgba(150, 195, 255, .13);
+  --ink: #e6f0fc; --muted: #93a9c6; --line: #23436a; --blue: #86b6ff; --blue-soft: #163559; --cyan: #5fd0e3;
+  --orange: #ff9b5e; --orange-soft: #4a2a17; --green: #5bd59b; --green-soft: #123d2c; --brass: #e8bb5a; --red: #ff7b72;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 16px 36px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m .m { font-size: 1em; }
+.m.wrap { white-space: normal; display: inline; }
+.m i { font-style: italic; }
+.m sub { font-size: .7em; }
+.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: .86em; line-height: 1.15; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 3px; }
+.fr > span:last-child { padding: 0 3px; }
+.sq { white-space: nowrap; }
+.sq > span { border-top: 1.4px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.co { color: var(--orange); } .cb { color: var(--blue); } .cg { color: var(--green); } .cc { color: var(--cyan); }
+.num { font-family: var(--mono); direction: ltr; unicode-bidi: isolate; }
+
+/* Ribbon */
+.ribbon { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--sheet) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1.5px solid var(--blue); }
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--blue); }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 2px 10px; border: 1px dashed var(--line); border-radius: 3px; font-weight: 600; }
+.ribbon nav a.on { color: #fff; background: var(--blue); border: 1px solid var(--blue); }
+.ribbon nav a.done { color: var(--blue); border-style: solid; }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Sheets */
+main { max-width: 980px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet {
+  position: relative; margin: 38px 0 0; padding: 30px 28px 54px; scroll-margin-top: 70px;
+  background-color: var(--sheet);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 13px 13px;
+  border: 1.5px solid var(--blue); outline: 1px solid var(--blue); outline-offset: 5px; border-radius: 2px; box-shadow: var(--shadow);
+}
+.sheet::before, .sheet::after { content: ""; position: absolute; width: 18px; height: 18px; border: 2px solid var(--orange); }
+.sheet::before { top: -12px; right: -12px; border-left: 0; border-bottom: 0; }
+.sheet::after { bottom: -12px; left: -12px; border-right: 0; border-top: 0; }
+.tblock { position: absolute; left: 0; bottom: 0; display: flex; font: 600 10.5px/1 var(--mono); color: var(--blue); border-top: 1.5px solid var(--blue); border-right: 1.5px solid var(--blue); direction: ltr; }
+.tblock span { padding: 6px 9px; border-left: 1px solid var(--blue); white-space: nowrap; }
+.tblock span:first-child { border-left: 0; }
+.tblock b { font-family: var(--font); font-weight: 700; }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--orange); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: #fff; background: var(--blue); padding: 1px 8px; border-radius: 2px; }
+h2 { margin: 4px 0 6px; font-size: 27px; line-height: 1.4; }
+h2 .dim { display: block; height: 10px; margin-top: 4px; width: min(260px, 70%); border-top: 1.5px solid var(--orange); position: relative; }
+h2 .dim::before, h2 .dim::after { content: ""; position: absolute; top: -6px; width: 1.5px; height: 11px; background: var(--orange); }
+h2 .dim::before { right: 0; } h2 .dim::after { left: 0; }
+.lead { color: var(--muted); max-width: 760px; }
+.note { margin-top: 14px; padding: 12px 16px; border: 1.5px dashed var(--blue); background: color-mix(in srgb, var(--blue-soft) 70%, transparent); border-radius: 2px; }
+.note.def { border-style: solid; border-color: var(--orange); background: color-mix(in srgb, var(--orange-soft) 75%, transparent); }
+.note .tag { display: inline-block; font: 600 11.5px var(--mono); color: #fff; background: var(--orange); padding: 0 7px; border-radius: 2px; margin-inline-end: 6px; }
+.note.blue .tag { background: var(--blue); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 1.5px solid var(--ink); background: var(--orange); color: #fff; font-weight: 700; padding: 8px 18px; border-radius: 3px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); transition: transform .12s, box-shadow .12s; }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.soft { background: var(--sheet); color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.chip { border: 1.5px dashed var(--line); background: var(--sheet); border-radius: 3px; padding: 3px 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.chip[aria-pressed="true"] { border: 1.5px solid var(--blue); background: var(--blue-soft); color: var(--blue); }
+.ro { display: inline-flex; align-items: baseline; gap: 6px; border: 1.5px solid var(--line); background: var(--sheet); padding: 3px 12px; border-radius: 3px; font-size: 14px; }
+.ro b { font: 600 17px var(--mono); direction: ltr; unicode-bidi: isolate; }
+.ro.ok { border-color: var(--green); background: var(--green-soft); }
+.ro.ok b { color: var(--green); }
+.stage { width: 100%; display: block; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 2px; user-select: none; -webkit-user-select: none; }
+svg { direction: ltr; }
+svg text { font-family: var(--mono); font-weight: 600; }
+svg .lbl { font-family: var(--font); font-weight: 700; }
+[data-drag] { cursor: grab; touch-action: none; }
+[data-drag]:active { cursor: grabbing; }
+.hit { fill: transparent; }
+.player { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.dots { display: flex; gap: 5px; margin-inline-start: auto; direction: ltr; }
+.dots i { width: 8px; height: 8px; border-radius: 1px; background: var(--line); transform: rotate(45deg); }
+.dots i.on { background: var(--orange); }
+.narr { margin-top: 12px; padding: 12px 16px; background: var(--sheet); border: 1.5px solid var(--line); border-inline-start: 5px solid var(--orange); border-radius: 2px; min-height: 58px; }
+.narr .k { font: 600 12px var(--mono); background: var(--ink); color: var(--sheet); padding: 1px 7px; border-radius: 2px; margin-inline-end: 8px; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pop { animation: pop .35s both; }
+
+/* Hero */
+.hero { text-align: center; }
+.logos { display: inline-flex; gap: 14px; align-items: center; background: #fff; padding: 8px 16px; border-radius: 4px; box-shadow: var(--shadow); }
+.logos img { height: 44px; width: auto; }
+.hero h1 { margin: 16px 0 0; font-size: clamp(40px, 9vw, 74px); line-height: 1.15; letter-spacing: 0; }
+.hero h1 span { color: var(--orange); }
+.hero .sub { color: var(--muted); font-weight: 600; }
+.hero .story { text-align: right; max-width: 720px; margin: 12px auto 0; }
+.hero-ro { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0 8px; }
+
+/* Two columns */
+.split { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 12px; }
+.steps { display: grid; gap: 8px; }
+.stepc { border: 1.5px solid var(--line); background: var(--sheet); border-radius: 2px; padding: 9px 13px; opacity: .35; transition: opacity .3s, border-color .3s; }
+.stepc.on { opacity: 1; }
+.stepc.cur { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+.stepc h4 { margin: 0 0 3px; font-size: 14.5px; display: flex; gap: 8px; align-items: center; }
+.stepc h4 .n { font: 600 11.5px var(--mono); color: #fff; background: var(--blue); padding: 0 6px; border-radius: 2px; }
+.stepc .body { font-size: 15px; }
+.answer { margin-top: 12px; padding: 12px 16px; border: 2px solid var(--green); background: var(--green-soft); border-radius: 2px; font-weight: 600; }
+.answer.zero { border-color: var(--blue); background: var(--blue-soft); }
+
+/* Plumb + slider */
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--orange); border: 3px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--orange); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--orange); border: 3px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--orange); cursor: pointer; }
+.slider { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-top: 10px; }
+.slider label { font-weight: 600; font-size: 14px; white-space: nowrap; }
+
+/* Game */
+.stars { font-size: 22px; letter-spacing: 2px; color: var(--brass); direction: ltr; }
+.score-big { font: 600 30px var(--mono); color: var(--orange); }
+
+/* Quiz */
+.qcard { border: 1.5px solid var(--line); background: var(--sheet); border-radius: 2px; padding: 14px 16px; margin-top: 14px; }
+.qq { font-weight: 700; margin-bottom: 10px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: right; border: 1.5px solid var(--line); background: var(--sheet); border-radius: 3px; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.opt b { font: 600 13px var(--mono); color: var(--blue); }
+.opt.right { border-color: var(--green); background: var(--green-soft); }
+.opt.wrong { border-color: var(--red); background: var(--orange-soft); }
+.why { margin-top: 10px; font-size: 14.5px; }
+.mini { width: 100%; max-width: 300px; display: block; margin: 0 auto 8px; }
+
+/* Summary */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.card { border: 1.5px solid var(--blue); background: var(--sheet); border-radius: 2px; padding: 14px; position: relative; }
+.card h3 { margin: 0 0 6px; font-size: 16px; color: var(--blue); }
+.card svg { width: 100%; height: 90px; display: block; margin-bottom: 8px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+
+@media (max-width: 760px) {
+  .sheet { padding: 24px 16px 52px; outline-offset: 3px; }
+  .split { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  h2 { font-size: 23px; }
+  .ribbon .brand { display: none; }
+  .tblock span:nth-child(n+3) { display: none; }
+  /* The 600-wide drawings shrink to about half on a phone, so their labels are enlarged to stay readable. */
+  #plumb text, #near text, #nearChart text, #post text, #cons text, #rails text { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="ribbon">
+  <span class="brand">أقصر طريق</span>
+  <nav id="stations" aria-label="محطات الدرس"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div>
+<main>
+  <!-- 0: plumb line -->
+  <section class="sheet hero" id="s0" data-name="الشاقول">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>أقصر <span>طريق</span></h1>
+    <p class="sub">الدرس 2-6 · الأعمدة والمسافة · رياضيات 1 · الصف الأول الثانوي</p>
+    <svg class="stage" id="plumb" viewBox="0 0 600 340" style="margin-top:16px" aria-label="خيط شاقولي يتأرجح"></svg>
+    <div class="hero-ro">
+      <span class="ro" id="roSlant">طول الخط المائل <b>—</b> سم</span>
+      <span class="ro" id="roPerp">البعد العمودي <b>260</b> سم</span>
+    </div>
+    <div class="row" style="justify-content:center"><button class="btn" id="swing" type="button">أرجحي الشاقول</button><span class="muted" style="font-size:14px">أو اسحبي الثقل بإصبعك</span></div>
+    <p class="story">الخيط الشاقولي خيط في طرفه ثقل معدني اسمه <b>الشاقول</b>. نعلّقه فيتأرجح، ثم يسكن تحت نقطة التعليق مباشرة، ويستعمله البنّاؤون لرسم خط رأسي. لاحظي: كل خط مائل من نقطة التعليق إلى الأرض <b>أطول</b> من الخيط الساكن. فطول الخيط الساكن هو <b class="co">أقصر مسافة</b> بين نقطة التعليق والأرض.</p>
+    <div class="tblock"><span>SHEET 01/09</span><span>SCALE 1:20</span><span><b>المحطة: الشاقول</b></span></div>
+  </section>
+
+  <!-- 1: shortest distance -->
+  <section class="sheet" id="s1" data-name="أقصر مسافة">
+    <div class="kicker"><span class="no">01</span> اكتشفي بنفسك</div>
+    <h2>أي طريق هو الأقصر؟<span class="dim"></span></h2>
+    <p class="lead">النقطة <b>A</b> بئر، والمستقيم <b>m</b> طريق. اسحبي النقطة <b>X</b> على الطريق وراقبي طول <span class="m"><i>AX</i></span> والزاوية عند <b>X</b>. متى يصير الطول أصغر ما يمكن؟ (تقدرين تسحبين A بعد)</p>
+    <svg class="stage" id="near" viewBox="0 0 600 300" style="margin-top:12px" aria-label="نقطة وطريق"></svg>
+    <svg class="stage" id="nearChart" viewBox="0 0 600 110" style="margin-top:8px;border-top:0" aria-label="منحنى الطول"></svg>
+    <div class="row" style="margin-top:10px"><span class="ro" id="roAX">AX <b>—</b> م</span><span class="ro" id="roAng">الزاوية عند X <b>—</b></span><span class="ro" id="roBest">أقصر ما وجدتِ <b>—</b> م</span></div>
+    <div class="note def pop" id="nearDef" hidden><span class="tag">تعريف</span><b>البعد بين نقطة ومستقيم</b> هو طول القطعة المستقيمة <b>العمودية</b> من النقطة إلى المستقيم. وهو أقصر مسافة بينهما في كل الحالات.</div>
+    <div class="tblock"><span>SHEET 02/09</span><span>⟂ = 90°</span><span><b>أقصر مسافة</b></span></div>
+  </section>
+
+  <!-- 2: postulate -->
+  <section class="sheet" id="s2" data-name="المسلّمة">
+    <div class="kicker"><span class="no">02</span> مسلّمة 2.6</div>
+    <h2>عمودي واحد فقط<span class="dim"></span></h2>
+    <p class="lead">من النقطة <b>P</b> نرسم مستقيمات كثيرة تقطع <b>m</b>. دوّري المستقيم وابحثي: كم واحدًا منها عمودي على <b>m</b>؟</p>
+    <svg class="stage" id="post" viewBox="0 0 600 290" style="margin-top:12px" aria-label="مستقيم يدور حول نقطة"></svg>
+    <div class="slider"><label for="pAng">دوّري المستقيم</label><input type="range" id="pAng" min="20" max="160" value="58" step="0.5"><span class="ro" id="roPAng"><b>58°</b></span></div>
+    <p class="narr" id="postNarr" style="margin-top:12px"></p>
+    <div class="note def"><span class="tag">مسلّمة 2.6</span>إذا كانت <b>P</b> نقطة لا تقع على المستقيم <b>m</b>، فإنه يوجد <b>مستقيم واحد فقط</b> يمر بالنقطة <b>P</b> ويكون عموديًّا على <b>m</b>.</div>
+    <div class="tblock"><span>SHEET 03/09</span><span>∃! ⟂</span><span><b>المسلّمة</b></span></div>
+  </section>
+
+  <!-- 3: construction -->
+  <section class="sheet" id="s3" data-name="الفرجار">
+    <div class="kicker"><span class="no">03</span> مثال 1 · إنشاء هندسي</div>
+    <h2>أنبوب التصريف<span class="dim"></span></h2>
+    <p class="lead">لاحظ مهندس أن المياه تتجمع عند النقطة <b>A</b> في حديقة عامة، ويريد أقصر أنبوب يوصلها بخط التصريف الرئيس <b>m</b>. نرسمه بالفرجار والمسطرة فقط.</p>
+    <svg class="stage" id="cons" viewBox="0 0 600 380" style="margin-top:12px" aria-label="إنشاء العمود بالفرجار"></svg>
+    <p class="narr" id="consNarr"></p>
+    <div class="player"><button class="btn soft" id="consPrev" type="button">السابق</button><button class="btn" id="consNext" type="button">الخطوة التالية</button><button class="btn soft" id="consNew" type="button">نقطة A جديدة</button><div class="dots" id="consDots"></div></div>
+    <div class="tblock"><span>SHEET 04/09</span><span>COMPASS</span><span><b>الإنشاء</b></span></div>
+  </section>
+
+  <!-- 4: point to line on the plane -->
+  <section class="sheet" id="s4" data-name="نقطة ومستقيم">
+    <div class="kicker"><span class="no">04</span> مثال 2 · المستوى الإحداثي</div>
+    <h2>البعد بين نقطة ومستقيم<span class="dim"></span></h2>
+    <p class="lead">أربع خطوات الكتاب: معادلة <b>ℓ</b>، ثم العمودي <b>w</b> من <b>P</b>، ثم نقطة التقاطع <b>Q</b>، ثم صيغة المسافة. اختاري مسألة، أو <b>اسحبي النقاط</b> وكوّني مسألتك.</p>
+    <div class="chips" id="plPick"></div>
+    <div class="split">
+      <div><svg class="stage" id="pl" viewBox="0 0 400 400" aria-label="المستوى الإحداثي"></svg>
+        <div class="player"><button class="btn soft" id="plPrev" type="button">السابق</button><button class="btn" id="plNext" type="button">الخطوة التالية</button><div class="dots" id="plDots"></div></div></div>
+      <div><div class="steps" id="plSteps"></div><div id="plAns"></div></div>
+    </div>
+    <div class="tblock"><span>SHEET 05/09</span><span>d = √(Δx² + Δy²)</span><span><b>نقطة ومستقيم</b></span></div>
+  </section>
+
+  <!-- 5: parallel lines -->
+  <section class="sheet" id="s5" data-name="المتوازيان">
+    <div class="kicker"><span class="no">05</span> البعد بين مستقيمين متوازيين</div>
+    <h2>سكّة لا تلتقي<span class="dim"></span></h2>
+    <p class="lead">المستقيمان المتوازيان يبقى البعد بينهما <b>ثابتًا</b>. حرّكي النقطة على <b>ℓ</b> واضغطي «ثبّتي القطعة» عدة مرات، ثم قارني الأطوال.</p>
+    <svg class="stage" id="rails" viewBox="0 0 600 270" style="margin-top:12px" aria-label="مستقيمان متوازيان"></svg>
+    <div class="slider"><label for="rT">حرّكي النقطة</label><input type="range" id="rT" min="0" max="100" value="18"><span class="ro" id="roRail">البعد <b>—</b></span></div>
+    <div class="slider"><label for="rG">حرّكي m</label><input type="range" id="rG" min="50" max="150" value="96"><span></span></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="rPin" type="button">ثبّتي القطعة</button><button class="btn soft" id="rSlant" type="button" aria-pressed="false">قطعة مائلة للمقارنة</button><button class="btn soft" id="rClear" type="button">امسحي</button></div>
+    <p class="narr" id="railNarr"></p>
+    <div class="note def"><span class="tag">تعريف</span><b>البعد بين مستقيمين متوازيين</b> هو البعد بين أحد المستقيمين وأي نقطة على المستقيم الآخر. ومجموعة النقاط التي تحقق شرطًا ما تسمى <b>محلًّا هندسيًّا</b>، فالمستقيم الموازي لمستقيم معلوم هو المحل الهندسي للنقاط المتساوية البعد عنه.</div>
+    <div class="note blue"><span class="tag">نظرية 2.9</span>إذا كان مستقيمان في المستوى نفسه متساويي البعد عن مستقيم ثالث، فإنهما متوازيان.</div>
+
+    <h3 style="margin:26px 0 4px;font-size:19px">على المستوى الإحداثي · مثال 3</h3>
+    <p class="lead">نأخذ نقطة على أحد المستقيمين (مقطع المحور <span class="m"><i>y</i></span>)، ونرسم منها عموديًّا على المستقيمين، ونقيس.</p>
+    <div class="chips" id="ppPick"></div>
+    <div class="split">
+      <div><svg class="stage" id="pp" viewBox="0 0 400 400" aria-label="مستقيمان متوازيان على المستوى"></svg>
+        <div class="player"><button class="btn soft" id="ppPrev" type="button">السابق</button><button class="btn" id="ppNext" type="button">الخطوة التالية</button><div class="dots" id="ppDots"></div></div></div>
+      <div><div class="steps" id="ppSteps"></div><div id="ppAns"></div></div>
+    </div>
+    <div class="tblock"><span>SHEET 06/09</span><span>ℓ ∥ m</span><span><b>المتوازيان</b></span></div>
+  </section>
+
+  <!-- 6: game -->
+  <section class="sheet" id="s6" data-name="التحدي">
+    <div class="kicker"><span class="no">06</span> لعبة</div>
+    <h2>عين المهندسة<span class="dim"></span></h2>
+    <p class="lead">بدون حساب: اسحبي النقطة البرتقالية على <b>ℓ</b> إلى المكان اللي تتوقعين إنه <b>قدم العمود</b> من <b>P</b>، ثم اضغطي «قيسي». خمس جولات، وكل جولة لها ثلاث نجوم.</p>
+    <div class="row" style="margin-top:8px"><span class="ro">الجولة <b id="gRound">1/5</b></span><span class="ro">النجوم <b id="gStars">0</b></span></div>
+    <svg class="stage" id="game" viewBox="0 0 400 400" style="margin-top:10px;max-width:520px;margin-inline:auto" aria-label="لعبة قدم العمود"></svg>
+    <p class="narr" id="gNarr"></p>
+    <div class="row" style="margin-top:10px"><button class="btn" id="gCheck" type="button">قيسي</button><button class="btn soft" id="gNext" type="button" hidden>الجولة التالية</button></div>
+    <div class="tblock"><span>SHEET 07/09</span><span>EYE TEST</span><span><b>التحدي</b></span></div>
+  </section>
+
+  <!-- 7: quiz -->
+  <section class="sheet" id="s7" data-name="الاختبار">
+    <div class="kicker"><span class="no">07</span> من «تأكد» و«تدرّب»</div>
+    <h2>اختبري نفسك<span class="dim"></span></h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700"></p>
+    <div class="tblock"><span>SHEET 08/09</span><span>CHECK</span><span><b>الاختبار</b></span></div>
+  </section>
+
+  <!-- 8: summary -->
+  <section class="sheet" id="s8" data-name="الخلاصة">
+    <div class="kicker"><span class="no">08</span> قبل ما تطلعين</div>
+    <h2>الخلاصة<span class="dim"></span></h2>
+    <div class="cards">
+      <div class="card"><svg viewBox="0 0 200 90" aria-hidden="true"><line x1="10" y1="72" x2="190" y2="72" stroke="var(--blue)" stroke-width="2.5"/><line x1="100" y1="14" x2="100" y2="72" stroke="var(--orange)" stroke-width="3"/><path d="M100 62h10v10" fill="none" stroke="var(--green)" stroke-width="2"/><line x1="100" y1="14" x2="40" y2="72" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/><circle cx="100" cy="14" r="5" fill="var(--orange)"/></svg>
+        <h3>نقطة ومستقيم</h3><p>البعد هو طول القطعة <b>العمودية</b>، وهو أقصر مسافة. وعلى المستوى: معادلة ℓ، ثم العمودي، ثم التقاطع، ثم صيغة المسافة.</p></div>
+      <div class="card"><svg viewBox="0 0 200 90" aria-hidden="true"><line x1="10" y1="72" x2="190" y2="72" stroke="var(--blue)" stroke-width="2.5"/><circle cx="100" cy="18" r="5" fill="var(--orange)"/><line x1="100" y1="18" x2="100" y2="72" stroke="var(--green)" stroke-width="3"/><line x1="100" y1="18" x2="55" y2="72" stroke="var(--red)" stroke-width="1.5" opacity=".5"/><line x1="100" y1="18" x2="150" y2="72" stroke="var(--red)" stroke-width="1.5" opacity=".5"/><text x="112" y="50" fill="var(--green)" font-size="13">1</text></svg>
+        <h3>مسلّمة 2.6</h3><p>من نقطة لا تقع على مستقيم يوجد <b>عمودي واحد فقط</b> على ذلك المستقيم.</p></div>
+      <div class="card"><svg viewBox="0 0 200 90" aria-hidden="true"><line x1="10" y1="22" x2="190" y2="22" stroke="var(--blue)" stroke-width="2.5"/><line x1="10" y1="72" x2="190" y2="72" stroke="var(--blue)" stroke-width="2.5"/><g stroke="var(--orange)" stroke-width="2.5"><line x1="40" y1="22" x2="40" y2="72"/><line x1="100" y1="22" x2="100" y2="72"/><line x1="160" y1="22" x2="160" y2="72"/></g></svg>
+        <h3>متوازيان</h3><p>البعد بينهما ثابت: خذي نقطة على أحدهما (مقطع المحور y)، وقيسي بعدها عن الآخر.</p></div>
+    </div>
+    <div class="tblock"><span>SHEET 09/09</span><span>APPROVED ✓</span><span><b>الخلاصة</b></span></div>
+  </section>
+  <footer>ثانوية 158 · رياضيات 1 · الفصل الأول · درس تفاعلي</footer>
+</main>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const minus = "−";
+const fmt = (v, d = 2) => { const s = (Math.round(v * 10 ** d) / 10 ** d).toString(); return s.replace("-", minus); };
+const deg = r => r * 180 / Math.PI;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Theme + stations ribbon ---------- */
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Exact arithmetic ---------- */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+class Fr {
+  constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); this.n = n / g; this.d = d / g; }
+  static of(x) { return x instanceof Fr ? x : new Fr(x); }
+  add(o) { o = Fr.of(o); return new Fr(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { return this.add(Fr.of(o).neg()); }
+  mul(o) { o = Fr.of(o); return new Fr(this.n * o.n, this.d * o.d); }
+  div(o) { o = Fr.of(o); return new Fr(this.n * o.d, this.d * o.n); }
+  neg() { return new Fr(-this.n, this.d); }
+  eq(o) { o = Fr.of(o); return this.n === o.n && this.d === o.d; }
+  get zero() { return this.n === 0; }
+  get one() { return this.n === 1 && this.d === 1; }
+  get val() { return this.n / this.d; }
+}
+const F = (n, d = 1) => new Fr(n, d);
+const absH = f => f.d === 1 ? `${Math.abs(f.n)}` : `<span class="fr"><span>${Math.abs(f.n)}</span><span>${f.d}</span></span>`;
+const num = f => (f.n < 0 ? minus : "") + absH(f);
+const numP = f => f.n < 0 ? `(${num(f)})` : num(f);
+const ptH = P => `(${num(P.x)}, ${num(P.y)})`;
+const M = h => `<span class="m">${h}</span>`;
+const MW = h => `<span class="m wrap">${h}</span>`;
+const sqH = inner => `<span class="sq">√<span>${inner}</span></span>`;
+
+// Lines: {v: true, c} is x = c; otherwise {m, b} is y = mx + b.
+const lineThrough = (A, B) => {
+  if (A.x.eq(B.x)) return { v: true, c: A.x };
+  const m = B.y.sub(A.y).div(B.x.sub(A.x));
+  return { m, b: A.y.sub(m.mul(A.x)) };
+};
+const perpThrough = (L, P) => L.v ? { m: F(0), b: P.y } : L.m.zero ? { v: true, c: P.x } : (() => { const m = F(-1).div(L.m); return { m, b: P.y.sub(m.mul(P.x)) }; })();
+const meet = (L1, L2) => {
+  if (L1.v) return { x: L1.c, y: L2.m.mul(L1.c).add(L2.b) };
+  if (L2.v) return meet(L2, L1);
+  const x = L2.b.sub(L1.b).div(L1.m.sub(L2.m));
+  return { x, y: L1.m.mul(x).add(L1.b) };
+};
+const onLine = (L, P) => L.v ? L.c.eq(P.x) : L.m.mul(P.x).add(L.b).eq(P.y);
+function mxH(m) { return (m.n < 0 ? minus : "") + (m.eq(1) || m.eq(-1) ? "" : absH(m)) + "<i>x</i>"; }
+function eqH(L) {
+  if (L.v) return `<i>x</i> = ${num(L.c)}`;
+  if (L.m.zero) return `<i>y</i> = ${num(L.b)}`;
+  return `<i>y</i> = ${mxH(L.m)}${L.b.zero ? "" : ` ${L.b.n < 0 ? minus : "+"} ${absH(L.b)}`}`;
+}
+// √(p/q) = k·√r with k rational and r square-free.
+function radical(d2) {
+  let r = d2.n * d2.d, s = 1;
+  for (let i = 2; i * i <= r; i++) while (r % (i * i) === 0) { r /= i * i; s *= i; }
+  return { k: F(s, d2.d), r };
+}
+function distParts(d2) {
+  const R = radical(d2), dec = Math.sqrt(d2.val);
+  const raw = sqH(absH(d2));
+  if (R.r === 1) return { chain: `${raw} = ${num(R.k)}`, final: num(R.k), dec };
+  const simp = `${R.k.one ? "" : absH(R.k)}${sqH(R.r)}`;
+  const same = d2.d === 1 && R.k.one;
+  return { chain: same ? `${raw} ≈ ${fmt(dec)}` : `${raw} = ${simp} ≈ ${fmt(dec)}`, final: simp, dec };
+}
+
+/* ---------- SVG helpers ---------- */
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgPoint(svg, e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+function dragger(svg, onMove, onEnd) {
+  let id = null;
+  svg.addEventListener("pointerdown", e => { const t = e.target.closest("[data-drag]"); if (!t) return; id = t.dataset.drag; svg.setPointerCapture(e.pointerId); e.preventDefault(); onMove(id, svgPoint(svg, e)); });
+  svg.addEventListener("pointermove", e => { if (id) onMove(id, svgPoint(svg, e)); });
+  const up = () => { if (id) { id = null; onEnd && onEnd(); } };
+  svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+}
+const rightMark = (qx, qy, ux, uy, wx, wy, s = 11, color = "var(--green)") =>
+  `<path d="M${qx + ux * s} ${qy + uy * s} L${qx + (ux + wx) * s} ${qy + (uy + wy) * s} L${qx + wx * s} ${qy + wy * s}" fill="none" stroke="${color}" stroke-width="2"/>`;
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+// A dimension line between two points with ticks and a centred label, offset sideways.
+function dimLine(x1, y1, x2, y2, label, off = 16, color = "var(--orange)") {
+  const [ux, uy] = unit(x2 - x1, y2 - y1); let nx = -uy, ny = ux;
+  if (nx > 0 || (nx === 0 && ny > 0)) { nx = -nx; ny = -ny; }
+  const a = [x1 + nx * off, y1 + ny * off], b = [x2 + nx * off, y2 + ny * off];
+  const t = 5, mx = (a[0] + b[0]) / 2 + nx * 12, my = (a[1] + b[1]) / 2 + ny * 12;
+  return `<g stroke="${color}" stroke-width="1.3"><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>
+    <line x1="${a[0] - nx * t}" y1="${a[1] - ny * t}" x2="${a[0] + nx * t}" y2="${a[1] + ny * t}"/><line x1="${b[0] - nx * t}" y1="${b[1] - ny * t}" x2="${b[0] + nx * t}" y2="${b[1] + ny * t}"/></g>
+    <text x="${mx}" y="${my + 4}" fill="${color}" font-size="13" text-anchor="middle" paint-order="stroke" stroke="var(--sheet)" stroke-width="4">${label}</text>`;
+}
+
+/* ---------- Coordinate plane ---------- */
+function plane(svg, min, max) {
+  const S = 400 / (max - min), X = x => (x - min) * S, Y = y => (max - y) * S;
+  let g = "";
+  for (let i = min; i <= max; i++) {
+    const st = i === 0 ? `stroke="var(--ink)" stroke-width="1.6"` : `stroke="var(--grid2)" stroke-width="1"`;
+    g += `<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="400" ${st}/><line x1="0" y1="${Y(i)}" x2="400" y2="${Y(i)}" ${st}/>`;
+    if (i && i % 2 === 0 && i !== min && i !== max) g += `<text x="${X(i)}" y="${Y(0) + 13}" font-size="9.5" fill="var(--muted)" text-anchor="middle">${String(i).replace("-", minus)}</text><text x="${X(0) - 4}" y="${Y(i) + 3}" font-size="9.5" fill="var(--muted)" text-anchor="end">${String(i).replace("-", minus)}</text>`;
+  }
+  g += `<text x="392" y="${Y(0) - 6}" font-size="12" fill="var(--ink)" class="lbl" font-style="italic">x</text><text x="${X(0) + 6}" y="12" font-size="12" fill="var(--ink)" class="lbl" font-style="italic">y</text>`;
+  svg.innerHTML = `<g>${g}</g><g class="layer"></g>`;
+  const seg = L => L.v ? [X(L.c.val), -10, X(L.c.val), 410] : [X(min - 1), Y(L.m.val * (min - 1) + L.b.val), X(max + 1), Y(L.m.val * (max + 1) + L.b.val)];
+  const toMath = p => [p.x / S + min, max - p.y / S];
+  return { X, Y, S, min, max, seg, toMath, layer: $(".layer", svg) };
+}
+const lineSVG = (pl, L, attrs) => { const [a, b, c, d] = pl.seg(L); return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" ${attrs}/>`; };
+const dot = (x, y, color, label, drag, r = 6) => `<g ${drag ? `data-drag="${drag}"` : ""}>${drag ? `<circle class="hit" cx="${x}" cy="${y}" r="17"/>` : ""}<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" stroke="var(--sheet)" stroke-width="2"/>${label ? `<text x="${x + 9}" y="${y - 9}" font-size="14" fill="${color}" class="lbl" paint-order="stroke" stroke="var(--sheet)" stroke-width="4">${label}</text>` : ""}</g>`;
+
+/* Shared step player */
+function player({ prev, next, dots, count, onFrame }) {
+  let i = 0;
+  const draw = () => { $(dots).innerHTML = Array.from({ length: count() }, (_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join(""); $(prev).disabled = i === 0; $(next).disabled = i >= count() - 1; onFrame(i); };
+  $(prev).onclick = () => { if (i > 0) { i--; draw(); } };
+  $(next).onclick = () => { if (i < count() - 1) { i++; draw(); } };
+  return { go(k) { i = Math.max(0, Math.min(k, count() - 1)); draw(); }, get i() { return i; } };
+}
+
+/* ---------- 0. Plumb line ---------- */
+(() => {
+  const svg = $("#plumb"), px = 300, py = 46, L = 214, floor = 306;
+  let th = .62, w = 0, drag = false;
+  svg.innerHTML = `
+    <defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--blue)" stroke-width="1.4" opacity=".55"/></pattern>
+      <linearGradient id="brassG" x1="0" x2="1"><stop offset="0" stop-color="#f3d27a"/><stop offset=".5" stop-color="var(--brass)"/><stop offset="1" stop-color="#8a5f12"/></linearGradient></defs>
+    <rect x="160" y="22" width="280" height="22" fill="url(#hatch)" stroke="var(--blue)" stroke-width="1.5"/>
+    <rect x="0" y="${floor}" width="600" height="34" fill="url(#hatch)"/><line x1="0" y1="${floor}" x2="600" y2="${floor}" stroke="var(--blue)" stroke-width="2.5"/>
+    <text x="16" y="${floor - 8}" font-size="12" fill="var(--blue)" class="lbl">مستوى الأرض</text>
+    <line id="pVert" x1="${px}" y1="${py}" x2="${px}" y2="${floor}" stroke="var(--orange)" stroke-width="1.6" stroke-dasharray="5 5"/>
+    <line id="pSlant" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="2 5"/>
+    <g id="pRight" opacity="0">${rightMark(px, floor, 1, 0, 0, -1, 13)}<g id="pDim">${dimLine(px, py, px, floor, "أقصر مسافة · 260 سم", 22)}</g></g>
+    <circle cx="${px}" cy="${py}" r="5" fill="var(--ink)"/>
+    <line id="pStr" stroke="var(--ink)" stroke-width="1.8"/>
+    <g id="pBob" data-drag="bob"><circle class="hit" r="30"/><path d="M0 -6 L13 6 Q13 22 0 38 Q-13 22 -13 6 Z" fill="url(#brassG)" stroke="#6b4a10" stroke-width="1.2"/><circle cy="-8" r="4" fill="none" stroke="var(--ink)" stroke-width="1.6"/></g>`;
+  const draw = () => {
+    const bx = px + L * Math.sin(th), by = py + L * Math.cos(th);
+    $("#pStr").setAttribute("x1", px); $("#pStr").setAttribute("y1", py); $("#pStr").setAttribute("x2", bx); $("#pStr").setAttribute("y2", by - 8);
+    $("#pBob").setAttribute("transform", `translate(${bx} ${by}) rotate(${-deg(th)})`);
+    const fx = px + (floor - py) * Math.tan(th);
+    const sl = $("#pSlant"); sl.setAttribute("x1", px); sl.setAttribute("y1", py); sl.setAttribute("x2", fx); sl.setAttribute("y2", floor);
+    const len = (floor - py) / Math.cos(th);
+    $("#roSlant b").textContent = Math.round(len);
+    const still = Math.abs(th) < .012 && Math.abs(w) < .02;
+    $("#pRight").style.transition = "opacity .5s"; $("#pRight").setAttribute("opacity", still ? 1 : 0);
+    $("#roSlant").classList.toggle("ok", still); $("#roPerp").classList.toggle("ok", still);
+  };
+  let last = 0;
+  const tick = t => {
+    const dt = Math.min(.033, (t - last) / 1000 || 0); last = t;
+    if (!drag) { w += (-(9.8 / 2.2) * Math.sin(th) - .55 * w) * dt; th += w * dt; }
+    draw(); requestAnimationFrame(tick);
+  };
+  if (reduce) { th = 0; draw(); } else requestAnimationFrame(tick);
+  $("#swing").onclick = () => { w += th >= 0 ? 2.4 : -2.4; if (reduce) { th = .4; draw(); } };
+  dragger(svg, (id, p) => { drag = true; th = Math.max(-1.2, Math.min(1.2, Math.atan2(p.x - px, p.y - py))); w = 0; if (reduce) draw(); }, () => { drag = false; });
+})();
+
+/* ---------- 1. Shortest distance ---------- */
+(() => {
+  const svg = $("#near"), chart = $("#nearChart"), my = 250, U = 20;
+  let A = { x: 330, y: 80 }, X = 150, best = Infinity, found = false;
+  const trail = [];
+  const draw = () => {
+    const ax = A.x, h = my - A.y, foot = ax;
+    const d = Math.hypot(X - ax, h), ang = deg(Math.atan2(h, ax - X));
+    const ok = Math.abs(X - foot) < 0.5;
+    best = Math.min(best, d);
+    if (ok && !found) { found = true; $("#nearDef").hidden = false; }
+    svg.innerHTML = `
+      <line x1="10" y1="${my}" x2="590" y2="${my}" stroke="var(--blue)" stroke-width="3"/><text x="574" y="${my + 22}" font-size="15" fill="var(--blue)" class="lbl" font-style="italic">m</text>
+      ${trail.map(t => `<line x1="${ax}" y1="${A.y}" x2="${t}" y2="${my}" stroke="var(--muted)" stroke-width="1" opacity=".28"/>`).join("")}
+      ${found ? `<line x1="${ax}" y1="${A.y}" x2="${ax}" y2="${my}" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4 4"/>` : ""}
+      <line x1="${ax}" y1="${A.y}" x2="${X}" y2="${my}" stroke="${ok ? "var(--green)" : "var(--orange)"}" stroke-width="3.2"/>
+      ${ok ? rightMark(X, my, 1, 0, 0, -1, 14) : `<path d="M${X + (ax > X ? 26 : -26)} ${my} A26 26 0 0 ${ax > X ? 0 : 1} ${X + 26 * Math.cos(Math.atan2(-h, ax - X))} ${my + 26 * Math.sin(Math.atan2(-h, ax - X))}" fill="none" stroke="var(--cyan)" stroke-width="1.6"/>`}
+      ${dimLine(ax, A.y, X, my, `${fmt(d / U, 1)} م`, 16, ok ? "var(--green)" : "var(--orange)")}
+      ${dot(ax, A.y, "var(--blue)", "A", "A", 8)}
+      ${dot(X, my, ok ? "var(--green)" : "var(--orange)", "X", "X", 9)}`;
+    $("#roAX b").textContent = fmt(d / U, 2);
+    $("#roAng b").textContent = `${fmt(ang, 1)}°`;
+    $("#roAng").classList.toggle("ok", ok); $("#roAX").classList.toggle("ok", ok);
+    $("#roBest b").textContent = fmt(best / U, 2);
+    // Chart of AX against the position of X
+    const pts = []; for (let x = 10; x <= 590; x += 6) pts.push(`${x},${100 - Math.hypot(x - ax, h) / 400 * 90}`);
+    chart.innerHTML = `<text x="590" y="16" font-size="11" fill="var(--muted)" text-anchor="end" class="lbl">طول AX حسب موقع X</text>
+      <polyline points="${pts.join(" ")}" fill="none" stroke="var(--cyan)" stroke-width="2"/>
+      <line x1="${ax}" y1="8" x2="${ax}" y2="104" stroke="var(--green)" stroke-dasharray="3 4" opacity="${found ? 1 : 0}"/>
+      <circle cx="${X}" cy="${100 - d / 400 * 90}" r="6" fill="${ok ? "var(--green)" : "var(--orange)"}"/>`;
+  };
+  dragger(svg, (id, p) => {
+    if (id === "X") { let x = Math.max(14, Math.min(586, p.x)); if (Math.abs(x - A.x) < 7) x = A.x; X = x; if (!trail.length || Math.abs(trail[trail.length - 1] - X) > 24) { trail.push(X); if (trail.length > 14) trail.shift(); } }
+    else { A = { x: Math.max(40, Math.min(560, p.x)), y: Math.max(30, Math.min(200, p.y)) }; best = Infinity; }
+    draw();
+  });
+  draw();
+})();
+
+/* ---------- 2. Postulate 2.6 ---------- */
+(() => {
+  const svg = $("#post"), P = { x: 300, y: 70 }, my = 236;
+  const draw = () => {
+    const a = +$("#pAng").value * Math.PI / 180;
+    const dx = Math.cos(a), dy = Math.sin(a);
+    const t = (my - P.y) / dy, ix = P.x + dx * t;
+    const ok = Math.abs(+$("#pAng").value - 90) < .3;
+    const far = 700;
+    svg.innerHTML = `
+      <line x1="10" y1="${my}" x2="590" y2="${my}" stroke="var(--blue)" stroke-width="3"/><text x="574" y="${my + 22}" font-size="15" fill="var(--blue)" class="lbl" font-style="italic">m</text>
+      <line x1="${P.x - dx * far}" y1="${P.y - dy * far}" x2="${P.x + dx * far}" y2="${P.y + dy * far}" stroke="${ok ? "var(--green)" : "var(--orange)"}" stroke-width="2.6"/>
+      ${ok ? rightMark(ix, my, 1, 0, 0, -1, 14) : `<text x="${ix + (dx > 0 ? -38 : 12)}" y="${my - 10}" font-size="13" fill="var(--cyan)">${fmt(Math.min(+$("#pAng").value, 180 - +$("#pAng").value), 1)}°</text>`}
+      ${dot(ix, my, ok ? "var(--green)" : "var(--orange)", "", null, 5)}
+      ${dot(P.x, P.y, "var(--ink)", "P", null, 7)}`;
+    $("#roPAng b").textContent = `${(+$("#pAng").value).toFixed(1)}°`;
+    $("#roPAng").classList.toggle("ok", ok);
+    $("#postNarr").innerHTML = ok
+      ? `<b class="cg">وجدتِه!</b> هذا هو المستقيم العمودي من <b>P</b> على <b>m</b>. لو دوّرتِ ولو قليلًا يضيع الـ 90°، فلا يوجد عمودي ثانٍ.`
+      : `الزاوية بين المستقيم و<b>m</b> الآن <span class="num">${fmt(Math.min(+$("#pAng").value, 180 - +$("#pAng").value), 1)}°</span>. استمري حتى تصير <span class="num">90°</span>.`;
+  };
+  $("#pAng").addEventListener("input", () => { const v = +$("#pAng").value; if (Math.abs(v - 90) < 1.6) $("#pAng").value = 90; draw(); });
+  draw();
+})();
+
+/* ---------- 3. Compass construction ---------- */
+(() => {
+  const svg = $("#cons"), my = 262;
+  let A = { x: 290, y: 112 };
+  const geo = () => {
+    const h = my - A.y, r1 = h * 1.38, dx = Math.sqrt(r1 * r1 - h * h);
+    const B = { x: A.x - dx, y: my }, C = { x: A.x + dx, y: my };
+    const r2 = dx * 1.12, E = { x: A.x, y: my + Math.sqrt(r2 * r2 - dx * dx) };
+    return { h, r1, B, C, r2, E, D: { x: A.x, y: my } };
+  };
+  const arcPath = (c, r, a0, a1) => { const p0 = [c.x + r * Math.cos(a0), c.y + r * Math.sin(a0)], p1 = [c.x + r * Math.cos(a1), c.y + r * Math.sin(a1)];
+    return `M${p0[0]} ${p0[1]} A${r} ${r} 0 ${Math.abs(a1 - a0) > Math.PI ? 1 : 0} ${a1 > a0 ? 1 : 0} ${p1[0]} ${p1[1]}`; };
+  const compass = (c, r, a) => {
+    const tip = [c.x + r * Math.cos(a), c.y + r * Math.sin(a)], mid = [(c.x + tip[0]) / 2, (c.y + tip[1]) / 2];
+    const leg = Math.max(r * .62 + 46, r / 2 + 30), up = Math.sqrt(leg * leg - (r / 2) ** 2);
+    let [nx, ny] = unit(-(tip[1] - c.y), tip[0] - c.x); if (ny > 0) { nx = -nx; ny = -ny; }
+    const H = [mid[0] + nx * up, mid[1] + ny * up];
+    return `<g opacity=".95"><line x1="${H[0]}" y1="${H[1]}" x2="${c.x}" y2="${c.y}" stroke="var(--brass)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="${H[0]}" y1="${H[1]}" x2="${tip[0]}" y2="${tip[1]}" stroke="var(--brass)" stroke-width="6" stroke-linecap="round"/>
+      <line x1="${c.x}" y1="${c.y}" x2="${c.x}" y2="${c.y - 1}" stroke="var(--ink)" stroke-width="3"/>
+      <circle cx="${tip[0]}" cy="${tip[1]}" r="3.5" fill="var(--orange)"/>
+      <circle cx="${H[0]}" cy="${H[1]}" r="8" fill="var(--sheet)" stroke="var(--brass)" stroke-width="3"/>
+      <rect x="${H[0] - 4}" y="${H[1] - 26}" width="8" height="18" rx="3" fill="var(--brass)"/></g>`;
+  };
+  const NARR = [
+    `المطلوب: أقصر أنبوب من <b>A</b> إلى <b>m</b>. وأقصر أنبوب هو القطعة <b>العمودية</b> من النقطة إلى المستقيم، فلنرسمها.`,
+    `<b>الخطوة 1:</b> نضع رأس الفرجار عند <b>A</b> ونرسم قوسًا يقطع <b>m</b> في نقطتين <b>B</b> و<b>C</b>. الآن <b>B</b> و<b>C</b> على البعد نفسه من <b>A</b>.`,
+    `<b>الخطوة 2:</b> نضع رأس الفرجار عند <b>C</b> بفتحة <b>أكبر من نصف BC</b> ونرسم قوسًا تحت <b>m</b>.`,
+    `…وبالفتحة نفسها من <b>B</b> نرسم قوسًا آخر يقطع الأول عند <b>E</b>. فالنقطة <b>E</b> على البعد نفسه من <b>B</b> و<b>C</b>.`,
+    `<b>الخطوة 3:</b> نرسم <span class="m"><i>AE</i></span> ونسمي نقطة تقاطعه مع <b>m</b> بالرمز <b>D</b>. فتمثل <span class="m"><i>AD</i></span> طول <b class="co">أقصر أنبوب</b>، لأن <span class="m"><i>AD</i> ⟂ <i>m</i></span>.`,
+  ];
+  let anim = 0;
+  const scene = (k, partial) => {
+    const g = geo(), { B, C, E, D, r1, r2 } = g;
+    const aB = Math.atan2(B.y - A.y, B.x - A.x), aC = Math.atan2(C.y - A.y, C.x - A.x);
+    const eC = Math.atan2(E.y - C.y, E.x - C.x), eB = Math.atan2(E.y - B.y, E.x - B.x);
+    const arcs = [
+      { c: A, r: r1, a0: aB + .16, a1: aC - .16 },
+      { c: C, r: r2, a0: eC - .28, a1: eC + .28 },
+      { c: B, r: r2, a0: eB + .28, a1: eB - .28 },
+    ];
+    let s = `<defs><pattern id="tiles" width="34" height="34" patternUnits="userSpaceOnUse"><rect width="34" height="34" fill="none" stroke="var(--grid2)"/></pattern></defs>
+      <rect x="0" y="0" width="600" height="${my - 18}" fill="url(#tiles)"/>
+      <rect x="0" y="${my - 6}" width="600" height="12" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="2"/>
+      <text x="14" y="${my + 26}" font-size="13" fill="var(--blue)" class="lbl">خط التصريف الرئيس m</text>
+      <ellipse cx="${A.x}" cy="${A.y}" rx="34" ry="13" fill="var(--cyan)" opacity=".22"/>`;
+    // Arc i is drawn on frame i + 1 (from A, then C, then B) and stays afterwards.
+    const doneArc = i => k > i + 1 || (k === i + 1 && partial == null);
+    arcs.forEach((a, i) => { if (doneArc(i)) s += `<path d="${arcPath(a.c, a.r, a.a0, a.a1)}" fill="none" stroke="var(--cyan)" stroke-width="1.8"/>`; });
+    if (partial != null) { const a = arcs[k - 1]; s += `<path d="${arcPath(a.c, a.r, a.a0, a.a0 + (a.a1 - a.a0) * partial)}" fill="none" stroke="var(--cyan)" stroke-width="2.2"/>`; }
+    if (k >= 4) {
+      s += `<line x1="${A.x}" y1="${A.y - 20}" x2="${E.x}" y2="${E.y + 18}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 5"/>
+        <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="var(--orange)" stroke-width="6" stroke-linecap="round"/>
+        ${rightMark(D.x, D.y - 6, 1, 0, 0, -1, 14)}${dimLine(A.x, A.y, D.x, D.y, "أقصر أنبوب", 26)}`;
+    }
+    if (doneArc(0)) s += dot(B.x, my, "var(--ink)", "B", null, 5) + dot(C.x, my, "var(--ink)", "C", null, 5);
+    if (doneArc(2)) s += dot(E.x, E.y, "var(--ink)", "E", null, 5);
+    if (k >= 4) s += dot(D.x, D.y, "var(--green)", "D", null, 6);
+    s += dot(A.x, A.y, "var(--orange)", "A", null, 7);
+    if (partial != null) { const a = arcs[k - 1]; s += compass(a.c, a.r, a.a0 + (a.a1 - a.a0) * partial); }
+    svg.innerHTML = s;
+  };
+  const animate = k => {
+    cancelAnimationFrame(anim);
+    if (k < 1 || k > 3 || reduce) { scene(k); return; }
+    const t0 = performance.now(), dur = 1500;
+    const step = t => { const p = Math.min(1, (t - t0) / dur), e = p < .5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      if (p < 1) { scene(k, e); anim = requestAnimationFrame(step); } else scene(k); };
+    anim = requestAnimationFrame(step);
+  };
+  const pl = player({ prev: "#consPrev", next: "#consNext", dots: "#consDots", count: () => NARR.length, onFrame: i => { $("#consNarr").innerHTML = `<span class="k">${i}/${NARR.length - 1}</span>${NARR[i]}`; animate(i); } });
+  $("#consNew").onclick = () => { A = { x: 200 + Math.random() * 200, y: 92 + Math.random() * 60 }; pl.go(0); };
+  pl.go(0);
+})();
+
+/* ---------- 4. Point to line on the plane ---------- */
+const P2 = (x, y) => ({ x: F(x), y: F(y) });
+const PL_SETS = [
+  { label: "مثال 2", A: P2(-5, 3), B: P2(4, -6), P: P2(2, 4) },
+  { label: "تحقق 2", A: P2(5, 4), B: P2(1, 2), P: P2(1, 7) },
+  { label: "تمرين 4", A: P2(-2, 0), B: P2(4, 3), P: P2(3, 10) },
+  { label: "تمرين 5", A: P2(9, -4), B: P2(-6, 1), P: P2(4, 1) },
+  { label: "تمرين 12", A: P2(7, 4), B: P2(0, -3), P: P2(4, 3) },
+  { label: "تمرين 13", A: P2(4, 1), B: P2(-2, 1), P: P2(5, 7) },
+];
+(() => {
+  const svg = $("#pl"), pl = plane(svg, -10, 10);
+  let S = { ...PL_SETS[0] }, steps = [], frames = 5;
+  $("#plPick").innerHTML = PL_SETS.map((s, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${s.label}</button>`).join("") + `<button class="chip" type="button" aria-pressed="false" data-k="free">مسألتي</button>`;
+  $("#plPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; $$("#plPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+    if (b.dataset.k !== "free") { S = { ...PL_SETS[+b.dataset.k] }; compute(); P.go(0); } else { $("#plSteps").innerHTML = `<div class="note blue"><span class="tag">مسألتي</span>اسحبي النقطتين الزرقاوين لتحديد <b>ℓ</b>، والبرتقالية لتحديد <b>P</b>. الحل يتحدث مباشرة.</div>`; P.go(frames - 1); compute(); P.go(frames - 1); } };
+  let R;
+  function compute() {
+    const { A, B } = S, Pp = S.P;
+    const L = lineThrough(A, B), on = onLine(L, Pp);
+    const W = on ? null : perpThrough(L, Pp), Q = on ? Pp : meet(L, W);
+    const dx = Q.x.sub(Pp.x), dy = Q.y.sub(Pp.y), d2 = dx.mul(dx).add(dy.mul(dy));
+    R = { L, W, Q, on, d2 };
+    // Step 1: equation of ℓ
+    let s1;
+    if (L.v) s1 = `النقطتان لهما الإحداثي <span class="m"><i>x</i></span> نفسه، فالمستقيم رأسي وميله غير معرّف: ${M(`<b>ℓ</b>: ${eqH(L)}`)}`;
+    else {
+      const slope = `<i>m</i> = ${`<span class="fr"><span>${numP(B.y)} ${minus} ${numP(A.y)}</span><span>${numP(B.x)} ${minus} ${numP(A.x)}</span></span>`} = ${num(L.m)}`;
+      s1 = L.m.zero ? `${M(slope)}، فالمستقيم أفقي: ${M(`<b>ℓ</b>: ${eqH(L)}`)}`
+        : `${M(slope)}<br>نعوّض بالنقطة ${M(ptH(A))}: ${MW(`${num(A.y)} = ${num(L.m)}·${numP(A.x)} + <i>b</i> ⇒ <i>b</i> = ${num(L.b)}`)}<br>${M(`<b>ℓ</b>: ${eqH(L)}`)}`;
+    }
+    let s2, s3, s4;
+    if (on) { s2 = s3 = `<span class="muted">النقطة <b>P</b> تقع على <b>ℓ</b> نفسه.</span>`; s4 = `فالبعد بين <b>P</b> و<b>ℓ</b> يساوي <b>0</b>.`; }
+    else {
+      if (L.v) s2 = `العمودي على مستقيم رأسي يكون أفقيًّا، ويمر بـ <b>P</b>: ${M(`<b>w</b>: ${eqH(W)}`)}`;
+      else if (L.m.zero) s2 = `العمودي على مستقيم أفقي يكون رأسيًّا، ويمر بـ <b>P</b>: ${M(`<b>w</b>: ${eqH(W)}`)}`;
+      else s2 = `ميل <b>w</b> هو معكوس مقلوب ميل <b>ℓ</b>: ${M(`${minus}<span class="fr"><span>1</span><span>${num(L.m)}</span></span> = ${num(W.m)}`)}<br>ويمر بـ ${M(`<i>P</i>${ptH(Pp)}`)}: ${MW(`${num(Pp.y)} = ${num(W.m)}·${numP(Pp.x)} + <i>b</i> ⇒ <i>b</i> = ${num(W.b)}`)}<br>${M(`<b>w</b>: ${eqH(W)}`)}`;
+      if (L.v || W.v) s3 = `${M(`${L.v ? eqH(L) : eqH(W)}`)}، نعوّضها في المعادلة الأخرى: ${M(`<i>Q</i>${ptH(Q)}`)}`;
+      else s3 = `نحل النظام بالمساواة: ${MW(`${eqH(L).replace("<i>y</i> = ", "")} = ${eqH(W).replace("<i>y</i> = ", "")}`)}<br>${M(`<i>x</i> = ${num(Q.x)}`)}، ثم ${M(`<i>y</i> = ${num(Q.y)}`)} ⇐ نقطة التقاطع ${M(`<i>Q</i>${ptH(Q)}`)}`;
+      const dp = distParts(d2);
+      s4 = `${MW(`<i>d</i> = ${sqH(`(${num(Q.x)} ${minus} ${numP(Pp.x)})² + (${num(Q.y)} ${minus} ${numP(Pp.y)})²`)} = ${sqH(`${numP(dx)}² + ${numP(dy)}²`)} = ${dp.chain}`)}`;
+      R.dp = dp;
+    }
+    steps = [
+      { t: "معادلة المستقيم ℓ", b: s1 },
+      { t: "المستقيم العمودي w من P", b: s2 },
+      { t: "نقطة التقاطع Q", b: s3 },
+      { t: "صيغة المسافة بين P وQ", b: s4 },
+    ];
+  }
+  const show = i => {
+    $("#plSteps").innerHTML = steps.map((s, k) => `<div class="stepc ${k < i ? "on" : ""} ${k === i - 1 ? "cur" : ""}"><h4><span class="n">${k + 1}</span>${s.t}</h4><div class="body">${s.b}</div></div>`).join("");
+    $("#plAns").innerHTML = i >= 4 ? (R.on ? `<div class="answer zero pop">البعد = 0، لأن P على المستقيم.</div>` : `<div class="answer pop">البعد بين النقطة P والمستقيم ℓ هو ${M(R.dp.final)} ≈ <span class="num">${fmt(R.dp.dec)}</span> وحدة.</div>`) : "";
+    const { X, Y } = pl, { A, B } = S, Pp = S.P, { L, W, Q } = R;
+    let g = lineSVG(pl, L, `stroke="var(--blue)" stroke-width="2.6" opacity="${i >= 1 ? 1 : .35}"`);
+    if (i >= 1) g += `<text x="${X(A.x.val) - 16}" y="${Y(A.y.val) + 20}" font-size="15" fill="var(--blue)" class="lbl">ℓ</text>`;
+    if (W && i >= 2) g += lineSVG(pl, W, `stroke="var(--cyan)" stroke-width="2" stroke-dasharray="7 5"`);
+    if (!R.on && i >= 3) { const [ux, uy] = unit(X(B.x.val) - X(A.x.val), Y(B.y.val) - Y(A.y.val)), [wx, wy] = unit(X(Pp.x.val) - X(Q.x.val), Y(Pp.y.val) - Y(Q.y.val)); g += rightMark(X(Q.x.val), Y(Q.y.val), ux, uy, wx, wy, 11) + dot(X(Q.x.val), Y(Q.y.val), "var(--green)", "Q", null, 6); }
+    if (!R.on && i >= 4) g += `<line x1="${X(Pp.x.val)}" y1="${Y(Pp.y.val)}" x2="${X(Q.x.val)}" y2="${Y(Q.y.val)}" stroke="var(--orange)" stroke-width="4" stroke-linecap="round"/>` + dimLine(X(Pp.x.val), Y(Pp.y.val), X(Q.x.val), Y(Q.y.val), `≈${fmt(R.dp.dec)}`, 14);
+    g += dot(X(A.x.val), Y(A.y.val), "var(--blue)", "", "A", 6) + dot(X(B.x.val), Y(B.y.val), "var(--blue)", "", "B", 6) + dot(X(Pp.x.val), Y(Pp.y.val), "var(--orange)", "P", "P", 7);
+    pl.layer.innerHTML = g;
+  };
+  const P = player({ prev: "#plPrev", next: "#plNext", dots: "#plDots", count: () => frames, onFrame: show });
+  dragger(svg, (id, p) => {
+    const [mx, my] = pl.toMath(p); const x = Math.max(-10, Math.min(10, Math.round(mx))), y = Math.max(-10, Math.min(10, Math.round(my)));
+    const np = P2(x, y), other = id === "A" ? S.B : id === "B" ? S.A : null;
+    if (other && other.x.eq(np.x) && other.y.eq(np.y)) return;
+    if (S[id].x.eq(np.x) && S[id].y.eq(np.y)) return;
+    S = { ...S, [id]: np };
+    $$("#plPick .chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === "free"));
+    compute(); P.go(frames - 1);
+  });
+  compute(); P.go(0);
+})();
+
+/* ---------- 5. Parallel lines ---------- */
+(() => {
+  const svg = $("#rails"), ang = -.13, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux; // n points down-ish
+  const o = { x: 20, y: 92 }, len = 560, U = 20;
+  const pins = []; let slant = false;
+  const LET = [["A", "B"], ["C", "D"], ["E", "F"], ["G", "H"], ["I", "J"], ["K", "L"]];
+  const draw = () => {
+    const g = +$("#rG").value, t = +$("#rT").value / 100 * (len - 80) + 40;
+    const P = { x: o.x + ux * t, y: o.y + uy * t }, Q = { x: P.x + nx * g, y: P.y + ny * g };
+    let s = `<line x1="${o.x}" y1="${o.y}" x2="${o.x + ux * len}" y2="${o.y + uy * len}" stroke="var(--blue)" stroke-width="3"/>
+      <line x1="${o.x + nx * g}" y1="${o.y + ny * g}" x2="${o.x + nx * g + ux * len}" y2="${o.y + ny * g + uy * len}" stroke="var(--blue)" stroke-width="3"/>
+      <text x="${o.x + 4}" y="${o.y - 10}" font-size="15" fill="var(--blue)" class="lbl">ℓ</text><text x="${o.x + nx * g + 4}" y="${o.y + ny * g + 22}" font-size="15" fill="var(--blue)" class="lbl" font-style="italic">m</text>`;
+    pins.forEach((pt, k) => { const a = { x: o.x + ux * pt, y: o.y + uy * pt }, b = { x: a.x + nx * g, y: a.y + ny * g };
+      s += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--green)" stroke-width="2.4"/>${rightMark(b.x, b.y, ux, uy, -nx, -ny, 9)}
+        <text x="${a.x - 4}" y="${a.y - 9}" font-size="13" fill="var(--green)" class="lbl">${LET[k][0]}</text><text x="${b.x - 4}" y="${b.y + 20}" font-size="13" fill="var(--green)" class="lbl">${LET[k][1]}</text>`; });
+    if (slant) { const S2 = { x: P.x + nx * g + ux * g * .9, y: P.y + ny * g + uy * g * .9 }, sl = Math.hypot(S2.x - P.x, S2.y - P.y);
+      s += `<line x1="${P.x}" y1="${P.y}" x2="${S2.x}" y2="${S2.y}" stroke="var(--red)" stroke-width="2.2" stroke-dasharray="6 4"/><text x="${(P.x + S2.x) / 2 + 10}" y="${(P.y + S2.y) / 2}" font-size="12.5" fill="var(--red)">${fmt(sl / U, 2)}</text>`; }
+    s += `<line x1="${P.x}" y1="${P.y}" x2="${Q.x}" y2="${Q.y}" stroke="var(--orange)" stroke-width="3.4"/>${rightMark(Q.x, Q.y, ux, uy, -nx, -ny, 10)}${dimLine(P.x, P.y, Q.x, Q.y, fmt(g / U, 2), 18)}${dot(P.x, P.y, "var(--orange)", "", null, 6)}`;
+    svg.innerHTML = s;
+    $("#roRail b").textContent = fmt(g / U, 2);
+    $("#railNarr").innerHTML = pins.length >= 2
+      ? `${M(pins.map((_, k) => `<i>${LET[k][0]}${LET[k][1]}</i>`).reverse().join(" = "))} = <span class="num">${fmt(g / U, 2)}</span>. كل القطع العمودية بين المستقيمين متساوية: البعد بين متوازيين <b>ثابت</b>.${slant ? ` أما القطعة المائلة (الحمراء) فأطول دائمًا.` : ""}`
+      : `حرّكي النقطة، والقطعة العمودية البرتقالية طولها <span class="num">${fmt(g / U, 2)}</span> أينما كانت. ثبّتي أكثر من قطعة لتقارني.`;
+  };
+  $("#rT").oninput = draw;
+  $("#rG").oninput = () => { pins.length = 0; draw(); };
+  $("#rPin").onclick = () => { const t = +$("#rT").value / 100 * (len - 80) + 40; if (pins.length >= LET.length) pins.shift(); if (!pins.some(p => Math.abs(p - t) < 30)) pins.push(t); draw(); };
+  $("#rSlant").onclick = () => { slant = !slant; $("#rSlant").setAttribute("aria-pressed", slant); draw(); };
+  $("#rClear").onclick = () => { pins.length = 0; draw(); };
+  draw();
+})();
+
+// Parallel lines on the plane. Each line is {m, b} or {v, c}; src is how the book writes it.
+const Ln = (m, b, src) => ({ m: Fr.of(m), b: Fr.of(b), src });
+const PP_SETS = [
+  { label: "مثال 3", l: Ln(2, 1), m: Ln(2, -3) },
+  { label: "تحقق 3A", l: Ln(-3, 6), m: Ln(-3, -5) },
+  { label: "تحقق 3B", l: Ln(F(-1, 3), 2, `<i>x</i> + 3<i>y</i> = 6`), m: Ln(F(-1, 3), F(-14, 3), `<i>x</i> + 3<i>y</i> = ${minus}14`) },
+  { label: "تمرين 7", l: Ln(-2, 4), m: Ln(-2, 14) },
+  { label: "تمرين 8", l: Ln(0, 7), m: Ln(0, -3) },
+  { label: "تمرين 16", l: { v: true, c: F(3) }, m: { v: true, c: F(7) } },
+];
+(() => {
+  const svg = $("#pp"), pl = plane(svg, -10, 10);
+  let S = PP_SETS[0], R, steps = [];
+  $("#ppPick").innerHTML = PP_SETS.map((s, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${s.label}</button>`).join("");
+  $("#ppPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; $$("#ppPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); S = PP_SETS[+b.dataset.k]; compute(); P.go(0); };
+  function compute() {
+    const { l, m } = S;
+    // Start from the y-intercept (or x-intercept for vertical lines) of the line closer to the origin.
+    const key = L => L.v ? Math.abs(L.c.val) : Math.abs(L.b.val);
+    const [base, other] = key(m) <= key(l) ? [m, l] : [l, m];
+    const nb = base === m ? "m" : "ℓ", no = base === m ? "ℓ" : "m";
+    const A = base.v ? { x: base.c, y: F(0) } : { x: F(0), y: base.b };
+    const p = perpThrough(base, A), B = meet(other, p);
+    const dx = B.x.sub(A.x), dy = B.y.sub(A.y), d2 = dx.mul(dx).add(dy.mul(dy)), dp = distParts(d2);
+    R = { A, B, p, base, other, dp };
+    const forms = (l.src ? `نكتبهما بصيغة الميل والمقطع: ${M(`<b>ℓ</b>: ${l.src} ⇒ ${eqH(l)}`)}، ${M(`<b>m</b>: ${m.src} ⇒ ${eqH(m)}`)}<br>` : "");
+    const same = l.v ? `كلاهما رأسي` : `ميل كل منهما ${M(num(l.m))}، فهما متوازيان`;
+    const s1 = `${forms}${M(`<b>ℓ</b>: ${eqH(l)}`)} و${M(`<b>m</b>: ${eqH(m)}`)}، ${same}.<br>نأخذ النقطة ${M(ptH(A))} على <b>${nb}</b>${base.v ? "" : ` (مقطع المحور <span class="m"><i>y</i></span>)`}.`;
+    const s2 = base.v ? `العمودي على مستقيم رأسي أفقي: ${M(`<b>p</b>: ${eqH(p)}`)}`
+      : base.m.zero ? `العمودي على مستقيم أفقي رأسي: ${M(`<b>p</b>: ${eqH(p)}`)}`
+      : `ميل <b>p</b> هو معكوس مقلوب ${M(num(base.m))}، أي ${M(num(p.m))}، ويمر بـ ${M(ptH(A))}: ${M(`<b>p</b>: ${eqH(p)}`)}`;
+    const s3 = (p.v || other.v) ? `بالتعويض: نقطة تقاطع <b>p</b> مع <b>${no}</b> هي ${M(ptH(B))}`
+      : `نحل: ${MW(`${eqH(other).replace("<i>y</i> = ", "")} = ${eqH(p).replace("<i>y</i> = ", "")}`)} ⇐ ${M(`<i>x</i> = ${num(B.x)}`)}، ${M(`<i>y</i> = ${num(B.y)}`)}<br>نقطة التقاطع ${M(ptH(B))}${B.x.d > 1 || B.y.d > 1 ? ` أو ${M(`(${fmt(B.x.val)}, ${fmt(B.y.val)})`)}` : ""}`;
+    const s4 = MW(`<i>d</i> = ${sqH(`(${num(B.x)} ${minus} ${numP(A.x)})² + (${num(B.y)} ${minus} ${numP(A.y)})²`)} = ${dp.chain}`);
+    steps = [{ t: "نقطة على أحد المستقيمين", b: s1 }, { t: "مستقيم p عمودي على الاثنين", b: s2 }, { t: `تقاطع p مع ${no}`, b: s3 }, { t: "صيغة المسافة", b: s4 }];
+  }
+  const show = i => {
+    $("#ppSteps").innerHTML = steps.map((s, k) => `<div class="stepc ${k < i ? "on" : ""} ${k === i - 1 ? "cur" : ""}"><h4><span class="n">${k + 1}</span>${s.t}</h4><div class="body">${s.b}</div></div>`).join("");
+    $("#ppAns").innerHTML = i >= 4 ? `<div class="answer pop">البعد بين المستقيمين المتوازيين ${M(R.dp.final)} ≈ <span class="num">${fmt(R.dp.dec)}</span> وحدة.</div>` : "";
+    const { X, Y } = pl, { A, B, p } = R;
+    let g = lineSVG(pl, S.l, `stroke="var(--blue)" stroke-width="2.6"`) + lineSVG(pl, S.m, `stroke="var(--blue)" stroke-width="2.6"`);
+    const lab = (L, t) => { const x = L.v ? L.c.val : 7.5, y = L.v ? 8.5 : L.m.val * 7.5 + L.b.val; return y > -10 && y < 10 ? `<text x="${X(x) + 6}" y="${Y(y) - 8}" font-size="15" fill="var(--blue)" class="lbl" paint-order="stroke" stroke="var(--sheet)" stroke-width="4">${t}</text>` : ""; };
+    g += lab(S.l, "ℓ") + lab(S.m, "m");
+    if (i >= 1) g += dot(X(A.x.val), Y(A.y.val), "var(--orange)", "", null, 6);
+    if (i >= 2) g += lineSVG(pl, p, `stroke="var(--cyan)" stroke-width="2" stroke-dasharray="7 5"`);
+    if (i >= 3) { const [ux, uy] = R.other.v ? [0, 1] : unit(1, -R.other.m.val), [wx, wy] = unit(X(A.x.val) - X(B.x.val), Y(A.y.val) - Y(B.y.val)); g += rightMark(X(B.x.val), Y(B.y.val), ux, uy, wx, wy, 10) + dot(X(B.x.val), Y(B.y.val), "var(--green)", "", null, 6); }
+    if (i >= 4) g += `<line x1="${X(A.x.val)}" y1="${Y(A.y.val)}" x2="${X(B.x.val)}" y2="${Y(B.y.val)}" stroke="var(--orange)" stroke-width="4" stroke-linecap="round"/>` + dimLine(X(A.x.val), Y(A.y.val), X(B.x.val), Y(B.y.val), `≈${fmt(R.dp.dec)}`, 14);
+    pl.layer.innerHTML = g;
+  };
+  const P = player({ prev: "#ppPrev", next: "#ppNext", dots: "#ppDots", count: () => 5, onFrame: show });
+  compute(); P.go(0);
+})();
+
+/* ---------- 6. Game: find the foot ---------- */
+(() => {
+  const svg = $("#game"), pl = plane(svg, -8, 8), ROUNDS = 5;
+  let round = 0, stars = 0, G, t = 0, done = false;
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function newRound() {
+    let A, B, P, L, Q, d;
+    do {
+      A = P2(rnd(-7, 7), rnd(-7, 7)); B = P2(rnd(-7, 7), rnd(-7, 7));
+      if (A.x.eq(B.x) && A.y.eq(B.y)) continue;
+      L = lineThrough(A, B); P = P2(rnd(-6, 6), rnd(-6, 6));
+      if (onLine(L, P)) continue;
+      Q = meet(L, perpThrough(L, P)); d = Math.hypot(Q.x.val - P.x.val, Q.y.val - P.y.val);
+    } while (!Q || d < 2.5 || d > 7 || Math.abs(Q.x.val) > 6.5 || Math.abs(Q.y.val) > 6.5 || (L.v || L.m.zero) && Math.random() < .7);
+    const dir = unit(B.x.val - A.x.val, B.y.val - A.y.val);
+    G = { A, B, P, L, Q, d, dir }; done = false;
+    // Start the guess point well away from the true foot.
+    const sgn = Math.random() < .5 ? -1 : 1;
+    t = sgn * (2.5 + Math.random() * 2); if (!inside(t)) t = -t; if (!inside(t)) t = sgn;
+    $("#gRound").textContent = `${round + 1}/${ROUNDS}`; $("#gCheck").hidden = false; $("#gNext").hidden = true;
+    $("#gNarr").innerHTML = `اسحبي النقطة البرتقالية على <b>ℓ</b> إلى حيث تتوقعين قدم العمود من <b>P</b>.`;
+    draw();
+  }
+  const foot = (tt = t) => ({ x: G.Q.x.val + G.dir[0] * tt, y: G.Q.y.val + G.dir[1] * tt });
+  const inside = tt => { const f = foot(tt); return Math.abs(f.x) <= 7.6 && Math.abs(f.y) <= 7.6; };
+  function draw(reveal) {
+    const { X, Y } = pl, Fp = foot(), P = G.P;
+    let g = lineSVG(pl, G.L, `stroke="var(--blue)" stroke-width="2.6"`);
+    g += `<line x1="${X(P.x.val)}" y1="${Y(P.y.val)}" x2="${X(Fp.x)}" y2="${Y(Fp.y)}" stroke="var(--orange)" stroke-width="2.4" stroke-dasharray="6 5"/>`;
+    if (reveal) {
+      const Q = G.Q; g += `<line x1="${X(P.x.val)}" y1="${Y(P.y.val)}" x2="${X(Q.x.val)}" y2="${Y(Q.y.val)}" stroke="var(--green)" stroke-width="3.2"/>`;
+      const [wx, wy] = unit(X(P.x.val) - X(Q.x.val), Y(P.y.val) - Y(Q.y.val)); g += rightMark(X(Q.x.val), Y(Q.y.val), G.dir[0], -G.dir[1], wx, wy, 11) + dot(X(Q.x.val), Y(Q.y.val), "var(--green)", "Q", null, 6);
+    }
+    g += dot(X(P.x.val), Y(P.y.val), "var(--ink)", "P", null, 7) + dot(X(Fp.x), Y(Fp.y), "var(--orange)", "", done ? null : "F", 9);
+    pl.layer.innerHTML = g;
+  }
+  dragger(svg, (id, p) => { if (done) return; const [mx, my] = pl.toMath(p); const nt = (mx - G.Q.x.val) * G.dir[0] + (my - G.Q.y.val) * G.dir[1]; if (inside(nt)) { t = nt; draw(); } });
+  $("#gCheck").onclick = () => {
+    if (done) return; done = true;
+    const err = Math.abs(t), s = err < .3 ? 3 : err < .7 ? 2 : err < 1.3 ? 1 : 0; stars += s;
+    const Fp = foot(), angF = deg(Math.acos(Math.abs((G.P.x.val - Fp.x) * G.dir[0] + (G.P.y.val - Fp.y) * G.dir[1]) / Math.hypot(G.P.x.val - Fp.x, G.P.y.val - Fp.y)));
+    $("#gStars").textContent = stars;
+    $("#gNarr").innerHTML = `<span class="stars">${"★".repeat(s)}${"☆".repeat(3 - s)}</span> نقطتك تبعد <span class="num">${fmt(err)}</span> وحدة عن القدم الحقيقية ${M(`<i>Q</i>(${fmt(G.Q.x.val)}, ${fmt(G.Q.y.val)})`)}، والزاوية عندها <span class="num">${fmt(angF, 1)}°</span> بدل <span class="num">90°</span>. والبعد الحقيقي ≈ <span class="num">${fmt(G.d)}</span> وحدة.`;
+    draw(true);
+    round++; $("#gCheck").hidden = true;
+    if (round < ROUNDS) $("#gNext").hidden = false;
+    else { $("#gNarr").innerHTML += `<br><b>انتهت الجولات:</b> <span class="score-big">${stars}/${ROUNDS * 3}</span> ${stars >= 12 ? "عين مهندسة محترفة! 🏗️" : stars >= 8 ? "ممتاز، عينك تقيس!" : "جرّبي مرة ثانية، وتخيّلي الزاوية القائمة."}`; $("#gNext").hidden = false; $("#gNext").textContent = "العبي من جديد"; }
+  };
+  $("#gNext").onclick = () => { if (round >= ROUNDS) { round = 0; stars = 0; $("#gStars").textContent = 0; $("#gNext").textContent = "الجولة التالية"; } newRound(); };
+  newRound();
+})();
+
+/* ---------- 7. Quiz ---------- */
+const pathsSVG = `<svg class="mini" viewBox="0 0 300 120" aria-hidden="true"><line x1="10" y1="100" x2="290" y2="100" stroke="var(--blue)" stroke-width="2.5"/><circle cx="150" cy="18" r="5" fill="var(--orange)"/>
+  <g stroke="var(--ink)" stroke-width="2"><line x1="150" y1="18" x2="153" y2="100"/><line x1="150" y1="18" x2="118" y2="100"/><line x1="150" y1="18" x2="218" y2="100"/></g>
+  <text x="156" y="94" font-size="11" fill="var(--cyan)">88°</text><text x="98" y="94" font-size="11" fill="var(--cyan)">69°</text><text x="226" y="94" font-size="11" fill="var(--cyan)">50°</text>
+  <text x="155" y="64" font-size="12" fill="var(--ink)" class="lbl">1</text><text x="122" y="64" font-size="12" fill="var(--ink)" class="lbl">2</text><text x="188" y="64" font-size="12" fill="var(--ink)" class="lbl">3</text></svg>`;
+const QUIZ = [
+  { q: `يعبر راشد ساحة مدرسته، وأمامه ثلاثة ممرات إلى الطريق. أي الممرات هو <b>الأقصر</b>؟ (تمرين 11)`, pic: pathsSVG,
+    opts: [`الممر 1 <span class="num">(88°)</span>`, `الممر 2 <span class="num">(69°)</span>`, `الممر 3 <span class="num">(50°)</span>`, "متساوية"], ok: 0, why: "الأقرب إلى العمودي (90°) هو الأقصر، وهو الممر 1." },
+  { q: `البعد بين النقطة ${M(`<i>P</i>(3, 10)`)} والمستقيم ℓ المار بالنقطتين ${M(`(${minus}2, 0)`)} و${M(`(4, 3)`)} (تمرين 4):`,
+    opts: [M(`3${sqH(5)}`), M("5"), M(`2${sqH(5)}`), M(sqH(13))], ok: 0, why: `ℓ: ${M(`<i>y</i> = <span class="fr"><span>1</span><span>2</span></span><i>x</i> + 1`)}، العمودي ${M(`<i>y</i> = ${minus}2<i>x</i> + 16`)}، ونقطة التقاطع ${M("(6, 4)")}، فالبعد ${M(`${sqH(45)} = 3${sqH(5)} ≈ 6.71`)}.` },
+  { q: `البعد بين المستقيمين المتوازيين ${M(`<i>y</i> = 7`)} و${M(`<i>y</i> = ${minus}3`)} (تمرين 8):`,
+    opts: [M("4"), M("10"), M("7"), M("21")], ok: 1, why: `مستقيمان أفقيان، والبعد بينهما ${M(`7 ${minus} (${minus}3) = 10`)}.` },
+  { q: `البعد بين المستقيمين ${M(`<i>x</i> = 3`)} و${M(`<i>x</i> = 7`)} (تمرين 16):`,
+    opts: [M("10"), M("3"), M("4"), M(sqH(58))], ok: 2, why: `مستقيمان رأسيان، والبعد بينهما ${M(`7 ${minus} 3 = 4`)}.` },
+  { q: `البعد بين المستقيمين ${M(`<i>y</i> = ${minus}2<i>x</i> + 4`)} و${M(`<i>y</i> = ${minus}2<i>x</i> + 14`)} (تمرين 7):`,
+    opts: [M("10"), M(`2${sqH(5)}`), M(`${sqH(10)}`), M(`5${sqH(2)}`)], ok: 1, why: `من ${M("(0, 4)")} نرسم ${M(`<i>y</i> = <span class="fr"><span>1</span><span>2</span></span><i>x</i> + 4`)} فيقطع الآخر في ${M("(4, 6)")}، والبعد ${M(`${sqH(20)} = 2${sqH(5)} ≈ 4.47`)}.` },
+  { q: `«يمكن إيجاد البعد بين مستقيم ومستوى.» هذه العبارة صحيحة… (تمرين 33)`,
+    opts: ["دائمًا", "أحيانًا", "أبدًا", "لا يمكن الحكم"], ok: 1, why: "أحيانًا: إذا كان المستقيم موازيًا للمستوى فالبعد ثابت ويمكن إيجاده، أما إذا قطعه فلا يوجد بعد ثابت بينهما." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.pic || ""}
+    <div class="opts">${it.opts.map((o, j) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[j]}</b><span>${o}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="cg">صحيح ✓</b>` : `<b style="color:var(--red)">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "📐 مخطط معتمد!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", () => { answered = right = 0; $("#score").textContent = ""; buildQuiz(); });
+});
+buildQuiz();
+</script>
+</body>
+</html>
