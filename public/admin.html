@@ -358,8 +358,8 @@ body.is-admin [data-teacher] { display: none !important; }
   <!-- Login -->
   <form class="card login" id="loginForm" hidden novalidate>
     <h1>تسجيل الدخول</h1>
-    <p>المعلمة تكتب رقم هويتها أو جوالها والرقم السري. الإدارة والمديرة تكتب كلمة المرور فقط.</p>
-    <label class="f" for="user">رقم الهوية أو الجوال<input class="in ltr" id="user" inputmode="numeric" autocomplete="username" placeholder="للمعلمات"></label>
+    <p>المعلمة تكتب إيميلها والرقم السري. الإدارة والمديرة تكتب كلمة المرور فقط.</p>
+    <label class="f" for="user">الإيميل<input class="in ltr" id="user" type="email" inputmode="email" autocomplete="username" placeholder="للمعلمات"></label>
     <label class="f" for="pw">الرقم السري أو كلمة المرور<input class="in" id="pw" type="password" autocomplete="current-password" required></label>
     <p class="msg err" id="loginErr" hidden></p>
     <button class="btn" type="submit">دخول</button>
@@ -579,7 +579,7 @@ body.is-admin [data-teacher] { display: none !important; }
     <!-- School staff (the platform admin) -->
     <div class="card" data-panel="staff" style="margin-top:16px" hidden>
       <div class="toolbar">
-        <div class="grow note">كل معلمة لها لوحة مستقلة فيها فصولها وطالباتها فقط. تدخل برقم هويتها (أو جوالها لو ما فيه هوية) والرقم السري.</div>
+        <div class="grow note">كل معلمة لها لوحة مستقلة فيها فصولها وطالباتها فقط. تدخل بإيميلها والرقم السري.</div>
         <button class="btn" type="button" id="staffAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>إضافة معلمة</button>
         <label class="btn quiet" for="staffFile" style="cursor:pointer">رفع ملف إكسل المعلمات<input type="file" id="staffFile" accept=".xlsx" hidden></label>
       </div>
@@ -587,15 +587,15 @@ body.is-admin [data-teacher] { display: none !important; }
       <div id="staffPreview" hidden></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>المعلمة</th><th>المادة</th><th>اسم الدخول</th><th>الجوال</th><th class="num">الفصول</th><th class="num">الطالبات</th><th>آخر دخول</th><th></th></tr></thead>
+          <thead><tr><th>المعلمة</th><th>المادة</th><th>الإيميل (للدخول)</th><th>الجوال</th><th class="num">الفصول</th><th class="num">الطالبات</th><th>آخر دخول</th><th></th></tr></thead>
           <tbody id="staffRows"></tbody>
         </table>
       </div>
       <div class="help" style="padding-block:12px 16px">
-        ملف الإكسل يحتاج عمود اسم المعلمة، ومعه رقم الهوية (أو السجل المدني) أو الجوال، ويمكن إضافة عمود المادة أو التخصص.
+        ملف الإكسل يحتاج عمود اسم المعلمة وعمود الإيميل (أو البريد الإلكتروني)، ويمكن إضافة أعمدة رقم الهوية والجوال والمادة.
         <ul>
           <li>كل معلمة جديدة ينصرف لها رقم سري من 8 أرقام، يظهر مرة وحدة بعد الاعتماد مع زر إرسال واتساب وصفحة بطاقات للطباعة.</li>
-          <li>المعلمة الموجودة تتطابق برقم الهوية أو الجوال، ويتحدث اسمها ومادتها بدون ما يتغير رقمها السري.</li>
+          <li>المعلمة الموجودة تتطابق بالإيميل (أو برقم الهوية أو الجوال لو إيميلها ما انحفظ بعد)، ويتحدث اسمها ومادتها بدون ما يتغير رقمها السري.</li>
           <li>"رقم سري جديد" يلغي القديم ويطلّعها من أي جهاز داخلة منه.</li>
           <li>المادة تنختار من قائمة المواد في تبويب "الفصول والمواد"، والمادة الجديدة في ملف الإكسل تنضاف للقائمة.</li>
         </ul>
@@ -841,12 +841,13 @@ body.is-admin [data-teacher] { display: none !important; }
     <h2 id="staffDlgTitle"></h2>
     <div class="grid2">
       <label class="f full" for="m_name">اسم المعلمة<input class="in" id="m_name" name="name" maxlength="80" required></label>
-      <label class="f" for="m_id">رقم الهوية<input class="in ltr" id="m_id" name="national_id" inputmode="numeric" maxlength="10"></label>
-      <label class="f" for="m_phone">الجوال<input class="in ltr" id="m_phone" name="phone" inputmode="tel" placeholder="05XXXXXXXX"></label>
+      <label class="f full" for="m_email">الإيميل<input class="in ltr" id="m_email" name="email" type="email" inputmode="email" maxlength="120" required></label>
+      <label class="f" for="m_id">رقم الهوية<input class="in ltr" id="m_id" placeholder="اختياري" name="national_id" inputmode="numeric" maxlength="10"></label>
+      <label class="f" for="m_phone">الجوال<input class="in ltr" id="m_phone" name="phone" inputmode="tel" placeholder="اختياري: 05XXXXXXXX"></label>
       <label class="f full" for="m_subject">المادة<select class="in" id="m_subject" name="subject"></select></label>
       <label class="switch full" for="m_active" id="m_activeWrap"><input type="checkbox" id="m_active" name="active"> الحساب مفعّل <span class="note" style="font-weight:400">الحساب الموقوف ما يقدر يدخل، وطالباته ما تظهر في صفحة الاستعلام</span></label>
     </div>
-    <p class="note" style="margin:0">تدخل برقم الهوية، أو بالجوال لو ما فيه هوية.</p>
+    <p class="note" style="margin:0">تدخل المعلمة بالإيميل والرقم السري. رقم الهوية والجوال اختياريين، والجوال يفيد في إرسال بيانات الدخول بالواتساب.</p>
     <p class="msg err" id="staffDlgErr" hidden></p>
     <div class="row">
       <button class="btn" type="submit" id="staffDlgSave">حفظ</button>
@@ -863,7 +864,7 @@ body.is-admin [data-teacher] { display: none !important; }
     <p class="msg warn" style="margin:0">الأرقام السرية تظهر الحين فقط، والنظام ما يحفظها إلا مشفّرة. الأفضل إرسالها أو طباعتها قبل إغلاق النافذة.</p>
     <div class="table-wrap" style="max-height:55vh;overflow:auto">
       <table>
-        <thead><tr><th>المعلمة</th><th>اسم الدخول</th><th>الرقم السري</th><th></th></tr></thead>
+        <thead><tr><th>المعلمة</th><th>الإيميل</th><th>الرقم السري</th><th></th></tr></thead>
         <tbody id="credRows"></tbody>
       </table>
     </div>
@@ -1027,12 +1028,12 @@ $("#loginForm").addEventListener("submit", async e => {
   const err = $("#loginErr"); err.hidden = true;
   const btn = e.submitter || $("#loginForm .btn"); btn.disabled = true;
   try {
-    await api("/login", { method: "POST", body: { user: toLatin($("#user").value).trim(), password: $("#pw").value } });
+    await api("/login", { method: "POST", body: { user: toLatin($("#user").value).trim().toLowerCase(), password: $("#pw").value } });
     $("#pw").value = "";
     await showApp(await api("/me"));
   } catch (x) {
     err.textContent = x.message === "locked" ? "محاولات كثيرة. انتظري 15 دقيقة ثم حاولي مرة أخرى."
-      : x.message === "wrong_password" ? `كلمة المرور غير صحيحة. باقي ${x.data?.left ?? 0} محاولات.`
+      : x.message === "wrong_password" ? `${$("#user").value.trim() ? "الإيميل أو الرقم السري غير صحيح" : "كلمة المرور غير صحيحة"}. باقي ${x.data?.left ?? 0} محاولات.`
       : x.message === "disabled" ? "لوحة التحكم غير مفعّلة بعد. يجب ضبط كلمة المرور في إعدادات الخادم."
       : x.message === "inactive" ? "هذا الحساب موقوف. تواصلي مع إدارة المدرسة."
       : "تعذّر الدخول. حاولي مرة أخرى.";
@@ -2204,12 +2205,12 @@ function renderStaff() {
   $("#staffRows").innerHTML = staffList.map(t => `<tr${t.active ? "" : ' class="st-off"'}>
       <td class="name">${esc(t.name)}${t.active ? "" : ' <span class="pill low">موقوف</span>'}${t.has_password ? "" : ' <span class="pill warn">بدون رقم سري</span>'}</td>
       <td>${esc(t.subject || "—")}</td>
-      <td class="ltr">${t.user ? esc(t.user) : '<span class="note">لا يوجد</span>'}</td>
+      <td class="ltr">${t.user ? esc(t.user) : '<span class="pill warn">بدون إيميل</span>'}</td>
       <td class="ltr">${esc(t.phone || "—")}</td>
       <td class="num">${t.classes}</td><td class="num">${t.students}</td>
       <td>${t.last_login ? esc(ago(t.last_login)) : '<span class="note">لم تدخل</span>'}</td>
       <td><div class="acts">
-        <button class="btn sm quiet" type="button" data-pw="${t.id}"${t.user ? "" : " disabled"}>رقم سري جديد</button>
+        <button class="btn sm quiet" type="button" data-pw="${t.id}"${t.user ? "" : ' disabled title="أضف إيميلها أول من تعديل"'}>رقم سري جديد</button>
         <button class="btn sm quiet" type="button" data-edit-t="${t.id}">تعديل</button>
       </div></td>
     </tr>`).join("");
@@ -2228,7 +2229,7 @@ $("#staffRows").addEventListener("click", async e => {
 function openStaffDlg(t) {
   staffEdit = t;
   $("#staffDlgTitle").textContent = t ? "تعديل بيانات المعلمة" : "إضافة معلمة";
-  $("#m_name").value = t?.name || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; subjectOptions($("#m_subject"), t?.subject, true);
+  $("#m_name").value = t?.name || ""; $("#m_email").value = t?.email || ""; $("#m_id").value = t?.national_id || ""; $("#m_phone").value = t?.phone || ""; subjectOptions($("#m_subject"), t?.subject, true);
   $("#m_active").checked = t ? t.active : true;
   $("#m_activeWrap").hidden = !t;
   $("#staffDel").hidden = !t;
@@ -2238,7 +2239,7 @@ function openStaffDlg(t) {
 $("#staffAdd").addEventListener("click", () => openStaffDlg(null));
 $("#staffForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const body = { name: $("#m_name").value, national_id: toLatin($("#m_id").value), phone: toLatin($("#m_phone").value), subject: $("#m_subject").value };
+  const body = { name: $("#m_name").value, email: toLatin($("#m_email").value).trim(), national_id: toLatin($("#m_id").value), phone: toLatin($("#m_phone").value), subject: $("#m_subject").value };
   if (staffEdit) body.active = $("#m_active").checked;
   const btn = $("#staffDlgSave"); btn.disabled = true;
   try {
@@ -2265,18 +2266,18 @@ $("#staffFile").addEventListener("change", async e => {
   const fd = new FormData(); fd.append("file", file);
   try { renderStaffPreview(await api("/staff/import", { method: "POST", body: fd })); }
   catch (x) {
-    err.textContent = { no_table: "ما لقيت جدول معلمات في الملف. لازم يكون فيه عمود اسم المعلمة ومعه رقم الهوية أو الجوال.", unreadable: "تعذّرت قراءة الملف. لازم يكون بصيغة xlsx.", too_large: "الملف كبير جداً." }[x.message] || "تعذّر رفع الملف.";
+    err.textContent = { no_table: "ما لقيت جدول معلمات في الملف. لازم يكون فيه عمود اسم المعلمة وعمود الإيميل.", unreadable: "تعذّرت قراءة الملف. لازم يكون بصيغة xlsx.", too_large: "الملف كبير جداً." }[x.message] || "تعذّر رفع الملف.";
     err.hidden = false;
   }
 });
-const STAFF_FIELDS = { name: "الاسم", subject: "المادة", national_id: "رقم الهوية", phone: "الجوال" };
+const STAFF_FIELDS = { name: "الاسم", subject: "المادة", email: "الإيميل", national_id: "رقم الهوية", phone: "الجوال" };
 function renderStaffPreview(p) {
   const pv = $("#staffPreview");
   const can = p.added.length + p.changed.length;
   pv.innerHTML = `<div class="summary"><span class="file">${esc(p.fileName)}</span>
       <span class="pill good">جديدات ${p.added.length}</span><span class="pill warn">تحديث ${p.changed.length}</span>
       <span class="pill none">بدون تغيير ${p.unchanged}</span>${p.errors.length ? `<span class="pill low">أخطاء ${p.errors.length}</span>` : ""}</div>
-    ${p.added.length ? `<div class="sec"><h3>معلمات جديدات (ينصرف لكل وحدة رقم سري)</h3>${p.added.map(t => `<div class="change"><b>${esc(t.name)}</b><span class="d">${esc(t.subject || "")}</span><span class="d ltr">${esc(t.national_id || t.phone)}</span></div>`).join("")}</div>` : ""}
+    ${p.added.length ? `<div class="sec"><h3>معلمات جديدات (ينصرف لكل وحدة رقم سري)</h3>${p.added.map(t => `<div class="change"><b>${esc(t.name)}</b><span class="d">${esc(t.subject || "")}</span><span class="d ltr">${esc(t.email)}</span></div>`).join("")}</div>` : ""}
     ${p.changed.length ? `<div class="sec"><h3>تحديث بيانات</h3>${p.changed.map(c => `<div class="change"><b>${esc(c.name)}</b>${c.changes.map(x => `<span class="d">${STAFF_FIELDS[x.field]}: <s>${esc(x.from || "—")}</s> ← <ins>${esc(x.to || "—")}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
     ${p.errors.length ? `<div class="sec"><h3>صفوف ما تنحفظ</h3>${p.errors.map(x => `<div class="change"><b>سطر ${x.line}: ${esc(x.name || "بدون اسم")}</b><span class="d">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
     <div class="actions">${can ? `<button class="btn" type="button" id="staffApply">اعتماد</button>` : '<span class="note">ما فيه شي ينحفظ من هذا الملف.</span>'}<button class="btn quiet" type="button" id="staffBack">رجوع</button></div>`;
@@ -2298,7 +2299,7 @@ function renderStaffPreview(p) {
 
 // Sign-in details for each teacher: a WhatsApp message ready to send, a copy, and printable cards.
 const panelUrl = () => location.origin + "/admin";
-const credText = c => `السلام عليكم أ. ${c.name}\nحسابك في منصة نتائج الطالبات جاهز:\nالرابط: ${panelUrl()}\nاسم الدخول: ${c.user}\nالرقم السري: ${c.password}\nتقدرين تغيّرين الرقم السري من الإعدادات بعد الدخول.`;
+const credText = c => `السلام عليكم أ. ${c.name}\nحسابك في منصة نتائج الطالبات جاهز:\nالرابط: ${panelUrl()}\nالإيميل: ${c.user}\nالرقم السري: ${c.password}\nتقدرين تغيّرين الرقم السري من الإعدادات بعد الدخول.`;
 let creds = [];
 function showCredentials(list) {
   creds = list;
@@ -2306,6 +2307,7 @@ function showCredentials(list) {
       <td class="name">${esc(c.name)}${c.subject ? `<span class="sub">${esc(c.subject)}</span>` : ""}</td>
       <td><span class="cred">${esc(c.user)}</span></td><td><span class="cred">${esc(c.password)}</span></td>
       <td><div class="acts">${c.wa ? `<a class="btn sm wa" target="_blank" rel="noopener" href="https://wa.me/${c.wa}?text=${encodeURIComponent(credText(c))}">واتساب</a>` : ""}
+        <a class="btn sm quiet" href="mailto:${encodeURIComponent(c.user)}?subject=${encodeURIComponent("حسابك في منصة نتائج الطالبات")}&body=${encodeURIComponent(credText(c))}">إيميل</a>
         <button class="btn sm quiet" type="button" data-copy="${i}">نسخ الرسالة</button></div></td>
     </tr>`).join("");
   $("#credDlg").showModal();
@@ -2328,7 +2330,7 @@ $("#credPrint").addEventListener("click", () => {
     .u{direction:ltr;font-size:13px}@media print{body{margin:0}}</style></head><body>
     <div class="grid">${creds.map(c => `<div class="c"><h3>${esc(c.name)}</h3><div class="s">لوحة تحكم المعلمة${c.subject ? " · " + esc(c.subject) : ""}</div>
       <div class="r"><span>الرابط</span><span class="u">${esc(panelUrl())}</span></div>
-      <div class="r"><span>اسم الدخول</span><span class="v">${esc(c.user)}</span></div>
+      <div class="r"><span>الإيميل</span><span class="v">${esc(c.user)}</span></div>
       <div class="r"><span>الرقم السري</span><span class="v">${esc(c.password)}</span></div></div>`).join("")}</div>
     <script>document.fonts.ready.then(() => setTimeout(() => print(), 300));<\/script></body></html>`);
   w.document.close();

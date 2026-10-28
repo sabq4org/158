@@ -290,10 +290,10 @@ module.exports = function mountAdmin(app, pool) {
     }));
   }
 
-  // A teacher signs in with her ID or her mobile and her password; the admin and the principal with a password alone.
+  // A teacher signs in with her email and her password; the admin and the principal with a password alone.
   const findTeacher = user => {
-    const id = staff.digits(user), phone = staff.phoneOf(user);
-    return listTeachers().find(t => (id && t.national_id === id) || (phone && t.phone === phone)) || null;
+    const email = staff.emailOf(user);
+    return (email && listTeachers().find(t => t.email === email)) || null;
   };
 
   router.post("/login", async (req, res) => {
@@ -367,7 +367,7 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null,
       // The principal switches between teachers; a teacher sees no one else.
       teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : undefined,
-      user: req.role === "teacher" ? t.national_id || t.phone : undefined,
+      user: req.role === "teacher" ? t.email : undefined,
       max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
       calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
   });
@@ -1104,13 +1104,15 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   // ---------- School staff (the platform admin only) ----------
-  // A teacher signs in with her ID, or her mobile when the ID is missing.
-  const userOf = t => t.national_id || t.phone;
+  // A teacher signs in with her email.
+  const userOf = t => t.email || null;
   const credentials = (t, password) => ({ id: t.id, name: t.name, subject: t.subject || "", user: userOf(t), phone: t.phone, wa: staff.waNumber(t.phone), password });
-  // Another teacher already signs in with this ID or mobile.
+  // Another teacher already has this email, ID or mobile.
   const taken = async (t, except = 0) => (await pool.query(
-    "SELECT name FROM teachers WHERE id <> $1 AND ((national_id IS NOT NULL AND national_id = $2) OR (phone IS NOT NULL AND phone = $3))",
-    [except, t.national_id, t.phone])).rows[0]?.name;
+    `SELECT name FROM teachers WHERE id <> $1 AND ((email IS NOT NULL AND email = $4)
+      OR (national_id IS NOT NULL AND national_id = $2) OR (phone IS NOT NULL AND phone = $3))`,
+    [except, t.national_id, t.phone, t.email])).rows[0]?.name;
+  const takenMsg = name => [`الإيميل أو رقم الهوية أو الجوال مسجّل للمعلمة ${name}`];
   // A new password ends the teacher's old sessions. It is shown once and only its hash is kept.
   async function issuePassword(q, id) {
     const password = staff.newPassword();
@@ -1120,7 +1122,7 @@ module.exports = function mountAdmin(app, pool) {
   }
 
   router.get("/staff", adminOnly, async (req, res) => {
-    const { rows } = await pool.query(`SELECT t.id, t.name, t.subject, t.national_id, t.phone, t.active, t.pw_hash IS NOT NULL AS has_password, t.last_login, t.created_at,
+    const { rows } = await pool.query(`SELECT t.id, t.name, t.subject, t.email, t.national_id, t.phone, t.active, t.pw_hash IS NOT NULL AS has_password, t.last_login, t.created_at,
         (SELECT count(*)::int FROM students s WHERE s.teacher_id = t.id) AS students,
         (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes
       FROM teachers t ORDER BY t.id`);
@@ -1131,10 +1133,10 @@ module.exports = function mountAdmin(app, pool) {
     const { teacher: t, errors } = staff.cleanTeacher(req.body || {});
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
     const other = await taken(t);
-    if (other) return res.status(409).json({ error: "exists", errors: [`رقم الهوية أو الجوال مسجّل للمعلمة ${other}`] });
+    if (other) return res.status(409).json({ error: "exists", errors: takenMsg(other) });
     const out = await inTransaction(async q => {
-      const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, settings) VALUES ($1, $2, $3, $4, '{}') RETURNING *",
-        [t.name, t.subject, t.national_id, t.phone]);
+      const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, email, settings) VALUES ($1, $2, $3, $4, $5, '{}') RETURNING *",
+        [t.name, t.subject, t.national_id, t.phone, t.email]);
       const password = await issuePassword(q, rows[0].id);
       await addSubject(q, t.subject);
       await log(q, null, "staff_add", null, { id: rows[0].id, name: t.name });
@@ -1150,11 +1152,12 @@ module.exports = function mountAdmin(app, pool) {
     const { teacher: t, errors } = staff.cleanTeacher({ ...cur, ...req.body });
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
     const other = await taken(t, id);
-    if (other) return res.status(409).json({ error: "exists", errors: [`رقم الهوية أو الجوال مسجّل للمعلمة ${other}`] });
+    if (other) return res.status(409).json({ error: "exists", errors: takenMsg(other) });
     const active = req.body?.active === undefined ? cur.active : req.body.active !== false;
     // Turning an account off ends its sessions.
-    await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
-      [id, t.name, t.subject, t.national_id, t.phone, active, cur.active && !active ? 1 : 0]);
+    // A new email also ends her sessions: she signs in with it.
+    await pool.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $8, active = $6, pw_ver = pw_ver + $7 WHERE id = $1",
+      [id, t.name, t.subject, t.national_id, t.phone, active, (cur.active && !active) || (cur.email && cur.email !== t.email) ? 1 : 0, t.email]);
     await addSubject(pool, t.subject);
     await log(pool, null, "staff_edit", null, { id, name: t.name, active });
     await reloadTeachers(pool);
@@ -1164,6 +1167,7 @@ module.exports = function mountAdmin(app, pool) {
   router.post("/staff/:id/password", adminOnly, async (req, res) => {
     const id = Number(req.params.id);
     if (!getTeacher(id)) return res.status(404).json({ error: "not_found" });
+    if (!getTeacher(id).email) return res.status(400).json({ error: "no_email", errors: ["أضيفي إيميل المعلمة أول، تدخل فيه"] });
     const password = await issuePassword(pool, id);
     await log(pool, null, "staff_password", null, { id, name: getTeacher(id).name });
     await reloadTeachers(pool);
@@ -1183,7 +1187,7 @@ module.exports = function mountAdmin(app, pool) {
     res.json({ ok: true });
   });
 
-  // A staff sheet is previewed like a students sheet. Teachers match on their ID, or their mobile.
+  // A staff sheet is previewed like a students sheet. Teachers match on their email, else their ID or mobile.
   router.post("/staff/import", adminOnly, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "no_file" });
     let rows;
@@ -1201,14 +1205,17 @@ module.exports = function mountAdmin(app, pool) {
     let unchanged = 0;
     for (const { line, raw } of rows) {
       const { teacher: t, errors: errs } = staff.cleanTeacher(raw);
-      for (const k of [t.national_id, t.phone].filter(Boolean)) { if (seen.has(k)) errs.push("مكررة في الملف"); }
+      const keys = [t.email, t.national_id, t.phone].filter(Boolean);
+      for (const k of keys) { if (seen.has(k)) errs.push("مكررة في الملف"); }
       if (errs.length) { errors.push({ line, name: t.name || norm(raw.name), problems: [...new Set(errs)] }); continue; }
-      [t.national_id, t.phone].filter(Boolean).forEach(k => seen.add(k));
-      const before = all.find(x => (t.national_id && x.national_id === t.national_id) || (t.phone && x.phone === t.phone));
+      keys.forEach(k => seen.add(k));
+      const before = all.find(x => x.email === t.email) || all.find(x => (t.national_id && x.national_id === t.national_id) || (t.phone && x.phone === t.phone));
+      const other = all.find(x => x.id !== before?.id && (x.email === t.email || (t.national_id && x.national_id === t.national_id) || (t.phone && x.phone === t.phone)));
+      if (other) { errors.push({ line, name: t.name, problems: takenMsg(other.name) }); continue; }
       if (!before) { added.push(t); continue; }
       // As with students, an empty cell keeps what is saved.
-      const next = { name: t.name, subject: t.subject ?? before.subject, national_id: t.national_id ?? before.national_id, phone: t.phone ?? before.phone };
-      const changes = ["name", "subject", "national_id", "phone"].filter(k => (next[k] || null) !== (before[k] || null))
+      const next = { name: t.name, subject: t.subject ?? before.subject, email: t.email, national_id: t.national_id ?? before.national_id, phone: t.phone ?? before.phone };
+      const changes = ["name", "subject", "email", "national_id", "phone"].filter(k => (next[k] || null) !== (before[k] || null))
         .map(k => ({ field: k, from: before[k], to: next[k] }));
       if (changes.length) changed.push({ id: before.id, name: before.name, next, changes }); else unchanged++;
     }
@@ -1223,11 +1230,12 @@ module.exports = function mountAdmin(app, pool) {
     const issued = await inTransaction(async q => {
       const out = [];
       for (const c of p.changed) {
-        await q.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5 WHERE id = $1", [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone]);
+        await q.query("UPDATE teachers SET name = $2, subject = $3, national_id = $4, phone = $5, email = $6, pw_ver = pw_ver + $7 WHERE id = $1",
+          [c.id, c.next.name, c.next.subject, c.next.national_id, c.next.phone, c.next.email, c.changes.some(x => x.field === "email" && x.from) ? 1 : 0]);
       }
       for (const t of p.added) {
-        const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, settings) VALUES ($1, $2, $3, $4, '{}') RETURNING *",
-          [t.name, t.subject, t.national_id, t.phone]);
+        const { rows } = await q.query("INSERT INTO teachers (name, subject, national_id, phone, email, settings) VALUES ($1, $2, $3, $4, $5, '{}') RETURNING *",
+          [t.name, t.subject, t.national_id, t.phone, t.email]);
         out.push(credentials(rows[0], await issuePassword(q, rows[0].id)));
       }
       for (const t of [...p.added, ...p.changed.map(c => c.next)]) await addSubject(q, t.subject);

@@ -214,8 +214,8 @@ td.time { color: var(--muted); white-space: nowrap; font-variant-numeric: tabula
   <form class="card login" id="login" hidden novalidate>
     <div class="logos" style="align-self:center"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
     <h2>لوحة الدرس التطبيقي</h2>
-    <p class="muted">بنفس دخول لوحة التحكم: رقم الهوية أو الجوال والرقم السري</p>
-    <input id="user" inputmode="numeric" autocomplete="username" aria-label="رقم الهوية أو الجوال" placeholder="رقم الهوية أو الجوال" dir="ltr">
+    <p class="muted">بنفس دخول لوحة التحكم: الإيميل والرقم السري</p>
+    <input id="user" type="email" inputmode="email" autocomplete="username" aria-label="الإيميل" placeholder="الإيميل" dir="ltr">
     <input type="password" id="pw" autocomplete="current-password" aria-label="كلمة المرور" placeholder="كلمة المرور">
     <button class="btn primary" style="justify-content:center">دخول</button>
     <p class="err" id="loginErr"></p>
@@ -318,7 +318,7 @@ async function load() {
 $("#login").addEventListener("submit", async e => {
   e.preventDefault();
   $("#loginErr").textContent = "";
-  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: $("#user").value.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim(), password: $("#pw").value }) });
+  const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: $("#user").value.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim().toLowerCase(), password: $("#pw").value }) });
   if (r.ok) return load();
   const j = await r.json().catch(() => ({}));
   $("#loginErr").textContent = r.status === 429 ? "محاولات كثيرة، انتظري قليلًا" : "بيانات الدخول غير صحيحة";
