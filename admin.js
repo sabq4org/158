@@ -1141,7 +1141,15 @@ module.exports = function mountAdmin(app, pool) {
     for (const r of rows) {
       if (r.subject && subjects.includes(r.subject)) continue;
       if (want.length) await q.query("UPDATE teachers SET subject = $2 WHERE id = $1", [r.id, want.shift()]);
-      else if (r.id === id) await q.query("UPDATE teachers SET subject = NULL WHERE id = $1", [id]);
+      else if (r.id === id) {
+        // Her own panel: its saved results keep their subject, so a panel with data can't lose it. An empty one takes
+        // over a subject she keeps from an empty other panel, so she isn't left with a panel of no subject.
+        if (await hasData(q, id)) throw refuse(409, `مادة ${r.subject} عندها فصول أو طالبات، فما تنشال من المعلمة.`);
+        const o = rows.find(x => x.id !== id && subjects.includes(x.subject));
+        if (o && (await hasData(q, o.id))) throw refuse(409, `مادة ${r.subject} هي المادة الأساسية في حساب المعلمة، فما تنشال ومادة ${o.subject} عندها فصول أو طالبات.`);
+        if (o) await q.query("DELETE FROM teachers WHERE id = $1", [o.id]);
+        await q.query("UPDATE teachers SET subject = $2 WHERE id = $1", [id, o ? o.subject : null]);
+      }
       else if (await hasData(q, r.id)) throw refuse(409, `مادة ${r.subject} عندها فصول أو طالبات، فما تنشال من المعلمة.`);
       else await q.query("DELETE FROM teachers WHERE id = $1", [r.id]);
     }
