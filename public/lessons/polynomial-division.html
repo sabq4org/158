@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ورشة القسمة</title>
+<meta name="description" content="درس تفاعلي: قسمة كثيرات الحدود، رياضيات 2، الدرس 3-4">
+<meta name="theme-color" content="#d9653b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* «ورشة القسمة»: lesson 3-4 told as a paper-craft workshop. It opens on Salma's book cover (the textbook's "why"),
+   splits a fraction with scissors, builds the area box, then runs long and synthetic division step by step on any
+   problem, and ends with a stamp-collecting practice bench. Everything is computed by one small polynomial engine. */
+:root {
+  --bg: #f1e7d3;
+  --paper: #fffcf4;
+  --paper-2: #f8f1e2;
+  --ink: #2b2118;
+  --muted: #7a6a58;
+  --line: #e2d4bb;
+  --terra: #d9653b;
+  --terra-soft: #fbe3d6;
+  --blue: #2f5aa8;
+  --blue-soft: #dfe8fa;
+  --green: #2f8a57;
+  --green-soft: #dcf1e3;
+  --sun: #e6a817;
+  --sun-soft: #fdf0c8;
+  --plum: #8a3f8f;
+  --tape: rgba(230, 168, 23, .38);
+  --shadow: 0 1px 1px rgba(60, 40, 10, .08), 0 10px 28px -12px rgba(60, 40, 10, .35);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1913; --paper: #29231b; --paper-2: #322a20; --ink: #f3e9d8; --muted: #b8a68c; --line: #4a3e2f;
+    --terra: #f08a62; --terra-soft: #4a2c1f; --blue: #8fb1f0; --blue-soft: #233452; --green: #6fcf98; --green-soft: #1f3d2c;
+    --sun: #f3c14b; --sun-soft: #3f3317; --plum: #d79ad9; --tape: rgba(243, 193, 75, .25);
+    --shadow: 0 1px 1px rgba(0,0,0,.3), 0 12px 30px -12px rgba(0,0,0,.7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1d1913; --paper: #29231b; --paper-2: #322a20; --ink: #f3e9d8; --muted: #b8a68c; --line: #4a3e2f;
+  --terra: #f08a62; --terra-soft: #4a2c1f; --blue: #8fb1f0; --blue-soft: #233452; --green: #6fcf98; --green-soft: #1f3d2c;
+  --sun: #f3c14b; --sun-soft: #3f3317; --plum: #d79ad9; --tape: rgba(243, 193, 75, .25);
+  --shadow: 0 1px 1px rgba(0,0,0,.3), 0 12px 30px -12px rgba(0,0,0,.7); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg) var(--grain); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8; overflow-x: hidden; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.12em; white-space: nowrap; line-height: 1.4; }
+.m i { font-style: italic; }
+.m .m { font-size: 1em; }
+.m.eqn { white-space: normal; display: inline; }
+.nw { white-space: nowrap; }
+html, body { overflow-x: clip; }
+.m sup { font-size: .68em; vertical-align: .62em; line-height: 0; font-style: normal; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.15; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 .2em .05em; }
+.fr > span:last-child { padding: .05em .2em 0; }
+.fr.sm { font-size: .78em; }
+.cq { color: var(--blue); } .cd { color: var(--terra); } .cr { color: var(--green); } .cn { color: var(--plum); }
+
+/* Layout */
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+.ribbon { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px dashed var(--line); }
+.ribbon-in { max-width: 960px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+.ribbon b { font-size: 14px; white-space: nowrap; }
+.stations { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+.stations::-webkit-scrollbar { display: none; }
+.stations a { flex: none; text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; border: 1.5px dashed var(--line); border-radius: 999px; padding: 2px 10px; transition: all .2s; white-space: nowrap; }
+.stations a.on { color: #fff; background: var(--terra); border-color: var(--terra); border-style: solid; }
+.stations a.done { color: var(--green); border-color: var(--green); border-style: solid; }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Paper cards */
+.sheet { position: relative; background: var(--paper) var(--grain); border-radius: 6px 6px 6px 6px; box-shadow: var(--shadow); padding: 30px 28px 26px; margin: 46px 0 0; scroll-margin-top: 70px; }
+.sheet::before { content: ""; position: absolute; top: -12px; inset-inline-start: 50%; transform: translateX(50%) rotate(-3deg); width: 120px; height: 26px; background: var(--tape); border-left: 2px dotted rgba(0,0,0,.06); border-right: 2px dotted rgba(0,0,0,.06); }
+.sheet.tilt-l { transform: rotate(-.35deg); } .sheet.tilt-r { transform: rotate(.35deg); }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--terra); letter-spacing: .2px; }
+.kicker .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--terra); font-size: 14px; }
+h2 { margin: 6px 0 4px; font-size: clamp(24px, 4.4vw, 32px); line-height: 1.35; position: relative; display: inline-block; }
+h2 .scribble { position: absolute; inset-inline: -4px; bottom: -6px; height: 12px; width: calc(100% + 8px); color: var(--sun); pointer-events: none; }
+.lead { color: var(--muted); max-width: 62ch; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { border: 2px solid var(--ink); background: var(--paper); border-radius: 12px; padding: 7px 16px; font-weight: 700; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); transition: transform .1s, box-shadow .1s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.go { background: var(--terra); color: #fff; border-color: var(--ink); }
+.btn.soft { border-width: 1.5px; box-shadow: 2px 2px 0 var(--line); border-color: var(--line); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 2px 2px 0 var(--line); }
+.btn svg { width: 18px; height: 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px dashed var(--line); background: var(--paper-2); border-radius: 10px; padding: 4px 12px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.chip[aria-pressed="true"] { border-style: solid; border-color: var(--terra); background: var(--terra-soft); }
+.chip .m { font-size: 1em; }
+.note { position: relative; background: var(--sun-soft); border-radius: 4px; padding: 12px 16px; box-shadow: 2px 3px 0 rgba(0,0,0,.06); transform: rotate(-.6deg); }
+.note b { color: var(--terra); }
+.narr { min-height: 3.6em; background: var(--paper-2); border: 1.5px dashed var(--line); border-radius: 12px; padding: 10px 14px; font-size: 15.5px; }
+.narr .stepno { display: inline-block; background: var(--ink); color: var(--paper); border-radius: 6px; font-size: 12px; font-weight: 700; padding: 0 7px; margin-inline-end: 6px; }
+.ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ctrl .dots { display: flex; gap: 4px; flex-wrap: wrap; margin-inline-start: auto; }
+.ctrl .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; transition: background .2s; }
+.ctrl .dots i.on { background: var(--terra); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* Hero: Salma's cover */
+.hero { margin-top: 26px; text-align: center; padding: 34px 22px 30px; }
+.hero .logos { display: inline-flex; gap: 12px; align-items: center; background: #fff; border-radius: 12px; padding: 5px 12px; box-shadow: var(--shadow); }
+.hero .logos img { height: 36px; display: block; }
+.hero h1 { font-size: clamp(36px, 8vw, 64px); margin: 14px 0 0; line-height: 1.2; }
+.hero h1 span { color: var(--terra); }
+.hero .sub { color: var(--muted); font-weight: 600; }
+.cover-stage { perspective: 1400px; margin: 26px auto 8px; max-width: 760px; }
+.cover { display: flex; height: 210px; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(.3, .8, .3, 1); }
+.panel { position: relative; height: 100%; background: linear-gradient(180deg, #f6d68a, #eab95a); border: 1.5px solid #b8862a; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; font-weight: 700; color: #6d4a0e; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(.3, .8, .3, 1), flex-basis .5s; overflow: hidden; }
+.panel .lab { background: rgba(255, 252, 244, .85); border-radius: 6px; padding: 0 6px; font-size: 14px; position: relative; z-index: 1; }
+.panel.flap { background: repeating-linear-gradient(45deg, #f2c66e 0 8px, #ecb95b 8px 16px); }
+.panel.spine { background: linear-gradient(90deg, #c98b2b, #e2a647, #c98b2b); }
+.panel svg.flower { position: absolute; width: 60%; top: 18%; left: 20%; opacity: .55; }
+.cover.folded .panel.flap.s { transform-origin: left center; transform: rotateY(-175deg); }
+.cover.folded .panel.flap.e { transform-origin: right center; transform: rotateY(175deg); }
+.cover.folded { transform: rotateX(18deg) rotateY(-14deg); }
+.dim-h { display: flex; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.dim-h span { text-align: center; border-top: 1.5px solid var(--muted); margin: 0 1px; padding-top: 2px; transition: flex-basis .5s; }
+.hero-q { max-width: 680px; margin: 14px auto 0; text-align: start; }
+.slider { display: flex; align-items: center; gap: 10px; }
+input[type=range] { accent-color: var(--terra); flex: 1; }
+.fact { display: inline-flex; gap: 6px; align-items: baseline; background: var(--paper-2); border: 1.5px dashed var(--line); border-radius: 10px; padding: 2px 10px; }
+
+/* Scissors split */
+.splitter { direction: ltr; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 140px; font-size: 22px; padding: 10px 0; }
+.bigfrac { display: inline-flex; flex-direction: column; align-items: center; transition: all .6s; }
+.bigfrac .num { display: flex; gap: 10px; padding: 0 8px 4px; border-bottom: 2px solid var(--ink); }
+.bigfrac .den { padding-top: 4px; }
+.piece { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 10px; border-radius: 8px; background: var(--paper-2); border: 1.5px dashed var(--line); animation: drop .6s cubic-bezier(.2, 1.4, .4, 1) both; }
+.piece .num { border-bottom: 2px solid var(--ink); padding: 0 6px 2px; }
+.piece .den { padding-top: 2px; }
+.piece .res { margin-top: 6px; color: var(--blue); font-weight: 700; border-top: 1px dotted var(--line); padding-top: 4px; }
+.op { color: var(--muted); font-weight: 700; }
+.cut { color: var(--terra); }
+@keyframes drop { from { transform: translateY(-24px) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.expo { font-size: 15px; color: var(--muted); }
+
+/* Area box */
+.box-area { display: grid; gap: 0; margin: 10px auto; direction: ltr; width: fit-content; max-width: 100%; }
+.box-area .hd { text-align: center; font-weight: 700; color: var(--blue); padding: 4px 6px; min-height: 2.2em; }
+.box-area .sd { display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--terra); padding: 0 8px; }
+.box-area .cell { border: 2px solid var(--ink); margin: -1px 0 0 -1px; display: grid; place-items: center; padding: 6px; min-height: 70px; background: var(--paper-2); transition: background .3s; position: relative; }
+.box-area .cell.big { min-height: 110px; }
+.box-area .cell.fill { background: var(--sun-soft); }
+.box-area .cell.fill.neg { background: var(--terra-soft); }
+.box-area .cell.hl { box-shadow: inset 0 0 0 3px var(--terra); }
+.box-area .cell .v { animation: drop .5s both; }
+.diag { font-size: 13px; color: var(--muted); text-align: center; }
+
+/* Long division */
+.ld-wrap { overflow-x: auto; padding: 8px 2px 14px; }
+.ld { display: grid; direction: ltr; width: fit-content; margin: 0 auto; font-size: 20px; row-gap: 2px; }
+.ld .c { padding: 2px 8px; text-align: center; white-space: nowrap; opacity: 0; transform: translateY(-6px); transition: opacity .35s, transform .35s, background .3s, color .3s; border-radius: 6px; position: relative; }
+.ld .c.on { opacity: 1; transform: none; }
+.ld .c.hl { background: var(--sun-soft); box-shadow: 0 0 0 2px var(--sun); }
+.ld .c.zero { color: var(--muted); }
+.ld .q { color: var(--blue); font-weight: 700; }
+.ld .dv { color: var(--terra); font-weight: 700; padding-inline-end: 4px; }
+.ld .bar { border-top: 2.5px solid var(--ink); }
+.ld .brk { border-left: 2.5px solid var(--ink); border-top-left-radius: 10px; }
+.ld .rule { border-top: 1.5px solid var(--muted); }
+.ld .minus { color: var(--terra); font-size: 15px; align-self: center; }
+.ld .flip { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--terra); opacity: 0; transition: opacity .3s; pointer-events: none; }
+.ld .c.showflip .flip { opacity: 1; }
+.ld .rem { color: var(--green); font-weight: 700; }
+.result { background: var(--green-soft); border-radius: 12px; padding: 10px 14px; border: 1.5px solid var(--green); animation: drop .5s both; }
+.result b { color: var(--green); }
+
+/* Synthetic division */
+.sd-wrap { overflow-x: auto; padding: 10px 2px 16px; }
+.sd { position: relative; display: grid; direction: ltr; width: fit-content; margin: 0 auto; font-size: 21px; }
+.sd .c { min-width: 58px; padding: 6px 8px; text-align: center; opacity: 0; transform: scale(.6); transition: opacity .35s, transform .35s cubic-bezier(.2, 1.5, .4, 1), background .3s; border-radius: 8px; }
+.sd .c.on { opacity: 1; transform: none; }
+.sd .c.hl { background: var(--sun-soft); box-shadow: 0 0 0 2px var(--sun); }
+.sd .rbox { border: 2.5px solid var(--terra); color: var(--terra); font-weight: 700; border-radius: 6px; align-self: center; }
+.sd .mid { color: var(--plum); }
+.sd .bot { font-weight: 700; color: var(--blue); }
+.sd .lineh { border-top: 2.5px solid var(--ink); }
+.sd .linev { border-left: 2.5px solid var(--ink); }
+.sd .lineh, .sd .linev { border-radius: 0; }
+.sd .remc { color: var(--green); border: 2.5px solid var(--green); }
+.sd .zero-in { background: var(--terra-soft); }
+.sd svg.arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.sd svg.arrows path { fill: none; stroke: var(--terra); stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 260; stroke-dashoffset: 260; animation: draw .7s .05s forwards; }
+.sd svg.arrows text { fill: var(--terra); font: 700 14px var(--font); }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.sd-head { display: grid; gap: 10px; }
+.prep { border: 2px dashed var(--plum); border-radius: 12px; padding: 10px 14px; background: color-mix(in srgb, var(--plum) 8%, transparent); }
+.prep b { color: var(--plum); }
+.rhythm { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+.rhythm span { border-radius: 999px; padding: 2px 14px; font-weight: 700; font-size: 14px; border: 2px solid var(--line); color: var(--muted); transition: all .2s; }
+.rhythm span.on { color: #fff; border-color: transparent; }
+.rhythm span.mul.on { background: var(--plum); } .rhythm span.add.on { background: var(--blue); } .rhythm span.down.on { background: var(--terra); }
+
+/* Custom problem */
+.custom { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 8px; align-items: end; }
+.custom label { display: flex; flex-direction: column; font-size: 13px; font-weight: 600; color: var(--muted); }
+.custom input { font: 500 17px var(--font); direction: ltr; text-align: left; padding: 7px 10px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper-2); color: var(--ink); }
+.custom input:focus { outline: none; border-color: var(--terra); }
+.custom .div { font-size: 22px; padding-bottom: 6px; }
+.err { color: var(--terra); font-size: 14px; font-weight: 600; min-height: 1.3em; }
+
+/* Remainder */
+.dots-ex { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 6px 0; }
+.grp { display: flex; gap: 4px; padding: 6px; border: 2px dashed var(--blue); border-radius: 10px; }
+.grp.left { border-color: var(--green); }
+.dot { width: 22px; height: 22px; border-radius: 6px; background: var(--blue); animation: drop .4s both; }
+.grp.left .dot { background: var(--green); }
+.elim { width: 100%; border-collapse: collapse; font-size: 15px; }
+.elim th, .elim td { padding: 6px 8px; border-bottom: 1px dashed var(--line); text-align: start; }
+.elim td.v { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.elim tr.out td { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--terra); text-decoration-thickness: 2px; }
+.elim tr.keep td { background: var(--green-soft); font-weight: 700; }
+.stamp { display: inline-block; border: 2.5px solid var(--terra); color: var(--terra); border-radius: 6px; padding: 0 8px; font-weight: 700; transform: rotate(-8deg); font-size: 13px; }
+.stamp.ok { border-color: var(--green); color: var(--green); }
+
+/* Practice bench */
+.bench .sd .c input { width: 58px; font: 700 20px var(--font); text-align: center; border: 2px dashed var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); padding: 2px 0; direction: ltr; }
+.bench .sd .c input:focus { outline: none; border-color: var(--terra); border-style: solid; }
+.bench .sd .c input.ok { border-color: var(--green); border-style: solid; background: var(--green-soft); }
+.bench .sd .c input.bad { border-color: var(--terra); border-style: solid; animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.passport { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.pstamp { width: 54px; height: 54px; border-radius: 50%; border: 2.5px dashed var(--line); display: grid; place-items: center; font-weight: 700; color: var(--line); font-size: 12px; text-align: center; line-height: 1.2; }
+.pstamp.got { border: 3px double var(--green); color: var(--green); transform: rotate(-12deg); animation: stampin .45s cubic-bezier(.2, 1.6, .4, 1) both; background: var(--green-soft); }
+@keyframes stampin { from { transform: scale(2.2) rotate(-30deg); opacity: 0; } to { transform: rotate(-12deg); opacity: 1; } }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 16px; }
+.qcard { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; background: var(--paper-2); }
+.qcard .qq { font-weight: 600; margin-bottom: 8px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: start; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); padding: 8px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: all .15s; }
+.opt b { color: var(--muted); }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt.right { border-color: var(--green); background: var(--green-soft); }
+.opt.wrong { border-color: var(--terra); background: var(--terra-soft); }
+.opt:disabled { cursor: default; }
+.why { margin-top: 8px; font-size: 14.5px; }
+.score { text-align: center; font-size: 20px; font-weight: 700; }
+
+/* Summary */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.pin { background: var(--paper-2); border-radius: 6px; padding: 14px; box-shadow: 2px 3px 0 rgba(0,0,0,.06); position: relative; }
+.pin::before { content: ""; position: absolute; top: -7px; left: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--terra); box-shadow: inset -2px -2px 0 rgba(0,0,0,.2); transform: translateX(-50%); }
+.pin:nth-child(2) { transform: rotate(1deg); } .pin:nth-child(2)::before { background: var(--blue); }
+.pin:nth-child(3) { transform: rotate(-1deg); } .pin:nth-child(3)::before { background: var(--green); }
+.pin h3 { margin: 4px 0 6px; font-size: 17px; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 720px) {
+  .sheet { padding: 26px 16px 20px; }
+  .grid2, .cards3 { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  .ld { font-size: 17px; } .ld .c { padding: 2px 4px; }
+  .sd { font-size: 17px; } .sd .c { min-width: 44px; padding: 5px 4px; }
+  .bench .sd .c input { width: 46px; font-size: 17px; }
+  .cover { height: 150px; } .panel .lab { font-size: 12px; }
+  .custom { grid-template-columns: 1fr; } .custom .div { display: none; }
+  .ribbon b { display: none; }
+  .splitter { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="ribbon" aria-label="محطات الدرس">
+  <div class="ribbon-in">
+    <b>ورشة القسمة</b>
+    <div class="stations" id="stations"></div>
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 0: Salma's cover -->
+  <section class="sheet hero" id="s0" data-name="الغلاف">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>ورشة <span>القسمة</span></h1>
+    <p class="sub">الدرس 3-4 · قسمة كثيرات الحدود · رياضيات 2 · الفصل الأول</p>
+
+    <div class="cover-stage">
+      <div class="cover" id="cover" aria-label="غلاف كتاب سلمى مفرودًا"></div>
+      <div class="dim-h" id="dimH" aria-hidden="true"></div>
+    </div>
+    <div class="row" style="justify-content:center"><button class="btn" id="fold" type="button">اطوي الغلاف</button></div>
+
+    <div class="hero-q stack">
+      <p>سلمى تغلّف كتابًا بقطعة ورق مساحتها <span class="fact"><span class="m" id="hArea"></span></span> بوصة مربعة، وطولها <span class="m">10<i>x</i></span>.
+        كعب الكتاب <span class="m">2<i>x</i></span>، والغلافان الأمامي والخلفي <span class="m">6<i>x</i></span> لكلٍّ منهما. <b>كم عرض جزء الثني <span class="m"><i>f</i></span> على كل جانب؟</b></p>
+      <div class="slider"><span>جرّبي قيمة <span class="m"><i>x</i></span>:</span><input type="range" id="hx" min="1" max="6" step="1" value="2" aria-label="قيمة x"><b class="m" id="hxv"></b></div>
+      <p class="muted" id="hNums"></p>
+      <div class="note">لاحظي أن <b>المساحة ÷ الطول = العرض</b>. يعني نحتاج نقسم كثيرة حدود على وحيدة حد… وهذه أول محطة في الورشة.</div>
+    </div>
+  </section>
+
+  <!-- 1: polynomial by monomial -->
+  <section class="sheet tilt-l" id="s1" data-name="المقص">
+    <span class="kicker"><span class="n">1</span>قسمة كثيرة حدود على وحيدة حد</span>
+    <h2>مقصّ الكسر<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <p class="lead">كل حد في البسط ينقسم على المقام لحاله. قصّي الكسر، ثم بسّطي كل قطعة بطرح الأسس.</p>
+    <div class="chips" id="monoPick" style="margin-top:12px"></div>
+    <div class="splitter" id="split"></div>
+    <div class="row" style="justify-content:center"><button class="btn go" id="cutBtn" type="button">✂ قصّي الكسر</button><button class="btn soft" id="cutReset" type="button">من جديد</button></div>
+    <div id="coverSolve" hidden style="margin-top:14px"></div>
+  </section>
+
+  <!-- 2: area box -->
+  <section class="sheet tilt-r" id="s2" data-name="الصندوق">
+    <span class="kicker"><span class="n">2</span>قبل القسمة الطويلة</span>
+    <h2>صندوق المساحة<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <p class="lead">القسمة عكس الضرب: نعرف <b class="cn">المساحة</b> (المقسوم) و<b class="cd">أحد الضلعين</b> (المقسوم عليه)، ونبحث عن <b class="cq">الضلع الآخر</b> (ناتج القسمة).</p>
+    <div class="chips" id="boxPick" style="margin-top:12px"></div>
+    <div class="grid2" style="margin-top:12px">
+      <div><div id="box" class="box-area"></div><p class="diag" id="boxDiag"></p></div>
+      <div class="stack"><div class="narr" id="boxNarr"></div>
+        <div class="ctrl"><button class="btn soft" id="boxPrev" type="button">السابق</button><button class="btn go" id="boxNext" type="button">الخطوة التالية</button><div class="dots" id="boxDots"></div></div></div>
+    </div>
+  </section>
+
+  <!-- 3: long division -->
+  <section class="sheet" id="s3" data-name="الطويلة">
+    <span class="kicker"><span class="n">3</span>خوارزمية القسمة</span>
+    <h2>القسمة الطويلة<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <p class="lead">أربع حركات تتكرر: <b>اقسمي</b> الحد الأول ← <b>اضربي</b> ← <b>اطرحي</b> ← <b>أنزلي</b> الحد التالي. حتى تصير درجة الباقي أقل من درجة المقسوم عليه.</p>
+    <div class="chips" id="ldPick" style="margin-top:12px"></div>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">أو اكتبي مسألتك</summary>
+      <div class="custom" style="margin-top:8px"><label>المقسوم<input id="ldN" value="x^3-6x^2+11x-6" spellcheck="false"></label><span class="div">÷</span><label>المقسوم عليه<input id="ldD" value="x-2" spellcheck="false"></label><button class="btn" id="ldGo" type="button">اقسمي</button></div>
+      <p class="err" id="ldErr"></p></details>
+    <div class="ld-wrap"><div class="ld" id="ld"></div></div>
+    <div class="narr" id="ldNarr"></div>
+    <div class="ctrl" style="margin-top:10px"><button class="btn soft" id="ldPrev" type="button">السابق</button><button class="btn go" id="ldNext" type="button">الخطوة التالية</button><button class="btn soft" id="ldPlay" type="button">▶ تشغيل</button><div class="dots" id="ldDots"></div></div>
+    <div id="ldRes" style="margin-top:12px"></div>
+  </section>
+
+  <!-- 4: remainder -->
+  <section class="sheet tilt-l" id="s4" data-name="الباقي">
+    <span class="kicker"><span class="n">4</span>حين لا تنتهي القسمة بصفر</span>
+    <h2>الباقي له مكان<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <div class="grid2" style="margin-top:8px">
+      <div class="stack">
+        <p>مثل الأعداد تمامًا: <span class="m">11 ÷ 3</span> ناتجها <span class="m cq">3</span> والباقي <span class="m cr">2</span>، ونكتبها <span class="m">3 + <span class="fr"><span class="cr">2</span><span>3</span></span></span>.</p>
+        <div class="dots-ex" id="dots11"></div>
+        <p>وفي كثيرات الحدود: <b>المقسوم ÷ المقسوم عليه = ناتج القسمة + <span class="fr"><span>الباقي</span><span>المقسوم عليه</span></span></b></p>
+      </div>
+      <div class="stack">
+        <p><b>مثال 3 من الكتاب (اختيار من متعدد):</b> أيٌّ مما يأتي يكافئ <span class="m">(<i>a</i><sup>2</sup> + 7<i>a</i> − 11)(3 − <i>a</i>)<sup>−1</sup></span>؟</p>
+        <p class="note" style="font-size:14.5px"><b>حيلة الكتاب:</b> عوّضي قيمة لـ <span class="m"><i>a</i></span> في العبارة الأصلية وفي البدائل، واحذفي كل بديل قيمته مختلفة.</p>
+        <div class="slider"><span>اختاري <span class="m"><i>a</i></span>:</span><input type="range" id="ea" min="-3" max="2" step="1" value="0" aria-label="قيمة a"><b class="m" id="eav"></b></div>
+        <table class="elim" id="elim"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5: synthetic division -->
+  <section class="sheet tilt-r" id="s5" data-name="التركيبية">
+    <span class="kicker"><span class="n">5</span>الطريق المختصر للقسمة على <span class="m"><i>x</i> − <i>r</i></span></span>
+    <h2>آلة القسمة التركيبية<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <p class="lead">بدون متغيرات، بالمعاملات فقط. إيقاعها: <b>أنزلي</b> ثم <b>اضربي في r</b> ثم <b>اجمعي</b>… وكرري. الرقم الأخير هو الباقي.</p>
+    <div class="chips" id="sdPick" style="margin-top:12px"></div>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">أو اكتبي مسألتك</summary>
+      <div class="custom" style="margin-top:8px"><label>المقسوم<input id="sdN" value="x^4-5x^2+4" spellcheck="false"></label><span class="div">÷</span><label>المقسوم عليه (خطي)<input id="sdD" value="x+2" spellcheck="false"></label><button class="btn" id="sdGo" type="button">شغّلي الآلة</button></div>
+      <p class="err" id="sdErr"></p></details>
+    <div id="sdPrep" style="margin-top:10px"></div>
+    <div class="rhythm" aria-hidden="true"><span class="down">أنزلي ↓</span><span class="mul">اضربي × r</span><span class="add">اجمعي +</span></div>
+    <div class="sd-wrap"><div class="sd" id="sd"></div></div>
+    <div class="narr" id="sdNarr"></div>
+    <div class="ctrl" style="margin-top:10px"><button class="btn soft" id="sdPrev" type="button">السابق</button><button class="btn go" id="sdNext" type="button">الخطوة التالية</button><button class="btn soft" id="sdPlay" type="button">▶ تشغيل</button><div class="dots" id="sdDots"></div></div>
+    <div id="sdRes" style="margin-top:12px"></div>
+  </section>
+
+  <!-- 6: practice bench -->
+  <section class="sheet bench" id="s6" data-name="التدريب">
+    <span class="kicker"><span class="n">6</span>دورك الآن</span>
+    <h2>طاولة التدريب<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <p class="lead">اكملي الآلة بنفسك: اكتبي كل رقم في خانته، وكل مسألة صحيحة تكسبك ختمًا في جوازك.</p>
+    <div class="passport" id="passport" style="margin:10px 0"></div>
+    <p id="benchQ" style="font-size:18px;text-align:center"></p>
+    <div class="sd-wrap"><div class="sd" id="bench"></div></div>
+    <p class="narr" id="benchNarr"></p>
+    <div class="row" style="margin-top:10px"><button class="btn soft" id="benchSign" type="button" title="غيّري إشارة الخانة الحالية">± الإشارة</button><button class="btn soft" id="benchHint" type="button">تلميح</button><button class="btn go" id="benchNew" type="button">مسألة جديدة</button></div>
+  </section>
+
+  <!-- 7: quiz -->
+  <section class="sheet tilt-l" id="s7" data-name="الاختبار">
+    <span class="kicker"><span class="n">7</span>من تمارين «تأكد»</span>
+    <h2>اختبري نفسك<svg class="scribble" viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 8 C 50 2, 90 12, 140 5 S 190 6, 198 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></h2>
+    <div class="quiz" id="quiz" style="margin-top:12px"></div>
+    <p class="score" id="score" style="margin-top:14px"></p>
+  </section>
+
+  <!-- 8: summary -->
+  <section class="sheet" id="s8" data-name="الخلاصة">
+    <span class="kicker"><span class="n">✓</span>قبل ما تطلعين من الورشة</span>
+    <h2>الخلاصة</h2>
+    <div class="cards3" style="margin-top:16px">
+      <div class="pin"><h3>على وحيدة حد</h3><p>قسّمي كل حد في البسط على المقام، واطرحي أسس المتغيرات المتشابهة.</p></div>
+      <div class="pin"><h3>القسمة الطويلة</h3><p>اقسمي ← اضربي ← اطرحي ← أنزلي. رتّبي الحدود تنازليًا، وضعي صفرًا مكان الحد الناقص.</p></div>
+      <div class="pin"><h3>القسمة التركيبية</h3><p>للقسمة على <span class="m"><i>x</i> − <i>r</i></span>: أنزلي، اضربي في <span class="m"><i>r</i></span>، اجمعي. وإن كان معامل <span class="m"><i>x</i></span> لا يساوي 1 فاقسمي البسط والمقام عليه أولًا.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
+</main>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Fractions ---------- */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+class Fr {
+  constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); this.n = n / g; this.d = d / g; }
+  static of(x) { return x instanceof Fr ? x : new Fr(x); }
+  add(o) { o = Fr.of(o); return new Fr(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { o = Fr.of(o); return new Fr(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { o = Fr.of(o); return new Fr(this.n * o.n, this.d * o.d); }
+  div(o) { o = Fr.of(o); return new Fr(this.n * o.d, this.d * o.n); }
+  neg() { return new Fr(-this.n, this.d); }
+  get zero() { return this.n === 0; }
+  get one() { return this.n === this.d; }
+  get int() { return this.d === 1; }
+  val() { return this.n / this.d; }
+  eq(o) { o = Fr.of(o); return this.n === o.n && this.d === o.d; }
+}
+const minus = "−";
+// |value| as HTML: integer or stacked fraction.
+function absHTML(f) { const n = Math.abs(f.n); return f.int ? String(n) : `<span class="fr sm"><span>${n}</span><span>${f.d}</span></span>`; }
+function numHTML(f) { return (f.n < 0 ? minus : "") + absHTML(f); }
+const varHTML = (v, k) => k === 0 ? "" : `<i>${v}</i>${k > 1 ? `<sup>${k}</sup>` : ""}`;
+// One term with its sign. first: no leading "+". keepOne: write the 1 in 1x (used where columns must read clearly).
+function termHTML(c, k, v, first, cls = "") {
+  const s = c.n < 0 ? minus : "+";
+  const body = (k > 0 && Math.abs(c.n) === 1 && c.d === 1 ? "" : absHTML(c)) + varHTML(v, k);
+  const lead = first ? (c.n < 0 ? minus : "") : `${s} `;
+  return `<span class="${cls}">${lead}${body}</span>`;
+}
+// Polynomial from coefficients in descending order.
+function polyHTML(cs, v, { zeros = false, cls = "" } = {}) {
+  const n = cs.length - 1; let out = "", first = true;
+  cs.forEach((c, i) => { if (c.zero && !zeros) return; out += (first ? "" : " ") + termHTML(c, n - i, v, first); first = false; });
+  return `<span class="m ${cls}">${out || "0"}</span>`;
+}
+const P = arr => arr.map(Fr.of);
+const trim = cs => { let i = 0; while (i < cs.length - 1 && cs[i].zero) i++; return cs.slice(i); };
+
+/* ---------- Parsing "2x^3-13x^2+26x-24" ---------- */
+function parsePoly(src) {
+  const s = src.replace(/\s+/g, "").replace(/[−–]/g, "-").replace(/\*\*/g, "^").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  if (!s) throw new Error("empty");
+  const vars = new Set((s.match(/[a-z]/gi) || []).map(c => c.toLowerCase()));
+  if (vars.size > 1) throw new Error("vars");
+  const v = [...vars][0] || "x";
+  const terms = s.match(/[+-]?[^+-]+/g);
+  if (!terms || terms.join("") !== s) throw new Error("syntax");
+  const map = new Map(); let max = 0;
+  for (const t of terms) {
+    const m = t.match(/^([+-]?)(\d+(?:\/\d+)?)?(?:([a-z])(?:\^(\d+))?)?$/i);
+    if (!m || (!m[2] && !m[3])) throw new Error("syntax");
+    let c = m[2] ? (m[2].includes("/") ? new Fr(+m[2].split("/")[0], +m[2].split("/")[1]) : new Fr(+m[2])) : new Fr(1);
+    if (m[1] === "-") c = c.neg();
+    const k = m[3] ? (m[4] ? +m[4] : 1) : 0;
+    if (k > 8) throw new Error("big");
+    map.set(k, (map.get(k) || new Fr(0)).add(c)); max = Math.max(max, k);
+  }
+  const cs = []; for (let k = max; k >= 0; k--) cs.push(map.get(k) || new Fr(0));
+  return { cs: trim(cs), v };
+}
+
+/* ---------- Division ---------- */
+function divide(N, D) {
+  const n = N.length - 1, m = D.length - 1;
+  let R = N.slice(); const Q = Array(Math.max(n - m + 1, 1)).fill(new Fr(0));
+  for (let i = 0; i <= n - m; i++) {
+    const c = R[i].div(D[0]); Q[i] = c;
+    for (let j = 0; j <= m; j++) R[i + j] = R[i + j].sub(c.mul(D[j]));
+  }
+  return { Q, R: trim(R.slice(n - m + 1).length ? R.slice(n - m + 1) : [new Fr(0)]) };
+}
+// Q + R/D, ready to print.
+function answerHTML(Q, R, D, v) {
+  const rz = R.every(c => c.zero);
+  if (rz) return polyHTML(Q, v, { cls: "cq" });
+  const neg = R[0].n < 0;
+  const Rabs = neg ? R.map(c => c.neg()) : R;
+  return `<span class="m"><span class="cq">${polyHTML(Q, v).replace(/^<span class="m ">|<\/span>$/g, "")}</span> ${neg ? minus : "+"} <span class="fr"><span class="cr">${polyHTML(Rabs, v).replace(/^<span class="m ">|<\/span>$/g, "")}</span><span class="cd">${polyHTML(D, v).replace(/^<span class="m ">|<\/span>$/g, "")}</span></span></span>`;
+}
+const EQ = h => `<span class="m eqn">${h}</span>`; // keeps "A ÷ B = C" left-to-right inside Arabic text
+const PAR = (cs, v) => { const h = inner(polyHTML(cs, v)); return `<span class="nw">${cs.filter(c => !c.zero).length > 1 ? `(${h})` : h}</span>`; };
+const DIV = (N, D, v, dcls = "cd") => `${PAR(N, v)} ÷ <span class="${dcls}">${PAR(D, v)}</span>`; // "(N) ÷ (D)", to be wrapped in EQ
+const inner = h => h.replace(/^<span class="m[^"]*">/, "").replace(/<\/span>$/, "");
+
+/* ---------- Step player shared by the box, long and synthetic division ---------- */
+function player({ root, narr, prev, next, play, dots, frames, onFrame }) {
+  let i = 0, timer = null;
+  dots.innerHTML = frames.map(() => "<i></i>").join("");
+  function show() {
+    root.querySelectorAll("[data-f]").forEach(el => el.classList.toggle("on", +el.dataset.f <= i));
+    root.querySelectorAll(".hl, .showflip").forEach(el => el.classList.remove("hl", "showflip"));
+    const f = frames[i];
+    (f.hl || []).forEach(id => root.querySelector(`[data-id="${id}"]`)?.classList.add("hl"));
+    (f.flip || []).forEach(id => root.querySelector(`[data-id="${id}"]`)?.classList.add("showflip"));
+    narr.innerHTML = `<span class="stepno">${i + 1}/${frames.length}</span>${f.text}`;
+    [...dots.children].forEach((d, k) => d.classList.toggle("on", k <= i));
+    prev.disabled = i === 0; next.disabled = i === frames.length - 1;
+    onFrame?.(i, f);
+  }
+  const stop = () => { clearInterval(timer); timer = null; if (play) play.textContent = "▶ تشغيل"; };
+  prev.onclick = () => { stop(); if (i > 0) { i--; show(); } };
+  next.onclick = () => { stop(); if (i < frames.length - 1) { i++; show(); } };
+  if (play) play.onclick = () => {
+    if (timer) return stop();
+    if (i === frames.length - 1) i = -1;
+    play.textContent = "❚❚ إيقاف";
+    const tick = () => { if (i < frames.length - 1) { i++; show(); } else stop(); };
+    tick(); timer = setInterval(tick, 1900);
+  };
+  show();
+  return { stop };
+}
+
+/* ---------- Stations ribbon ---------- */
+const sections = $$("main > section");
+$("#stations").innerHTML = sections.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const links = $$("#stations a");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const k = sections.indexOf(e.target);
+  links.forEach((a, j) => { a.classList.toggle("on", j === k); a.classList.toggle("done", j < k); });
+  links[k].scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sections.forEach(s => io.observe(s));
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+
+/* ---------- 0. The cover ---------- */
+const FLOWER = '<svg class="flower" viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke="#8a5a12" stroke-width="1.5"><circle cx="20" cy="20" r="4"/>' +
+  Array.from({ length: 8 }, (_, k) => `<ellipse cx="20" cy="10" rx="3.5" ry="7" transform="rotate(${k * 45} 20 20)"/>`).join("") + "</g></svg>";
+function drawCover() {
+  const x = +$("#hx").value;
+  const parts = [["f", 3, "flap s"], ["6x", 6 * x, ""], ["2x", 2 * x, "spine"], ["6x", 6 * x, ""], ["f", 3, "flap e"]];
+  const total = 14 * x + 6;
+  $("#cover").innerHTML = parts.map(([l, w, c]) => `<div class="panel ${c}" style="flex-basis:${w / total * 100}%">${c === "" ? FLOWER : ""}<span class="lab m">${l === "f" ? "<i>f</i>" : l.replace("x", "<i>x</i>")}</span></div>`).join("");
+  $("#dimH").innerHTML = parts.map(([l, w]) => `<span style="flex-basis:${w / total * 100}%">${w}</span>`).join("");
+  $("#hxv").textContent = "x = " + x;
+  $("#hArea").innerHTML = `(140<i>x</i><sup>2</sup> + 60<i>x</i>)`;
+  $("#hNums").innerHTML = `عند <span class="m"><i>x</i> = ${x}</span>: المساحة <b>${140 * x * x + 60 * x}</b>، والطول <b>${10 * x}</b>، فالعرض <b>${(140 * x * x + 60 * x) / (10 * x)}</b> بوصة. والأجزاء المعروفة مجموعها <b>${14 * x}</b>… فماذا بقي لجزأي الثني؟`;
+}
+$("#hx").oninput = drawCover;
+$("#fold").onclick = () => { const c = $("#cover"); c.classList.toggle("folded"); $("#fold").textContent = c.classList.contains("folded") ? "افردي الغلاف" : "اطوي الغلاف"; };
+drawCover();
+
+/* ---------- 1. Scissors: polynomial ÷ monomial ---------- */
+// Monomials: {c, e: {x: 2, y: 1}}
+const mono = (c, e) => ({ c, e });
+function monoHTML(t, first = true) {
+  const keys = Object.keys(t.e).filter(k => t.e[k]).sort();
+  const a = Math.abs(t.c), body = (a === 1 && keys.length ? "" : a) + keys.map(k => varHTML(k, t.e[k])).join("");
+  return (first ? (t.c < 0 ? minus : "") : (t.c < 0 ? `${minus} ` : "+ ")) + (body || "1");
+}
+const MONO = [
+  { label: "غلاف سلمى", num: [mono(140, { x: 2 }), mono(60, { x: 1 })], den: mono(10, { x: 1 }), cover: true },
+  { label: "مثال 1", num: [mono(6, { x: 4, y: 3 }), mono(12, { x: 3, y: 2 }), mono(-18, { x: 2, y: 1 })], den: mono(3, { x: 1, y: 1 }) },
+  { label: "تأكد 1", num: [mono(4, { x: 1, y: 2 }), mono(-2, { x: 1, y: 1 }), mono(2, { x: 2, y: 1 })], den: mono(1, { x: 1, y: 1 }) },
+  { label: "تدرّب 13", num: [mono(5, { x: 2, y: 1 }), mono(-10, { x: 1, y: 1 }), mono(15, { x: 1, y: 2 })], den: mono(5, { x: 1, y: 1 }) },
+];
+let monoCur = 0;
+$("#monoPick").innerHTML = MONO.map((m, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${m.label}</button>`).join("");
+$("#monoPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; monoCur = +b.dataset.k; $$("#monoPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); drawSplit(false); };
+function drawSplit(cut) {
+  const M = MONO[monoCur];
+  $("#coverSolve").hidden = true;
+  if (!cut) {
+    $("#split").innerHTML = `<span class="bigfrac m"><span class="num">${M.num.map((t, k) => `<span>${monoHTML(t, k === 0)}</span>`).join("")}</span><span class="den">${monoHTML(M.den)}</span></span>`;
+    $("#cutBtn").disabled = false; return;
+  }
+  $("#cutBtn").disabled = true;
+  const res = M.num.map(t => { const e = {}; const keys = new Set([...Object.keys(t.e), ...Object.keys(M.den.e)]); keys.forEach(k => e[k] = (t.e[k] || 0) - (M.den.e[k] || 0)); return mono(t.c / M.den.c, e); });
+  const expo = (t) => { const keys = [...new Set([...Object.keys(t.e), ...Object.keys(M.den.e)])].sort().filter(k => t.e[k] || M.den.e[k]);
+    return keys.map(k => `<i>${k}</i><sup>${t.e[k] || 0}${minus}${M.den.e[k] || 0}</sup>`).join(" "); };
+  $("#split").innerHTML = M.num.map((t, k) => `${k ? `<span class="op m">${t.c < 0 ? minus : "+"}</span>` : ""}
+    <span class="piece m" style="animation-delay:${k * .18}s"><span class="num">${monoHTML({ ...t, c: k ? Math.abs(t.c) : t.c })}</span><span class="den">${monoHTML(M.den)}</span>
+    <span class="expo">${Math.abs(t.c)}÷${M.den.c} · ${expo(t)}</span><span class="res">${monoHTML({ ...res[k], c: k ? Math.abs(res[k].c) : res[k].c })}</span></span>`).join("")
+    + `<span class="op m">=</span><span class="piece m cq" style="animation-delay:${M.num.length * .18 + .2}s;font-weight:700"><span>${res.map((t, k) => monoHTML(t, k === 0)).join(" ")}</span></span>`;
+  if (M.cover) {
+    const box = $("#coverSolve"); box.hidden = false;
+    box.innerHTML = `<div class="result"><b>عرض الغلاف = <span class="m">14<i>x</i> + 6</span></b>. والأجزاء: <span class="m"><i>f</i> + 6<i>x</i> + 2<i>x</i> + 6<i>x</i> + <i>f</i> = 14<i>x</i> + 2<i>f</i></span>.
+      إذن <span class="m">2<i>f</i> = 6</span>، أي <b>جزء الثني <span class="m"><i>f</i> = 3</span> بوصات</b>، مهما كانت قيمة <span class="m"><i>x</i></span>. جرّبي المنزلق فوق وتأكدي!</div>`;
+  }
+}
+$("#cutBtn").onclick = () => drawSplit(true);
+$("#cutReset").onclick = () => drawSplit(false);
+drawSplit(false);
+
+/* ---------- 2. Area box (linear divisor, numbers kept small) ---------- */
+const BOXES = [
+  { label: "مثال 2", N: [1, 3, -40], D: [1, -5], v: "x" },
+  { label: "تأكد 3", N: [1, -6, -20], D: [1, 2], v: "x" },
+  { label: "ثلاثية", N: [2, -13, 26, -24], D: [1, -4], v: "x" },
+];
+let boxPlayer;
+$("#boxPick").innerHTML = BOXES.map((b, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${b.label}: ${EQ(DIV(P(b.N), P(b.D), b.v, ""))}</button>`).join("");
+$("#boxPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; $$("#boxPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); buildBox(BOXES[+b.dataset.k]); };
+function buildBox({ N, D, v }) {
+  N = P(N); D = P(D);
+  const { Q, R } = divide(N, D), n = N.length - 1, cols = Q.length;
+  const T = (c, k) => polyHTML([c, ...Array(k).fill(new Fr(0))], v); // a single term c·v^k
+  // grid: header row of quotient terms, then one row per divisor term. Column width shrinks with the degree.
+  const box = $("#box");
+  box.style.gridTemplateColumns = `auto ${Q.map((_, j) => `minmax(${Math.max(64, 130 - j * 34)}px, auto)`).join(" ")}`;
+  let html = `<div></div>` + Q.map((q, j) => `<div class="hd c" data-id="h${j}" data-f="${2 * j + 1}">${T(q, cols - 1 - j)}</div>`).join("");
+  D.forEach((d, i) => {
+    html += `<div class="sd">${T(d, D.length - 1 - i)}</div>`;
+    Q.forEach((q, j) => {
+      const val = q.mul(d), k = (cols - 1 - j) + (D.length - 1 - i);
+      const f = i === 0 ? 2 * j : 2 * j + 2;
+      html += `<div class="cell ${j === 0 ? "big" : ""} fill ${val.n < 0 ? "neg" : ""}" data-id="c${i}${j}" data-f="${f}"><span class="v">${T(val, k)}</span></div>`;
+    });
+  });
+  box.innerHTML = html;
+  // The cells and headers fade in by frame; data-f with .on handled by the shared player via CSS below.
+  box.querySelectorAll("[data-f]").forEach(el => { el.style.transition = "opacity .35s"; });
+  const frames = [];
+  // frame 2j: top cell of column j is known (leading term of what's left); frame 2j+1: divide to get the header; then multiply for the bottom cell.
+  let rem = N.slice();
+  for (let j = 0; j < cols; j++) {
+    const k = cols - 1 - j + (D.length - 1);
+    const top = Q[j].mul(D[0]);
+    frames.push({ hl: [`c0${j}`], text: j === 0
+      ? `الحد الأول في المساحة ${T(N[0], n)} نضعه في الخانة الأولى، لأنه ناتج ضرب ${T(D[0], D.length - 1)} في أول حد من الضلع المجهول.`
+      : `المساحة تحتاج ${T(N[j], n - j)} في هذا المستوى، وعندنا منه ${T(Q[j - 1].mul(D[1]), n - j)} من الخانة السفلية. الفرق ${T(top, k)} يوضع في الخانة العلوية.` });
+    frames.push({ hl: [`h${j}`, `c0${j}`], text: `نقسم: ${EQ(`${T(top, k)} ÷ ${T(D[0], D.length - 1)} = <b class="cq">${T(Q[j], cols - 1 - j)}</b>`)}، وهذا حد من الضلع المجهول.` });
+    frames.push({ hl: [`c1${j}`, `h${j}`], text: `نضرب: ${T(Q[j], cols - 1 - j)} × ${T(D[1], 0)} = ${T(Q[j].mul(D[1]), cols - 1 - j)} في الخانة السفلية.` });
+    rem = rem.map((c, i) => i === j ? new Fr(0) : c);
+  }
+  // Re-number: top cells appear with frame 3j, header 3j+1, bottom 3j+2.
+  box.querySelectorAll('[data-id^="c0"]').forEach(el => el.dataset.f = 3 * +el.dataset.id.slice(2));
+  box.querySelectorAll('[data-id^="h"]').forEach(el => el.dataset.f = 3 * +el.dataset.id.slice(1) + 1);
+  box.querySelectorAll('[data-id^="c1"]').forEach(el => el.dataset.f = 3 * +el.dataset.id.slice(2) + 2);
+  const rz = R.every(c => c.zero);
+  frames.push({ hl: [], text: rz
+    ? `اكتمل الصندوق! مجموع كل قطر يساوي حدًا من المقسوم، والضلع المجهول هو <b class="cq">${polyHTML(Q, v)}</b>. إذن ${EQ(`${DIV(N, D, v, "")} = ${polyHTML(Q, v, { cls: "cq" })}`)}.`
+    : `اكتمل الصندوق، لكن الخانة الأخيرة تعطي ${T(Q.at(-1).mul(D[1]), 0)} والمقسوم يحتاج ${T(N.at(-1), 0)}. الفرق <b class="cr">${polyHTML(R, v)}</b> هو <b>الباقي</b>، فالناتج ${answerHTML(Q, R, D, v)}.` });
+  $("#boxDiag").innerHTML = "كل قطر مائل في الصندوق يجمع حدودًا من الدرجة نفسها، ومجموعه حدٌّ من المقسوم.";
+  boxPlayer?.stop();
+  boxPlayer = player({ root: box, narr: $("#boxNarr"), prev: $("#boxPrev"), next: $("#boxNext"), dots: $("#boxDots"), frames,
+    onFrame: i => box.querySelectorAll("[data-f]").forEach(el => el.style.opacity = +el.dataset.f <= i ? 1 : .08) });
+}
+buildBox(BOXES[0]);
+
+/* ---------- 3. Long division ---------- */
+const LD = [
+  { label: "مثال 2", N: "x^2+3x-40", D: "x-5" },
+  { label: "مثال 3", N: "a^2+7a-11", D: "-a+3" },
+  { label: "تحقق 2A", N: "x^2+7x-30", D: "x-3" },
+  { label: "تأكد 6", N: "y^5-3y^2-20", D: "y-2" },
+  { label: "مثال 5", N: "3x^4-5x^3+x^2+7x", D: "3x+1" },
+  { label: "على تربيعية", N: "x^4+2x^3+3x^2+2x+1", D: "x^2+x+1" },
+];
+let ldPlayer;
+$("#ldPick").innerHTML = LD.map((b, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${b.label}</button>`).join("");
+$("#ldPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; $$("#ldPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); const p = LD[+b.dataset.k]; $("#ldN").value = p.N; $("#ldD").value = p.D; runLD(); };
+$("#ldGo").onclick = () => { $$("#ldPick .chip").forEach(x => x.setAttribute("aria-pressed", false)); runLD(); };
+function readProblem(nEl, dEl, errEl, { linearOnly = false } = {}) {
+  errEl.textContent = "";
+  try {
+    const a = parsePoly(nEl.value), b = parsePoly(dEl.value);
+    if (a.v !== b.v && a.cs.length > 1 && b.cs.length > 1) throw new Error("vars");
+    const v = a.cs.length > 1 ? a.v : b.v;
+    if (b.cs.length === 1 && b.cs[0].zero) throw new Error("zero");
+    if (b.cs.length < 2) throw new Error("const");
+    if (linearOnly && b.cs.length !== 2) throw new Error("linear");
+    if (b.cs.length > a.cs.length) throw new Error("deg");
+    return { N: a.cs, D: b.cs, v };
+  } catch (e) {
+    errEl.textContent = { vars: "استعملي متغيرًا واحدًا في المسألة.", zero: "لا قسمة على صفر.", const: "اكتبي مقسومًا عليه فيه متغير، مثل x - 2.",
+      linear: "القسمة التركيبية للمقسوم عليه الخطي فقط، مثل x - 3 أو 2x + 1.", deg: "درجة المقسوم عليه أكبر من درجة المقسوم.", big: "خلّي الأسس أصغر من 9." }[e.message]
+      || "اكتبي كثيرة الحدود هكذا: 2x^3 - 13x^2 + 26x - 24";
+    return null;
+  }
+}
+function runLD() {
+  const p = readProblem($("#ldN"), $("#ldD"), $("#ldErr"));
+  if (!p) return;
+  const { N, D, v } = p, n = N.length - 1, m = D.length - 1;
+  const T = (c, k, first) => `<span class="m">${inner(termHTML(c, k, v, first))}</span>`;
+  const col = k => 3 + (n - k); // grid column for degree k (col 1: (−) mark, col 2: divisor)
+  const cells = []; const frames = [];
+  let f = 0;
+  const cell = (row, k, html, cls, id, fr) => cells.push(`<div class="c ${cls}" style="grid-row:${row};grid-column:${col(k)}" data-id="${id}" data-f="${fr}">${html}</div>`);
+  // Row 1 quotient, row 2 divisor + dividend.
+  cells.push(`<div class="c dv on" style="grid-row:2;grid-column:2" data-f="0" data-id="dv">${polyHTML(D, v)}</div>`);
+  N.forEach((c, i) => cell(2, n - i, T(c, n - i, i === 0), `bar ${i === 0 ? "brk" : ""} ${c.zero ? "zero" : ""}`, `n${n - i}`, 0));
+  frames.push({ hl: [], text: `رتّبنا المقسوم تنازليًا${N.some(c => c.zero) ? "، ووضعنا <b>صفرًا مكان كل حد ناقص</b> حتى تبقى الأعمدة مرتبة" : ""}. المقسوم عليه ${polyHTML(D, v, { cls: "cd" })}.` });
+  let R = N.slice(), row = 3, curRowIds = Object.fromEntries(N.map((_, i) => [n - i, `n${n - i}`]));
+  const Q = [];
+  for (let i = 0; i <= n - m; i++) {
+    const lead = n - i, k = lead - m, c = R[i].div(D[0]); Q.push(c);
+    f++; cell(1, k, T(c, k, i === 0), "q", `q${k}`, f);
+    frames.push({ hl: [curRowIds[lead], "dv", `q${k}`], text: c.zero
+      ? `الحد الأول هنا صفر، فحد الناتج <b class="cq">0</b>، وننتقل للحد التالي.`
+      : `<b>اقسمي:</b> ${EQ(`${T(R[i], lead, true)} ÷ ${T(D[0], m, true)} = <b class="cq">${T(c, k, true)}</b>`)}. نكتبه فوق العمود ${k ? `${varHTML(v, k) ? `<span class="m">${varHTML(v, k)}</span>` : ""}` : "الثابت"}.` });
+    if (c.zero) continue;
+    // multiply
+    f++; const prod = D.map(d => d.mul(c)); const prodIds = [];
+    cells.push(`<div class="c minus" style="grid-row:${row};grid-column:1" data-f="${f}">(−)</div>`);
+    prod.forEach((pc, j) => { const kk = lead - j; const id = `p${row}_${kk}`; prodIds.push(id);
+      cell(row, kk, T(pc, kk, j === 0) + `<span class="flip">${inner(termHTML(pc.neg(), kk, v, true))}</span>`, "", id, f); });
+    frames.push({ hl: [`q${k}`, "dv", ...prodIds], text: `<b>اضربي:</b> ${T(c, k, true)} × (${inner(polyHTML(D, v))}) = ${polyHTML(prod, v)}. نكتبها تحت الحدود المشابهة.` });
+    // subtract
+    for (let j = 0; j <= m; j++) R[i + j] = R[i + j].sub(prod[j]);
+    row++; f++;
+    const diffIds = [];
+    const last = lead - m; // lowest degree touched by this product
+    for (let kk = lead - 1; kk >= Math.max(last, 0); kk--) { const id = `r${row}_${kk}`; diffIds.push(id);
+      cell(row, kk, T(R[n - kk], kk, kk === lead - 1), `rule ${R[n - kk].zero ? "zero" : ""} ${i === n - m && kk < m ? "rem" : ""}`, id, f); curRowIds[kk] = id; }
+    if (m === 0) {} // never: divisor has a variable
+    frames.push({ hl: diffIds, flip: prodIds, text: `<b>اطرحي:</b> نغيّر إشارات السطر المضروب (تظهر صغيرة تحته) ونجمع. ${lead - m === lead ? "" : `يبقى ${polyHTML(R.slice(i + 1, i + 1 + m), v)}`}.` });
+    // bring down the next dividend term
+    const nextK = last - 1;
+    if (i < n - m && nextK >= 0) {
+      f++; const id = `r${row}_${nextK}`;
+      cell(row, nextK, T(R[n - nextK], nextK, false), `rule ${R[n - nextK].zero ? "zero" : ""}`, id, f); curRowIds[nextK] = id;
+      frames.push({ hl: [id, `n${nextK}`], text: `<b>أنزلي</b> الحد التالي من المقسوم ${T(N[n - nextK], nextK, true)}، ونبدأ دورة جديدة.` });
+    }
+    row++;
+  }
+  const { R: rem } = divide(N, D);
+  const rz = rem.every(c => c.zero);
+  frames.push({ hl: Object.entries(curRowIds).filter(([k]) => +k < m).map(([, id]) => id), text: `درجة ${rz ? "الباقي" : `الباقي ${polyHTML(rem, v, { cls: "cr" })}`} أقل من درجة المقسوم عليه، فتوقفنا. ${rz ? "<b>الباقي صفر</b>، يعني القسمة تامة." : ""}` });
+  $("#ld").style.gridTemplateColumns = `auto auto repeat(${n + 1}, auto)`;
+  $("#ld").innerHTML = cells.join("");
+  const Qp = trim(Q.length ? Q : [new Fr(0)]);
+  ldPlayer?.stop();
+  ldPlayer = player({ root: $("#ld"), narr: $("#ldNarr"), prev: $("#ldPrev"), next: $("#ldNext"), play: $("#ldPlay"), dots: $("#ldDots"), frames,
+    onFrame: (i) => { $("#ldRes").innerHTML = i === frames.length - 1 ? `<div class="result"><b>الناتج:</b> ${EQ(`${DIV(N, D, v)} = ${answerHTML(Qp, rem, D, v)}`)}
+      <div class="row" style="margin-top:6px"><button class="btn soft" type="button" id="ldCheck">تحقّقي بالضرب</button><span id="ldCheckOut"></span></div></div>` : "";
+      $("#ldCheck")?.addEventListener("click", () => {
+        const prod = Array(Qp.length + D.length - 1).fill(new Fr(0));
+        Qp.forEach((a, x) => D.forEach((b, y) => prod[x + y] = prod[x + y].add(a.mul(b))));
+        const pad = Array(prod.length - rem.length).fill(new Fr(0)).concat(rem);
+        const back = prod.map((c, j) => c.add(pad[j] || 0));
+        $("#ldCheckOut").innerHTML = `(${inner(polyHTML(Qp, v))})(${inner(polyHTML(D, v))})${rz ? "" : ` + (${inner(polyHTML(rem, v))})`} = ${polyHTML(trim(back), v)} <span class="stamp ok">✓ المقسوم</span>`;
+      }); } });
+}
+runLD();
+
+/* ---------- 4. Remainder ---------- */
+$("#dots11").innerHTML = [0, 1, 2].map(g => `<div class="grp">${[0, 1, 2].map(k => `<span class="dot" style="animation-delay:${(g * 3 + k) * .06}s"></span>`).join("")}</div>`).join("")
+  + `<div class="grp left">${[0, 1].map(k => `<span class="dot" style="animation-delay:${(9 + k) * .06}s"></span>`).join("")}</div>`;
+const ELIM = [
+  ["A", a => a + 10 - 19 / (3 - a), `<i>a</i> + 10 − <span class="fr sm"><span>19</span><span>3 − <i>a</i></span></span>`],
+  ["B", a => -a + 10, `−<i>a</i> + 10`],
+  ["C", a => -a - 10 + 19 / (3 - a), `−<i>a</i> − 10 + <span class="fr sm"><span>19</span><span>3 − <i>a</i></span></span>`],
+  ["D", a => -a - 10 - 19 / (3 - a), `−<i>a</i> − 10 − <span class="fr sm"><span>19</span><span>3 − <i>a</i></span></span>`],
+];
+const fmt = x => (Math.round(x * 1000) / 1000).toString().replace("-", minus);
+function drawElim() {
+  const a = +$("#ea").value; $("#eav").textContent = "a = " + a;
+  const orig = (a * a + 7 * a - 11) / (3 - a);
+  $("#elim").innerHTML = `<tr><th>العبارة</th><th>قيمتها</th><th></th></tr><tr><td><span class="m">(<i>a</i><sup>2</sup> + 7<i>a</i> − 11) ÷ (3 − <i>a</i>)</span></td><td class="v">${fmt(orig)}</td><td>الأصلية</td></tr>`
+    + ELIM.map(([L, fn, h]) => { const val = fn(a), ok = Math.abs(val - orig) < 1e-9;
+      return `<tr class="${ok ? "keep" : "out"}"><td><b>${L}</b> <span class="m">${h}</span></td><td class="v">${fmt(val)}</td><td>${ok ? '<span class="stamp ok">يبقى</span>' : '<span class="stamp">يُحذف</span>'}</td></tr>`; }).join("");
+}
+$("#ea").oninput = drawElim; drawElim();
+
+/* ---------- 5. Synthetic division ---------- */
+const SD = [
+  { label: "مثال 4", N: "2x^3-13x^2+26x-24", D: "x-4" },
+  { label: "تحقق 4A", N: "2x^3+3x^2-4x+15", D: "x+3" },
+  { label: "حد ناقص", N: "2x^3-4x^2+6", D: "x-1" },
+  { label: "تحقق 4C", N: "4a^4+2a^2-4a+12", D: "a+2" },
+  { label: "مثال 5", N: "3x^4-5x^3+x^2+7x", D: "3x+1" },
+];
+let sdPlayer;
+$("#sdPick").innerHTML = SD.map((b, k) => `<button class="chip" type="button" aria-pressed="${k === 0}" data-k="${k}">${b.label}</button>`).join("");
+$("#sdPick").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; $$("#sdPick .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); const p = SD[+b.dataset.k]; $("#sdN").value = p.N; $("#sdD").value = p.D; runSD(); };
+$("#sdGo").onclick = () => { $$("#sdPick .chip").forEach(x => x.setAttribute("aria-pressed", false)); runSD(); };
+
+// Lays out the synthetic table in `el`; returns ids by position. Columns: r box, then one per coefficient.
+function sdGrid(el, coefs, r, { zeroIdx = [], editable = false } = {}) {
+  const n = coefs.length;
+  el.style.gridTemplateColumns = `auto repeat(${n}, auto)`;
+  const cellsHTML = [];
+  cellsHTML.push(`<div class="c rbox on" style="grid-row:1;grid-column:1" data-f="0" data-id="r">${numHTML(r)}</div>`);
+  coefs.forEach((c, i) => cellsHTML.push(`<div class="c ${i === 0 ? "linev" : ""} ${zeroIdx.includes(i) ? "zero-in" : ""} on" style="grid-row:1;grid-column:${i + 2}" data-f="0" data-id="t${i}">${numHTML(c)}</div>`));
+  return cellsHTML;
+}
+function sdArrows(el, pairs) {
+  el.querySelector("svg.arrows")?.remove();
+  if (!pairs.length) return;
+  const box = el.getBoundingClientRect();
+  const pt = (id, side) => { const r = el.querySelector(`[data-id="${id}"]`).getBoundingClientRect();
+    return side === "top" ? [r.left + r.width / 2 - box.left, r.top - box.top + 2] : side === "bottom" ? [r.left + r.width / 2 - box.left, r.bottom - box.top - 2]
+      : [r.left + r.width / 2 - box.left, r.top + r.height / 2 - box.top]; };
+  const svg = `<svg class="arrows" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--terra)" stroke="none"/></marker></defs>
+    ${pairs.map(([a, b, label, kind]) => {
+      const [x1, y1] = pt(a, kind === "down" ? "bottom" : "top"), [x2, y2] = pt(b, kind === "down" ? "top" : "bottom");
+      const d = kind === "down" ? `M${x1} ${y1} L${x2} ${y2 - 2}` : `M${x1} ${y1} Q ${(x1 + x2) / 2 - 6} ${Math.min(y1, y2) - 26} ${x2} ${y2 + 2}`;
+      return `<path d="${d}" marker-end="url(#ah)"/>${label ? `<text x="${(x1 + x2) / 2 - 14}" y="${Math.min(y1, y2) - 18}">${label}</text>` : ""}`; }).join("")}</svg>`;
+  el.insertAdjacentHTML("beforeend", svg);
+}
+function runSD() {
+  const p = readProblem($("#sdN"), $("#sdD"), $("#sdErr"), { linearOnly: true });
+  if (!p) return;
+  const { N, D, v } = p, n = N.length - 1, a = D[0], r = D[1].neg().div(a);
+  const zeroIdx = N.map((c, i) => c.zero ? i : -1).filter(i => i >= 0);
+  // Leading coefficient of x not 1: divide numerator and denominator by it first (example 5).
+  const A = a.one ? N : N.map(c => c.div(a));
+  $("#sdPrep").innerHTML = a.one ? (zeroIdx.length ? `<div class="note"><b>تنبيه:</b> المقسوم ناقص ${zeroIdx.map(i => `<span class="m">${varHTML(v, n - i) || "الثابت"}</span>`).join(" و")}، فنكتب <b>0</b> مكانه (الخانة الملوّنة).</div>` : "")
+    : `<div class="prep"><b>معامل <span class="m"><i>${v}</i></span> في المقسوم عليه ${numHTML(a)} وليس 1.</b> نقسم البسط والمقام على ${numHTML(a)}:
+       <span class="m eqn">${PAR(N, v)} ÷ (${inner(polyHTML(D, v))}) = (${inner(polyHTML(A, v))}) ÷ (${inner(polyHTML([new Fr(1), D[1].div(a)], v))})</span>، فيصير <span class="m"><i>r</i> = ${numHTML(r)}</span>.</div>`;
+  const el = $("#sd");
+  const cells = sdGrid(el, A, r, { zeroIdx });
+  const frames = [{ hl: ["r", ...A.map((_, i) => `t${i}`)], rh: null, arrows: [], text: `اكتبي معاملات المقسوم: ${A.map(numHTML).join("، ")}. والمقسوم عليه <span class="m"><i>${v}</i> − <i>r</i></span> يعطينا <span class="m"><i>r</i> = ${numHTML(r)}</span> في الصندوق.` }];
+  const B = [A[0]]; let f = 1;
+  cells.push(`<div class="c lineh" style="grid-row:3;grid-column:1" data-f="0"></div>`);
+  cells.push(`<div class="c bot lineh linev" style="grid-row:3;grid-column:2" data-f="${f}" data-id="b0">${numHTML(A[0])}</div>`);
+  frames.push({ hl: ["t0", "b0"], rh: "down", arrows: [["t0", "b0", "", "down"]], text: `<b>أنزلي</b> المعامل الأول ${numHTML(A[0])} كما هو تحت الخط.` });
+  for (let i = 1; i <= n; i++) {
+    const mv = B[i - 1].mul(r), bv = A[i].add(mv); B.push(bv);
+    const last = i === n;
+    f++; cells.push(`<div class="c mid" style="grid-row:2;grid-column:${i + 2}" data-f="${f}" data-id="m${i}">${numHTML(mv)}</div>`);
+    frames.push({ hl: [`b${i - 1}`, "r", `m${i}`], rh: "mul", arrows: [[`b${i - 1}`, `m${i}`, "× r", "up"]], text: `<b>اضربي</b> ${numHTML(B[i - 1])} × ${numHTML(r)} = <b class="cn">${numHTML(mv)}</b>، واكتبيه تحت المعامل التالي.` });
+    f++; cells.push(`<div class="c bot lineh ${last ? "remc" : ""}" style="grid-row:3;grid-column:${i + 2}" data-f="${f}" data-id="b${i}">${numHTML(bv)}</div>`);
+    frames.push({ hl: [`t${i}`, `m${i}`, `b${i}`], rh: "add", arrows: [[`m${i}`, `b${i}`, "", "down"]], text: `<b>اجمعي</b> ${numHTML(A[i])} + ${mv.n < 0 ? `(${numHTML(mv)})` : numHTML(mv)} = <b class="${last ? "cr" : "cq"}">${numHTML(bv)}</b>${last ? "، وهو <b>الباقي</b>." : "."}` });
+  }
+  const Q = B.slice(0, n), rem = B[n];
+  // Back to the original divisor: N/(ax+b) = Q + a·rem/(ax+b).
+  const remOut = rem.mul(a);
+  frames.push({ hl: [...Q.map((_, i) => `b${i}`), `b${n}`], rh: null, arrows: [], text: `الأرقام تحت الخط عدا الأخير هي معاملات الناتج، ودرجته أقل بواحد: <b class="cq">${polyHTML(Q, v)}</b>، والباقي <b class="cr">${numHTML(rem)}</b>${a.one ? "" : `. ولأننا قسمنا على ${numHTML(a)}، يصير الكسر ${EQ(`${numHTML(rem)} ÷ (${inner(polyHTML([new Fr(1), D[1].div(a)], v))}) = ${numHTML(remOut)} ÷ (${inner(polyHTML(D, v))})`)}`}.` });
+  el.innerHTML = cells.join("");
+  const resHTML = `<div class="result"><b>الناتج:</b> ${EQ(`${DIV(N, D, v)} = ${answerHTML(Q, [remOut], D, v)}`)}</div>`;
+  sdPlayer?.stop();
+  sdPlayer = player({ root: el, narr: $("#sdNarr"), prev: $("#sdPrev"), next: $("#sdNext"), play: $("#sdPlay"), dots: $("#sdDots"), frames,
+    onFrame: (i, fr) => {
+      $$(".rhythm span").forEach(s => s.classList.toggle("on", fr.rh && s.classList.contains(fr.rh)));
+      requestAnimationFrame(() => sdArrows(el, fr.arrows));
+      $("#sdRes").innerHTML = i === frames.length - 1 ? resHTML : "";
+    } });
+}
+addEventListener("resize", () => { const cur = $("#sd .hl"); if (cur) $("#sdNext").click(), $("#sdPrev").click(); });
+runSD();
+
+/* ---------- 6. Practice bench ---------- */
+let stamps = 0, bench = null;
+const STAMPS = 6;
+function drawPassport() { $("#passport").innerHTML = Array.from({ length: STAMPS }, (_, k) => `<span class="pstamp ${k < stamps ? "got" : ""}">${k < stamps ? "مُتقنة ✓" : k + 1}</span>`).join(""); }
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function newBench() {
+  const deg = rnd(2, 3), v = ["x", "x", "a", "y", "b"][rnd(0, 4)];
+  const r = [-3, -2, -1, 1, 2, 3][rnd(0, 5)];
+  const cs = [rnd(1, 3)]; for (let i = 1; i <= deg; i++) cs.push(Math.random() < .15 && i < deg ? 0 : rnd(-9, 9));
+  const N = P(cs), D = P([1, -r]);
+  const B = [N[0]]; const M = [null];
+  for (let i = 1; i <= deg; i++) { M.push(B[i - 1].mul(r)); B.push(N[i].add(M[i])); }
+  bench = { N, D, v, r: new Fr(r), B, M, deg, done: false };
+  $("#benchQ").innerHTML = EQ(DIV(N, D, v));
+  const el = $("#bench");
+  const cells = sdGrid(el, N, new Fr(r));
+  cells.push(`<div class="c lineh on" style="grid-row:3;grid-column:1"></div>`);
+  for (let i = 0; i <= deg; i++) {
+    if (i > 0) cells.push(`<div class="c mid on" style="grid-row:2;grid-column:${i + 2}"><input autocomplete="off" data-k="m${i}" aria-label="ناتج الضرب ${i}"></div>`);
+    cells.push(`<div class="c bot lineh on ${i === 0 ? "linev" : ""} ${i === deg ? "remc" : ""}" style="grid-row:3;grid-column:${i + 2}"><input autocomplete="off" data-k="b${i}" aria-label="ناتج الجمع ${i}"></div>`);
+  }
+  el.innerHTML = cells.join("");
+  $("#benchNarr").innerHTML = `ابدئي بالخانة الأولى تحت الخط: ماذا ننزل؟ (r = ${r})`;
+  order = ["b0"]; for (let i = 1; i <= deg; i++) order.push(`m${i}`, `b${i}`);
+  step = 0; lockInputs();
+}
+let order = [], step = 0;
+function expect(k) { const i = +k.slice(1); return k[0] === "b" ? bench.B[i] : bench.M[i]; }
+function lockInputs() {
+  $$("#bench input").forEach(inp => { const k = order.indexOf(inp.dataset.k); inp.disabled = k > step; if (k === step) inp.focus({ preventScroll: true }); });
+}
+let benchTimer = 0;
+$("#bench").addEventListener("input", e => {
+  const inp = e.target; if (!inp.matches("input") || bench.done) return;
+  clearTimeout(benchTimer);
+  const k = inp.dataset.k, raw = inp.value.trim().replace(/[−–]/g, "-").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  if (!/^-?\d+$/.test(raw)) { inp.classList.remove("ok", "bad"); return; }
+  if (+raw === expect(k).val()) {
+    inp.classList.remove("bad"); inp.classList.add("ok"); inp.readOnly = true; step++;
+    if (step === order.length) {
+      bench.done = true; stamps = Math.min(STAMPS, stamps + 1); drawPassport();
+      const Q = bench.B.slice(0, bench.deg), R = bench.B[bench.deg];
+      $("#benchNarr").innerHTML = `<b class="cr">أحسنتِ!</b> الناتج ${answerHTML(Q, [R], bench.D, bench.v)}. ${stamps === STAMPS ? "اكتمل جوازك، أنتِ محترفة القسمة التركيبية! 🎉" : "خذي ختمك، وجربي مسألة جديدة."}`;
+    } else {
+      const nk = order[step];
+      $("#benchNarr").innerHTML = nk[0] === "m" ? `صح! الآن <b>اضربي</b> آخر رقم تحت الخط في r.` : `صح! الآن <b>اجمعي</b> العمود.`;
+      lockInputs();
+    }
+  } else {
+    // Flag a wrong value once it is as long as the answer, or after a short pause.
+    const bad = () => { inp.classList.add("bad"); setTimeout(() => inp.classList.remove("bad"), 400); };
+    if (raw.length >= String(Math.abs(expect(k).val())).length + (expect(k).val() < 0 ? 1 : 0)) bad(); else benchTimer = setTimeout(bad, 1500);
+  }
+});
+$("#benchHint").onclick = () => {
+  if (!bench || bench.done) return;
+  const k = order[step], i = +k.slice(1);
+  $("#benchNarr").innerHTML = k === "b0" ? `أنزلي المعامل الأول كما هو: ${numHTML(bench.N[0])}.`
+    : k[0] === "m" ? `اضربي: ${EQ(`${numHTML(bench.B[i - 1])} × (${numHTML(bench.r)}) = ؟`)}` : `اجمعي: ${EQ(`${numHTML(bench.N[i])} + (${numHTML(bench.M[i])}) = ؟`)}`;
+};
+$("#benchSign").onclick = () => {
+  const inp = bench && !bench.done && $(`#bench input[data-k="${order[step]}"]`); if (!inp) return;
+  const v = inp.value.trim().replace(/[−–]/g, "-");
+  inp.value = v.startsWith("-") ? v.slice(1) : "-" + v; inp.focus();
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+};
+$("#benchNew").onclick = newBench;
+drawPassport(); newBench();
+
+/* ---------- 7. Quiz from «تأكد» ---------- */
+function opt(Q, R, D, v) { return answerHTML(P(Q), P(R), P(D), v); }
+const QUIZ = [
+  { q: "(x^2-6x-20)", N: [1, -6, -20], D: [1, 2], v: "x", ref: "تأكد 3" },
+  { q: "(2a^2-4a-8)", N: [2, -4, -8], D: [1, 1], v: "a", ref: "تأكد 4" },
+  { q: "(y^5-3y^2-20)", N: [1, 0, 0, -3, 0, -20], D: [1, -2], v: "y", ref: "تأكد 6" },
+  { q: "(10x^2+15x+20)", N: [10, 15, 20], D: [5, 5], v: "x", ref: "تأكد 8" },
+  { q: "(b^3-4b^2+b-2)", N: [1, -4, 1, -2], D: [1, 1], v: "b", ref: "تدرّب 19" },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => {
+    const N = P(it.N), D = P(it.D), { Q, R } = divide(N, D);
+    // Distractors: the classic slips (remainder sign, constant sign, dropped remainder).
+    const opts = [
+      { h: answerHTML(Q, R, D, it.v), ok: true },
+      { h: answerHTML(Q, R.map(c => c.neg()), D, it.v) },
+      { h: answerHTML(Q.map((c, i) => i === Q.length - 1 ? c.neg() : c), R, D, it.v) },
+      { h: Q.length > 1 ? answerHTML(Q.map((c, i) => i === 1 ? c.neg() : c), R, D, it.v) : polyHTML(Q, it.v, { cls: "cq" }) },
+      { h: polyHTML(Q, it.v, { cls: "cq" }) },
+    ];
+    const uniq = []; opts.forEach(o => { if (!uniq.some(u => u.h === o.h)) uniq.push(o); });
+    while (uniq.length < 4) uniq.push({ h: answerHTML(Q.map(c => c.add(1)), R, D, it.v) + "&#8203;".repeat(uniq.length) });
+    uniq.splice(4);
+    uniq.sort(() => Math.random() - .5);
+    return `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}) ${EQ(`${DIV(N, D, it.v)} = ؟`)} <span class="muted" style="font-size:13px">(${it.ref})</span></p>
+      <div class="opts">${uniq.map((o, j) => `<button type="button" class="opt" data-ok="${!!o.ok}"><b>${"أبجد"[j]}</b>${o.h}</button>`).join("")}</div><p class="why" hidden></p></div>`;
+  }).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return;
+  card.dataset.done = 1; answered++;
+  const ok = b.dataset.ok === "true"; if (ok) right++;
+  card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const it = QUIZ[+card.dataset.k];
+  const why = card.querySelector(".why"); why.hidden = false;
+  why.innerHTML = ok ? `<span class="stamp ok">صحيح</span> ممتاز!` : `<span class="stamp">راجعي</span> جرّبيها في <a href="#s5">آلة القسمة التركيبية</a> أو <a href="#s3">القسمة الطويلة</a> وشوفي الخطوات.`;
+  $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🌟 ورشة مكتملة!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", () => { answered = right = 0; $("#score").textContent = ""; buildQuiz(); });
+});
+buildQuiz();
+</script>
+</body>
+</html>
