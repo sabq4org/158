@@ -25,6 +25,9 @@ CREATE TABLE IF NOT EXISTS teachers (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS teachers_national_id ON teachers (national_id) WHERE national_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS teachers_phone ON teachers (phone) WHERE phone IS NOT NULL;
+-- A teacher signs in with her email, kept in lower case. Her ID and mobile are only on record.
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS email TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS teachers_email ON teachers (email) WHERE email IS NOT NULL;
 INSERT INTO teachers (id, name) VALUES (1, 'فائزة محمد جبوع') ON CONFLICT (id) DO NOTHING;
 SELECT setval(pg_get_serial_sequence('teachers', 'id'), (SELECT max(id) FROM teachers));
 
@@ -98,11 +101,16 @@ function phoneOf(s) {
   if (d.length === 9 && d.startsWith("5")) d = "0" + d;
   return /^05\d{8}$/.test(d) ? d : null;
 }
+// An email in lower case, or null when it isn't one.
+function emailOf(s) {
+  const e = school.toLatin(String(s ?? "")).replace(/\s+/g, "").replace(/^mailto:/i, "").toLowerCase();
+  return /^[^@]+@[^@]+\.[a-z]{2,}$/.test(e) && e.length <= 120 ? e : null;
+}
 // International form for a WhatsApp link.
 const waNumber = phone => (phone ? "966" + phone.slice(1) : null);
 const norm = s => String(s ?? "").replace(/\s+/g, " ").trim();
 
-// A teacher from a form or a sheet row. Either her ID or her mobile is needed: she signs in with one of them.
+// A teacher from a form or a sheet row. Her email is needed: she signs in with it. Her ID and mobile are optional.
 function cleanTeacher(raw) {
   const errors = [];
   const t = { name: norm(raw.name).slice(0, 80), subject: norm(raw.subject).slice(0, 40) || null };
@@ -113,16 +121,21 @@ function cleanTeacher(raw) {
   const phoneText = norm(raw.phone);
   t.phone = phoneText ? phoneOf(phoneText) : null;
   if (phoneText && !t.phone) errors.push(`رقم الجوال "${phoneText}" غير صحيح`);
-  if (!t.national_id && !t.phone) errors.push("لازم رقم الهوية أو الجوال عشان تدخل فيه");
+  const emailText = norm(raw.email);
+  t.email = emailText ? emailOf(emailText) : null;
+  if (!emailText) errors.push("الإيميل مطلوب، تدخل فيه المعلمة");
+  else if (!t.email) errors.push(`الإيميل "${emailText}" غير صحيح`);
   return { teacher: t, errors };
 }
 
 // ---------- Reading a staff sheet ----------
-const plainKey = s => school.plain(norm(s)).replace(/\(.*?\)/g, " ").replace(/\s+/g, " ").trim();
+const plainKey = s => school.plain(norm(s)).toLowerCase().replace(/\(.*?\)/g, " ").replace(/\s+/g, " ").trim();
 const HEADER_MAP = {
   "الاسم": "name", "اسم المعلمة": "name", "اسم المعلم": "name", "اسم الموظفة": "name", "اسم الموظف": "name", "الاسم الكامل": "name", "اسم المنسوبة": "name",
   "رقم الهوية": "national_id", "الهوية": "national_id", "السجل المدني": "national_id", "رقم السجل المدني": "national_id", "الهوية الوطنية": "national_id", "رقم الهوية الوطنية": "national_id",
   "الجوال": "phone", "رقم الجوال": "phone", "الهاتف": "phone", "رقم الهاتف": "phone", "الجوال الشخصي": "phone", "رقم التواصل": "phone",
+  "البريد الإلكتروني": "email", "البريد الالكتروني": "email", "البريد": "email", "الإيميل": "email", "الايميل": "email", "الإيميل الوزاري": "email",
+  "البريد الإلكتروني الوزاري": "email", "البريد الوزاري": "email", "email": "email", "e-mail": "email", "e mail": "email", "الايميل الوزاري": "email",
   "المادة": "subject", "التخصص": "subject", "مادة التدريس": "subject", "المادة الدراسية": "subject", "التخصص الدقيق": "subject",
 };
 const HEADERS = Object.fromEntries(Object.entries(HEADER_MAP).map(([k, f]) => [plainKey(k), f]));
@@ -138,7 +151,7 @@ function cellText(v) {
   return String(v);
 }
 
-// The first sheet with a name column and an ID or mobile column. Rows stop at the first long gap.
+// The first sheet with a name column and an email column. Rows stop at the first long gap.
 async function readStaffSheet(file) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(file);
@@ -150,13 +163,13 @@ async function readStaffSheet(file) {
       if (!cols) {
         const found = {};
         values.forEach((v, i) => { const f = HEADERS[plainKey(cellText(v))]; if (f && !(f in found)) found[f] = i; });
-        if ("name" in found && ("national_id" in found || "phone" in found)) cols = found;
+        if ("name" in found && "email" in found) cols = found;
         if (r > 50 && !cols) break;
         continue;
       }
       const raw = {};
       for (const [f, i] of Object.entries(cols)) raw[f] = cellText(values[i]);
-      if (!norm(raw.name) && !norm(raw.national_id) && !norm(raw.phone)) { if (rows.length && ++gap >= 5) break; continue; }
+      if (!norm(raw.name) && !norm(raw.email) && !norm(raw.national_id) && !norm(raw.phone)) { if (rows.length && ++gap >= 5) break; continue; }
       gap = 0;
       rows.push({ line: r, raw });
     }
@@ -165,4 +178,4 @@ async function readStaffSheet(file) {
   return null;
 }
 
-module.exports = { SCHEMA, newPassword, hashPassword, checkPassword, digits, phoneOf, waNumber, cleanTeacher, readStaffSheet };
+module.exports = { SCHEMA, newPassword, hashPassword, checkPassword, digits, phoneOf, emailOf, waNumber, cleanTeacher, readStaffSheet };
