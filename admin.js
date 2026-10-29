@@ -304,17 +304,23 @@ module.exports = function mountAdmin(app, pool) {
     if (list.length >= 5) return res.status(429).json({ error: "locked" });
     const pw = String(req.body?.password ?? "");
     const user = norm(req.body?.user);
+    // Each entry of the sign-in page takes its own account only: a teacher, the principal or the platform admin.
+    // A request that names none (an older page) takes whichever matches.
+    const as = ["teacher", "viewer", "admin"].includes(req.body?.as) ? req.body.as : null;
     let role = null, t = null;
-    if (user) {
+    if (as === "teacher" && !user) return res.status(400).json({ error: "no_user" });
+    if (user && (!as || as === "teacher")) {
       t = findTeacher(user);
       if (t && recent(accountFailures, t.id).length >= 10) return res.status(429).json({ error: "locked" });
       if (t && (await staff.checkPassword(t, pw))) {
         if (!t.active) return res.status(403).json({ error: "inactive" });
         role = "teacher";
       }
-    } else {
-      if (!PASSWORD && !viewer.hash) return res.status(503).json({ error: "disabled" });
-      role = PASSWORD && crypto.timingSafeEqual(hash(pw), hash(PASSWORD)) ? "admin" : (await isViewerPassword(pw)) ? "viewer" : null;
+    } else if (as !== "teacher") {
+      if (as === "viewer" && !viewer.hash) return res.status(503).json({ error: "no_viewer" });
+      if (as !== "viewer" && !PASSWORD && !viewer.hash) return res.status(503).json({ error: "disabled" });
+      const isAdmin = as !== "viewer" && PASSWORD && crypto.timingSafeEqual(hash(pw), hash(PASSWORD));
+      role = isAdmin ? "admin" : as !== "admin" && (await isViewerPassword(pw)) ? "viewer" : null;
     }
     if (!role) {
       list.push(now); failures.set(req.ip, list);
