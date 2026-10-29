@@ -1370,6 +1370,8 @@ async function saveSettings(next) {
   const s = await api("/settings", { method: "PUT", body: next });
   applySettings(s);
   renderStats(); renderRows(); renderClasses(); renderOverview();
+  // New maximums change every percentage the alerts read.
+  loadAlerts().catch(() => {});
   return s;
 }
 $("#gateBtn").addEventListener("click", async () => {
@@ -1808,7 +1810,7 @@ $("#alForm").addEventListener("submit", async e => {
   for (const el of e.target.elements) if (el.name) next[el.name] = el.value;
   const err = $("#alErr"); err.hidden = true;
   const btn = $("#alSave"); btn.disabled = true;
-  try { await saveSettings(next); await loadAlerts(); toast("تم حفظ حدود التنبيهات"); }
+  try { await saveSettings(next); toast("تم حفظ حدود التنبيهات"); }
   catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
   finally { btn.disabled = false; }
 });

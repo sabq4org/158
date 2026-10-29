@@ -566,12 +566,14 @@ module.exports = function mountAdmin(app, pool) {
         const d = e.details;
         await client.query("DELETE FROM terms WHERE teacher_id = $1 AND id = $2", [T, d.term_id]);
         if (d.grades?.length) {
-          const graded = `coalesce(${PERIOD_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
+          // A student graded again since is left as she is. Lateness alone doesn't count: archives from before it was
+          // cleared left it in place.
+          const graded = `coalesce(${GRADE_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
           const g = `jsonb_to_recordset($2) AS g(national_id TEXT, ${PERIOD_COLS.map(c => c + " NUMERIC").join(", ")})`;
           const list = JSON.stringify(d.grades);
           skipped = (await client.query(`SELECT s.name FROM students s JOIN ${g} ON g.national_id = s.national_id WHERE s.teacher_id = $1 AND ${graded} ORDER BY s.name`, [T, list])).rows.map(r => r.name);
-          // An entry from before lateness was cleared has none: the student's own stays.
-          await client.query(`UPDATE students s SET ${PERIOD_COLS.map(c => c === "lateness" ? "lateness = coalesce(g.lateness, s.lateness)" : `${c} = g.${c}`).join(", ")} FROM ${g}
+          // Lateness counted since, or kept by an archive from before it was cleared, stays; otherwise the archived one comes back.
+          await client.query(`UPDATE students s SET ${PERIOD_COLS.map(c => c === "lateness" ? "lateness = coalesce(s.lateness, g.lateness)" : `${c} = g.${c}`).join(", ")} FROM ${g}
             WHERE s.teacher_id = $1 AND g.national_id = s.national_id AND NOT (${graded})`, [T, list]);
         }
         if (d.cleared && getSettings(T).term_title === (d.next_title || "")) title = d.prev_title ?? "";
