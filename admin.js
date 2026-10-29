@@ -11,6 +11,7 @@ const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
+const reports = require("./reports");
 
 const scrypt = util.promisify(crypto.scrypt);
 
@@ -1139,6 +1140,9 @@ module.exports = function mountAdmin(app, pool) {
 
   // Every teacher at a glance: her classes, students, average and lookups. Names and numbers only, no student's grades.
   // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
+  // Classes and subjects compared across the school, for the principal.
+  reports.mount(router, pool);
+
   router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
     // A teacher's other subjects show as rows of their own; her sign-in is on her first one.
     const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, coalesce(o.last_login, t.last_login) AS last_login,
