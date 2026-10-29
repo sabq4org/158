@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مكتبة الدروس التفاعلية</title>
+<meta name="description" content="الدروس التفاعلية لمادة الرياضيات في الثانوية 158، وفي آخر كل درس اختبار قصير تنحفظ درجته عند المعلمة.">
+<meta name="theme-color" content="#0d3f3d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* The lessons' library: one shelf per grade, a card per lesson drawn in that lesson's own theme, and the student's scores once she gives her ID. */
+:root {
+  --bg: #f4f7f6;
+  --card: #ffffff;
+  --ink: #12302e;
+  --muted: #5b6f6d;
+  --line: #dbe5e3;
+  --brand: #0d3f3d;
+  --accent: #0f766e;
+  --good: #15803d;
+  --warn: #b45309;
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1716; --card: #16211f; --ink: #e6f0ee; --muted: #9db1ae; --line: #26332f; --brand: #0b2f2d; --accent: #2bb3a4; --good: #4ade80; --warn: #fbbf24;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg); line-height: 1.75; font-size: 16px; }
+a { color: inherit; }
+
+/* Header */
+.hero { background: linear-gradient(160deg, #0d3f3d, #145c57 60%, #1b7a72); color: #fff; padding: 18px 16px 70px; }
+.hero .bar { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hero .logo { height: 54px; width: auto; background: #fff; border-radius: 12px; padding: 4px 8px; }
+.hero .copy { max-width: 1080px; margin: 26px auto 0; }
+.hero h1 { margin: 0; font-size: clamp(26px, 5vw, 40px); line-height: 1.3; }
+.hero p { margin: 8px 0 0; max-width: 60ch; opacity: .88; }
+
+main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: relative; }
+
+/* "My scores" */
+.me { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; box-shadow: 0 10px 30px -18px rgba(13, 63, 61, .45);
+  display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.me h2 { margin: 0; font-size: 17px; }
+.me p { margin: 0; color: var(--muted); font-size: 14px; }
+.me form { display: flex; gap: 8px; flex-wrap: wrap; }
+.me input { font: inherit; font-size: 17px; direction: ltr; text-align: center; width: 14ch; max-width: 100%; padding: 8px 12px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); letter-spacing: 1px; }
+.me input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 8px 18px; background: var(--accent); color: #fff; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn.ghost { background: none; color: var(--ink); border: 1.5px solid var(--line); }
+.me .err { color: var(--warn); font-size: 14px; width: 100%; margin: 0; }
+.me .sum { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+.me .sum b { font-size: 22px; color: var(--accent); }
+
+/* Shelves */
+.shelf { margin-top: 34px; }
+.shelf > h2 { font-size: 20px; margin: 0 0 12px; display: flex; align-items: baseline; gap: 10px; }
+.shelf > h2 small { color: var(--muted); font-weight: 500; font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+
+.lesson { background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;
+  transition: transform .2s, box-shadow .2s; }
+.lesson:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -22px rgba(13, 63, 61, .5); }
+.cover { height: 150px; position: relative; overflow: hidden; }
+.cover svg { position: absolute; inset: 0; width: 100%; height: 100%; direction: ltr; }
+.cover .tag { position: absolute; top: 12px; inset-inline-start: 12px; font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 99px; background: rgba(255, 255, 255, .88); color: #12302e; }
+.cover .done { position: absolute; bottom: 12px; inset-inline-end: 12px; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 99px; color: #fff; }
+.body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.body .ref { color: var(--muted); font-size: 13px; }
+.body h3 { margin: 0; font-size: 21px; line-height: 1.35; }
+.body h4 { margin: 0; font-size: 15px; color: var(--accent); font-weight: 600; }
+.body p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+.quiz { margin-top: auto; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.quiz span { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+
+/* Themes, matching each lesson's look */
+.t-lab .cover { background: linear-gradient(135deg, #e6f6f3, #c7ebe5); }
+.t-paper .cover { background: #f6eedf; }
+.t-night .cover { background: radial-gradient(120% 120% at 80% 0%, #24386e, #14244d 45%, #0b1530); }
+.t-blueprint .cover { background: #1f4f8f; }
+
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+.empty { color: var(--muted); padding: 20px; text-align: center; }
+
+@media (max-width: 600px) {
+  .hero .logo { height: 44px; }
+  .me { flex-direction: column; align-items: stretch; }
+  .me form input { flex: 1; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="bar">
+    <img class="logo" src="/img/moe.webp" alt="وزارة التعليم" width="72" height="54">
+    <img class="logo" src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة" width="62" height="54">
+  </div>
+  <div class="copy">
+    <h1>مكتبة الدروس التفاعلية</h1>
+    <p>دروس الرياضيات كلها في مكان واحد. افتحي الدرس، جرّبي بنفسك، وفي آخره اختبار قصير تنحفظ درجته عند معلمتك.</p>
+  </div>
+</header>
+
+<main>
+  <section class="me" id="me" aria-live="polite"></section>
+  <div id="shelves"><p class="empty">جاري تحميل الدروس…</p></div>
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · الرياضيات</p>
+</main>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+// The same key the quizzes use, so a student who signs in here goes straight into any lesson's quiz.
+const KEY = "lessonStudent";
+const store = {
+  get() { try { return JSON.parse(sessionStorage.getItem(KEY)) || null; } catch { return null; } },
+  set(v) { try { v ? sessionStorage.setItem(KEY, JSON.stringify(v)) : sessionStorage.removeItem(KEY); } catch {} },
+};
+let lessons = [], who = store.get();
+
+// Cover art for each theme: small drawings of what the lesson does.
+const COVERS = {
+  lab: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g stroke="#0f766e" stroke-opacity=".12">${Array.from({ length: 16 }, (_, k) => `<line x1="${k * 20}" y1="0" x2="${k * 20}" y2="150"/>`).join("")}${Array.from({ length: 8 }, (_, k) => `<line x1="0" y1="${k * 20}" x2="300" y2="${k * 20}"/>`).join("")}</g>
+    <rect x="150" y="40" width="70" height="70" rx="6" fill="#0f766e"/><rect x="226" y="40" width="22" height="70" rx="4" fill="#14b8a6"/><rect x="150" y="116" width="70" height="20" rx="4" fill="#14b8a6"/><rect x="226" y="116" width="22" height="20" rx="4" fill="#f59e0b"/>
+    <text x="185" y="82" font-family="serif" font-style="italic" font-size="24" fill="#fff" text-anchor="middle">x²</text>
+    <text x="60" y="95" font-family="serif" font-size="30" fill="#0d3f3d" text-anchor="middle">(x+1)²</text></svg>`,
+  paper: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect x="40" y="26" width="170" height="104" fill="#fffaf0" stroke="#d6c4a1" transform="rotate(-4 125 78)"/>
+    <path d="M60 64 h120" stroke="#b45309" stroke-width="2" stroke-dasharray="7 6" transform="rotate(-4 125 78)"/>
+    <text x="118" y="104" font-family="serif" font-size="22" fill="#7c2d12" text-anchor="middle" transform="rotate(-4 125 78)">x²−6x−20 ÷ (x+2)</text>
+    <g transform="translate(232 54) rotate(25)"><circle cx="0" cy="0" r="11" fill="none" stroke="#7c2d12" stroke-width="4"/><circle cx="0" cy="30" r="11" fill="none" stroke="#7c2d12" stroke-width="4"/>
+      <path d="M8 6 L48 30 M8 24 L48 2" stroke="#57534e" stroke-width="5" stroke-linecap="round"/></g></svg>`,
+  night: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    ${Array.from({ length: 34 }, (_, k) => `<circle cx="${(k * 89) % 300}" cy="${(k * 37) % 150}" r="${k % 3 ? 0.9 : 1.6}" fill="#fff" opacity="${k % 2 ? .5 : .9}"/>`).join("")}
+    <line x1="0" y1="92" x2="300" y2="92" stroke="#9fb0d0" stroke-opacity=".4"/>
+    <path d="M10 150 C 60 -10, 110 10, 150 92 S 240 190, 290 0" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="150" cy="92" r="6" fill="#4fd1c5"/><circle cx="63" cy="92" r="6" fill="#4fd1c5"/><circle cx="246" cy="92" r="6" fill="#4fd1c5"/></svg>`,
+  blueprint: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g stroke="#fff" stroke-opacity=".1">${Array.from({ length: 31 }, (_, k) => `<line x1="${k * 10}" y1="0" x2="${k * 10}" y2="150"/>`).join("")}${Array.from({ length: 16 }, (_, k) => `<line x1="0" y1="${k * 10}" x2="300" y2="${k * 10}"/>`).join("")}</g>
+    <line x1="20" y1="120" x2="280" y2="120" stroke="#7dd3fc" stroke-width="3"/>
+    <line x1="170" y1="30" x2="170" y2="120" stroke="#fb923c" stroke-width="3" stroke-dasharray="6 5"/>
+    <path d="M170 106 h14 v14" fill="none" stroke="#fff" stroke-width="2"/>
+    <path d="M120 120 A 52 52 0 0 1 220 120" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.5"/>
+    <circle cx="170" cy="30" r="6" fill="#fb923c"/><text x="182" y="34" font-family="serif" font-style="italic" font-size="18" fill="#fff">P</text></svg>`,
+};
+
+const scoreOf = key => who?.results?.[key] || null;
+const pctColor = r => (r.score / r.total >= .75 ? "var(--good)" : r.score / r.total >= .5 ? "#0f766e" : "var(--warn)");
+
+function drawMe(err) {
+  const box = $("#me");
+  if (!who) {
+    box.innerHTML = `<div><h2>نتائجي في الدروس</h2><p>اكتبي رقم هويتك وتشوفين الدروس اللي حلّيتي اختبارها ودرجاتك فيها.</p></div>
+      <form novalidate><input inputmode="numeric" autocomplete="off" maxlength="10" placeholder="رقم الهوية" aria-label="رقم الهوية"><button class="btn" type="submit">اعرضي نتائجي</button></form>
+      ${err ? `<p class="err" role="alert">${esc(err)}</p>` : ""}`;
+    const form = box.querySelector("form"), input = form.querySelector("input");
+    input.addEventListener("input", () => { input.value = toLatin(input.value).replace(/\D/g, "").slice(0, 10); });
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const id = toLatin(input.value).replace(/\D/g, "");
+      if (id.length < 9) return drawMe("رقم الهوية لازم يكون ١٠ أرقام.");
+      try { await signIn(id); }
+      catch (x) { drawMe(x.status === 404 ? "ما لقينا هذا الرقم بين الطالبات. تأكدي منه أو اسألي معلمتك." : "تعذّر الاتصال. جربي مرة ثانية."); }
+    };
+    return;
+  }
+  const mine = lessons.filter(l => scoreOf(l.key));
+  const pct = mine.length ? Math.round(100 * mine.reduce((s, l) => s + scoreOf(l.key).score / scoreOf(l.key).total, 0) / mine.length) : null;
+  box.innerHTML = `<div><h2>أهلًا يا ${esc(who.name)} 👋</h2><p>${mine.length ? "درجاتك في أول محاولة لكل اختبار، وهي اللي تشوفها معلمتك." : "ما حلّيتي أي اختبار للحين. ابدئي بأي درس تحت."}</p></div>
+    <div class="sum">${mine.length ? `<span><b>${mine.length}</b> من ${lessons.length} دروس</span><span>المتوسط <b>${pct}٪</b></span>` : ""}
+      <button class="btn ghost" type="button" id="out">مو أنا؟</button></div>`;
+  $("#out").onclick = () => { who = null; store.set(null); drawMe(); drawShelves(); };
+}
+
+async function signIn(id) {
+  const r = await fetch("/api/lessons/student", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+  if (!r.ok) throw Object.assign(new Error("error"), { status: r.status });
+  const d = await r.json();
+  who = { id, name: d.name, results: d.results || {} }; store.set(who);
+  drawMe(); drawShelves();
+}
+
+function card(l) {
+  const r = scoreOf(l.key);
+  const badge = r ? `<span class="done" style="background:${pctColor(r)}">✓ ${r.score} من ${r.total}</span>` : "";
+  return `<article class="lesson t-${esc(l.theme)}">
+    <div class="cover">${COVERS[l.theme] || ""}<span class="tag">الدرس <bdi dir="ltr">${esc(l.ref)}</bdi></span>${badge}</div>
+    <div class="body">
+      <span class="ref">${esc(l.book)} · صفحات <bdi dir="ltr">${esc(l.pages)}</bdi></span>
+      <h3>${esc(l.name)}</h3>
+      ${l.name !== l.title ? `<h4>${esc(l.title)}</h4>` : ""}
+      <p>${esc(l.about)}</p>
+      <div class="quiz"><span>📝 ${esc(l.quiz)}</span><a class="btn" href="/lessons/${encodeURIComponent(l.key)}">${r ? "افتحي الدرس" : "ابدئي الدرس"} ←</a></div>
+    </div></article>`;
+}
+
+function drawShelves() {
+  const grades = [...new Set(lessons.map(l => l.grade))].sort((a, b) => b - a);
+  $("#shelves").innerHTML = grades.map(g => {
+    const list = lessons.filter(l => l.grade === g);
+    return `<section class="shelf"><h2>${esc(list[0].gradeLabel)} <small>${list.length} ${list.length > 2 ? "دروس" : list.length === 2 ? "درسان" : "درس"}</small></h2>
+      <div class="grid">${list.map(card).join("")}</div></section>`;
+  }).join("");
+}
+
+(async () => {
+  try { lessons = (await (await fetch("/api/lessons")).json()).lessons; }
+  catch { $("#shelves").innerHTML = '<p class="empty">تعذّر تحميل الدروس. حدّثي الصفحة.</p>'; return; }
+  drawMe(); drawShelves();
+  // Her scores may have changed since she signed in: read them again.
+  if (who) signIn(who.id).catch(x => { if (x.status === 404) { who = null; store.set(null); drawMe(); drawShelves(); } });
+})();
+</script>
+</body>
+</html>

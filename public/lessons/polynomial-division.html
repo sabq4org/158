@@ -422,6 +422,7 @@ input[type=range] { accent-color: var(--terra); flex: 1; }
   <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
 </main>
 
+<script src="/lessons/quiz.js"></script>
 <script>
 "use strict";
 const $ = s => document.querySelector(s);
@@ -976,9 +977,12 @@ $("#quiz").addEventListener("click", e => {
   const why = card.querySelector(".why"); why.hidden = false;
   why.innerHTML = ok ? `<span class="stamp ok">صحيح</span> ممتاز!` : `<span class="stamp">راجعي</span> جرّبيها في <a href="#s5">آلة القسمة التركيبية</a> أو <a href="#s3">القسمة الطويلة</a> وشوفي الخطوات.`;
   $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🌟 ورشة مكتملة!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
-  $("#again")?.addEventListener("click", () => { answered = right = 0; $("#score").textContent = ""; buildQuiz(); });
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
 });
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
 buildQuiz();
+LessonQuiz.gate("polynomial-division", $("#quiz"), restartQuiz);
 </script>
 </body>
 </html>

@@ -424,6 +424,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes" data-teacher>الفصول</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="teach" id="tab-teach" data-teacher>حسب النمط</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms" data-teacher>الفترات</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="lessons" id="tab-lessons" data-teacher>الدروس</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import" data-admin data-teacher>رفع ملف إكسل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="backups" id="tab-backups" data-admin data-teacher>النسخ<span class="hide-sm"> الاحتياطية</span></button>
@@ -669,6 +670,9 @@ body.is-admin [data-teacher] { display: none !important; }
         </div>
       </div>
     </div>
+
+    <!-- The interactive lessons' quiz scores (public/lesson-results.js) -->
+    <div data-panel="lessons" id="lessonsPanel" style="margin-top:16px" hidden></div>
 
     <!-- Classes and subjects compared across the school (public/school-reports.js) -->
     <div data-panel="reports" id="reports" hidden></div>
@@ -1086,6 +1090,8 @@ async function switchTeacher(id) {
   renderTeacherBar();
   await loadTeacher(info);
   if ($("#tab-terms").getAttribute("aria-selected") === "true") loadTerms();
+  LessonResults.reset();
+  if ($("#tab-lessons").getAttribute("aria-selected") === "true") LessonResults.load();
   if ($("#tab-audit").getAttribute("aria-selected") === "true") loadAudit();
   if ($("#tab-backups").getAttribute("aria-selected") === "true") loadBackups();
 }
@@ -2080,6 +2086,7 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "backups") loadBackups();
   if (t.dataset.tab === "audit") loadAudit();
   if (t.dataset.tab === "terms") loadTerms();
+  if (t.dataset.tab === "lessons") LessonResults.load();
   if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
   if (t.dataset.tab === "staff") loadStaff();
   if (t.dataset.tab === "school") loadSchoolOverview();
@@ -2636,5 +2643,6 @@ $("#pdfAll").addEventListener("click", () => makeClassPdf(true));
 api("/me").then(showApp).catch(() => showLogin());
 </script>
 <script src="/school-reports.js"></script>
+<script src="/lesson-results.js"></script>
 </body>
 </html>
