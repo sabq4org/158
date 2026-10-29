@@ -58,6 +58,13 @@ button, input, select, textarea { font: inherit; }
 .login { max-width: 400px; margin: 48px auto; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
 .login h1 { margin: 0; font-size: 22px; }
 .login p { margin: 0; color: var(--muted); }
+/* Who is signing in: a teacher or the principal; the platform admin has a link of its own below. */
+.login-seg { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
+.login-seg button { flex: 1; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); padding: 9px 4px; border-radius: 9px; cursor: pointer; }
+.login-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.login .badge { align-self: flex-start; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+.login .alt { border-top: 1px dashed var(--line); padding-top: 12px; text-align: center; font-size: 13px; color: var(--muted); }
+.login .alt button { border: 0; background: none; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; }
 
 label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 500; }
 input.in, select.in, textarea.in { border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 10px; padding: 8px 12px; font-size: 15px; min-width: 0; width: 100%; }
@@ -355,8 +362,8 @@ body.is-admin [data-teacher] { display: none !important; }
 <header class="topbar">
   <div class="topbar-in">
     <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
-    <div class="brand"><b id="brandTitle">لوحة تحكم المعلمة</b><span id="whoLine">فائزة محمد جبوع · الصف الثاني</span></div>
-    <a class="link" href="/lessons/polynomials/dashboard" target="_blank" rel="noopener" id="lessonsLink"><span class="hide-sm">الدرس </span>التطبيقي</a>
+    <div class="brand"><b id="brandTitle">الدخول للوحة</b><span id="whoLine">الثانوية الثامنة والخمسون بعد المائة</span></div>
+    <a class="link" href="/lessons/polynomials/dashboard" target="_blank" rel="noopener" id="lessonsLink" hidden><span class="hide-sm">الدرس </span>التطبيقي</a>
     <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
     <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
   </div>
@@ -365,12 +372,19 @@ body.is-admin [data-teacher] { display: none !important; }
 <main class="wrap">
   <!-- Login -->
   <form class="card login" id="loginForm" hidden novalidate>
-    <h1>تسجيل الدخول</h1>
-    <p>المعلمة تكتب إيميلها والرقم السري. الإدارة والمديرة تكتب كلمة المرور فقط.</p>
-    <label class="f" for="user">الإيميل<input class="in ltr" id="user" type="email" inputmode="email" autocomplete="username" placeholder="للمعلمات"></label>
-    <label class="f" for="pw">الرقم السري أو كلمة المرور<input class="in" id="pw" type="password" autocomplete="current-password" required></label>
+    <div class="login-seg" id="loginSeg" role="group" aria-label="نوع الحساب">
+      <button type="button" data-as="teacher" aria-pressed="true">معلمة</button>
+      <button type="button" data-as="viewer" aria-pressed="false">المديرة</button>
+    </div>
+    <span class="badge" id="loginBadge"></span>
+    <h1 id="loginTitle"></h1>
+    <p id="loginNote"></p>
+    <label class="f" for="user" id="userWrap">الإيميل<input class="in ltr" id="user" type="email" inputmode="email" autocomplete="username" placeholder="name@school.edu.sa"></label>
+    <label class="f" for="pw"><span id="pwLabel"></span><input class="in" id="pw" type="password" autocomplete="current-password" required></label>
     <p class="msg err" id="loginErr" hidden></p>
     <button class="btn" type="submit">دخول</button>
+    <p class="note" id="loginHelp" style="text-align:center;font-size:13px"></p>
+    <div class="alt" id="loginAlt"></div>
   </form>
 
   <!-- App -->
@@ -955,7 +969,9 @@ function confirmBox(title, text, yes) {
 // ---------- Session ----------
 function showLogin() {
   $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#loginForm").hidden = false;
-  setTimeout(() => $("#pw").focus(), 50);
+  // Signed out, the bar names the school, not whoever was signed in last.
+  $("#brandTitle").textContent = "الدخول للوحة"; $("#whoLine").textContent = "الثانوية الثامنة والخمسون بعد المائة"; $("#lessonsLink").hidden = true;
+  setTimeout(() => (loginAs === "teacher" && !$("#user").value ? $("#user") : $("#pw")).focus(), 50);
 }
 async function showApp(info) {
   me = info;
@@ -1040,17 +1056,47 @@ async function switchTeacher(id) {
 }
 $("#teacherSel").addEventListener("change", e => switchTeacher(e.target.value).catch(() => toast("تعذّر فتح لوحة المعلمة")));
 
+// The sign-in page: a teacher (email and password) or the principal (password), picked at the top; the platform
+// admin's own entry sits behind a small link (or /admin?as=admin). The last teacher/principal pick is remembered on this device.
+const LOGIN = {
+  teacher: { badge: "لوحة تحكم المعلمة", title: "دخول المعلمة", note: "بإيميلك والرقم السري اللي وصلك من الإدارة.", pw: "الرقم السري", help: "نسيتي الرقم السري؟ تواصلي مع إدارة المنصة." },
+  viewer: { badge: "لوحة المتابعة · عرض فقط", title: "دخول المديرة", note: "متابعة المدرسة كلها ولوحة كل معلمة، بدون تعديل.", pw: "كلمة مرور المديرة", help: "" },
+  admin: { badge: "لوحة إدارة المنصة", title: "دخول إدارة المنصة", note: "المنسوبات، الفصول والمواد، وإعدادات المنصة.", pw: "كلمة مرور الإدارة", help: "" },
+};
+let loginAs = (() => { try { const v = new URLSearchParams(location.search).get("as") || localStorage.getItem("loginAs"); return LOGIN[v] ? v : "teacher"; } catch { return "teacher"; } })();
+function setLoginAs(as) {
+  loginAs = as;
+  // The platform admin's entry is never the one a device opens on.
+  if (as !== "admin") try { localStorage.setItem("loginAs", as); } catch {}
+  const c = LOGIN[as];
+  $("#loginSeg").hidden = as === "admin";
+  document.querySelectorAll("#loginSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.as === as)));
+  $("#loginBadge").textContent = c.badge; $("#loginTitle").textContent = c.title; $("#loginNote").textContent = c.note;
+  $("#pwLabel").textContent = c.pw; $("#loginHelp").textContent = c.help; $("#loginHelp").hidden = !c.help;
+  $("#userWrap").hidden = as !== "teacher";
+  $("#loginAlt").innerHTML = as === "admin" ? '<button type="button" data-as="teacher">رجوع لدخول المعلمات والمديرة</button>'
+    : 'دخول إدارة المنصة: <button type="button" data-as="admin">من هنا</button>';
+  $("#loginErr").hidden = true;
+}
+$("#loginForm").addEventListener("click", e => {
+  const as = e.target.closest("button[data-as]")?.dataset.as; if (!as) return;
+  setLoginAs(as);
+  (as === "teacher" ? $("#user") : $("#pw")).focus();
+});
+setLoginAs(loginAs);
 $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   const err = $("#loginErr"); err.hidden = true;
+  if (loginAs === "teacher" && !$("#user").value.trim()) { err.textContent = "اكتبي إيميلك."; err.hidden = false; return $("#user").focus(); }
   const btn = e.submitter || $("#loginForm .btn"); btn.disabled = true;
   try {
-    await api("/login", { method: "POST", body: { user: toLatin($("#user").value).trim().toLowerCase(), password: $("#pw").value } });
+    await api("/login", { method: "POST", body: { as: loginAs, user: loginAs === "teacher" ? toLatin($("#user").value).trim().toLowerCase() : "", password: $("#pw").value } });
     $("#pw").value = "";
     await showApp(await api("/me"));
   } catch (x) {
     err.textContent = x.message === "locked" ? "محاولات كثيرة. انتظري 15 دقيقة ثم حاولي مرة أخرى."
-      : x.message === "wrong_password" ? `${$("#user").value.trim() ? "الإيميل أو الرقم السري غير صحيح" : "كلمة المرور غير صحيحة"}. باقي ${x.data?.left ?? 0} محاولات.`
+      : x.message === "wrong_password" ? `${loginAs === "teacher" ? "الإيميل أو الرقم السري غير صحيح" : "كلمة المرور غير صحيحة"}. باقي ${x.data?.left ?? 0} محاولات.`
+      : x.message === "no_viewer" ? "حساب المديرة غير مفعّل بعد. تفعّله إدارة المنصة من إعدادات المنصة."
       : x.message === "disabled" ? "لوحة التحكم غير مفعّلة بعد. يجب ضبط كلمة المرور في إعدادات الخادم."
       : x.message === "inactive" ? "هذا الحساب موقوف. تواصلي مع إدارة المدرسة."
       : "تعذّر الدخول. حاولي مرة أخرى.";
@@ -1058,7 +1104,12 @@ $("#loginForm").addEventListener("submit", async e => {
   } finally { btn.disabled = false; }
 });
 
-$("#logoutBtn").addEventListener("click", async () => { await api("/logout", { method: "POST" }).catch(() => {}); showLogin(); });
+$("#logoutBtn").addEventListener("click", async () => {
+  await api("/logout", { method: "POST" }).catch(() => {});
+  // Signing out of the platform admin's panel leaves the page on the teachers' and principal's entry.
+  if (loginAs === "admin") setLoginAs((() => { try { return localStorage.getItem("loginAs") || "teacher"; } catch { return "teacher"; } })());
+  showLogin();
+});
 
 // ---------- Students ----------
 // Same math as the lookup page and the printed card (public/report.js).
