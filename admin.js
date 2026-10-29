@@ -5,6 +5,7 @@ const path = require("path");
 const express = require("express");
 const multer = require("multer");
 const util = require("util");
+const { AsyncLocalStorage } = require("async_hooks");
 const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, saveSchool, getSchool, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
 const grades = require("./grades");
@@ -14,6 +15,7 @@ const staff = require("./staff");
 const reports = require("./reports");
 
 const scrypt = util.promisify(crypto.scrypt);
+const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
 
 const SESSION_HOURS = 8;
 const COOKIE = "admin_session";
@@ -33,6 +35,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   details     JSONB
 );
 ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS undone_at TIMESTAMPTZ;
+-- Who made the change (her name as it was then, or the platform admin) and from which kind of device.
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS actor TEXT;
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS actor_role TEXT;
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS device TEXT;
 CREATE TABLE IF NOT EXISTS classes (
   name        TEXT PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -314,6 +320,7 @@ module.exports = function mountAdmin(app, pool) {
   const recent = (map, key) => (map.get(key) || []).filter(t => Date.now() - t < LOCK_MS);
 
   const router = express.Router();
+  const who = new AsyncLocalStorage();
   router.use(express.json({ limit: "100kb" }));
   // Express 4 does not catch rejected promises; send them to the error handler.
   for (const m of ["get", "post", "put", "delete"]) {
@@ -391,13 +398,18 @@ module.exports = function mountAdmin(app, pool) {
     if (req.role === "admin" && !schoolLog && !ADMIN_ROUTES.test(req.path)) return res.status(403).json({ error: "school_only", errors: ["حساب الإدارة ما يعرض بيانات المعلمات"] });
     // The principal's account sees everything and changes nothing.
     if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
-    next();
+    // Whoever is signed in signs every log entry the request writes.
+    const actor = s.role === "admin" ? "إدارة المنصة" : s.role === "viewer" ? "المديرة" : getTeacher(s.tid)?.name || null;
+    who.run({ actor, role: s.role, device: deviceOf(req) }, next);
   });
   const adminOnly = (req, res, next) => (req.role === "admin" ? next() : res.status(403).json({ error: "forbidden", errors: ["هذا الإجراء لإدارة المنصة فقط"] }));
 
   // Every change is logged against the teacher it touched; the school's own (calendar, staff) against none.
-  const log = (q, tid, action, nationalId, details) =>
-    q.query("INSERT INTO audit_log (teacher_id, action, national_id, details) VALUES ($1, $2, $3, $4)", [tid, action, nationalId ?? null, JSON.stringify(details ?? {})]);
+  const log = (q, tid, action, nationalId, details) => {
+    const by = who.getStore() || {};
+    return q.query("INSERT INTO audit_log (teacher_id, action, national_id, details, actor, actor_role, device) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [tid, action, nationalId ?? null, JSON.stringify(details ?? {}), by.actor ?? null, by.role ?? null, by.device ?? null]);
+  };
 
   // The admin sees the school's calendar as it stands; a teacher's semester also follows her own archives.
   const calendarInfo = async (tid, role) => ({ years: school.getYears(), now: role === "admin" ? school.situation() : await school.now(pool, tid) });
@@ -534,11 +546,84 @@ module.exports = function mountAdmin(app, pool) {
     res.json(getSettings(T));
   });
 
+  // The log, newest first, a page at a time (?before= the last id shown). ?grades=1 keeps the changes to students only,
+  // ?student= one student's (her own entries and the files that changed her), ?from=/?to= a span of days (YYYY-MM-DD, Riyadh).
+  const STUDENT_ACTIONS = ["edit", "add", "delete", "import", "undo", "restore"];
+  const PAGE = 200;
+  function auditQuery(req) {
+    const args = [req.role === "admin" ? null : req.tid], where = ["a.teacher_id IS NOT DISTINCT FROM $1"];
+    const arg = v => (args.push(v), "$" + args.length);
+    const day = v => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+    if (Number(req.query.before) > 0) where.push(`a.id < ${arg(Number(req.query.before))}`);
+    if (req.query.grades === "1") where.push(`a.action = ANY(${arg(STUDENT_ACTIONS)})`);
+    if (typeof req.query.student === "string" && req.query.student) {
+      const id = arg(req.query.student);
+      where.push(`(a.national_id = ${id} OR (a.action = 'import' AND (a.details->'students' @> jsonb_build_array(jsonb_build_object('id', ${id}::text))
+        OR a.details->'added' @> jsonb_build_array(jsonb_build_object('id', ${id}::text)))))`);
+    }
+    if (day(req.query.from)) where.push(`a.created_at >= (${arg(day(req.query.from))}::date::timestamp AT TIME ZONE 'Asia/Riyadh')`);
+    if (day(req.query.to)) where.push(`a.created_at < ((${arg(day(req.query.to))}::date + 1)::timestamp AT TIME ZONE 'Asia/Riyadh')`);
+    return { where: where.join(" AND "), args };
+  }
+  // A grade changed after an archive that kept the grades makes the live sheet differ from the archived copy.
+  const lastArchive = tid => pool.query(`SELECT created_at, details->>'title' AS title FROM audit_log WHERE teacher_id = $1 AND action = 'term_archive'
+    AND undone_at IS NULL AND NOT coalesce((details->>'cleared')::boolean, false) AND created_at > coalesce((SELECT max(created_at) FROM audit_log
+    WHERE teacher_id = $1 AND action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean), '-infinity')
+    ORDER BY id DESC LIMIT 1`, [tid]).then(r => r.rows[0] || null);
+
   router.get("/audit", async (req, res) => {
-    const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, s.name AS current_name
+    const { where, args } = auditQuery(req);
+    const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, a.actor, a.actor_role, a.device, s.name AS current_name
       FROM audit_log a LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id
-      WHERE a.teacher_id IS NOT DISTINCT FROM $1 ORDER BY a.id DESC LIMIT 300`, [req.role === "admin" ? null : req.tid]);
-    res.json(rows);
+      WHERE ${where} ORDER BY a.id DESC LIMIT ${PAGE + 1}`, args);
+    res.json({ entries: rows.slice(0, PAGE), more: rows.length > PAGE, archive: req.role === "admin" ? null : await lastArchive(req.tid) });
+  });
+
+  // The changes to students as a sheet: one row per field changed, with who, when and from which device.
+  const riyadh = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+  const ACTION_LABEL = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", undo: "تراجع", restore: "استرجاع نسخة" };
+  router.get("/audit/export", async (req, res) => {
+    req.query.grades = "1";
+    const { where, args } = auditQuery(req);
+    const { rows } = await pool.query(`SELECT a.*, s.name AS current_name FROM audit_log a
+      LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id WHERE ${where} ORDER BY a.id DESC LIMIT 20000`, args);
+    const limits = limitsFor(maxOf(getSettings(req.tid)));
+    const show = (v, f) => (v == null || v === "" ? "فاضي" : f === "learning_difficulty" ? (v ? "نعم" : "لا") : f === "class" ? grades.Report.classLabel(v) : v);
+    const flag = c => {
+      if (!NUMERIC.has(c.field) || c.from == null) return "";
+      if (c.to == null) return "مسح درجة";
+      return Math.abs(Number(c.to) - Number(c.from)) > limits[c.field] / 4 ? "تغيير كبير" : "";
+    };
+    const out = [];
+    for (const a of rows) {
+      const base = { when: riyadh.format(a.created_at).replace(",", ""), actor: a.actor || "", device: a.device || "", action: ACTION_LABEL[a.action] + (a.undone_at ? " (تم التراجع)" : "") };
+      const name = a.current_name || a.details?.name || "";
+      const one = (id, nm, c) => out.push({ ...base, national_id: id, name: nm, field: c ? LABEL[c.field] || c.field : "",
+        from: c ? show(c.from, c.field) : "", to: c ? show(c.to, c.field) : "", flag: c ? flag(c) : "" });
+      if (a.action === "edit") for (const c of a.details || []) { if (c.field !== "test_avg") one(a.national_id, name, c); }
+      else if (a.action === "import") {
+        for (const st of a.details?.students || []) for (const c of st.changes) one(st.id, st.name, c);
+        for (const st of a.details?.added || []) out.push({ ...base, national_id: st.id, name: st.name, field: "طالبة جديدة" });
+        if (!a.details?.students) out.push({ ...base, name: `تحديث ${a.details?.count ?? 0} طالبة (بدون تفاصيل)` });
+      } else if (a.action === "restore") out.push({ ...base, name: `نسخة رقم ${a.details?.backup}` });
+      else one(a.national_id, name, null);
+    }
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("سجل التعديلات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
+    ws.columns = [["when", "الوقت", 17], ["actor", "مين عدّل", 22], ["device", "الجهاز", 10], ["action", "العملية", 14], ["name", "الطالبة", 30],
+      ["national_id", "رقم الهوية", 14], ["field", "الحقل", 18], ["from", "قبل", 12], ["to", "بعد", 12], ["flag", "ملاحظة", 12]]
+      .map(([key, header, width]) => ({ key, header, width }));
+    out.forEach(r => ws.addRow(r));
+    const head = ws.getRow(1);
+    head.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B2765" } };
+    head.alignment = { horizontal: "center", vertical: "middle" };
+    ws.getColumn("national_id").numFmt = "@";
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="audit-${stamp}.xlsx"; filename*=UTF-8''${encodeURIComponent(`سجل التعديلات ${stamp}.xlsx`)}`);
+    await wb.xlsx.write(res);
+    res.end();
   });
 
   // Undo one student change. Fields edited again since then are left alone and reported back.
@@ -952,10 +1037,20 @@ module.exports = function mountAdmin(app, pool) {
     if (!p) return res.status(410).json({ error: "expired" });
     const T = p.tid;
     await inTransaction(async client => {
-      await backup(client, T, "قبل رفع ملف إكسل", await studentsOf(client, T));
+      const rows = await studentsOf(client, T);
+      await backup(client, T, "قبل رفع ملف إكسل", rows);
       for (const s of p.upserts) await insertStudent(client, T, s, { upsert: true });
       await syncClasses(client, T);
-      await log(client, T, "import", null, { count: p.upserts.length, class: p.target || undefined });
+      // The log keeps each grade the file changed, read against the rows as they were just before it.
+      const before = new Map(rows.map(r => [r.national_id, fromRow(r)]));
+      const students = [], added = [];
+      for (const s of p.upserts) {
+        const b = before.get(s.national_id);
+        if (!b) { added.push({ id: s.national_id, name: s.name, class: s.class ?? null }); continue; }
+        const changes = COLS.filter(c => c !== "test_avg" && !same(b[c], s[c])).map(c => ({ field: c, from: b[c], to: s[c] }));
+        if (changes.length) students.push({ id: s.national_id, name: s.name, changes });
+      }
+      await log(client, T, "import", null, { count: p.upserts.length, class: p.target || undefined, students, added });
     });
     res.json({ ok: true, count: p.upserts.length });
   });
