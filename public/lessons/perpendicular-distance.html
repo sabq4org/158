@@ -341,6 +341,7 @@ footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 3
   <footer>ثانوية 158 · رياضيات 1 · الفصل الأول · درس تفاعلي</footer>
 </main>
 
+<script src="/lessons/quiz.js"></script>
 <script>
 "use strict";
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -901,9 +902,12 @@ $("#quiz").addEventListener("click", e => {
   $("#score").innerHTML = answered === QUIZ.length
     ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "📐 مخطط معتمد!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
     : `${right} من ${answered}`;
-  $("#again")?.addEventListener("click", () => { answered = right = 0; $("#score").textContent = ""; buildQuiz(); });
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
 });
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
 buildQuiz();
+LessonQuiz.gate("perpendicular-distance", $("#quiz"), restartQuiz);
 </script>
 </body>
 </html>

@@ -464,6 +464,7 @@ input[type="range"] { width: 100%; accent-color: var(--cyan); direction: ltr; }
   <button type="button" class="btn" id="next">التالية ←</button>
 </nav>
 
+<script src="/lessons/quiz.js"></script>
 <script>
 "use strict";
 const $ = s => document.querySelector(s);
@@ -1097,8 +1098,10 @@ const best = { score: null };
       <div class="score">${s} / ${max}</div><p style="text-align:center">${msg}</p>
       <div class="row" style="justify-content:center"><button type="button" class="ghost" id="caseAgain">العبي مرة ثانية</button><button type="button" class="btn" data-go="9">الخلاصة ←</button></div>`;
     $("#caseAgain").onclick = start;
+    LessonQuiz.done(s);
   }
   drawers[8] = [() => { if (!st.cs) start(); else drawCase(); }];
+  LessonQuiz.gate("polynomial-functions", $("#caseBox").parentNode, start);
 })();
 
 function finalStars() {
