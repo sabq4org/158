@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/report.css">
+<link rel="stylesheet" href="/school-reports.css">
 <style>
 /* Layout: a navy top bar with the two logos, tabs (overview, students, classes, upload, log, backups, settings), and a wide working area. */
 :root {
@@ -403,6 +404,7 @@ body.is-admin [data-teacher] { display: none !important; }
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
       <button class="tab" role="tab" aria-selected="false" data-tab="school" id="tab-school" data-school>نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="reports" id="tab-reports" data-school>التقارير</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="staff" id="tab-staff" data-only-admin>منسوبات المدرسة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="catalog" id="tab-catalog" data-only-admin>الفصول والمواد</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="platform" id="tab-platform" data-only-admin>إعدادات المنصة</button>
@@ -641,6 +643,9 @@ body.is-admin [data-teacher] { display: none !important; }
         </div>
       </div>
     </div>
+
+    <!-- Classes and subjects compared across the school (public/school-reports.js) -->
+    <div data-panel="reports" id="reports" hidden></div>
 
     <!-- The school's classes and subjects (the platform admin) -->
     <div data-panel="catalog" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
@@ -1950,11 +1955,13 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
   if (t.dataset.tab === "staff") loadStaff();
   if (t.dataset.tab === "school") loadSchoolOverview();
+  if (t.dataset.tab === "reports") SchoolReports.load();
   if (t.dataset.tab === "catalog") loadCatalog();
   // The principal's teacher picker belongs to the teacher's tabs, not to the school's page.
   if (role === "viewer") {
-    document.body.classList.toggle("on-school", t.dataset.tab === "school");
-    $("#teacherBar").hidden = t.dataset.tab === "school" || !(me?.teachers || []).length;
+    const schoolWide = ["school", "reports"].includes(t.dataset.tab);
+    document.body.classList.toggle("on-school", schoolWide);
+    $("#teacherBar").hidden = schoolWide || !(me?.teachers || []).length;
     renderWho();
   }
 }));
@@ -2500,5 +2507,6 @@ $("#pdfAll").addEventListener("click", () => makeClassPdf(true));
 // ---------- Boot ----------
 api("/me").then(showApp).catch(() => showLogin());
 </script>
+<script src="/school-reports.js"></script>
 </body>
 </html>
