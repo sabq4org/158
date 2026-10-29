@@ -858,15 +858,15 @@ module.exports = function mountAdmin(app, pool) {
       return { line: r.line, sheet: p.parsed.sheets.length > 1 ? sh.name : null, raw, fileClass, cls: p.target || fileClass || sheets[i].class };
     }));
 
-    // A row without an ID takes the ID of the saved student her name stands for, among her class's students when the
-    // class has any, and among those no other row of the file names by ID.
+    // A row without an ID takes the ID of the saved student her name stands for, among her class's students when her
+    // class is known (an empty class matches nobody), and among those no other row of the file names by ID.
     const fileIds = new Set(lines.map(l => String(l.raw.national_id ?? "").replace(/\D/g, "")).filter(Boolean));
     const claimed = new Set(), matched = [];
     for (const l of lines) {
       if (String(l.raw.national_id ?? "").replace(/\D/g, "") || !norm(l.raw.name)) continue;
       const free = [...current.values()].filter(s => !fileIds.has(s.national_id) && !claimed.has(s.national_id));
       const inClass = free.filter(s => s.class === l.cls);
-      const hits = byName(l.raw.name, l.cls && rows.some(r => r.class === l.cls) ? inClass : free);
+      const hits = byName(l.raw.name, l.cls ? inClass : free);
       if (hits.length > 1) { l.nameProblem = `الاسم يطابق أكثر من طالبة (${hits.map(h => h.name).join("، ")})، اكتبي رقم الهوية`; continue; }
       if (!hits.length) continue;
       const s = hits[0];

@@ -2067,6 +2067,9 @@ function renderPreview(p, name, ui) {
   if (picks) picks.onchange = async () => {
     const fields = [...picks.querySelectorAll("input:checked")].map(i => i.value);
     picks.querySelectorAll("input").forEach(i => (i.disabled = true));
+    // The old preview must not be applied while the new one is worked out.
+    const go = pv.querySelector("[data-apply]");
+    if (go) go.disabled = true;
     try {
       renderPreview(await api(`/import/${p.token}/fields`, { method: "POST", body: { fields } }), name, ui);
     } catch (x) {
