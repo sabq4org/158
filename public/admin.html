@@ -194,6 +194,15 @@ td.det s { color: var(--low); }
 td.det ins { color: var(--good); text-decoration: none; font-weight: 600; }
 .tag-act { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
 tr.undone td { opacity: .55; }
+.flag { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 0 7px; border-radius: 6px; margin-inline-start: 6px; color: var(--warn); background: var(--warn-soft); }
+.flag.low { color: var(--low); background: var(--low-soft); }
+td.det details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+td.det details ul, .glog { margin: 6px 0 0; padding-inline-start: 18px; }
+td.det details li, .glog li { margin: 3px 0; }
+.glog { font-size: 13.5px; max-height: 260px; overflow: auto; }
+.glog s { color: var(--low); }
+.glog ins { color: var(--good); text-decoration: none; font-weight: 600; }
+.more-row { display: flex; justify-content: center; padding: 12px; }
 
 .toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 10px 18px; border-radius: 12px; font-weight: 600; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
 
@@ -320,6 +329,7 @@ tr[data-open]:hover .cls-link { color: var(--accent); }
 /* The principal's read-only view hides every control that changes data. The school's own controls (staff, calendar,
    the principal's name) are the platform admin's; a teacher's own password is hers. */
 body.viewer [data-admin] { display: none !important; }
+body.is-admin [data-teacher-log] { display: none !important; }
 body:not(.is-admin) [data-only-admin] { display: none !important; }
 body.is-teacher [data-school] { display: none !important; }
 body:not(.viewer) [data-viewer-only] { display: none !important; }
@@ -576,14 +586,25 @@ body.is-admin [data-teacher] { display: none !important; }
 
     <!-- Audit log -->
     <div class="card" data-panel="audit" style="margin-top:16px" hidden>
-      <div class="help" style="padding-top:16px">كل تعديل على طالبة يقدر يتراجع عنه. لو الحقل تعدّل مرة ثانية بعده، يبقى على آخر قيمة. رفع الإكسل والاسترجاع يرجعون من "النسخ الاحتياطية".</div>
+      <div class="help" style="padding-top:16px">كل تعديل يُحفظ هنا مع مين سوّاه ومتى ومن أي جهاز، وما ينحذف من أي حساب. كل تعديل على طالبة يقدر يتراجع عنه، ولو الحقل تعدّل مرة ثانية بعده يبقى على آخر قيمة. رفع الإكسل والاسترجاع يرجعون من "النسخ الاحتياطية".</div>
+      <div class="toolbar" id="auditTools">
+        <input class="in grow" id="auditSearch" type="search" placeholder="ابحثي بالاسم أو رقم الهوية" data-teacher-log>
+        <select class="in" id="auditClass" aria-label="الفصل" data-teacher-log><option value="">كل الفصول</option></select>
+        <select class="in" id="auditField" aria-label="الحقل" data-teacher-log><option value="">كل الحقول</option></select>
+        <label class="note" data-teacher-log>من <input class="in ltr" type="date" id="auditFrom" style="width:auto"></label>
+        <label class="note" data-teacher-log>إلى <input class="in ltr" type="date" id="auditTo" style="width:auto"></label>
+        <label class="switch" data-teacher-log><input type="checkbox" id="auditGrades"> الطالبات فقط</label>
+        <label class="switch" data-teacher-log><input type="checkbox" id="auditBig"> التغييرات اللافتة فقط</label>
+        <a class="btn quiet" href="/api/admin/audit/export" id="auditExport" data-teacher-log><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>تنزيل إكسل</a>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>الوقت</th><th>العملية</th><th id="auditWho">الطالبة</th><th>التفاصيل</th><th></th></tr></thead>
+          <thead><tr><th>الوقت</th><th>العملية</th><th>مين عدّل</th><th id="auditWho">الطالبة</th><th>التفاصيل</th><th></th></tr></thead>
           <tbody id="auditRows"></tbody>
         </table>
       </div>
       <div class="empty" id="noAudit" hidden>لا توجد تعديلات بعد.</div>
+      <div class="more-row" id="auditMore" hidden><button class="btn quiet" type="button">عرض الأقدم</button></div>
     </div>
 
     <!-- Backups -->
@@ -769,6 +790,7 @@ body.is-admin [data-teacher] { display: none !important; }
     </div></fieldset>
     <p class="note" id="avgNote"></p>
     <p class="hist" id="histNote" hidden></p>
+    <div id="gradeLog" hidden><button class="btn sm quiet" type="button" id="gradeLogBtn">سجل تعديلات الطالبة</button><ul class="glog" id="gradeLogList" hidden></ul></div>
     <p class="msg err" id="editErr" hidden></p>
     <div class="row">
       <button class="btn" type="submit" id="saveBtn" data-admin>حفظ</button>
@@ -1193,6 +1215,7 @@ function openEdit(s, cls) {
   $("#editFields").disabled = viewer;
   $("#editClose").textContent = viewer ? "إغلاق" : "إلغاء";
   showHistory(s);
+  $("#gradeLog").hidden = !s; $("#gradeLogList").hidden = true;
   const f = $("#editForm");
   for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s?.[el.name]) : (el.value = s?.[el.name] ?? "");
   if (!s) $("#e_class").value = cls ?? $("#classFilter").value;
@@ -1618,10 +1641,46 @@ const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", cl
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
   : field === "compare_chart" && Report.isChart(v) ? Report.CHARTS[v]
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
-function auditDetails(a) {
+// A grade worth a second look: cleared, moved by more than a quarter of its maximum, or changed after an archive that
+// kept the grades (the archived copy no longer matches).
+const FIELD_MAX = { test1: "test", test2: "test", test_avg: "test", participation: "participation", projects: "projects", homework: "homework", final_exam: "final" };
+let auditArchive = null;
+function flagOf(c, at) {
+  if (!(c.field in FIELD_MAX)) return null;
+  if (c.from != null && c.to == null) return { text: "مسح درجة", low: true };
+  if (c.from != null && Math.abs(Number(c.to) - Number(c.from)) > (MAX[FIELD_MAX[c.field]] || 100) / 4) return { text: "تغيير كبير", low: true };
+  if (auditArchive && at && new Date(at) > new Date(auditArchive.created_at)) return { text: "بعد الأرشفة", title: `بعد أرشفة "${auditArchive.title}"` };
+  return null;
+}
+const flagTag = f => (f ? `<span class="flag${f.low ? " low" : ""}"${f.title ? ` title="${esc(f.title)}"` : ""}>${esc(f.text)}</span>` : "");
+const changeLine = (c, at) => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from, c.field)}</s> ← <ins>${showVal(c.to, c.field)}</ins>${flagTag(flagOf(c, at))}`;
+// The log's filters, for a teacher's log: a student (name or ID), her class now, a field, and only the changes worth a look.
+const auditFilter = () => ({ q: toLatin($("#auditSearch").value.trim()), cls: $("#auditClass").value, field: $("#auditField").value, big: $("#auditBig").checked });
+const filtering = f => !!(f.q || f.cls || f.field || f.big);
+function studentMatches(id, name, f) {
+  if (f.q && !String(id || "").includes(f.q) && !String(name || "").includes(f.q)) return false;
+  if (f.cls && students.find(s => s.national_id === id)?.class !== f.cls) return false;
+  return true;
+}
+const changesMatch = (list, f, at) => list.filter(c => c.field !== "test_avg" && (!f.field || c.field === f.field) && (!f.big || flagOf(c, at)));
+// The students an Excel file changed, as list items, narrowed by the filters.
+function importItems(a, f) {
   const d = a.details;
-  if (Array.isArray(d)) return d.filter(c => c.field !== "test_avg").map(c => `${FIELD_LABEL[c.field] || c.field}: <s>${showVal(c.from, c.field)}</s> ← <ins>${showVal(c.to, c.field)}</ins>`).join("<br>") || "بدون تغيير";
-  if (a.action === "import") return `تحديث ${d?.count ?? 0} طالبة` + (d?.class ? ` في ${esc(classLabel(d.class))}` : "");
+  const list = d.students.filter(st => studentMatches(st.id, st.name, f)).map(st => [st, changesMatch(st.changes, f, a.created_at)]).filter(([, c]) => c.length);
+  const added = f.field || f.big ? [] : (d.added || []).filter(st => studentMatches(st.id, st.name, f));
+  return [...list.map(([st, c]) => `<li><b>${esc(st.name)}</b>: ${c.map(x => changeLine(x, a.created_at)).join("، ")}</li>`),
+    ...added.map(st => `<li><b>${esc(st.name)}</b>: طالبة جديدة</li>`)];
+}
+function auditDetails(a, f = {}) {
+  const d = a.details;
+  if (Array.isArray(d)) return changesMatch(d, filtering(f) ? f : {}, a.created_at).map(c => changeLine(c, a.created_at)).join("<br>") || "بدون تغيير";
+  if (a.action === "import") {
+    const head = `تحديث ${d?.count ?? 0} طالبة` + (d?.class ? ` في ${esc(classLabel(d.class))}` : "");
+    if (!d?.students) return head;
+    const items = importItems(a, f);
+    if (!items.length) return head + " · ما تغيّر شي";
+    return `<details${filtering(f) ? " open" : ""}><summary>${head} · تفاصيل ${items.length}</summary><ul>${items.join("")}</ul></details>`;
+  }
   if (a.action === "restore") return `نسخة رقم ${d?.backup}`;
   if (a.action === "undo") return `تراجع عن ${ACTIONS[d?.action] || ""}` + (d?.skipped?.length ? ` (بقي بدون تغيير: ${d.skipped.map(esc).join("، ")})` : "");
   if (["staff_add", "staff_edit", "staff_delete", "staff_password"].includes(a.action)) return esc(d?.name) + (a.action === "staff_edit" && d?.active === false ? " · موقوف" : "");
@@ -1641,19 +1700,81 @@ function auditDetails(a) {
   if (a.action === "delete") return d?.class ? `كانت في ${esc(classLabel(d.class))}` : "كانت بدون فصل";
   return "";
 }
-let auditList = [];
-async function loadAudit() {
-  const list = auditList = await api("/audit");
-  $("#auditRows").innerHTML = list.map(a => {
+let auditList = [], auditMore = false;
+// Dates and "students only" go to the server; the rest filters what is loaded. "Show older" fetches the next page.
+function auditParams(extra = {}) {
+  const p = new URLSearchParams();
+  if ($("#auditGrades").checked) p.set("grades", "1");
+  if ($("#auditFrom").value) p.set("from", $("#auditFrom").value);
+  if ($("#auditTo").value) p.set("to", $("#auditTo").value);
+  for (const [k, v] of Object.entries(extra)) p.set(k, v);
+  return p.toString();
+}
+async function loadAudit(older) {
+  const q = auditParams(older && auditList.length ? { before: auditList[auditList.length - 1].id } : {});
+  const r = await api("/audit" + (q ? "?" + q : ""));
+  auditList = older ? [...auditList, ...r.entries] : r.entries;
+  auditMore = r.more; auditArchive = r.archive;
+  if (!older) {
+    const sel = $("#auditClass"), cur = sel.value;
+    sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
+    sel.value = classByName.has(cur) ? cur : "";
+    const fs = $("#auditField");
+    if (fs.options.length < 2) fs.innerHTML += ["test1", "test2", "participation", "projects", "homework", "final_exam", "learning_style", "class", "name", "email", "notes", "learning_difficulty"]
+      .map(f => `<option value="${f}">${FIELD_LABEL[f]}</option>`).join("");
+  }
+  const ep = auditParams();
+  $("#auditExport").href = withT("/api/admin/audit/export" + (ep ? "?" + ep : ""));
+  renderAudit();
+}
+function renderAudit() {
+  const f = role === "admin" ? {} : auditFilter();
+  const rows = auditList.map(a => {
     const who = a.national_id ? (a.current_name || a.details?.name || a.national_id) : "—";
+    if (filtering(f)) {
+      if (a.action === "import") { if (!a.details?.students || !importItems(a, f).length) return ""; }
+      else if (!a.national_id || !studentMatches(a.national_id, who, f)) return "";
+      else if ((f.field || f.big) && !(Array.isArray(a.details) && changesMatch(a.details, f, a.created_at).length)) return "";
+    }
     const can = UNDOABLE.includes(a.action) && !a.undone_at && (a.action !== "term_archive" || a.details?.term_id);
+    const by = a.actor ? `${esc(a.actor)}<span class="sub">${esc(a.device || "")}</span>` : '<span class="note">—</span>';
     return `<tr class="${a.undone_at ? "undone" : ""}">
       <td>${whenCell(a.created_at, true)}</td><td><span class="tag-act">${ACTIONS[a.action] || esc(a.action)}</span></td>
-      <td class="name">${esc(who)}</td><td class="det">${auditDetails(a)}</td>
+      <td>${by}</td><td class="name">${esc(who)}</td><td class="det">${auditDetails(a, f)}</td>
       <td>${can ? `<button class="btn sm quiet" type="button" data-undo="${a.id}" data-admin>تراجع</button>` : a.undone_at ? '<span class="note">تم التراجع</span>' : ""}</td></tr>`;
-  }).join("");
-  $("#noAudit").hidden = list.length > 0;
+  }).filter(Boolean);
+  $("#auditRows").innerHTML = rows.join("");
+  $("#noAudit").textContent = auditList.length ? "ما فيه تعديلات تطابق البحث." + (auditMore ? " جربي \"عرض الأقدم\"." : "") : "لا توجد تعديلات بعد.";
+  $("#noAudit").hidden = rows.length > 0;
+  $("#auditMore").hidden = !auditMore;
 }
+["#auditSearch", "#auditClass", "#auditField", "#auditBig"].forEach(s => $(s).addEventListener("input", renderAudit));
+["#auditGrades", "#auditFrom", "#auditTo"].forEach(s => $(s).addEventListener("change", () => loadAudit()));
+$("#auditMore button").addEventListener("click", () => loadAudit(true));
+
+// One student's own changes, in her dialog: the edits made to her and the Excel files that changed her.
+async function showGradeLog() {
+  const s = editing, list = $("#gradeLogList");
+  if (!s) return;
+  const r = await api("/audit?grades=1&student=" + encodeURIComponent(s.national_id)).catch(() => null);
+  if (editing !== s) return;
+  if (r) auditArchive = r.archive;
+  const lines = [];
+  for (const a of r?.entries || []) {
+    const when = `<span class="note">${esc(hijriOf(new Date(a.created_at)))} · ${esc(timeOf(a.created_at))}${a.actor ? ` · ${esc(a.actor)}` : ""}${a.device ? ` · ${esc(a.device)}` : ""}</span>`;
+    const undone = a.undone_at ? ' <span class="note">(تم التراجع)</span>' : "";
+    let body;
+    if (a.action === "edit") body = (a.details || []).filter(c => c.field !== "test_avg").map(c => changeLine(c, a.created_at)).join("، ");
+    else if (a.action === "import") {
+      const mine = a.details?.students?.find(st => st.id === s.national_id);
+      body = "من ملف إكسل: " + (mine ? mine.changes.map(c => changeLine(c, a.created_at)).join("، ") : "أُضيفت");
+    } else body = ACTIONS[a.action] || a.action;
+    if (body) lines.push(`<li>${body}${undone}<br>${when}</li>`);
+  }
+  list.innerHTML = lines.join("") || '<li class="note">ما فيه تعديلات مسجلة عليها.</li>';
+  list.hidden = false;
+}
+$("#gradeLogBtn").addEventListener("click", showGradeLog);
 $("#auditRows").addEventListener("click", async e => {
   const id = e.target.closest("[data-undo]")?.dataset.undo;
   if (!id) return;
