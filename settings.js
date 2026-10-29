@@ -15,6 +15,17 @@ const DEFAULTS = {
   max_final: null,
   // How a student's card compares her with the class average: "bars", "pie" or "table" (CHARTS in public/report.js).
   compare_chart: "bars",
+  // Early alerts (alerts.js): a percentage under alert_below, a drop of alert_test_drop marks from the first test to the
+  // second or of alert_term_drop points from the last archived period, alert_class_gap points under her class,
+  // participation under alert_participation, lateness from alert_lateness times. Two reasons, or a percentage under
+  // alert_urgent, make it urgent. Empty (null) turns one off.
+  alert_below: 60,
+  alert_urgent: 50,
+  alert_test_drop: 3,
+  alert_term_drop: 10,
+  alert_class_gap: 15,
+  alert_participation: 5,
+  alert_lateness: 3,
   lookup_open: true,
   closed_message: "النتائج غير متاحة حالياً، ترقّبي إعلانها قريباً.",
   // The whole lookup page, for every teacher: the platform admin's switch, on top of each teacher's own.
@@ -23,7 +34,8 @@ const DEFAULTS = {
 };
 const SCHOOL_KEYS = ["principal_name", "site_open", "site_closed_message"];
 // What a teacher's `settings` column holds; her name and subject have columns of their own.
-const TEACHER_KEYS = ["term_title", "max_test", "max_participation", "max_projects", "max_homework", "max_final", "compare_chart", "lookup_open", "closed_message"];
+const TEACHER_KEYS = ["term_title", "max_test", "max_participation", "max_projects", "max_homework", "max_final", "compare_chart", "lookup_open", "closed_message",
+  "alert_below", "alert_urgent", "alert_test_drop", "alert_term_drop", "alert_class_gap", "alert_participation", "alert_lateness"];
 const pick = (o, keys) => Object.fromEntries(keys.filter(k => o[k] !== undefined).map(k => [k, o[k]]));
 
 const SCHEMA = `

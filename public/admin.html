@@ -195,6 +195,47 @@ td.det ins { color: var(--good); text-decoration: none; font-weight: 600; }
 .tag-act { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
 tr.undone td { opacity: .55; }
 
+/* Early alerts */
+.tab-n { background: var(--low); color: #fff; border-radius: 99px; font-size: 11px; padding: 0 7px; margin-inline-start: 6px; font-variant-numeric: tabular-nums; }
+.al-stats .stat { border-inline-start: 4px solid var(--line); }
+.al-stats .stat.low { border-inline-start-color: var(--low); }
+.al-stats .stat.warn { border-inline-start-color: var(--warn); }
+.al-stats .stat.good { border-inline-start-color: var(--good); }
+.al-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.al-chips button { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 99px; padding: 3px 12px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.al-chips button[aria-pressed="true"], .al-chips button[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.al-chips button small { font-weight: 500; opacity: .8; margin-inline-start: 4px; }
+.al-list { border-top: 1px solid var(--line); }
+.al-sec { padding: 8px 16px; font-size: 13px; color: var(--muted); font-weight: 700; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.al-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.al-row:last-child { border-bottom: 0; }
+.al-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 9px; background: var(--warn); }
+.al-dot.low { background: var(--low); }
+.al-dot.good { background: var(--good); }
+.al-who b { font-size: 16px; }
+.al-who .cls { color: var(--muted); font-size: 13px; margin-inline-start: 8px; }
+.al-why { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.al-sig { font-size: 12.5px; font-weight: 600; padding: 2px 10px; border-radius: 8px; color: var(--warn); background: var(--warn-soft); }
+.al-sig.low { color: var(--low); background: var(--low-soft); }
+.al-facts { font-size: 13px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.al-facts b { color: var(--ink); }
+.al-facts .down { color: var(--low); font-weight: 700; }
+.al-back { font-size: 13px; color: var(--low); margin-top: 6px; font-weight: 600; }
+.al-fu { font-size: 13px; color: var(--good); margin-top: 6px; }
+.al-fu .q { color: var(--ink); }
+.al-fu button { border: 0; background: none; color: var(--muted); font: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; padding: 0; margin-inline-start: 6px; }
+.al-act { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.al-rules summary { padding: 14px 16px; font-weight: 700; cursor: pointer; }
+.al-rules form { padding: 0 16px 16px; }
+.al-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.al-in { display: flex; align-items: center; gap: 8px; }
+.al-in input { width: 90px; flex: none; }
+.al-in i { font-style: normal; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) {
+  .al-row { grid-template-columns: auto minmax(0, 1fr); }
+  .al-act { grid-column: 2; justify-content: flex-start; }
+}
+
 .toast { position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 10px 18px; border-radius: 12px; font-weight: 600; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
 
 @media (max-width: 760px) {
@@ -407,6 +448,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <button class="tab" role="tab" aria-selected="false" data-tab="catalog" id="tab-catalog" data-only-admin>الفصول والمواد</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="platform" id="tab-platform" data-only-admin>إعدادات المنصة</button>
       <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview" data-teacher>نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="alerts" id="tab-alerts" data-teacher>تنبيهات مبكرة<span class="tab-n" id="alertsBadge" hidden></span></button>
       <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students" data-teacher>الطالبات</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes" data-teacher>الفصول</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms" data-teacher>الفترات</button>
@@ -451,6 +493,36 @@ body.is-admin [data-teacher] { display: none !important; }
       </div>
     </div>
 
+    <!-- Early alerts: who needs the teacher now (alerts.js works the list out). -->
+    <div data-panel="alerts" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
+      <div class="stats al-stats" id="alStats"></div>
+      <div class="card">
+        <div class="toolbar">
+          <div class="al-chips" id="alChips" role="group" aria-label="الحالة"></div>
+          <span style="flex:1"></span>
+          <select class="in" id="alClass" aria-label="الفصل"><option value="">كل الفصول</option></select>
+        </div>
+        <div class="al-list" id="alList"></div>
+      </div>
+      <details class="card al-rules" id="alRules">
+        <summary>متى تطلع الطالبة في التنبيهات؟</summary>
+        <form id="alForm" novalidate>
+          <div class="al-grid">
+            <label class="f">نسبتها أقل من<span class="al-in"><input class="in ltr" name="alert_below" inputmode="decimal"><i>%</i></span></label>
+            <label class="f">نزلت من الاختبار الأول للثاني<span class="al-in"><input class="in ltr" name="alert_test_drop" inputmode="decimal"><i>درجات أو أكثر</i></span></label>
+            <label class="f">نزلت عن الفترة السابقة<span class="al-in"><input class="in ltr" name="alert_term_drop" inputmode="decimal"><i>نقاط أو أكثر</i></span></label>
+            <label class="f">أقل من متوسط فصلها بـ<span class="al-in"><input class="in ltr" name="alert_class_gap" inputmode="decimal"><i>نقطة أو أكثر</i></span></label>
+            <label class="f">المشاركة أقل من<span class="al-in"><input class="in ltr" name="alert_participation" inputmode="decimal"><i>من <span data-max="participation">10</span></i></span></label>
+            <label class="f">التأخير<span class="al-in"><input class="in ltr" name="alert_lateness" inputmode="decimal"><i>مرات أو أكثر</i></span></label>
+            <label class="f">عاجل إذا نسبتها أقل من<span class="al-in"><input class="in ltr" name="alert_urgent" inputmode="decimal"><i>%</i></span></label>
+          </div>
+          <p class="note" style="margin:10px 0 0">الخانة الفاضية توقف هذا السبب. وتطلع الطالبة بعد إذا انرصد بند لأغلب فصلها وهو ناقص عندها. سببين أو أكثر يخلّون التنبيه <b>عاجل</b>. طالبات صعوبات التعلم ما يتقارنّ بمتوسط الفصل.</p>
+          <p class="msg err" id="alErr" hidden style="margin-top:10px"></p>
+          <div style="margin-top:12px" data-admin><button class="btn" type="submit" id="alSave">حفظ</button></div>
+        </form>
+      </details>
+    </div>
+
     <div class="card" data-panel="students" style="margin-top:16px" hidden>
       <div class="toolbar">
         <input class="in grow" id="search" type="search" placeholder="ابحثي بالاسم أو رقم الهوية">
@@ -471,7 +543,7 @@ body.is-admin [data-teacher] { display: none !important; }
           <thead><tr>
             <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th><th>الصف</th><th class="num">الشعبة</th>
             <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
-            <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th>
+            <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
             <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
           </tr></thead>
           <tbody id="rows"></tbody>
@@ -518,7 +590,7 @@ body.is-admin [data-teacher] { display: none !important; }
               <thead><tr>
                 <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th>
                 <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
-                <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th>
+                <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
                 <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
               </tr></thead>
               <tbody id="cvRows"></tbody>
@@ -562,7 +634,7 @@ body.is-admin [data-teacher] { display: none !important; }
           ما يتغيّر شي قبل ما تراجعين المعاينة وتضغطين "اعتماد".
           <ul>
             <li>الطالبات يتطابقن برقم الهوية.</li>
-            <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، المشاركة، المشاريع، الواجبات، الاختبار النهائي، ملاحظات.</li>
+            <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، المشاركة، المشاريع، الواجبات، الاختبار النهائي، التأخير، ملاحظات.</li>
             <li>لملف فصل واحد اختاري الفصل فوق، أو ارفعيه من صفحة الفصل في تبويب "الفصول".</li>
             <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
             <li>الطالبة اللي مو موجودة في الملف ما تنحذف، تظهر لك في المعاينة فقط.</li>
@@ -764,6 +836,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <label class="f" for="e_proj"><span>المشاريع والمهام (من <span data-max="projects">10</span>)</span><input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
       <label class="f" for="e_hw"><span>الواجبات <span data-part="homework"></span></span><input class="in ltr" id="e_hw" name="homework" inputmode="decimal"></label>
       <label class="f" for="e_fin"><span>الاختبار النهائي <span data-part="final"></span></span><input class="in ltr" id="e_fin" name="final_exam" inputmode="decimal"></label>
+      <label class="f" for="e_late"><span>التأخير <span style="font-weight:400">(عدد المرات، للوحة فقط)</span></span><input class="in ltr" id="e_late" name="lateness" inputmode="numeric"></label>
       <label class="f full" for="e_notes"><span>ملاحظات <span style="font-weight:400">(تظهر في اللوحة فقط، والطالبة ما تشوفها)</span></span><textarea class="in" id="e_notes" name="notes" rows="2" maxlength="1000"></textarea></label>
       <label class="switch full" for="e_ld"><input type="checkbox" id="e_ld" name="learning_difficulty"> صعوبات التعلم <span class="note" style="font-weight:400">تبقى في فصلها، وما تدخل درجاتها في متوسطه</span></label>
     </div></fieldset>
@@ -773,6 +846,22 @@ body.is-admin [data-teacher] { display: none !important; }
     <div class="row">
       <button class="btn" type="submit" id="saveBtn" data-admin>حفظ</button>
       <button class="btn quiet" type="button" data-close id="editClose">إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Follow-up on an early alert -->
+<dialog id="fuDlg">
+  <form class="dlg" id="fuForm" method="dialog" novalidate>
+    <h2 id="fuTitle">تسجيل متابعة</h2>
+    <div class="al-why" id="fuWhy"></div>
+    <div class="f">وش سويتي معها؟<div class="al-chips" id="fuActs" role="radiogroup" aria-label="وش سويتي معها؟"></div></div>
+    <label class="f" for="fuNote"><span>ملاحظة <span style="font-weight:400">(اختيارية، للوحة فقط)</span></span><textarea class="in" id="fuNote" rows="3" maxlength="500"></textarea></label>
+    <p class="note" style="margin:0">التنبيه ينتقل لـ«تمت المتابعة»، ويرجع لحاله إذا نزلت نسبتها أو ظهر سبب جديد بعد المتابعة.</p>
+    <p class="msg err" id="fuErr" hidden></p>
+    <div class="row">
+      <button class="btn" type="submit" id="fuSave">حفظ</button>
+      <button class="btn quiet" type="button" data-close>إلغاء</button>
     </div>
   </form>
 </dialog>
@@ -1126,6 +1215,7 @@ async function loadStudents() {
   sel.value = classByName.has(cur) ? cur : "";
   $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + classOptions(true);
   renderStats(); renderRows(); renderClasses(); renderClassView(); renderImportClass(); renderOverview(); renderCalendar();
+  loadAlerts().catch(() => {});
 }
 
 // Classes for a select, grouped by grade; classes without a grade come last.
@@ -1161,7 +1251,7 @@ const studentRow = (s, withClass) => `<tr>
     <td class="ltr mail">${s.email ? esc(s.email) : "—"}</td>
     ${withClass ? gradeAndSection(s.class).map((v, i) => `<td${i ? ' class="num"' : ""}>${esc(v)}</td>`).join("") : ""}
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
-    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${fmt(s.homework)}</td><td class="num">${fmt(s.final_exam)}</td>
+    <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${fmt(s.homework)}</td><td class="num">${fmt(s.final_exam)}</td><td class="num">${fmt(s.lateness)}</td>
     <td class="notes"${s.notes ? ` title="${esc(s.notes)}"` : ""}>${s.notes ? esc(s.notes) : "—"}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
     <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
@@ -1265,6 +1355,7 @@ function applySettings(s) {
   document.querySelectorAll("[data-part]").forEach(el => (el.textContent = MAX[el.dataset.part] ? `(من ${MAX[el.dataset.part]})` : "(خارج النسبة)"));
   const f = $("#setForm");
   for (const el of f.elements) if (el.name) el.type === "checkbox" ? (el.checked = !!s[el.name]) : (el.value = s[el.name] ?? "");
+  applyAlertRules();
   renderGate();
   renderWho();
 }
@@ -1602,6 +1693,126 @@ document.querySelector('[data-panel="overview"]').addEventListener("click", e =>
   if (id) openEdit(students.find(s => s.national_id === id));
 });
 
+// ---------- Early alerts ----------
+// The server works the list out (alerts.js) from the same numbers as the cards; the panel filters it and records follow-ups.
+let alertData = null, alertFilter = "all", fuFor = null, fuAction = null;
+const AL_STATES = { urgent: "عاجل", watch: "مراقبة", followed: "تمت المتابعة", improved: "تحسّنت بعد المتابعة" };
+async function loadAlerts() {
+  const t = T, data = await api("/alerts");
+  if (t !== T) return;
+  alertData = data;
+  renderAlerts();
+}
+const alFacts = a => {
+  const f = a.facts, out = [];
+  if (f.t1 != null && f.t2 != null) out.push(`الاختبار الأول <b>${fmt(f.t1)}</b> ← الثاني <b>${fmt(f.t2)}</b>${f.t2 < f.t1 ? ` <span class="down">▼ ${fmt(f.t1 - f.t2)}</span>` : ""}`);
+  if (f.pct != null) out.push(`النسبة <b>${f.pct}%</b>`);
+  if (f.prev != null) out.push(`الفترة السابقة <b>${f.prev}%</b>${f.pct != null && f.pct < f.prev ? ` <span class="down">▼ ${f.prev - f.pct}</span>` : ""}`);
+  if (f.classPct != null) out.push(`متوسط فصلها <b>${f.classPct}%</b>`);
+  if (f.lateness) out.push(`التأخير <b>${fmt(f.lateness)}</b>`);
+  return out.join(" · ");
+};
+const alFollowup = (a, f) => `<div class="al-fu">✓ ${esc(f.action)} · ${esc(hijriOf(new Date(f.created_at)))} (${esc(gregOf(new Date(f.created_at)))})${f.note ? ` · <span class="q">«${esc(f.note)}»</span>` : ""}`
+  + `${a.followups.length > 1 ? ` <span class="note">(${a.followups.length} متابعات)</span>` : ""}<button type="button" data-fu-del="${f.id}" data-admin>تراجع</button></div>`;
+const alRow = a => `<div class="al-row">
+    <span class="al-dot ${a.state === "urgent" ? "low" : a.state === "improved" ? "good" : ""}"></span>
+    <div>
+      <div class="al-who"><b>${esc(a.name)}</b><span class="cls">${esc(a.class ? classLabel(a.class) : "بدون فصل")}</span>${a.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</div>
+      ${a.signals.length ? `<div class="al-why">${a.signals.map(x => `<span class="al-sig ${x.sev}">${esc(x.text)}</span>`).join("")}</div>` : '<div class="al-facts">ما عاد عندها أي سبب للتنبيه.</div>'}
+      ${alFacts(a) ? `<div class="al-facts">${alFacts(a)}</div>` : ""}
+      ${a.back.length ? `<div class="al-back">رجع التنبيه بعد المتابعة: ${a.back.map(esc).join("، ")}</div>` : ""}
+      ${a.followups[0] ? alFollowup(a, a.followups[0]) : ""}
+    </div>
+    <div class="al-act">
+      ${a.signals.length ? `<button class="btn sm" type="button" data-fu="${esc(a.national_id)}" data-admin>${a.state === "followed" ? "متابعة جديدة" : "تسجيل متابعة"}</button>` : ""}
+      <button class="btn sm quiet" type="button" data-open="${esc(a.national_id)}">بياناتها</button>
+    </div>
+  </div>`;
+function renderAlerts() {
+  const d = alertData;
+  if (!d) return;
+  const c = d.counts, open = c.urgent + c.watch;
+  $("#alertsBadge").textContent = open; $("#alertsBadge").hidden = !open;
+  $("#alStats").innerHTML = [["تحتاج تدخل عاجل", c.urgent, "low"], ["تحت المراقبة", c.watch, "warn"], ["تمت متابعتها", c.followed, "good"], ["تحسّنت بعد المتابعة", c.improved, ""]]
+    .map(([k, v, cls]) => `<div class="card stat ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+  const total = d.items.length;
+  $("#alChips").innerHTML = [["all", "الكل", total], ...Object.entries(AL_STATES).map(([k, t]) => [k, t, c[k]])]
+    .map(([k, t, n]) => `<button type="button" data-al="${k}" aria-pressed="${alertFilter === k}">${t}<small>${n}</small></button>`).join("");
+  const sel = $("#alClass"), cur = sel.value;
+  const withAlerts = new Set(d.items.map(a => a.class || ""));
+  sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
+  for (const o of sel.querySelectorAll("option[value]")) if (o.value && !withAlerts.has(o.value)) o.remove();
+  sel.querySelectorAll("optgroup").forEach(g => { if (!g.children.length) g.remove(); });
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : "";
+  const list = d.items.filter(a => (alertFilter === "all" || a.state === alertFilter) && (!sel.value || a.class === sel.value));
+  if (!list.length) {
+    $("#alList").innerHTML = `<div class="empty">${!total ? "ما فيه أي طالبة تحتاج تنبيه حالياً." : "ما فيه طالبات بهذا الاختيار."}</div>`;
+    return;
+  }
+  // Each state under its own heading; the ones that need her come first.
+  $("#alList").innerHTML = Object.keys(AL_STATES).map(st => {
+    const part = list.filter(a => a.state === st);
+    return part.length ? `<div class="al-sec">${AL_STATES[st]} (${part.length})</div>${part.map(alRow).join("")}` : "";
+  }).join("");
+}
+function applyAlertRules() {
+  const f = $("#alForm");
+  for (const el of f.elements) if (el.name) el.value = settings?.[el.name] ?? "";
+  for (const el of f.querySelectorAll("input")) el.disabled = role === "viewer";
+}
+$("#alChips").addEventListener("click", e => {
+  const k = e.target.closest("[data-al]")?.dataset.al; if (!k) return;
+  alertFilter = k; renderAlerts();
+});
+$("#alClass").addEventListener("change", renderAlerts);
+$('[data-panel="alerts"]').addEventListener("click", async e => {
+  const open = e.target.closest("[data-open]")?.dataset.open;
+  if (open) return openEdit(students.find(s => s.national_id === open));
+  const fu = e.target.closest("[data-fu]")?.dataset.fu;
+  if (fu) return openFollowup(alertData.items.find(a => a.national_id === fu));
+  const del = e.target.closest("[data-fu-del]")?.dataset.fuDel;
+  if (del) {
+    if (!(await confirmBox("التراجع عن المتابعة", "تنمسح هذي المتابعة، ويرجع التنبيه مثل ما كان قبلها.", "تراجع"))) return;
+    try { alertData = await api("/alerts/followups/" + del, { method: "DELETE" }); renderAlerts(); toast("تم التراجع عن المتابعة"); }
+    catch { toast("تعذّر التراجع"); }
+  }
+});
+function openFollowup(a) {
+  if (!a) return;
+  fuFor = a; fuAction = null;
+  $("#fuTitle").textContent = `تسجيل متابعة: ${a.name}`;
+  $("#fuWhy").innerHTML = a.signals.map(x => `<span class="al-sig ${x.sev}">${esc(x.text)}</span>`).join("");
+  $("#fuActs").innerHTML = alertData.actions.map(t => `<button type="button" role="radio" aria-checked="false" data-act="${esc(t)}">${esc(t)}</button>`).join("");
+  $("#fuNote").value = ""; $("#fuErr").hidden = true;
+  $("#fuDlg").showModal();
+}
+$("#fuActs").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  fuAction = b.dataset.act;
+  $("#fuActs").querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", String(x === b)));
+});
+$("#fuForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#fuErr"); err.hidden = true;
+  if (!fuAction) { err.textContent = "اختاري وش سويتي معها."; err.hidden = false; return; }
+  const btn = $("#fuSave"); btn.disabled = true;
+  try {
+    alertData = await api("/alerts/followups", { method: "POST", body: { national_id: fuFor.national_id, action: fuAction, note: $("#fuNote").value } });
+    $("#fuDlg").close(); renderAlerts(); toast("تم تسجيل المتابعة");
+  } catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+$("#alForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const next = { ...settings };
+  for (const el of e.target.elements) if (el.name) next[el.name] = el.value;
+  const err = $("#alErr"); err.hidden = true;
+  const btn = $("#alSave"); btn.disabled = true;
+  try { await saveSettings(next); await loadAlerts(); toast("تم حفظ حدود التنبيهات"); }
+  catch (x) { err.innerHTML = (x.data?.errors || ["تعذّر الحفظ."]).map(esc).join("<br>"); err.hidden = false; }
+  finally { btn.disabled = false; }
+});
+
 // ---------- Audit log ----------
 const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", restore: "استرجاع نسخة", undo: "تراجع", settings: "الإعدادات", class_add: "إضافة فصل", class_rename: "تسمية فصل", class_delete: "حذف فصل",
   term_archive: "أرشفة فترة", term_rename: "تسمية فترة", term_delete: "حذف فترة", viewer_set: "حساب المديرة", viewer_off: "حساب المديرة", calendar: "التقويم",
@@ -1614,7 +1825,9 @@ const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", cl
   homework: "الواجبات", final_exam: "الاختبار النهائي", notes: "الملاحظات", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
   grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع",
   max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", compare_chart: "شكل المقارنة", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل",
-  site_open: "صفحة الاستعلام للمدرسة", site_closed_message: "رسالة القفل العامة" };
+  site_open: "صفحة الاستعلام للمدرسة", site_closed_message: "رسالة القفل العامة",
+  alert_below: "تنبيه: النسبة أقل من", alert_urgent: "تنبيه عاجل: النسبة أقل من", alert_test_drop: "تنبيه: نزول الاختبار الثاني", alert_term_drop: "تنبيه: نزول عن الفترة السابقة",
+  alert_class_gap: "تنبيه: أقل من متوسط الفصل", alert_participation: "تنبيه: المشاركة أقل من", alert_lateness: "تنبيه: التأخير من" };
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
   : field === "compare_chart" && Report.isChart(v) ? Report.CHARTS[v]
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);

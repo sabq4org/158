@@ -8,6 +8,7 @@ const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
+const alerts = require("./alerts");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS students (
 -- Set by the teacher; such a student stays in her class but out of its average.
 ALTER TABLE students ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN NOT NULL DEFAULT false;
 -- Homework and the final exam count once the teacher sets their maximum. Notes are hers alone and never leave the panel.
--- Lateness is no longer shown or read; its column stays so nothing saved in it is lost.
+-- Lateness is the teacher's alone: her panel and the early alerts read it, the student's card never does.
 ALTER TABLE students ADD COLUMN IF NOT EXISTS homework NUMERIC;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS final_exam NUMERIC;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS notes TEXT;
@@ -186,7 +187,7 @@ app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: 
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
 // The teachers' table and the teacher on every row come last, once every table they touch exists.
-const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
+const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA, alerts.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
   .then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;

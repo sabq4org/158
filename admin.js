@@ -11,6 +11,7 @@ const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
+const alerts = require("./alerts");
 
 const scrypt = util.promisify(crypto.scrypt);
 
@@ -57,18 +58,22 @@ const FIELDS = [
   ["projects", "المشاريع والمهام"],
   ["homework", "الواجبات"],
   ["final_exam", "الاختبار النهائي"],
+  // Times late: the teacher's alone, like the notes. It feeds the early alerts and never reaches the student's card.
+  ["lateness", "التأخير"],
   ["notes", "ملاحظات"],
   ["learning_style", "نمط التعلم"],
   ["learning_difficulty", "صعوبات التعلم"],
 ];
 const LABEL = Object.fromEntries(FIELDS);
 const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "homework", "final_exam"];
-const NUMERIC = new Set(GRADE_COLS);
-const TERM_COLS = ["national_id", "name", "class", ...GRADE_COLS, "learning_style", "learning_difficulty"];
+// What a period clears and an archive keeps: the grades and the lateness.
+const PERIOD_COLS = [...GRADE_COLS, "lateness"];
+const NUMERIC = new Set(PERIOD_COLS);
+const TERM_COLS = ["national_id", "name", "class", ...PERIOD_COLS, "learning_style", "learning_difficulty"];
 const TERM_TYPES = { national_id: "TEXT", name: "TEXT", class: "TEXT", learning_style: "TEXT", learning_difficulty: "BOOLEAN" };
 // Homework and the final exam have no maximum until the teacher sets one; 100 keeps a typo out meanwhile.
 const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects,
-  homework: max.homework || 100, final_exam: max.final || 100 });
+  homework: max.homework || 100, final_exam: max.final || 100, lateness: 365 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 const NOTES_MAX = 1000;
 
@@ -86,6 +91,7 @@ const HEADER_MAP = {
   "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects", "المشاريع": "projects", "المهام والمشاريع": "projects",
   "الواجبات": "homework", "الواجب": "homework", "واجبات": "homework",
   "الاختبار النهائي": "final_exam", "اختبار نهائي": "final_exam", "النهائي": "final_exam",
+  "التأخير": "lateness", "التأخر": "lateness", "عدد مرات التأخير": "lateness", "مرات التأخير": "lateness", "أيام التأخير": "lateness",
   "ملاحظات": "notes", "الملاحظات": "notes", "ملاحظة": "notes",
   "نمط التعلم": "learning_style",
   "صعوبات التعلم": "learning_difficulty", "صعوبات تعلم": "learning_difficulty",
@@ -478,6 +484,13 @@ module.exports = function mountAdmin(app, pool) {
       next[k] = t ? n : null;
     }
     next.compare_chart = grades.Report.isChart(b.compare_chart) ? b.compare_chart : before.compare_chart;
+    // The early alerts' thresholds, set from their own tab: one not sent keeps its value, an empty one is off.
+    for (const k of alerts.KEYS) {
+      if (b[k] === undefined) { next[k] = before[k]; continue; }
+      const t = norm(school.toLatin(b[k])), n = Number(t);
+      if (t && (!Number.isFinite(n) || n <= 0 || n > 1000)) errors.push(`حد التنبيه غير صحيح: ${t}`);
+      next[k] = t ? n : null;
+    }
     next.lookup_open = b.lookup_open !== false;
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
 
@@ -526,7 +539,7 @@ module.exports = function mountAdmin(app, pool) {
         const now = fromRow(cur);
         const revert = [];
         for (const c of e.details || []) {
-          // A field the panel no longer has (lateness, in older entries) has nothing to go back to.
+          // A field the panel no longer has has nothing to go back to.
           if (c.field === "national_id" || c.field === "test_avg" || !(c.field in LABEL)) continue;
           if (same(now[c.field], c.to)) revert.push(c); else skipped.push(LABEL[c.field]);
         }
@@ -553,11 +566,12 @@ module.exports = function mountAdmin(app, pool) {
         const d = e.details;
         await client.query("DELETE FROM terms WHERE teacher_id = $1 AND id = $2", [T, d.term_id]);
         if (d.grades?.length) {
-          const graded = `coalesce(${GRADE_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
-          const g = `jsonb_to_recordset($2) AS g(national_id TEXT, ${GRADE_COLS.map(c => c + " NUMERIC").join(", ")})`;
+          const graded = `coalesce(${PERIOD_COLS.map(c => "s." + c).join(", ")}) IS NOT NULL`;
+          const g = `jsonb_to_recordset($2) AS g(national_id TEXT, ${PERIOD_COLS.map(c => c + " NUMERIC").join(", ")})`;
           const list = JSON.stringify(d.grades);
           skipped = (await client.query(`SELECT s.name FROM students s JOIN ${g} ON g.national_id = s.national_id WHERE s.teacher_id = $1 AND ${graded} ORDER BY s.name`, [T, list])).rows.map(r => r.name);
-          await client.query(`UPDATE students s SET ${GRADE_COLS.map(c => `${c} = g.${c}`).join(", ")} FROM ${g}
+          // An entry from before lateness was cleared has none: the student's own stays.
+          await client.query(`UPDATE students s SET ${PERIOD_COLS.map(c => c === "lateness" ? "lateness = coalesce(g.lateness, s.lateness)" : `${c} = g.${c}`).join(", ")} FROM ${g}
             WHERE s.teacher_id = $1 AND g.national_id = s.national_id AND NOT (${graded})`, [T, list]);
         }
         if (d.cleared && getSettings(T).term_title === (d.next_title || "")) title = d.prev_title ?? "";
@@ -738,9 +752,9 @@ module.exports = function mountAdmin(app, pool) {
       if (clear) {
         const rows = await studentsOf(client, T);
         await backup(client, T, "قبل أرشفة الفترة ومسح الدرجات", rows);
-        details.grades = rows.filter(r => GRADE_COLS.some(c => r[c] != null))
-          .map(r => Object.fromEntries(["national_id", ...GRADE_COLS].map(c => [c, r[c]])));
-        await client.query(`UPDATE students SET ${GRADE_COLS.map(c => `${c} = NULL`).join(", ")} WHERE teacher_id = $1`, [T]);
+        details.grades = rows.filter(r => PERIOD_COLS.some(c => r[c] != null))
+          .map(r => Object.fromEntries(["national_id", ...PERIOD_COLS].map(c => [c, r[c]])));
+        await client.query(`UPDATE students SET ${PERIOD_COLS.map(c => `${c} = NULL`).join(", ")} WHERE teacher_id = $1`, [T]);
       }
       await log(client, T, "term_archive", null, details);
       await client.query("COMMIT");
@@ -786,6 +800,38 @@ module.exports = function mountAdmin(app, pool) {
   });
 
   router.get("/history", async (req, res) => res.json(await grades.history(pool, req.tid)));
+
+  // ---------- Early alerts: who needs the teacher now, and what she did about it ----------
+  // Follow-ups count from the start of the current period, like the lookups.
+  async function alertBoard(tid) {
+    const s = getSettings(tid);
+    const [rows, history, followups] = await Promise.all([
+      pool.query("SELECT * FROM students WHERE teacher_id = $1", [tid]).then(r => r.rows.map(fromRow)),
+      grades.history(pool, tid),
+      pool.query(`SELECT id, national_id, action, note, snapshot, created_at FROM followups WHERE teacher_id = $1 AND ${SINCE}
+        ORDER BY created_at DESC, id DESC`, [tid]).then(r => r.rows),
+    ]);
+    return { ...alerts.board(alerts.compute(rows, history, maxOf(s), s), followups), actions: alerts.ACTIONS };
+  }
+  router.get("/alerts", async (req, res) => res.json(await alertBoard(req.tid)));
+
+  router.post("/alerts/followups", async (req, res) => {
+    const T = req.tid, b = req.body || {};
+    const id = String(b.national_id ?? ""), action = norm(b.action), note = notesOf(b.note).slice(0, alerts.NOTE_MAX) || null;
+    if (!alerts.ACTIONS.includes(action)) return res.status(400).json({ error: "invalid", errors: ["اختاري وش سويتي معها"] });
+    if (action === "غيرها" && !note) return res.status(400).json({ error: "invalid", errors: ["اكتبي وش سويتي معها"] });
+    const item = (await alertBoard(T)).items.find(i => i.national_id === id && i.signals.length);
+    if (!item) return res.status(404).json({ error: "not_found", errors: ["الطالبة ما عندها تنبيه حالياً"] });
+    await pool.query("INSERT INTO followups (teacher_id, national_id, action, note, snapshot) VALUES ($1, $2, $3, $4, $5)",
+      [T, id, action, note, JSON.stringify(alerts.snapshotOf(item))]);
+    res.json(await alertBoard(T));
+  });
+
+  router.delete("/alerts/followups/:id", async (req, res) => {
+    const { rowCount } = await pool.query("DELETE FROM followups WHERE teacher_id = $1 AND id = $2", [req.tid, Number(req.params.id) || 0]);
+    if (!rowCount) return res.status(404).json({ error: "not_found" });
+    res.json(await alertBoard(req.tid));
+  });
 
   // Uploads are previewed first; the parsed result waits here until it is approved, by the same teacher's panel.
   const previews = new Map();
