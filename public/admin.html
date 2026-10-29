@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/report.css">
+<link rel="stylesheet" href="/teach.css">
 <style>
 /* Layout: a navy top bar with the two logos, tabs (overview, students, classes, upload, log, backups, settings), and a wide working area. */
 :root {
@@ -409,6 +410,7 @@ body.is-admin [data-teacher] { display: none !important; }
       <button class="tab" role="tab" aria-selected="true" data-tab="overview" id="tab-overview" data-teacher>نظرة عامة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="students" id="tab-students" data-teacher>الطالبات</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="classes" id="tab-classes" data-teacher>الفصول</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="teach" id="tab-teach" data-teacher>حسب النمط</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="terms" id="tab-terms" data-teacher>الفترات</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="import" id="tab-import" data-admin data-teacher>رفع ملف إكسل</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="audit" id="tab-audit">السجل</button>
@@ -531,6 +533,9 @@ body.is-admin [data-teacher] { display: none !important; }
     </div>
 
     <!-- Terms -->
+    <!-- Teaching by learning style: groups and activities per lesson (teach.js) -->
+    <div class="card" data-panel="teach" id="teachPanel" style="margin-top:16px" hidden></div>
+
     <div class="card" data-panel="terms" style="margin-top:16px" hidden>
       <div class="toolbar">
         <div class="grow note">احفظي نتائج كل فترة قبل ما تبدأ الفترة الجديدة. الطالبة تشوف تقدّمها عبر الفترات في بطاقة النتيجة.</div>
@@ -902,6 +907,7 @@ body.is-admin [data-teacher] { display: none !important; }
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="/report.js"></script>
+<script src="/teach.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1125,8 +1131,9 @@ async function loadStudents() {
   sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
   sel.value = classByName.has(cur) ? cur : "";
   $("#e_class").innerHTML = '<option value="">بدون فصل</option>' + classOptions(true);
-  renderStats(); renderRows(); renderClasses(); renderClassView(); renderImportClass(); renderOverview(); renderCalendar();
+  renderStats(); renderRows(); renderClasses(); renderClassView(); renderImportClass(); renderOverview(); renderCalendar(); renderTeach();
 }
+const renderTeach = () => Teach.render($("#teachPanel"), { students, classes, subject: settings?.subject || "", teacher: T, site: siteForReport });
 
 // Classes for a select, grouped by grade; classes without a grade come last.
 function classOptions(withTrack) {
