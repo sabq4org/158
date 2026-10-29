@@ -482,6 +482,7 @@ input[type="range"] { width: 100%; max-width: 420px; accent-color: var(--accent)
   <footer class="foot" id="foot">رياضيات 2 · الفصل الدراسي الأول</footer>
 </div>
 
+<script src="/lessons/quiz.js"></script>
 <script>
 "use strict";
 const $ = s => document.querySelector(s);
@@ -916,7 +917,7 @@ function drawQuiz() {
     const n = quiz.right, all = QUIZ.length, pct = n / all;
     const msg = pct === 1 ? "ما شاء الله! درجة كاملة، فهمتي الدرس تمامًا 🌟" : pct >= .75 ? "ممتاز! فهمك للدرس قوي، راجعي الأسئلة اللي غلطتي فيها." : pct >= .5 ? "جيد! ارجعي للأقسام اللي فوق وجرّبي الاختبار مرة ثانية." : "لا بأس، ارجعي للشرح والمختبرات خطوة خطوة ثم أعيدي الاختبار.";
     box.innerHTML = `<div class="score"><div class="big-n">${n} / ${all}</div><p>${msg}</p><button type="button" class="btn" id="qAgain">أعيدي الاختبار</button></div>`;
-    $("#qAgain").onclick = startQuiz; markDone(box); return;
+    $("#qAgain").onclick = startQuiz; markDone(box); LessonQuiz.done(n); return;
   }
   const it = QUIZ[quiz.order[quiz.k]];
   const opts = shuffle(it.o.map((o, k) => ({ o, ok: k === 0 })));
@@ -936,6 +937,7 @@ function drawQuiz() {
   };
 }
 startQuiz();
+LessonQuiz.gate("polynomials", $("#quizBox"), startQuiz);
 
 /* ---------- Nav: highlight the section in view, tick the ones she has worked on ---------- */
 const sections = $$("section.card"), links = $$("#navRow a");

@@ -13,6 +13,7 @@ const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
 const reports = require("./reports");
+const lessons = require("./lessons");
 
 const scrypt = util.promisify(crypto.scrypt);
 const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
@@ -1237,6 +1238,7 @@ module.exports = function mountAdmin(app, pool) {
   // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
   // Classes and subjects compared across the school, for the principal.
   reports.mount(router, pool);
+  lessons.mountPanel(router, pool);
 
   router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
     // A teacher's other subjects show as rows of their own; her sign-in is on her first one.

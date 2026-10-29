@@ -8,6 +8,7 @@ const grades = require("./grades");
 const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
+const lessons = require("./lessons");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -174,19 +175,21 @@ app.get("/healthz", (req, res) => res.send("ok"));
 const WEEK = 7 * 24 * 3600 * 1000;
 app.get("/vendor/html2canvas.min.js", (req, res) => res.sendFile(require.resolve("html2canvas/dist/html2canvas.min.js"), { maxAge: WEEK }));
 app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("jspdf/dist/jspdf.umd.min.js"), { maxAge: WEEK }));
-// Interactive lessons: separate pages, not linked from the lookup.
+// Interactive lessons: separate pages, not linked from the lookup, gathered in the library at /lessons.
 const page = file => (req, res) => res.sendFile(path.join(__dirname, "public", "lessons", file), { headers: { "Cache-Control": "no-cache" } });
+app.get(["/lessons", "/lessons/"], page("index.html"));
 for (const name of ["polynomials", "polynomial-functions", "polynomial-division", "perpendicular-distance"]) app.get([`/lessons/${name}`, `/lessons/${name}/`], page(`${name}.html`));
 // The model lesson's attendees sign in and rate it here; the teacher reads both on the dashboard after signing in to the panel.
 app.get(["/lessons/polynomials/attendance", "/lessons/polynomials/attendance/"], page("polynomials-attendance.html"));
 app.get(["/lessons/polynomials/feedback", "/lessons/polynomials/feedback/"], page("polynomials-feedback.html"));
 app.get(["/lessons/polynomials/dashboard", "/lessons/polynomials/feedback/results"], page("polynomials-dashboard.html"));
 feedback.mount(app, pool);
+lessons.mount(app, pool);
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
 // The teachers' table and the teacher on every row come last, once every table they touch exists.
-const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
+const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, lessons.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
   .then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;
