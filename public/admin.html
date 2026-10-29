@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/report.css">
+<link rel="stylesheet" href="/school-reports.css">
 <link rel="stylesheet" href="/teach.css">
 <style>
 /* Layout: a navy top bar with the two logos, tabs (overview, students, classes, upload, log, backups, settings), and a wide working area. */
@@ -404,6 +405,7 @@ body.is-admin [data-teacher] { display: none !important; }
 
     <nav class="tabs" role="tablist" style="margin-top:16px">
       <button class="tab" role="tab" aria-selected="false" data-tab="school" id="tab-school" data-school>نظرة عامة</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="reports" id="tab-reports" data-school>التقارير</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="staff" id="tab-staff" data-only-admin>منسوبات المدرسة</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="catalog" id="tab-catalog" data-only-admin>الفصول والمواد</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="platform" id="tab-platform" data-only-admin>إعدادات المنصة</button>
@@ -566,7 +568,9 @@ body.is-admin [data-teacher] { display: none !important; }
         <div class="help">
           ما يتغيّر شي قبل ما تراجعين المعاينة وتضغطين "اعتماد".
           <ul>
-            <li>الطالبات يتطابقن برقم الهوية.</li>
+            <li>الطالبات يتطابقن برقم الهوية، وإذا كان فاضي فباسم الطالبة داخل فصلها.</li>
+            <li>في المعاينة تختارين الأعمدة اللي تتحدث، مثلاً "الاختبار الثاني" بس.</li>
+            <li>ملف فيه ورقة لكل فصل ينقرا كله: سمّي كل ورقة باسم فصلها، مثل "الثاني - 1".</li>
             <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، المشاركة، المشاريع، الواجبات، الاختبار النهائي، ملاحظات.</li>
             <li>لملف فصل واحد اختاري الفصل فوق، أو ارفعيه من صفحة الفصل في تبويب "الفصول".</li>
             <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
@@ -644,6 +648,9 @@ body.is-admin [data-teacher] { display: none !important; }
         </div>
       </div>
     </div>
+
+    <!-- Classes and subjects compared across the school (public/school-reports.js) -->
+    <div data-panel="reports" id="reports" hidden></div>
 
     <!-- The school's classes and subjects (the platform admin) -->
     <div data-panel="catalog" style="margin-top:16px; display:flex; flex-direction:column; gap:16px" hidden>
@@ -1955,11 +1962,13 @@ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () =>
   if (t.dataset.tab === "overview") requestAnimationFrame(fitLabels);
   if (t.dataset.tab === "staff") loadStaff();
   if (t.dataset.tab === "school") loadSchoolOverview();
+  if (t.dataset.tab === "reports") SchoolReports.load();
   if (t.dataset.tab === "catalog") loadCatalog();
   // The principal's teacher picker belongs to the teacher's tabs, not to the school's page.
   if (role === "viewer") {
-    document.body.classList.toggle("on-school", t.dataset.tab === "school");
-    $("#teacherBar").hidden = t.dataset.tab === "school" || !(me?.teachers || []).length;
+    const schoolWide = ["school", "reports"].includes(t.dataset.tab);
+    document.body.classList.toggle("on-school", schoolWide);
+    $("#teacherBar").hidden = schoolWide || !(me?.teachers || []).length;
     renderWho();
   }
 }));
@@ -2011,7 +2020,7 @@ async function uploadFile(file, ui) {
     const p = await api("/import", { method: "POST", body: fd });
     renderPreview(p, file.name, ui);
   } catch (x) {
-    err.textContent = x.message === "no_table" ? "ما لقيت جدول الطالبات في الملف. تأكدي إن فيه عمود \"الهوية\" وعمود \"اسم الطالبة\"."
+    err.textContent = x.message === "no_table" ? "ما لقيت جدول الطالبات في الملف. تأكدي إن فيه عمود \"اسم الطالبة\" وعمودين من الدرجات أو الهوية على الأقل."
       : x.message === "too_large" ? "حجم الملف كبير جداً."
       : x.message === "unreadable" ? "تعذّر قراءة الملف. تأكدي إنه ملف إكسل سليم."
       : x.message === "unknown_class" ? "الفصل المختار ما عاد موجود. حدّثي الصفحة واختاري الفصل من جديد."
@@ -2025,9 +2034,12 @@ function renderPreview(p, name, ui) {
   const total = p.added.length + p.changed.length;
   const val = (v, f) => f === "learning_difficulty" ? (v ? "نعم" : "لا") : v == null || v === "" ? "فاضي" : esc(f === "class" ? classLabel(v) : v);
   const to = p.target ? classLabel(p.target) : "";
-  // A student is known by her ID, and it's what she types to look up her result, so a row without one can't be saved.
-  const noIds = !p.missingIds ? "" : `${p.missingIds === p.totalRows ? "عمود «رقم الهوية» فاضي في كل صفوف الملف" : "بعض الصفوف رقم الهوية فيها فاضي"}، وبدونه ما تنحفظ الطالبة:
-    النظام يعرف كل طالبة برقم هويتها، وهو نفسه اللي تكتبه لما تستعلم عن نتيجتها. عبّي أرقام الهوية في الملف (من نظام نور مثلاً) وارفعيه مرة ثانية.${total ? " والصفوف السليمة تقدرين تعتمدينها الحين." : ""}`;
+  // A student is known by her ID, and it's what she types to look up her result. A row without one finds a saved
+  // student by her name; a new student can't be saved without it.
+  const noIds = !p.missingIds ? "" : `${p.missingIds === p.totalRows ? "عمود «رقم الهوية» فاضي في كل صفوف الملف" : "بعض الصفوف رقم الهوية فيها فاضي"}، وما لقيت لها طالبة محفوظة بنفس الاسم:
+    النظام يعرف كل طالبة برقم هويتها، وهو نفسه اللي تكتبه لما تستعلم عن نتيجتها. عبّي أرقام الهوية لهذي الصفوف (من نظام نور مثلاً) وارفعي الملف مرة ثانية.${total ? " والصفوف السليمة تقدرين تعتمدينها الحين." : ""}`;
+  const where = x => x.sheet ? `ورقة «${esc(x.sheet)}» صف ${x.line}` : `صف ${x.line}`;
+  const picked = new Set(p.picked);
   const outcome = total ? `<button class="btn" type="button" data-apply>اعتماد ${total} تغيير</button>`
     : !p.errors.length ? `<p class="msg ok" style="margin:0">البيانات مطابقة، ما فيه شي يتغيّر.</p>`
     : p.unchanged ? `<p class="msg warn" style="margin:0">الصفوف السليمة مطابقة للنظام، ما فيها شي يتغيّر. صلّحي الأخطاء اللي فوق في الملف وارفعيه مرة ثانية.</p>`
@@ -2041,13 +2053,21 @@ function renderPreview(p, name, ui) {
       ${p.errors.length ? `<span class="pill low">${p.errors.length} فيها أخطاء</span>` : ""}
       ${p.missing.length ? `<span class="pill none">${p.missing.length} غير موجودة في الملف</span>` : ""}
     </div>
+    ${p.fields.length > 1 ? `<div class="sec"><h3>الأعمدة اللي تتحدث</h3>
+      <div class="subj-picks" data-fields>${p.fields.map(f => `<label><input type="checkbox" value="${f.field}"${picked.has(f.field) ? " checked" : ""}> ${esc(f.label)}</label>`).join("")}</div>
+      <div class="note" style="margin-top:6px">شيلي علامة أي عمود ما تبين يتغيّر: النظام يتجاهله كأنه مو في الملف، ويبقى المحفوظ زي ما هو.</div></div>` : ""}
+    ${p.sheets?.length ? `<div class="sec"><h3>أوراق الملف</h3>${p.sheets.map(sh => `<div class="change"><b>${esc(sh.name)}</b><span class="d">${girls(sh.rows)}
+      · ${to ? `إلى ${esc(to)}` : sh.class ? `إلى ${esc(classLabel(sh.class))} إلا لو الصف مكتوب للطالبة` : "حسب الصف والشعبة المكتوبين في الورقة"}</span></div>`).join("")}</div>` : ""}
     ${noIds ? `<div class="sec"><p class="msg err">${noIds}</p></div>` : ""}
     ${p.elsewhere?.length ? `<div class="sec"><p class="msg warn">الملف مكتوب فيه فصل ثاني لبعض الطالبات (${p.elsewhere.map(e => `${esc(classLabel(e.name))}: ${girls(e.count)}`).join("، ")}).
       بيدخلن كلهن ${esc(to)}. إذا الملف مو لهذا الفصل اضغطي "إلغاء".</p></div>` : ""}
+    ${p.byName?.length ? `<div class="sec"><h3>طالبات تعرّفت عليهن بالاسم</h3>
+      <div class="note" style="margin-bottom:6px">رقم الهوية فاضي في هذي الصفوف، فطابقتها باسم الطالبة في فصلها. تأكدي إن كل وحدة هي نفسها قبل الاعتماد.</div>
+      ${p.byName.map(m => `<div class="change"><b>${where(m)}: ${esc(m.file)}</b><span class="d">← ${esc(m.name)} · <bdi>${esc(m.national_id)}</bdi></span></div>`).join("")}</div>` : ""}
     ${p.changed.length ? `<div class="sec"><h3>الطالبات اللي تغيّرت بياناتهن</h3>${p.changed.map(c => `
       <div class="change"><b>${esc(c.student.name)}</b>${c.changes.map(x => `<span class="d">${esc(x.label)}: <s>${val(x.from, x.field)}</s> ← <ins>${val(x.to, x.field)}</ins></span>`).join("")}</div>`).join("")}</div>` : ""}
     ${p.added.length ? `<div class="sec"><h3>طالبات جديدات</h3>${p.added.map(s => `<div class="change"><b>${esc(s.name)}</b><span class="d">${esc(s.national_id)}${to ? "" : ` · ${s.class ? esc(classLabel(s.class)) : "بدون فصل"}`}</span></div>`).join("")}</div>` : ""}
-    ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>صف ${x.line}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
+    ${p.errors.length ? `<div class="sec"><h3>صفوف فيها أخطاء (ما راح تنرفع)</h3>${p.errors.map(x => `<div class="change"><b>${where(x)}: ${esc(x.name || x.id || "")}</b><span class="d" style="color:var(--low)">${x.problems.map(esc).join("، ")}</span></div>`).join("")}</div>` : ""}
     ${p.missing.length ? `<div class="sec"><h3>${to ? `طالبات ${esc(to)} اللي مو موجودات في الملف` : "موجودات في النظام وغير موجودات في الملف"} (ما راح ينحذفن)</h3><div class="note">${p.missing.map(m => esc(m.name)).join("، ")}</div></div>` : ""}
     ${p.ignored?.length ? `<div class="sec"><div class="note">أعمدة في الملف ما يقرأها النظام: ${p.ignored.map(h => `«${esc(h)}»`).join("، ")}.
       إذا فيها بيانات تبينها، سمّي العمود مثل عنوانه في ملف التصدير من اللوحة.</div></div>` : ""}
@@ -2057,6 +2077,20 @@ function renderPreview(p, name, ui) {
     </div>`;
   ui.start.hidden = true; pv.hidden = false;
   pv.querySelector("[data-cancel]").onclick = () => resetPreview(ui);
+  const picks = pv.querySelector("[data-fields]");
+  if (picks) picks.onchange = async () => {
+    const fields = [...picks.querySelectorAll("input:checked")].map(i => i.value);
+    picks.querySelectorAll("input").forEach(i => (i.disabled = true));
+    // The old preview must not be applied while the new one is worked out.
+    const go = pv.querySelector("[data-apply]");
+    if (go) go.disabled = true;
+    try {
+      renderPreview(await api(`/import/${p.token}/fields`, { method: "POST", body: { fields } }), name, ui);
+    } catch (x) {
+      toast(x.message === "expired" ? "انتهت صلاحية المعاينة، ارفعي الملف مرة ثانية" : "تعذّر تحديث المعاينة");
+      if (x.message === "expired") resetPreview(ui); else renderPreview(p, name, ui);
+    }
+  };
   const apply = pv.querySelector("[data-apply]");
   if (apply) apply.onclick = async () => {
     apply.disabled = true; apply.textContent = "جارٍ الاعتماد…";
@@ -2480,5 +2514,6 @@ $("#pdfAll").addEventListener("click", () => makeClassPdf(true));
 // ---------- Boot ----------
 api("/me").then(showApp).catch(() => showLogin());
 </script>
+<script src="/school-reports.js"></script>
 </body>
 </html>
