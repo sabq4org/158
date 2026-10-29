@@ -147,9 +147,9 @@ const Teach = (() => {
   const linkOf = (lesson, a) => (lesson && a.at ? lesson.url + a.at : "");
   const activitiesOf = (lesson, k) => (lesson ? lesson.styles[k] : GENERAL_STYLES[k]);
 
-  // Students of one class (or all), grouped by learning style, names sorted.
+  // Students of one class (all for "", the ones with no class for null), grouped by learning style, names sorted.
   function groups(students, cls) {
-    const list = students.filter(s => !cls || s.class === cls).slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ar"));
+    const list = students.filter(s => (cls === null ? !s.class : !cls || s.class === cls)).slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ar"));
     return [...KEYS.map(k => ({ k, list: list.filter(s => s.learning_style === k) })), { k: NONE, none: true, list: list.filter(s => !KEYS.includes(s.learning_style)) }];
   }
   const girls = n => (n === 1 ? "طالبة واحدة" : n === 2 ? "طالبتان" : n >= 3 && n <= 10 ? `${n} طالبات` : `${n} طالبة`);
@@ -230,7 +230,7 @@ const Teach = (() => {
     const none = gs[4];
     return `
 <div class="rp-sheet rp-plan">
-  ${Report.sheetHead(`خطة حصة حسب أنماط التعلم · ${classLabel(cls)}`, sub)}
+  ${Report.sheetHead(`خطة حصة حسب أنماط التعلم · ${cls ? classLabel(cls) : "طالبات بدون فصل"}`, sub)}
   <div class="rp-body">
     <div class="rp-stats">
       <div><span>عدد الطالبات</span><b>${total}</b></div>
@@ -247,14 +247,16 @@ const Teach = (() => {
     <div class="rp-pnote"><b>ملاحظات المعلمة:</b><i></i><i></i></div>
   </div>
   ${Report.sheetSigns(site)}
-  ${Report.sheetFoot(ld ? "* صعوبات تعلم" : lesson ? `الدرس التفاعلي: 158.school${lesson.url}` : "صادرة من نظام استعلام النتائج")}
+  ${Report.sheetFoot(ld ? "* صعوبات تعلم" : lesson ? `الدرس التفاعلي: \u202A158.school${lesson.url}\u202C` : "صادرة من نظام استعلام النتائج")}
 </div>`;
   }
 
   async function makePdf() {
     const btn = host.querySelector("#tcPdf"), note = host.querySelector("#tcProgress");
     const lesson = lessonById(pick.lesson);
+    // All classes: a sheet per class with students, and one for students not in a class yet.
     const list = pick.cls ? [pick.cls] : ctx.classes.map(c => c.name).filter(n => ctx.students.some(s => s.class === n));
+    if (!pick.cls && ctx.students.some(s => !s.class)) list.push(null);
     btn.disabled = true; note.hidden = false; note.textContent = "جارٍ تجهيز الملف…";
     try {
       const site = ctx.site();
