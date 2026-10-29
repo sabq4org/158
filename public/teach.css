@@ -1,0 +1,66 @@
+/* The "حسب النمط" tab of the teacher's panel (teach.js) and its printed lesson plan. One colour per learning style. */
+:root { --st-1: #2a78d6; --st-2: #8a4fc4; --st-3: #c4581a; --st-4: #0d7f6c; }
+@media (prefers-color-scheme: dark) {
+  :root { --st-1: #5b9cf0; --st-2: #b388e6; --st-3: #f0884a; --st-4: #3cc2a6; }
+}
+
+[data-panel="teach"] .toolbar { align-items: flex-end; }
+.tc-pick { min-width: 180px; }
+.tc-pick.grow { flex: 1 1 260px; }
+.tc-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.tc-intro { margin: 0; padding: 0 16px 12px; }
+#tcProgress { margin: 0; padding: 0 16px 12px; }
+
+.tc-sum { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.tc-n { border: 1px solid var(--line); border-top: 4px solid var(--k); border-radius: 12px; padding: 8px 10px; background: var(--surface-2); display: flex; flex-direction: column; align-items: center; }
+.tc-n b { font-size: 22px; line-height: 1.2; }
+.tc-n span { font-size: 13px; color: var(--muted); }
+.tc-n.none { border-top-style: dashed; }
+
+.tc-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0 16px 16px; }
+.tc-group { border: 1px solid var(--line); border-inline-start: 5px solid var(--k, var(--viz-muted)); border-radius: 14px; padding: 12px 14px; background: var(--surface); min-width: 0; }
+.tc-group.none { margin: 0 16px 16px; border-inline-start-style: dashed; background: var(--surface-2); }
+.tc-gh { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tc-gh h3 { margin: 0; font-size: 17px; }
+.tc-gh .note { margin-inline-start: auto; }
+.tc-ic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
+.tc-ic svg { width: 19px; height: 19px; }
+.tc-names { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.tc-names span { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 1px 10px; font-size: 13px; }
+.tc-group.none .tc-names span { background: var(--surface); }
+.tc-names small { color: var(--muted); }
+.tc-acts-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: a; }
+.tc-acts-list li { counter-increment: a; display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
+.tc-acts-list li::before { content: counter(a); grid-row: span 3; width: 22px; height: 22px; border-radius: 50%; background: var(--k); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 2px; }
+.tc-acts-list b { font-size: 14.5px; }
+.tc-acts-list span { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.tc-acts-list a { color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; justify-self: start; margin-top: 2px; }
+.tc-acts-list a:hover { text-decoration: underline; }
+.tc-acts-list a::after { content: " ↖"; }
+[data-panel="teach"] > .note:last-child { padding: 0 16px 16px; margin: 0; }
+
+@media (max-width: 760px) {
+  .tc-groups { grid-template-columns: minmax(0, 1fr); }
+  .tc-sum { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tc-pick, .tc-pick.grow { flex: 1 1 100%; }
+}
+
+/* The printed plan (A4). */
+.rpt .rp-plan .rp-body { gap: 3mm; }
+.rpt .rp-pgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3mm; }
+.rpt .rp-pg { border: 1px solid var(--line); border-top: 1.4mm solid var(--k, #9aa4ad); border-radius: 3mm; padding: 2mm 3.5mm 2.5mm; }
+.rpt .rp-st1 { --k: #2a78d6; } .rpt .rp-st2 { --k: #8a4fc4; } .rpt .rp-st3 { --k: #c4581a; } .rpt .rp-st4 { --k: #0d7f6c; }
+.rpt .rp-pg h3 { display: flex; align-items: center; gap: 2mm; font-size: 11pt; margin-bottom: 1mm; }
+.rpt .rp-pg h3 svg { width: 5mm; height: 5mm; color: var(--k); flex: none; }
+.rpt .rp-pg h3 small { margin-inline-start: auto; font-size: 10pt; color: var(--k); font-weight: 700; }
+.rpt .rp-pn { font-size: 9pt; line-height: 1.6; color: var(--ink); background: #f5f7f9; border-radius: 2mm; padding: 1mm 2.5mm; margin-bottom: 1.5mm; }
+/* Numbers are text, not list markers: html2canvas puts native markers on the wrong side in RTL. */
+.rpt .rp-pa { display: flex; gap: 1.8mm; font-size: 8.8pt; line-height: 1.6; color: var(--ink); }
+.rpt .rp-pa + .rp-pa { margin-top: .8mm; }
+.rpt .rp-pa > span:first-child { flex: none; width: 4.2mm; height: 4.2mm; margin-top: .6mm; border-radius: 50%; background: var(--k); color: #fff; font-size: 7.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.rpt .rp-pa b { color: var(--navy); }
+.rpt .rp-pa em { font-style: normal; color: var(--muted); }
+.rpt .rp-pnone { border-top-style: dashed; }
+.rpt .rp-pt { font-size: 9pt; color: var(--muted); }
+.rpt .rp-pnote { font-size: 10pt; color: var(--navy); }
+.rpt .rp-pnote i { display: block; border-bottom: 1px dashed #b9c2cc; height: 7mm; }

@@ -418,7 +418,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, CHARTS, isChart, chartOf, compareItems, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, sheetHead: head, sheetSigns: signs, sheetFoot: foot, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, CHARTS, isChart, chartOf, compareItems, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;

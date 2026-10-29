@@ -1,0 +1,107 @@
+/* The principal's reports tab (admin.html) and its A4 report. Series colours are the dataviz reference palette,
+   one step per mode; levels run from the panel's green to its "needs support" red. */
+:root {
+  --rs1: #2a78d6; --rs2: #eb6834; --rs3: #1baf7a; --rs4: #eda100; --rs5: #e87ba4; --rs6: #008300; --rs7: #6250d6; --rs8: #e34948;
+  --lv-excellent: #1f7a45; --lv-vgood: #8fc3ad; --lv-good: #e2b65c; --lv-support: #c65b5b;
+  --h0: #e6f2ef; --h1: #cde7e2; --h2: #a9d6cd; --h3: #7dbfb3; --h4: #4fa597;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rs1: #3987e5; --rs2: #d95926; --rs3: #199e70; --rs4: #c98500; --rs5: #d55181; --rs6: #008300; --rs7: #9085e9; --rs8: #e66767;
+    --lv-excellent: #3fae6e; --lv-vgood: #5f9c86; --lv-good: #c9993a; --lv-support: #d96a6a;
+    --h0: #1b3533; --h1: #1f4743; --h2: #255a54; --h3: #2b6f67; --h4: #33857b;
+  }
+}
+
+[data-panel="reports"] { margin-top: 16px; display: flex; flex-direction: column; gap: 16px; }
+.rpx-empty { padding: 28px; text-align: center; color: var(--muted); }
+.rpx-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; padding: 12px 16px; }
+.rpx-sel { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); flex: 1 1 170px; max-width: 280px; }
+.rpx-sel .in { width: 100%; }
+.rpx-filters .btn { margin-inline-start: auto; }
+.rpx-delta { font-size: 13px; font-weight: 600; }
+.rpx-delta.up { color: var(--good); }
+.rpx-delta.down { color: var(--low); }
+.rpx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.rpx-card { padding: 16px 18px; min-width: 0; }
+.rpx-card h3 { margin: 0; font-size: 16px; }
+.rpx-card > .note { margin: 2px 0 10px; }
+.rpx-none { color: var(--muted); margin: 12px 0; }
+.rpx-foot { margin: 0; }
+
+.rpx-row { display: grid; grid-template-columns: minmax(90px, 150px) minmax(0, 1fr) 48px; align-items: center; gap: 10px; margin: 10px 0; }
+.rpx-row .n { font-size: 14px; font-weight: 500; }
+.rpx-row > b { text-align: left; font-variant-numeric: tabular-nums; }
+.rpx-stack, .rpx-track { display: flex; gap: 2px; height: 20px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
+.rpx-stack i { display: block; height: 100%; }
+.rpx-track i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.rpx-few { font-size: 12px; color: var(--muted); padding: 0 8px; align-self: center; }
+.lv-excellent { background: var(--lv-excellent); } .lv-vgood { background: var(--lv-vgood); }
+.lv-good { background: var(--lv-good); } .lv-support { background: var(--lv-support); }
+.rpx-legend, .rpx-keys { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.rpx-legend i, .rpx-keys i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 6px; vertical-align: -1px; }
+.rpx-keys b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* The weekly chart: an SVG of lines under HTML labels, so the PDF keeps the font. */
+.rpx-chart { display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: 190px 22px; margin-top: 8px; direction: ltr; }
+.rpx-yaxis { position: relative; }
+.rpx-yaxis span { position: absolute; right: 6px; transform: translateY(-50%); font-size: 11px; color: var(--muted); }
+.rpx-plot { position: relative; }
+.rpx-gl { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); }
+.rpx-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.rpx-plot polyline { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.rpx-pt { position: absolute; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--surface); box-sizing: content-box; }
+.rpx-xaxis { position: relative; grid-column: 2; }
+.rpx-xaxis span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--muted); top: 4px; }
+.rpx-xnote { text-align: center; margin: 2px 0 0; font-size: 12px; }
+polyline.rpx-all { stroke: var(--ink); stroke-dasharray: 5 4; stroke-width: 2.5; }
+b.rpx-all, i.rpx-all { background: var(--ink); }
+.rpx-keys i.rpx-all { height: 3px; border-radius: 2px; }
+polyline.rpx-s1 { stroke: var(--rs1); } b.rpx-s1, i.rpx-s1 { background: var(--rs1); }
+polyline.rpx-s2 { stroke: var(--rs2); } b.rpx-s2, i.rpx-s2 { background: var(--rs2); }
+polyline.rpx-s3 { stroke: var(--rs3); } b.rpx-s3, i.rpx-s3 { background: var(--rs3); }
+polyline.rpx-s4 { stroke: var(--rs4); } b.rpx-s4, i.rpx-s4 { background: var(--rs4); }
+polyline.rpx-s5 { stroke: var(--rs5); } b.rpx-s5, i.rpx-s5 { background: var(--rs5); }
+polyline.rpx-s6 { stroke: var(--rs6); } b.rpx-s6, i.rpx-s6 { background: var(--rs6); }
+polyline.rpx-s7 { stroke: var(--rs7); } b.rpx-s7, i.rpx-s7 { background: var(--rs7); }
+polyline.rpx-s8 { stroke: var(--rs8); } b.rpx-s8, i.rpx-s8 { background: var(--rs8); }
+
+.rpx-tbl td.name { min-width: 150px; }
+.rpx-cell { display: inline-block; min-width: 58px; padding: 3px 8px; border-radius: 6px; font-weight: 600; color: var(--ink); }
+.rpx-cell.h0 { background: var(--h0); } .rpx-cell.h1 { background: var(--h1); } .rpx-cell.h2 { background: var(--h2); }
+.rpx-cell.h3 { background: var(--h3); } .rpx-cell.h4 { background: var(--h4); }
+.rpx-cell.lowc { background: var(--low-soft); color: var(--low); }
+.rpx-cell.go { cursor: pointer; outline-offset: 2px; }
+.rpx-cell.go:hover, .rpx-cell.go:focus-visible { outline: 2px solid var(--accent); }
+
+@media (max-width: 760px) {
+  .rpx-grid { grid-template-columns: minmax(0, 1fr); }
+  .rpx-sel { max-width: none; }
+  .rpx-filters .btn { width: 100%; }
+}
+
+/* ---------- The A4 report: light colours always, and none of the panel's table styles ---------- */
+.rpt .rpx-sheet {
+  --surface: #fff; --surface-2: #f3f6f5; --ink: #1d2433; --muted: #667085; --line: #dfe5ea; --accent: #0d6e6a;
+  --good: #1f7a45; --low: #a83636; --low-soft: #fbe3e3; --warn: #9a5a00; --warn-soft: #fcefd9;
+  --rs1: #2a78d6; --rs2: #eb6834; --rs3: #1baf7a; --rs4: #eda100; --rs5: #e87ba4; --rs6: #008300; --rs7: #6250d6; --rs8: #e34948;
+  --lv-excellent: #1f7a45; --lv-vgood: #8fc3ad; --lv-good: #e2b65c; --lv-support: #c65b5b;
+  --h0: #e6f2ef; --h1: #cde7e2; --h2: #a9d6cd; --h3: #7dbfb3; --h4: #4fa597;
+}
+.rpt .rpx { font-size: 9.5pt; gap: 3.5mm; }
+.rpt .rpx-two { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.rpt .rpx-sec h2 { font-size: 11.5pt; color: var(--navy); margin-bottom: 1.5mm; }
+.rpt .rpx-row { margin: 1.6mm 0; gap: 2.5mm; grid-template-columns: 30mm minmax(0, 1fr) 11mm; }
+.rpt .rpx-row .n { font-size: 9pt; }
+.rpt .rpx-stack, .rpt .rpx-track { height: 4mm; }
+.rpt .rpx-legend, .rpt .rpx-keys { font-size: 8pt; margin-top: 1mm; }
+.rpt .rpx-chart { grid-template-rows: 42mm 5mm; }
+.rpt .rpx-sec .note { font-size: 8.5pt; color: var(--muted); }
+.rpt .rpx .table-wrap { border: 0; overflow: visible; }
+.rpt .rpx table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+.rpt .rpx th, .rpt .rpx td { position: static; white-space: normal; padding: 1.3mm 1.5mm; border-bottom: 1px solid var(--line); background: none; text-align: center; min-width: 0; }
+.rpt .rpx th { color: var(--muted); font-weight: 600; font-size: 8.5pt; background: var(--surface-2); }
+.rpt .rpx td.name, .rpt .rpx th:first-child { text-align: right; font-weight: 600; }
+.rpt .rpx .pill { font-size: 7.5pt; padding: 0 2mm; border-radius: 3mm; color: var(--warn); background: var(--warn-soft); }
+.rpt .rpx-cell { min-width: 0; padding: .6mm 2mm; }
+.rpt .rpx-sheet .rp-signs { grid-template-columns: 1fr; padding-inline: 60mm; }

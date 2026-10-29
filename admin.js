@@ -5,6 +5,7 @@ const path = require("path");
 const express = require("express");
 const multer = require("multer");
 const util = require("util");
+const { AsyncLocalStorage } = require("async_hooks");
 const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, saveSchool, getSchool, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
 const grades = require("./grades");
@@ -12,8 +13,10 @@ const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
 const alerts = require("./alerts");
+const reports = require("./reports");
 
 const scrypt = util.promisify(crypto.scrypt);
+const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
 
 const SESSION_HOURS = 8;
 const COOKIE = "admin_session";
@@ -33,6 +36,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   details     JSONB
 );
 ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS undone_at TIMESTAMPTZ;
+-- Who made the change (her name as it was then, or the platform admin) and from which kind of device.
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS actor TEXT;
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS actor_role TEXT;
+ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS device TEXT;
 CREATE TABLE IF NOT EXISTS classes (
   name        TEXT PRIMARY KEY,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -187,39 +194,71 @@ function classOfRow(raw) {
   return isGrade && /^\d{1,2}$/.test(section) ? `${grade} / ${section}` : cls || grade;
 }
 
-// The first sheet with a students table: its rows, and the headers it has that the system does not read.
+// Every sheet with a students table: its rows, the fields it has, and the headers the system does not read. A workbook
+// may keep one class per sheet, and the sheet's name then stands for the class of rows that name none.
 async function readStudentsFromExcel(file) {
   const reader = new ExcelJS.stream.xlsx.WorkbookReader(file, { sharedStrings: "cache", styles: "ignore", hyperlinks: "ignore", worksheets: "emit" });
+  const sheets = [], ignored = new Set(), fields = new Set();
+  let count = 0;
   for await (const sheet of reader) {
-    let cols = null, ignored = [], emptyRun = 0;
-    const rows = [];
+    // The workbook lists its sheets before the first one comes; after the last, the rest of the file is left unread.
+    const last = ++count >= (reader.model?.sheets?.length || 1);
+    // The first row that names the student and two more columns is the header, unless a better one follows within
+    // 500 rows: one with the ID (the teacher's sheet has a result card above its table) or with more columns.
+    let cols = null, settled = false, closed = false, emptyRun = 0, rows = [], unread = [];
     for await (const row of sheet) {
       const values = row.values || [];
-      if (!cols) {
+      if (!settled) {
         const found = {};
         values.forEach((v, i) => { const f = HEADERS[headerKey(cellText(v))]; if (f && !(f in found)) found[f] = i; });
-        if ("national_id" in found && "name" in found && Object.keys(found).length >= 4) {
-          cols = found;
+        const n = Object.keys(found).length;
+        if ("name" in found && n >= 3 && (!cols || "national_id" in found || n > Object.keys(cols).length)) {
+          cols = found; settled = "national_id" in found; closed = false; rows = []; emptyRun = 0;
           const used = new Set(Object.values(found));
-          ignored = values.map((v, i) => [i, norm(cellText(v))]).filter(([i, t]) => t && !used.has(i) && !COMPUTED.has(headerKey(t))).map(([, t]) => t);
+          unread = values.map(v => norm(cellText(v))).filter((t, i) => t && !used.has(i) && !COMPUTED.has(headerKey(t)));
+          continue;
         }
-        if (row.number > 500 && !cols) break;
-        continue;
+        if (row.number > 500) { if (!cols) break; settled = true; }
+        if (!cols) continue;
       }
       const raw = {};
       for (const [f, i] of Object.entries(cols)) raw[f] = cellText(values[i]);
       if (!norm(raw.national_id) && !norm(raw.name)) {
         // The teacher's sheet keeps a second copy far below the main table; stop at the first gap.
-        if (rows.length && ++emptyRun >= 5) break;
+        // Until the header is settled, the rows after a gap are left out while a better header is looked for.
+        if (rows.length && ++emptyRun >= 5) { if (settled) break; closed = true; }
         continue;
       }
+      if (closed) continue;
       emptyRun = 0;
       raw.class = classOfRow(raw);
       rows.push({ line: row.number, raw });
     }
-    if (cols) return { rows, ignored };
+    if (cols) {
+      sheets.push({ name: norm(sheet.name), rows });
+      unread.forEach(t => ignored.add(t));
+      for (const f of Object.keys(cols)) fields.add(f === "grade" || f === "section" ? "class" : f);
+    }
+    if (last) break;
   }
-  return null;
+  return sheets.length ? { sheets, ignored: [...ignored], fields: FIELDS.map(([f]) => f).filter(f => fields.has(f)) } : null;
+}
+
+// Names compare loosely, as headers do: أ/ا، ى/ي، ة/ه, spacing, and "عبد الله" written as one word.
+const nameKey = s => school.plain(norm(s)).replace(/(^| )عبد /g, "$1عبد");
+// The saved students a name stands for: the whole name, or else a shorter one that starts the other
+// ("نورة محمد" for "نورة محمد العتيبي"), two words at least.
+function byName(name, list) {
+  const k = nameKey(name);
+  if (!k) return [];
+  const exact = list.filter(s => nameKey(s.name) === k);
+  if (exact.length) return exact;
+  const words = k.split(" ");
+  return list.filter(s => {
+    const w = nameKey(s.name).split(" ");
+    const [short, long] = w.length < words.length ? [w, words] : [words, w];
+    return short.length >= 2 && short.every((x, i) => x === long[i]);
+  });
 }
 
 // Students listed by grade and section; classes without a grade after them.
@@ -287,6 +326,7 @@ module.exports = function mountAdmin(app, pool) {
   const recent = (map, key) => (map.get(key) || []).filter(t => Date.now() - t < LOCK_MS);
 
   const router = express.Router();
+  const who = new AsyncLocalStorage();
   router.use(express.json({ limit: "100kb" }));
   // Express 4 does not catch rejected promises; send them to the error handler.
   for (const m of ["get", "post", "put", "delete"]) {
@@ -364,13 +404,18 @@ module.exports = function mountAdmin(app, pool) {
     if (req.role === "admin" && !schoolLog && !ADMIN_ROUTES.test(req.path)) return res.status(403).json({ error: "school_only", errors: ["حساب الإدارة ما يعرض بيانات المعلمات"] });
     // The principal's account sees everything and changes nothing.
     if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
-    next();
+    // Whoever is signed in signs every log entry the request writes.
+    const actor = s.role === "admin" ? "إدارة المنصة" : s.role === "viewer" ? "المديرة" : getTeacher(s.tid)?.name || null;
+    who.run({ actor, role: s.role, device: deviceOf(req) }, next);
   });
   const adminOnly = (req, res, next) => (req.role === "admin" ? next() : res.status(403).json({ error: "forbidden", errors: ["هذا الإجراء لإدارة المنصة فقط"] }));
 
   // Every change is logged against the teacher it touched; the school's own (calendar, staff) against none.
-  const log = (q, tid, action, nationalId, details) =>
-    q.query("INSERT INTO audit_log (teacher_id, action, national_id, details) VALUES ($1, $2, $3, $4)", [tid, action, nationalId ?? null, JSON.stringify(details ?? {})]);
+  const log = (q, tid, action, nationalId, details) => {
+    const by = who.getStore() || {};
+    return q.query("INSERT INTO audit_log (teacher_id, action, national_id, details, actor, actor_role, device) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [tid, action, nationalId ?? null, JSON.stringify(details ?? {}), by.actor ?? null, by.role ?? null, by.device ?? null]);
+  };
 
   // The admin sees the school's calendar as it stands; a teacher's semester also follows her own archives.
   const calendarInfo = async (tid, role) => ({ years: school.getYears(), now: role === "admin" ? school.situation() : await school.now(pool, tid) });
@@ -514,11 +559,84 @@ module.exports = function mountAdmin(app, pool) {
     res.json(getSettings(T));
   });
 
+  // The log, newest first, a page at a time (?before= the last id shown). ?grades=1 keeps the changes to students only,
+  // ?student= one student's (her own entries and the files that changed her), ?from=/?to= a span of days (YYYY-MM-DD, Riyadh).
+  const STUDENT_ACTIONS = ["edit", "add", "delete", "import", "undo", "restore"];
+  const PAGE = 200;
+  function auditQuery(req) {
+    const args = [req.role === "admin" ? null : req.tid], where = ["a.teacher_id IS NOT DISTINCT FROM $1"];
+    const arg = v => (args.push(v), "$" + args.length);
+    const day = v => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+    if (Number(req.query.before) > 0) where.push(`a.id < ${arg(Number(req.query.before))}`);
+    if (req.query.grades === "1") where.push(`a.action = ANY(${arg(STUDENT_ACTIONS)})`);
+    if (typeof req.query.student === "string" && req.query.student) {
+      const id = arg(req.query.student);
+      where.push(`(a.national_id = ${id} OR (a.action = 'import' AND (a.details->'students' @> jsonb_build_array(jsonb_build_object('id', ${id}::text))
+        OR a.details->'added' @> jsonb_build_array(jsonb_build_object('id', ${id}::text)))))`);
+    }
+    if (day(req.query.from)) where.push(`a.created_at >= (${arg(day(req.query.from))}::date::timestamp AT TIME ZONE 'Asia/Riyadh')`);
+    if (day(req.query.to)) where.push(`a.created_at < ((${arg(day(req.query.to))}::date + 1)::timestamp AT TIME ZONE 'Asia/Riyadh')`);
+    return { where: where.join(" AND "), args };
+  }
+  // A grade changed after an archive that kept the grades makes the live sheet differ from the archived copy.
+  const lastArchive = tid => pool.query(`SELECT created_at, details->>'title' AS title FROM audit_log WHERE teacher_id = $1 AND action = 'term_archive'
+    AND undone_at IS NULL AND NOT coalesce((details->>'cleared')::boolean, false) AND created_at > coalesce((SELECT max(created_at) FROM audit_log
+    WHERE teacher_id = $1 AND action = 'term_archive' AND undone_at IS NULL AND (details->>'cleared')::boolean), '-infinity')
+    ORDER BY id DESC LIMIT 1`, [tid]).then(r => r.rows[0] || null);
+
   router.get("/audit", async (req, res) => {
-    const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, s.name AS current_name
+    const { where, args } = auditQuery(req);
+    const { rows } = await pool.query(`SELECT a.id, a.created_at, a.action, a.national_id, a.details, a.undone_at, a.actor, a.actor_role, a.device, s.name AS current_name
       FROM audit_log a LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id
-      WHERE a.teacher_id IS NOT DISTINCT FROM $1 ORDER BY a.id DESC LIMIT 300`, [req.role === "admin" ? null : req.tid]);
-    res.json(rows);
+      WHERE ${where} ORDER BY a.id DESC LIMIT ${PAGE + 1}`, args);
+    res.json({ entries: rows.slice(0, PAGE), more: rows.length > PAGE, archive: req.role === "admin" ? null : await lastArchive(req.tid) });
+  });
+
+  // The changes to students as a sheet: one row per field changed, with who, when and from which device.
+  const riyadh = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+  const ACTION_LABEL = { edit: "تعديل", add: "إضافة", delete: "حذف", import: "رفع إكسل", undo: "تراجع", restore: "استرجاع نسخة" };
+  router.get("/audit/export", async (req, res) => {
+    req.query.grades = "1";
+    const { where, args } = auditQuery(req);
+    const { rows } = await pool.query(`SELECT a.*, s.name AS current_name FROM audit_log a
+      LEFT JOIN students s ON s.teacher_id = a.teacher_id AND s.national_id = a.national_id WHERE ${where} ORDER BY a.id DESC LIMIT 20000`, args);
+    const limits = limitsFor(maxOf(getSettings(req.tid)));
+    const show = (v, f) => (v == null || v === "" ? "فاضي" : f === "learning_difficulty" ? (v ? "نعم" : "لا") : f === "class" ? grades.Report.classLabel(v) : v);
+    const flag = c => {
+      if (!NUMERIC.has(c.field) || c.from == null) return "";
+      if (c.to == null) return "مسح درجة";
+      return Math.abs(Number(c.to) - Number(c.from)) > limits[c.field] / 4 ? "تغيير كبير" : "";
+    };
+    const out = [];
+    for (const a of rows) {
+      const base = { when: riyadh.format(a.created_at).replace(",", ""), actor: a.actor || "", device: a.device || "", action: ACTION_LABEL[a.action] + (a.undone_at ? " (تم التراجع)" : "") };
+      const name = a.current_name || a.details?.name || "";
+      const one = (id, nm, c) => out.push({ ...base, national_id: id, name: nm, field: c ? LABEL[c.field] || c.field : "",
+        from: c ? show(c.from, c.field) : "", to: c ? show(c.to, c.field) : "", flag: c ? flag(c) : "" });
+      if (a.action === "edit") for (const c of a.details || []) { if (c.field !== "test_avg") one(a.national_id, name, c); }
+      else if (a.action === "import") {
+        for (const st of a.details?.students || []) for (const c of st.changes) one(st.id, st.name, c);
+        for (const st of a.details?.added || []) out.push({ ...base, national_id: st.id, name: st.name, field: "طالبة جديدة" });
+        if (!a.details?.students) out.push({ ...base, name: `تحديث ${a.details?.count ?? 0} طالبة (بدون تفاصيل)` });
+      } else if (a.action === "restore") out.push({ ...base, name: `نسخة رقم ${a.details?.backup}` });
+      else one(a.national_id, name, null);
+    }
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("سجل التعديلات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
+    ws.columns = [["when", "الوقت", 17], ["actor", "مين عدّل", 22], ["device", "الجهاز", 10], ["action", "العملية", 14], ["name", "الطالبة", 30],
+      ["national_id", "رقم الهوية", 14], ["field", "الحقل", 18], ["from", "قبل", 12], ["to", "بعد", 12], ["flag", "ملاحظة", 12]]
+      .map(([key, header, width]) => ({ key, header, width }));
+    out.forEach(r => ws.addRow(r));
+    const head = ws.getRow(1);
+    head.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    head.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B2765" } };
+    head.alignment = { horizontal: "center", vertical: "middle" };
+    ws.getColumn("national_id").numFmt = "@";
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="audit-${stamp}.xlsx"; filename*=UTF-8''${encodeURIComponent(`سجل التعديلات ${stamp}.xlsx`)}`);
+    await wb.xlsx.write(res);
+    res.end();
   });
 
   // Undo one student change. Fields edited again since then are left alone and reported back.
@@ -851,7 +969,85 @@ module.exports = function mountAdmin(app, pool) {
     return p;
   };
 
-  // A class picked before the upload takes every student in the file; without one, each row's class column decides.
+  // A class picked before the upload takes every student in the file; without one, each row's class column decides,
+  // or else the name of its sheet. Only the columns picked in the preview are read: the others are as if not in the file.
+  async function importPreview(T, p) {
+    const max = maxOf(getSettings(T));
+    const rows = await studentsOf(pool, T);
+    const known = (await pool.query("SELECT name, aliases FROM classes WHERE teacher_id = $1", [T])).rows;
+    const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
+    const picked = new Set(p.fields);
+    // The ID is how a row finds its student. A class picked before the upload always applies, as does a sheet's name
+    // when the file has no class column.
+    const reads = f => f === "national_id" || picked.has(f) || (f === "class" && (!!p.target || !p.parsed.fields.includes("class")));
+    const sheetClass = name => {
+      const to = resolveClass(name, known);
+      return to && (known.some(c => c.name === to) || school.parseClass(name)) ? to : null;
+    };
+    const sheets = p.parsed.sheets.map(sh => ({ name: sh.name, rows: sh.rows.length, class: p.target ? null : sheetClass(sh.name) }));
+    const lines = p.parsed.sheets.flatMap((sh, i) => sh.rows.map(r => {
+      const raw = { ...r.raw };
+      for (const f of Object.keys(raw)) if (!picked.has(f) && !["national_id", "name", "class", "grade", "section"].includes(f)) raw[f] = "";
+      const fileClass = resolveClass(norm(raw.class) || null, known);
+      return { line: r.line, sheet: p.parsed.sheets.length > 1 ? sh.name : null, raw, fileClass, cls: p.target || fileClass || sheets[i].class };
+    }));
+
+    // A row without an ID takes the ID of the saved student her name stands for, among her class's students when her
+    // class is known (an empty class matches nobody), and among those no other row of the file names by ID.
+    const fileIds = new Set(lines.map(l => String(l.raw.national_id ?? "").replace(/\D/g, "")).filter(Boolean));
+    const claimed = new Set(), matched = [];
+    for (const l of lines) {
+      if (String(l.raw.national_id ?? "").replace(/\D/g, "") || !norm(l.raw.name)) continue;
+      const free = [...current.values()].filter(s => !fileIds.has(s.national_id) && !claimed.has(s.national_id));
+      const inClass = free.filter(s => s.class === l.cls);
+      const hits = byName(l.raw.name, l.cls ? inClass : free);
+      if (hits.length > 1) { l.nameProblem = `الاسم يطابق أكثر من طالبة (${hits.map(h => h.name).join("، ")})، اكتبي رقم الهوية`; continue; }
+      if (!hits.length) continue;
+      const s = hits[0];
+      claimed.add(s.national_id);
+      matched.push({ line: l.line, sheet: l.sheet, file: norm(l.raw.name), name: s.name, national_id: s.national_id });
+      // The saved name stays: the file's may be the shorter one.
+      Object.assign(l.raw, { national_id: s.national_id, name: s.name });
+      l.byName = true;
+    }
+
+    const seen = new Set();
+    const added = [], changed = [], errors = [], unchanged = [], elsewhere = {}, named = new Set();
+    for (const l of lines) {
+      const { student, errors: errs } = cleanStudent(l.raw, max);
+      if (l.nameProblem) errs.splice(errs.indexOf(ID_EMPTY), 1, l.nameProblem);
+      if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
+      if (l.fileClass) named.add(l.fileClass);
+      student.class = l.cls;
+      if (seen.has(student.national_id)) errs.push("رقم الهوية مكرر في الملف");
+      if (errs.length) { errors.push({ line: l.line, sheet: l.sheet, name: student.name || norm(l.raw.name), id: student.national_id, problems: errs }); continue; }
+      seen.add(student.national_id);
+      // A sheet that names another class may be the wrong file; the preview says so before anything changes.
+      if (p.target && l.fileClass && l.fileClass !== p.target) elsewhere[l.fileClass] = (elsewhere[l.fileClass] || 0) + 1;
+      const before = current.get(student.national_id);
+      if (!before) { student.learning_difficulty ??= false; added.push(student); continue; }
+      // An empty cell in the file never erases a value already saved (e.g. a style set from the panel), and a column
+      // left out of the pick never changes one.
+      for (const [f] of FIELDS) if ((student[f] == null && before[f] != null) || !reads(f)) student[f] = before[f];
+      if ((picked.has("test1") || picked.has("test2")) && student.test1 != null && student.test2 != null)
+        student.test_avg = Math.round(((student.test1 + student.test2) / 2) * 100) / 100;
+      const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
+      if (changes.length) changed.push({ student, changes, byName: !!l.byName }); else unchanged.push(student.national_id);
+    }
+    // With a class picked, only its own students can be missing from the file; without one, only those of the classes
+    // the file names (all of them, if it names none).
+    for (const sh of sheets) if (sh.class) named.add(sh.class);
+    const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (p.target ? s.class === p.target : !named.size || named.has(s.class)))
+      .map(s => ({ national_id: s.national_id, name: s.name }));
+
+    p.upserts = [...added, ...changed.map(c => c.student)];
+    p.at = Date.now();
+    return { fileName: p.fileName, totalRows: lines.length, added, changed, unchanged: unchanged.length, errors, missing,
+      target: p.target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })),
+      ignored: p.parsed.ignored, missingIds: errors.filter(e => e.problems.includes(ID_EMPTY)).length,
+      byName: matched, sheets: sheets.length > 1 ? sheets : [], fields: p.parsed.fields.filter(f => f !== "national_id" && !(f === "class" && p.target)).map(f => ({ field: f, label: LABEL[f] })), picked: [...picked] };
+  }
+
   router.post("/import", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "no_file" });
     const T = req.tid;
@@ -870,40 +1066,18 @@ module.exports = function mountAdmin(app, pool) {
       fs.unlink(req.file.path, () => {});
     }
     if (!parsed) return res.status(400).json({ error: "no_table" });
+    const p = { kind: "students", tid: T, target, parsed, fields: parsed.fields, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8") };
+    const out = await importPreview(T, p);
+    res.json({ token: keepPreview(p), ...out });
+  });
 
-    const max = maxOf(getSettings(T));
-    const rows = await studentsOf(pool, T);
-    const known = (await pool.query("SELECT name, aliases FROM classes WHERE teacher_id = $1", [T])).rows;
-    const current = new Map(rows.map(r => [r.national_id, fromRow(r)]));
-    const seen = new Set();
-    const added = [], changed = [], errors = [], unchanged = [], elsewhere = {}, named = new Set();
-    for (const { line, raw } of parsed.rows) {
-      const { student, errors: errs } = cleanStudent(raw, max);
-      if (school.isLdGroup(student.class)) student.learning_difficulty ??= true;
-      const fileClass = resolveClass(student.class, known);
-      if (fileClass) named.add(fileClass);
-      student.class = target || fileClass;
-      if (seen.has(student.national_id)) errs.push("رقم الهوية مكرر في الملف");
-      if (errs.length) { errors.push({ line, name: student.name || norm(raw.name), id: student.national_id, problems: errs }); continue; }
-      seen.add(student.national_id);
-      // A sheet that names another class may be the wrong file; the preview says so before anything changes.
-      if (target && fileClass && fileClass !== target) elsewhere[fileClass] = (elsewhere[fileClass] || 0) + 1;
-      const before = current.get(student.national_id);
-      if (!before) { student.learning_difficulty ??= false; added.push(student); continue; }
-      // An empty cell in the file never erases a value already saved (e.g. a style set from the panel).
-      for (const [f] of FIELDS) if (student[f] == null && before[f] != null) student[f] = before[f];
-      const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
-      if (changes.length) changed.push({ student, changes }); else unchanged.push(student.national_id);
-    }
-    // With a class picked, only its own students can be missing from the file; without one, only those of the classes
-    // the file names (all of them, if it names none).
-    const missing = [...current.values()].filter(s => !seen.has(s.national_id) && (target ? s.class === target : !named.size || named.has(s.class)))
-      .map(s => ({ national_id: s.national_id, name: s.name }));
-
-    const token = keepPreview({ kind: "students", tid: T, target, upserts: [...added, ...changed.map(c => c.student)] });
-    res.json({ token, fileName: Buffer.from(req.file.originalname, "latin1").toString("utf8"), totalRows: parsed.rows.length, added, changed, unchanged: unchanged.length, errors, missing,
-      target, elsewhere: Object.entries(elsewhere).map(([name, count]) => ({ name, count })),
-      ignored: parsed.ignored, missingIds: errors.filter(e => e.problems.includes(ID_EMPTY)).length });
+  // The preview again, reading only the columns the teacher picked.
+  router.post("/import/:token/fields", async (req, res) => {
+    const p = previews.get(req.params.token);
+    if (!p || p.kind !== "students" || p.tid !== req.tid) return res.status(410).json({ error: "expired" });
+    const want = new Set(Array.isArray(req.body?.fields) ? req.body.fields : []);
+    p.fields = p.parsed.fields.filter(f => f === "national_id" || want.has(f));
+    res.json({ token: req.params.token, ...(await importPreview(p.tid, p)) });
   });
 
   router.post("/import/:token/apply", async (req, res) => {
@@ -911,10 +1085,20 @@ module.exports = function mountAdmin(app, pool) {
     if (!p) return res.status(410).json({ error: "expired" });
     const T = p.tid;
     await inTransaction(async client => {
-      await backup(client, T, "قبل رفع ملف إكسل", await studentsOf(client, T));
+      const rows = await studentsOf(client, T);
+      await backup(client, T, "قبل رفع ملف إكسل", rows);
       for (const s of p.upserts) await insertStudent(client, T, s, { upsert: true });
       await syncClasses(client, T);
-      await log(client, T, "import", null, { count: p.upserts.length, class: p.target || undefined });
+      // The log keeps each grade the file changed, read against the rows as they were just before it.
+      const before = new Map(rows.map(r => [r.national_id, fromRow(r)]));
+      const students = [], added = [];
+      for (const s of p.upserts) {
+        const b = before.get(s.national_id);
+        if (!b) { added.push({ id: s.national_id, name: s.name, class: s.class ?? null }); continue; }
+        const changes = COLS.filter(c => c !== "test_avg" && !same(b[c], s[c])).map(c => ({ field: c, from: b[c], to: s[c] }));
+        if (changes.length) students.push({ id: s.national_id, name: s.name, changes });
+      }
+      await log(client, T, "import", null, { count: p.upserts.length, class: p.target || undefined, students, added });
     });
     res.json({ ok: true, count: p.upserts.length });
   });
@@ -1099,6 +1283,9 @@ module.exports = function mountAdmin(app, pool) {
 
   // Every teacher at a glance: her classes, students, average and lookups. Names and numbers only, no student's grades.
   // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
+  // Classes and subjects compared across the school, for the principal.
+  reports.mount(router, pool);
+
   router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
     // A teacher's other subjects show as rows of their own; her sign-in is on her first one.
     const teachers = (await pool.query(`SELECT t.id, t.name, t.subject, t.active, coalesce(o.last_login, t.last_login) AS last_login,

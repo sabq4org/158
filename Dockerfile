@@ -2,7 +2,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
-COPY server.js admin.js settings.js grades.js school.js feedback.js staff.js alerts.js ./
+COPY server.js admin.js settings.js grades.js school.js feedback.js staff.js reports.js alerts.js ./
 COPY public ./public
 ENV NODE_ENV=production
 EXPOSE 3000
