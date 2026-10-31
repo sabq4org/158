@@ -1120,6 +1120,7 @@ async function showApp(info) {
   $("#schoolNote").textContent = role === "viewer" ? "أرقام عامة لكل معلمة. افتحي لوحة أي معلمة لتفاصيل فصولها وطالباتها." : "أرقام عامة لكل معلمة. الإدارة ما تشوف درجات الطالبات، والمديرة تتابعها من حسابها.";
   if (role === "viewer") $("#tab-school").setAttribute("aria-selected", "true"), $("#tab-overview").setAttribute("aria-selected", "false");
   $("#auditWho").textContent = role === "admin" ? "" : "الطالبة";
+  showLessonsTab();
   if (role === "admin") await loadSchool(me); else await loadTeacher(me);
   // An open tab this account can't see (after switching accounts) gives way to its first one.
   const tabs = [...document.querySelectorAll(".tab")].filter(t => getComputedStyle(t).display !== "none");
@@ -1163,6 +1164,14 @@ function renderTeacherBar() {
   $("#teacherNote").textContent = role === "viewer" ? "عرض فقط." : role === "teacher" ? "كل مادة لها فصولها وطالباتها وإعداداتها." : "كل التبويبات تحت تخص المعلمة المختارة.";
 }
 
+// The interactive lessons are their teacher's alone: the tab shows in her own panel only, never to the principal or
+// another teacher. If it was open when it goes away, the overview takes its place.
+function showLessonsTab() {
+  const tab = $("#tab-lessons"), off = !(me?.lessons || []).length;
+  tab.hidden = off;
+  if (off && tab.getAttribute("aria-selected") === "true") $("#tab-overview").click();
+}
+
 // A later pick wins: an answer for a teacher no longer picked is dropped, and the picker waits for the current one.
 let switching = 0;
 async function switchTeacher(id) {
@@ -1177,6 +1186,7 @@ async function switchTeacher(id) {
   if (turn !== switching || info.teacher?.id !== T) return;
   me = info;
   renderTeacherBar();
+  showLessonsTab();
   await loadTeacher(info);
   if ($("#tab-terms").getAttribute("aria-selected") === "true") loadTerms();
   LessonResults.reset();
@@ -1258,7 +1268,7 @@ async function loadStudents() {
   renderStats(); renderRows(); renderClasses(); renderClassView(); renderImportClass(); renderOverview(); renderCalendar(); renderTeach();
   loadAlerts().catch(() => {});
 }
-const renderTeach = () => Teach.render($("#teachPanel"), { students, classes, subject: settings?.subject || "", teacher: T, site: siteForReport });
+const renderTeach = () => Teach.render($("#teachPanel"), { students, classes, subject: settings?.subject || "", teacher: T, site: siteForReport, lessons: me?.lessons || [] });
 
 // Classes for a select, grouped by grade; classes without a grade come last.
 function classOptions(withTrack) {

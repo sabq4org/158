@@ -143,7 +143,8 @@ const Teach = (() => {
   const isMath = subject => !subject || /رياضيات/.test(subject);
   const lessonById = id => LESSONS.find(l => l.id === id) || null;
   // Lessons that fit the class's grade (all of them when the class has no grade, or for all classes).
-  const lessonsFor = (subject, grades) => (isMath(subject) ? LESSONS.filter(l => !grades.length || grades.includes(l.grade)) : []);
+  // Only the lessons this panel owns (owned: their ids, from the server); without a list, every math lesson.
+  const lessonsFor = (subject, grades, owned) => (isMath(subject) ? LESSONS.filter(l => (!owned || owned.includes(l.id)) && (!grades.length || grades.includes(l.grade))) : []);
   const linkOf = (lesson, a) => (lesson && a.at ? lesson.url + a.at : "");
   const activitiesOf = (lesson, k) => (lesson ? lesson.styles[k] : GENERAL_STYLES[k]);
 
@@ -162,7 +163,7 @@ const Teach = (() => {
   const loadPick = () => { try { return JSON.parse(localStorage.getItem(storeKey())) || {}; } catch { return {}; } };
   const savePick = () => { try { localStorage.setItem(storeKey(), JSON.stringify(pick)); } catch {} };
 
-  // ctx: { students, classes, subject, teacher, site() } from the admin panel.
+  // ctx: { students, classes, subject, teacher, site(), lessons } from the admin panel; lessons = the ids this panel owns.
   function render(el, c) {
     host = el; ctx = c;
     const saved = loadPick();
@@ -174,7 +175,7 @@ const Teach = (() => {
     const { students, classes, subject } = ctx;
     const cls = classes.find(c => c.name === pick.cls);
     const grades = cls ? (cls.grade ? [cls.grade] : []) : [...new Set(classes.map(c => c.grade).filter(Boolean))];
-    const lessons = lessonsFor(subject, grades);
+    const lessons = lessonsFor(subject, grades, ctx.lessons);
     const want = wantLesson ?? pick.lesson;
     pick.lesson = want === GENERAL || lessons.some(l => l.id === want) ? want : lessons[0]?.id || GENERAL;
     const lesson = lessonById(pick.lesson);
