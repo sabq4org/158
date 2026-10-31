@@ -432,6 +432,8 @@ module.exports = function mountAdmin(app, pool) {
       // The principal switches between teachers; a teacher between her subjects, when she has several.
       teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : mine.length > 1 ? mine.map(teacherInfo) : undefined,
       user: req.role === "teacher" ? getTeacher(req.login).email : undefined, login: req.login,
+      // The interactive lessons this panel owns: only their teacher sees them (and their tab), never the principal.
+      lessons: lessons.panelLessons(req.role, req.login, t?.subject).map(l => l.key),
       max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
       calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
   });
