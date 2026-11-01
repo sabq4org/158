@@ -114,7 +114,7 @@ const Teach = (() => {
       },
     },
     {
-      id: "triangle-classification", code: "3-1", title: "تصنيف المثلثات", book: "رياضيات 1", grade: 1, url: "/lessons/triangle-classification",
+      id: "triangle-classification", code: "3-1", title: "تصنيف المثلثات", book: "رياضيات 1-2", grade: 1, url: "/lessons/triangle-classification",
       styles: {
         "بصري": [
           A("بطاقات تنوّر", "تسحب المجموعة رؤوس المثلث وتراقب أي بطاقة تنوّر، وترسم في الدفتر مثالًا لكل نوع.", "#s1", "الزوايا"),

@@ -31,9 +31,8 @@ const LESSONS = [
     quiz: "تحدي المحققة: 5 منحنيات × 3 أسئلة", about: "رحلة تحت سماء الليل: الدرجة وسلوك الطرفين والأصفار الحقيقية بمنحنيات حية.", theme: "night", owner: FAIZA },
   { key: "perpendicular-distance", name: "أقصر طريق", title: "الأعمدة والمسافة", ref: "2-6", book: "رياضيات 1", grade: 1, pages: "127–134", total: 6,
     quiz: "6 أسئلة من تمارين الكتاب", about: "البعد بين نقطة ومستقيم وبين مستقيمين متوازيين، بفرجار متحرك ومستوى إحداثي تسحبين فيه.", theme: "blueprint", owner: FAIZA },
-  // Pages left empty until the third chapter of the book is uploaded; the library hides an empty page range.
-  { key: "triangle-classification", name: "سدو المثلثات", title: "تصنيف المثلثات", ref: "3-1", book: "رياضيات 1", grade: 1, pages: "", total: 6,
-    quiz: "6 أسئلة: زوايا وأضلاع وجبر وإحداثيات", about: "تسحبين رؤوس المثلث على نول السدو فيصنّف نفسه حسب الزوايا والأضلاع، ثم تكملين لوحة الأنواع السبعة.", theme: "sadu", owner: FAIZA },
+  { key: "triangle-classification", name: "سدو المثلثات", title: "تصنيف المثلثات", ref: "3-1", book: "رياضيات 1-2", grade: 1, pages: "12–18", total: 6,
+    quiz: "6 أسئلة من تمارين الكتاب", about: "تسحبين رؤوس المثلث على نول السدو فيصنّف نفسه حسب الزوايا والأضلاع، ثم تكملين لوحة الأنواع السبعة.", theme: "sadu", owner: FAIZA },
 ];
 const BY_KEY = Object.fromEntries(LESSONS.map(l => [l.key, l]));
 const SUBJECT = "رياضيات";
