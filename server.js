@@ -179,7 +179,7 @@ app.get("/vendor/jspdf.umd.min.js", (req, res) => res.sendFile(require.resolve("
 // Interactive lessons: separate pages, not linked from the lookup, gathered in the library at /lessons.
 const page = file => (req, res) => res.sendFile(path.join(__dirname, "public", "lessons", file), { headers: { "Cache-Control": "no-cache" } });
 app.get(["/lessons", "/lessons/"], page("index.html"));
-for (const name of ["polynomials", "polynomial-functions", "polynomial-division", "perpendicular-distance"]) app.get([`/lessons/${name}`, `/lessons/${name}/`], page(`${name}.html`));
+for (const name of ["polynomials", "polynomial-functions", "polynomial-division", "perpendicular-distance", "triangle-classification"]) app.get([`/lessons/${name}`, `/lessons/${name}/`], page(`${name}.html`));
 // The model lesson's attendees sign in and rate it here; the teacher reads both on the dashboard after signing in to the panel.
 app.get(["/lessons/polynomials/attendance", "/lessons/polynomials/attendance/"], page("polynomials-attendance.html"));
 app.get(["/lessons/polynomials/feedback", "/lessons/polynomials/feedback/"], page("polynomials-feedback.html"));

@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>سدو المثلثات</title>
+<meta name="description" content="درس تفاعلي: تصنيف المثلثات حسب الزوايا وحسب الأضلاع، رياضيات 1، الدرس 3-1">
+<meta name="theme-color" content="#b3261e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* «سدو المثلثات»: lesson 3-1 woven like Al Sadu, the Bedouin textile full of triangles. The student drags triangles
+   on two looms (a square grid and a triangular one), watches them sort themselves by angles and by sides, fills a
+   3×3 Sadu board with every possible kind, solves for x on a balance, classifies on the coordinate plane, then sorts
+   threads in a quick game before the quiz. Every classification is exact: lattice points give integer squared lengths
+   and dot products, so a right angle is a right angle and equal sides are equal, never "close enough". */
+:root {
+  --bg: #f1e6d3;
+  --sheet: #fbf5ea;
+  --ink: #2b1a14;
+  --muted: #7a6253;
+  --line: #e0cfb4;
+  --red: #b3261e;
+  --red-soft: #f6dcd5;
+  --ochre: #c27a0e;
+  --ochre-soft: #f8e7c6;
+  --green: #2f7d4f;
+  --green-soft: #dcefe2;
+  --indigo: #2c4a8a;
+  --indigo-soft: #dde5f5;
+  --wool: #fffaf1;
+  --shadow: 0 1px 1px rgba(43, 26, 20, .06), 0 16px 36px -18px rgba(43, 26, 20, .45);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #150d09; --sheet: #22160f; --ink: #f4e8d6; --muted: #b9a189; --line: #3e2d21; --red: #ff7466; --red-soft: #4a1f1a;
+    --ochre: #f2b14a; --ochre-soft: #43301a; --green: #6fd39a; --green-soft: #173a28; --indigo: #9db6ff; --indigo-soft: #1f2b4a; --wool: #2b1d14;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #150d09; --sheet: #22160f; --ink: #f4e8d6; --muted: #b9a189; --line: #3e2d21; --red: #ff7466; --red-soft: #4a1f1a;
+  --ochre: #f2b14a; --ochre-soft: #43301a; --green: #6fd39a; --green-soft: #173a28; --indigo: #9db6ff; --indigo-soft: #1f2b4a; --wool: #2b1d14;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(45deg, color-mix(in srgb, var(--ink) 3%, transparent) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ink) 3%, transparent) 0 2px, transparent 2px 9px);
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m i { font-style: italic; }
+.sq { white-space: nowrap; }
+.sq > span { border-top: 1.4px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: .86em; line-height: 1.15; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 3px; }
+.num { font-family: var(--mono); direction: ltr; unicode-bidi: isolate; }
+.cr { color: var(--red); } .co { color: var(--ochre); } .cg { color: var(--green); } .ci { color: var(--indigo); }
+
+/* Sadu band: red and ochre triangles that interlock, used on every sheet's edges. */
+.band { height: 14px; background:
+  conic-gradient(from -45deg at 50% 100%, var(--red) 90deg, transparent 0) 0 0 / 28px 14px repeat-x,
+  conic-gradient(from 135deg at 50% 0, var(--ochre) 90deg, transparent 0) 14px 0 / 28px 14px repeat-x,
+  var(--ink); }
+
+/* Ribbon */
+.ribbon { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--sheet) 90%, transparent); backdrop-filter: blur(8px); border-bottom: 3px solid var(--red); }
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--red); }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 2px 12px; border: 1.5px solid var(--line); border-radius: 99px; font-weight: 600; }
+.ribbon nav a.on { color: #fff; background: var(--red); border-color: var(--red); }
+.ribbon nav a.done { color: var(--red); border-color: var(--red); }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Sheets */
+main { max-width: 1000px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet { position: relative; margin: 36px 0 0; padding: 40px 28px 46px; scroll-margin-top: 66px; background: var(--sheet);
+  border-radius: 6px; box-shadow: var(--shadow); overflow: hidden; border-inline: 6px solid var(--ink); }
+.sheet::before, .sheet::after { content: ""; position: absolute; inset-inline: 0; height: 14px; background:
+  conic-gradient(from -45deg at 50% 100%, var(--red) 90deg, transparent 0) 0 0 / 28px 14px repeat-x,
+  conic-gradient(from 135deg at 50% 0, var(--ochre) 90deg, transparent 0) 14px 0 / 28px 14px repeat-x, var(--ink); }
+.sheet::before { top: 0; }
+.sheet::after { bottom: 0; transform: scaleY(-1); }
+.thread { position: absolute; left: 14px; bottom: 20px; font: 600 11px var(--mono); color: var(--muted); direction: ltr; letter-spacing: .5px; }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--red); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: var(--wool); background: var(--ink); padding: 1px 9px; border-radius: 3px; }
+h2 { margin: 4px 0 6px; font-size: 27px; line-height: 1.4; }
+h3 { line-height: 1.5; }
+.lead { color: var(--muted); max-width: 780px; }
+.note { margin-top: 14px; padding: 12px 16px; border-radius: 6px; border: 1.5px dashed var(--ochre); background: color-mix(in srgb, var(--ochre-soft) 70%, transparent); }
+.note.def { border: 1.5px solid var(--red); background: color-mix(in srgb, var(--red-soft) 65%, transparent); }
+.note .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--red); padding: 0 8px; border-radius: 3px; margin-inline-end: 6px; }
+.note:not(.def) .tag { background: var(--ochre); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 2px solid var(--ink); background: var(--red); color: #fff; font-weight: 700; padding: 7px 18px; border-radius: 6px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); transition: transform .12s, box-shadow .12s; }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.soft { background: var(--sheet); color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.chip { border: 1.5px solid var(--line); background: var(--wool); border-radius: 99px; padding: 3px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--wool); }
+.chip.got { border-color: var(--green); color: var(--green); }
+.chip.got::before { content: "✓ "; }
+.ro { display: inline-flex; align-items: baseline; gap: 6px; border: 1.5px solid var(--line); background: var(--wool); padding: 3px 12px; border-radius: 6px; font-size: 14px; }
+.ro b { font: 600 16px var(--mono); direction: ltr; unicode-bidi: isolate; }
+.stage { width: 100%; display: block; background: var(--wool); border: 1.5px solid var(--line); border-radius: 6px; user-select: none; -webkit-user-select: none; touch-action: none; }
+svg { direction: ltr; }
+svg text { font-family: var(--mono); font-weight: 600; }
+svg .lbl { font-family: var(--font); font-weight: 700; }
+[data-v] { cursor: grab; }
+.narr { margin-top: 12px; padding: 12px 16px; background: var(--wool); border: 1.5px solid var(--line); border-inline-start: 5px solid var(--red); border-radius: 6px; min-height: 54px; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pop { animation: pop .35s both; }
+.toggle { display: inline-flex; border: 2px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.toggle button { border: 0; background: var(--wool); padding: 5px 14px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--ink); color: var(--wool); }
+
+/* Hero */
+.hero { text-align: center; }
+.logos { display: inline-flex; gap: 14px; align-items: center; background: #fff; padding: 8px 16px; border-radius: 6px; box-shadow: var(--shadow); }
+.logos img { height: 44px; width: auto; }
+.hero h1 { margin: 16px 0 0; font-size: clamp(40px, 9vw, 74px); line-height: 1.15; }
+.hero h1 span { color: var(--red); }
+.hero .sub { color: var(--muted); font-weight: 600; }
+.hero .story { text-align: right; max-width: 740px; margin: 14px auto 0; }
+#loom .tri { cursor: pointer; transition: transform .25s; transform-box: fill-box; transform-origin: center; }
+#loom .tri:hover { transform: scale(1.06); }
+@keyframes weave { from { opacity: 0; transform: translateY(-14px) scale(.6); } to { opacity: 1; transform: none; } }
+#loom .tri.in { animation: weave .5s both; }
+
+/* Classification cards */
+.cls { display: grid; gap: 10px; margin-top: 12px; }
+.cls.c4 { grid-template-columns: repeat(4, 1fr); }
+.cls.c3 { grid-template-columns: repeat(3, 1fr); }
+.cl { border: 2px solid var(--line); background: var(--wool); border-radius: 8px; padding: 10px 12px; opacity: .55; transition: opacity .25s, border-color .25s, transform .25s; }
+.cl svg { width: 100%; height: 54px; display: block; }
+.cl h4 { margin: 4px 0 2px; font-size: 15px; }
+.cl p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.cl.on { opacity: 1; border-color: var(--red); transform: translateY(-3px); box-shadow: 0 0 0 3px var(--red-soft); }
+.cl.on.also { border-color: var(--ochre); box-shadow: 0 0 0 3px var(--ochre-soft); }
+.cl .also-t { display: none; font-size: 12.5px; font-weight: 700; color: var(--ochre); }
+.cl.also .also-t { display: block; }
+.readouts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ro.acute { border-color: var(--green); } .ro.acute b { color: var(--green); }
+.ro.right { border-color: var(--indigo); } .ro.right b { color: var(--indigo); }
+.ro.obtuse { border-color: var(--red); } .ro.obtuse b { color: var(--red); }
+.ro.eq { border-color: var(--ochre); background: var(--ochre-soft); }
+.lab-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; }
+
+/* Sadu board */
+.board { display: grid; grid-template-columns: auto repeat(3, 1fr); gap: 6px; margin-top: 14px; }
+.board .h { font-weight: 700; font-size: 13.5px; display: grid; place-items: center; text-align: center; padding: 4px; line-height: 1.4; }
+.board .h.side { justify-items: start; }
+.cell { min-height: 92px; border: 2px dashed var(--line); border-radius: 8px; background: var(--wool); display: grid; place-items: center; position: relative; padding: 4px; text-align: center; font-size: 12.5px; color: var(--muted); transition: background .3s, border-color .3s; }
+.cell svg { width: 100%; max-width: 110px; height: 70px; }
+.cell.got { border: 2px solid var(--green); background: var(--green-soft); color: var(--ink); }
+.cell.now { box-shadow: 0 0 0 3px var(--ochre); }
+.cell.no { background: repeating-linear-gradient(45deg, var(--wool) 0 8px, color-mix(in srgb, var(--red) 10%, var(--wool)) 8px 16px); border-style: solid; border-color: color-mix(in srgb, var(--red) 40%, var(--line)); cursor: pointer; }
+.cell.no b { font-size: 26px; color: var(--red); line-height: 1; }
+.cell .stamp { position: absolute; top: 4px; inset-inline-end: 6px; font-size: 16px; }
+.prog { height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; flex: 1; min-width: 120px; }
+.prog i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(-45deg, var(--red) 0 8px, var(--ochre) 8px 16px); transition: width .5s; }
+
+/* Two columns */
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 12px; }
+.ask { border: 1.5px solid var(--line); border-radius: 8px; background: var(--wool); padding: 12px 14px; }
+.ask .q { font-weight: 700; margin-bottom: 8px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: right; border: 1.5px solid var(--line); background: var(--sheet); border-radius: 6px; padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.opt b { font: 600 13px var(--mono); color: var(--red); }
+.opt.right { border-color: var(--green); background: var(--green-soft); }
+.opt.wrong { border-color: var(--red); background: var(--red-soft); }
+.opt.meh { border-color: var(--ochre); background: var(--ochre-soft); }
+.why { margin-top: 10px; font-size: 14.5px; }
+
+/* Balance + steps */
+.slider { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-top: 10px; }
+.slider label { font-weight: 600; font-size: 14px; white-space: nowrap; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 4px; transform: rotate(45deg); background: var(--red); border: 3px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--red); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 3px; background: var(--red); border: 3px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--red); cursor: pointer; }
+.steps { display: grid; gap: 8px; margin-top: 12px; }
+.stepc { border: 1.5px solid var(--line); background: var(--wool); border-radius: 6px; padding: 8px 13px; }
+.stepc h4 { margin: 0 0 2px; font-size: 14px; display: flex; gap: 8px; align-items: center; color: var(--muted); }
+.stepc h4 .n { font: 600 11.5px var(--mono); color: #fff; background: var(--red); padding: 0 7px; border-radius: 3px; }
+.answer { margin-top: 12px; padding: 12px 16px; border: 2px solid var(--green); background: var(--green-soft); border-radius: 6px; font-weight: 600; }
+.answer.bad { border-color: var(--red); background: var(--red-soft); }
+
+/* Game */
+.stars { font-size: 22px; letter-spacing: 2px; color: var(--ochre); direction: ltr; }
+.score-big { font: 600 30px var(--mono); color: var(--red); }
+.gq { margin-top: 10px; }
+.gq h4 { margin: 0 0 6px; font-size: 15px; }
+.gopts { display: flex; flex-wrap: wrap; gap: 8px; }
+.gopts .opt { min-height: 40px; padding: 5px 14px; }
+
+/* Quiz */
+.qcard { border: 1.5px solid var(--line); background: var(--wool); border-radius: 8px; padding: 14px 16px; margin-top: 14px; }
+.qq { font-weight: 700; margin-bottom: 10px; }
+.mini { width: 100%; max-width: 280px; display: block; margin: 0 auto 8px; }
+
+/* Summary */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.card { border: 2px solid var(--ink); background: var(--wool); border-radius: 8px; padding: 14px; position: relative; overflow: hidden; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 8px; background:
+  conic-gradient(from -45deg at 50% 100%, var(--red) 90deg, transparent 0) 0 0 / 16px 8px repeat-x,
+  conic-gradient(from 135deg at 50% 0, var(--ochre) 90deg, transparent 0) 8px 0 / 16px 8px repeat-x, var(--ink); }
+.card h3 { margin: 8px 0 6px; font-size: 16px; color: var(--red); }
+.card ul { margin: 0; padding-inline-start: 18px; font-size: 14.5px; }
+.card svg { width: 100%; height: 110px; display: block; }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+
+@media (max-width: 760px) {
+  .sheet { padding: 34px 16px 44px; border-inline-width: 4px; }
+  .split { grid-template-columns: 1fr; }
+  .cls.c4 { grid-template-columns: 1fr 1fr; }
+  .cls.c3 { grid-template-columns: 1fr; }
+  .cls.c3 .cl { display: grid; grid-template-columns: 90px 1fr; gap: 0 10px; align-items: center; }
+  .cls.c3 .cl svg { grid-row: span 3; }
+  .cards { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  h2 { font-size: 23px; }
+  .ribbon .brand { display: none; }
+  .board { grid-template-columns: 64px repeat(3, 1fr); gap: 4px; }
+  .board .h { font-size: 11.5px; }
+  .cell { min-height: 76px; font-size: 11px; }
+  /* The 600-wide drawings shrink to about half on a phone, so their labels are enlarged to stay readable. */
+  #lab1 text, #lab2 text, #lab3 text, #figA text, #figB text, #bal text, #sss text { font-size: 24px; }
+  #plane text { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) { .pop, #loom .tri.in { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="ribbon">
+  <span class="brand">سدو المثلثات</span>
+  <nav id="stations" aria-label="محطات الدرس"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div>
+<main>
+  <!-- 0: the loom -->
+  <section class="sheet hero" id="s0" data-name="النول">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>سدو <span>المثلثات</span></h1>
+    <p class="sub">الدرس 3-1 · تصنيف المثلثات · رياضيات 1 · الصف الأول الثانوي</p>
+    <svg class="stage" id="loom" viewBox="0 0 600 250" style="margin-top:16px" aria-label="نسيج سدو من مثلثات"></svg>
+    <p class="narr" id="loomNarr" style="text-align:right">اضغطي على أي مثلث في النسيج وشوفي وش اسمه.</p>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="reweave" type="button">انسجي صفًّا جديدًا</button></div>
+    <p class="story"><b>السدو</b> نسيج بدوي من صوف الغنم ووبر الإبل، تنسجه النساء في الجزيرة العربية على نول أرضي، وأُدرج في قائمة اليونسكو للتراث الثقافي غير المادي سنة 2020. لو تأملتي نقوشه بتلقين المثلثات في كل مكان، لكنها <b>مو كلها نفس الشكل</b>: فيه المدبب والعريض، وفيه اللي أضلاعه كلها متساوية. في هذا الدرس نتعلم نعطي كل مثلث اسمه: مرة <b class="cr">حسب زواياه</b>، ومرة <b class="co">حسب أضلاعه</b>.</p>
+    <span class="thread">THREAD 01/10</span>
+  </section>
+
+  <!-- 1: by angles -->
+  <section class="sheet" id="s1" data-name="الزوايا">
+    <div class="kicker"><span class="no">01</span> التصنيف حسب الزوايا</div>
+    <h2>كم زاوية حادة في مثلثك؟</h2>
+    <p class="lead">اسحبي رؤوس المثلث <b>A</b> و<b>B</b> و<b>C</b> على نقاط الشبكة، وراقبي زواياه. البطاقة اللي تنور تحت هي اسم مثلثك.</p>
+    <svg class="stage lab" id="lab1" viewBox="0 0 600 360" style="margin-top:12px" aria-label="مثلث تسحبين رؤوسه"></svg>
+    <div class="readouts" id="ro1"></div>
+    <div class="chips" id="mis1"></div>
+    <div class="cls c4" id="cls1">
+      <div class="cl" data-k="acute"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>حاد الزوايا</h4><p>زواياه الثلاث <b>حادة</b> (أقل من <span class="num">90°</span>).</p><span class="also-t">ومثلثك حاد الزوايا أيضًا</span></div>
+      <div class="cl" data-k="equi"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>متطابق الزوايا</h4><p>مثلث حاد الزوايا، زواياه الثلاث <b>متطابقة</b>.</p><span class="also-t"></span></div>
+      <div class="cl" data-k="right"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>قائم الزاوية</h4><p>فيه زاوية <b>قائمة</b> واحدة (<span class="num">90°</span>).</p><span class="also-t"></span></div>
+      <div class="cl" data-k="obtuse"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>منفرج الزاوية</h4><p>فيه زاوية <b>منفرجة</b> واحدة (أكبر من <span class="num">90°</span>).</p><span class="also-t"></span></div>
+    </div>
+    <div class="note"><span class="tag">لاحظي</span>مهما سحبتي، يبقى في كل مثلث <b>زاويتان حادتان على الأقل</b>. لذلك نسمي المثلث باسم زاويته «المختلفة»: القائمة أو المنفرجة، وإذا ما فيه وحدة منهما فهو حاد الزوايا.</div>
+    <span class="thread">THREAD 02/10</span>
+  </section>
+
+  <!-- 2: by sides -->
+  <section class="sheet" id="s2" data-name="الأضلاع">
+    <div class="kicker"><span class="no">02</span> التصنيف حسب الأضلاع</div>
+    <h2>كم ضلعًا متطابقًا؟</h2>
+    <p class="lead">الآن نقيس الأضلاع. الشرطات الصغيرة على الأضلاع تعني أنها <b>متطابقة</b> (متساوية الطول). جربي الشبكتين: <b>المربعة</b> و<b>شبكة السدو المثلثية</b>.</p>
+    <div class="lab-tools"><div class="toggle" id="lat2" role="group" aria-label="نوع الشبكة"><button type="button" data-l="sq" aria-pressed="true">شبكة مربعة</button><button type="button" data-l="tri" aria-pressed="false">شبكة السدو المثلثية</button></div></div>
+    <svg class="stage lab" id="lab2" viewBox="0 0 600 360" style="margin-top:10px" aria-label="مثلث تسحبين رؤوسه وتقيسين أضلاعه"></svg>
+    <div class="readouts" id="ro2"></div>
+    <div class="chips" id="mis2"></div>
+    <div class="cls c3" id="cls2">
+      <div class="cl" data-k="scalene"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>مختلف الأضلاع</h4><p><b>لا يوجد</b> فيه أضلاع متطابقة.</p><span class="also-t"></span></div>
+      <div class="cl" data-k="isosceles"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>متطابق الضلعين</h4><p>فيه ضلعان متطابقان <b>على الأقل</b>.</p><span class="also-t">ومثلثك متطابق الضلعين أيضًا</span></div>
+      <div class="cl" data-k="equilateral"><svg viewBox="0 0 120 54" aria-hidden="true"></svg><h4>متطابق الأضلاع</h4><p>أضلاعه الثلاثة <b>متطابقة</b>.</p><span class="also-t"></span></div>
+    </div>
+    <div class="note" id="sqHint"><span class="tag">تحدّي</span>حاولي ترسمين مثلثًا <b>متطابق الأضلاع</b> على الشبكة المربعة… ما راح تقدرين! مهما قربتي، يبقى ضلع أطول من الثاني. بدّلي إلى <b>شبكة السدو المثلثية</b> وجربي.</div>
+    <div class="note def"><span class="tag">مهم</span>المثلث المتطابق الأضلاع فيه ضلعان متطابقان على الأقل، فهو <b>حالة خاصة</b> من المثلث المتطابق الضلعين. وبالمثل، المثلث المتطابق الزوايا حالة خاصة من المثلث الحاد الزوايا.</div>
+    <span class="thread">THREAD 03/10</span>
+  </section>
+
+  <!-- 3: the Sadu board -->
+  <section class="sheet" id="s3" data-name="لوحة السدو">
+    <div class="kicker"><span class="no">03</span> تحدي النسّاجة</div>
+    <h2>اكملي لوحة السدو</h2>
+    <p class="lead">كل مثلث له اسمان: واحد حسب زواياه وواحد حسب أضلاعه. كوّني مثلثًا لكل خانة ممكنة في اللوحة، وكل ما طابق مثلثك خانة جديدة تنختم باسمك. فيه خانات <b>مستحيلة</b>، اضغطي عليها وشوفي ليش.</p>
+    <div class="lab-tools"><div class="toggle" id="lat3" role="group" aria-label="نوع الشبكة"><button type="button" data-l="sq" aria-pressed="true">شبكة مربعة</button><button type="button" data-l="tri" aria-pressed="false">شبكة السدو المثلثية</button></div>
+      <div class="row" style="flex:1;min-width:200px"><span class="ro">الخانات <b id="bCount">0/7</b></span><div class="prog"><i id="bProg"></i></div></div></div>
+    <div class="split">
+      <div><svg class="stage lab" id="lab3" viewBox="0 0 600 360" aria-label="مثلث تسحبين رؤوسه"></svg><p class="narr" id="bNarr"></p></div>
+      <div class="board" id="board"></div>
+    </div>
+    <span class="thread">THREAD 04/10</span>
+  </section>
+
+  <!-- 4: from a figure -->
+  <section class="sheet" id="s4" data-name="من الشكل">
+    <div class="kicker"><span class="no">04</span> أمثلة · التصنيف من الشكل</div>
+    <h2>مثلثات داخل مثلث</h2>
+    <p class="lead">لما تقع نقطة على ضلع مثلث، تطلع لنا مثلثات جديدة، ولكل واحد منها تصنيفه. اختاري المثلث من الأزرار، ويتلوّن في الشكل، ثم صنّفيه.</p>
+    <h3 style="margin:16px 0 0;font-size:18px">الشكل 1 · حسب الزوايا</h3>
+    <div class="split">
+      <svg class="stage" id="figA" viewBox="0 0 600 300" aria-label="مثلث ABC وفيه القطعة AD"></svg>
+      <div><div class="chips" id="pickA"></div><div class="ask" id="askA"></div></div>
+    </div>
+    <h3 style="margin:22px 0 0;font-size:18px">الشكل 2 · حسب الأضلاع</h3>
+    <div class="split">
+      <svg class="stage" id="figB" viewBox="0 0 600 300" aria-label="مثلث VWX وفيه النقطة Y منتصف VX"></svg>
+      <div><div class="chips" id="pickB"></div><div class="ask" id="askB"></div></div>
+    </div>
+    <span class="thread">THREAD 05/10</span>
+  </section>
+
+  <!-- 5: algebra -->
+  <section class="sheet" id="s5" data-name="ميزان الجبر">
+    <div class="kicker"><span class="no">05</span> مثال · إيجاد القيم المجهولة</div>
+    <h2>ميزان النسّاجة</h2>
+    <p class="lead">أطوال الأضلاع مكتوبة بدلالة <span class="m"><i>x</i></span>. حرّكي <span class="m"><i>x</i></span> حتى يتوازن الميزان، يعني يتطابق الضلعان، ثم اعرضي الحل الجبري.</p>
+    <div class="chips" id="algPick"></div>
+    <p id="algQ" style="font-weight:600"></p>
+    <div class="split">
+      <div><svg class="stage" id="bal" viewBox="0 0 600 230" aria-label="ميزان يقارن ضلعين"></svg>
+        <div class="slider"><label for="xS">قيمة <span class="m"><i>x</i></span></label><input type="range" id="xS" min="0" max="10" step="0.5" value="2"><span class="ro"><b id="xRo">2</b></span></div></div>
+      <div><svg class="stage" id="sss" viewBox="0 0 600 330" aria-label="المثلث بأطواله الحالية"></svg></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="algShow" type="button">اعرضي الحل خطوة خطوة</button></div>
+    <div class="steps" id="algSteps"></div>
+    <span class="thread">THREAD 06/10</span>
+  </section>
+
+  <!-- 6: coordinate plane -->
+  <section class="sheet" id="s6" data-name="المستوى الإحداثي">
+    <div class="kicker"><span class="no">06</span> مثال · الهندسة الإحداثية</div>
+    <h2>صنّفي بصيغة المسافة</h2>
+    <p class="lead">على المستوى الإحداثي نحسب طول كل ضلع بصيغة المسافة <span class="m"><i>d</i> = <span class="sq">√<span>(<i>x</i><sub>2</sub> − <i>x</i><sub>1</sub>)<sup>2</sup> + (<i>y</i><sub>2</sub> − <i>y</i><sub>1</sub>)<sup>2</sup></span></span></span> ثم نقارن الأطوال. اختاري مسألة، أو اسحبي الرؤوس وكوّني مسألتك.</p>
+    <div class="chips" id="plPick"></div>
+    <div class="split">
+      <svg class="stage" id="plane" viewBox="0 0 400 400" aria-label="المستوى الإحداثي"></svg>
+      <div><div class="steps" id="plSteps" style="margin-top:0"></div><div id="plAns"></div></div>
+    </div>
+    <span class="thread">THREAD 07/10</span>
+  </section>
+
+  <!-- 7: game -->
+  <section class="sheet" id="s7" data-name="لعبة الفرز">
+    <div class="kicker"><span class="no">07</span> لعبة</div>
+    <h2>فرز الخيوط</h2>
+    <p class="lead">جات للنسّاجة ثمانية مثلثات، كل واحد عليه قياسات زواياه وشرطات أضلاعه. صنّفيه مرتين: حسب الزوايا وحسب الأضلاع. الجواب الأدق ياخذ نجمة كاملة.</p>
+    <div class="row" style="margin-top:8px"><span class="ro">الجولة <b id="gRound">1/8</b></span><span class="ro">النجوم <b id="gStars">0</b></span></div>
+    <div class="split">
+      <svg class="stage" id="game" viewBox="0 0 400 300" aria-label="مثلث للتصنيف"></svg>
+      <div>
+        <div class="gq"><h4>حسب الزوايا</h4><div class="gopts" id="gA"></div></div>
+        <div class="gq"><h4>حسب الأضلاع</h4><div class="gopts" id="gS"></div></div>
+        <p class="narr" id="gNarr"></p>
+        <div class="row" style="margin-top:10px"><button class="btn" id="gNext" type="button" hidden>المثلث التالي</button></div>
+      </div>
+    </div>
+    <span class="thread">THREAD 08/10</span>
+  </section>
+
+  <!-- 8: quiz -->
+  <section class="sheet" id="s8" data-name="الاختبار">
+    <div class="kicker"><span class="no">08</span> تحقق من فهمك</div>
+    <h2>اختبري نفسك</h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700"></p>
+    <span class="thread">THREAD 09/10</span>
+  </section>
+
+  <!-- 9: summary -->
+  <section class="sheet" id="s9" data-name="الخلاصة">
+    <div class="kicker"><span class="no">09</span> قبل ما تطلعين</div>
+    <h2>الخلاصة</h2>
+    <div class="cards">
+      <div class="card"><svg id="sumA" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>حسب الزوايا</h3>
+        <ul><li><b>حاد الزوايا:</b> ثلاث زوايا حادة.</li><li><b>متطابق الزوايا:</b> حاد، وزواياه متطابقة.</li><li><b>قائم الزاوية:</b> زاوية قائمة واحدة.</li><li><b>منفرج الزاوية:</b> زاوية منفرجة واحدة.</li></ul></div>
+      <div class="card"><svg id="sumS" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>حسب الأضلاع</h3>
+        <ul><li><b>مختلف الأضلاع:</b> لا أضلاع متطابقة.</li><li><b>متطابق الضلعين:</b> ضلعان متطابقان على الأقل.</li><li><b>متطابق الأضلاع:</b> الأضلاع الثلاثة متطابقة.</li></ul></div>
+      <div class="card"><svg viewBox="0 0 300 110" aria-hidden="true">
+          <ellipse cx="150" cy="56" rx="140" ry="50" fill="var(--ochre-soft)" stroke="var(--ochre)" stroke-width="2"/>
+          <ellipse cx="190" cy="60" rx="78" ry="32" fill="var(--red-soft)" stroke="var(--red)" stroke-width="2"/>
+          <text x="58" y="62" font-size="13" fill="var(--ochre)" class="lbl" text-anchor="middle">متطابق الضلعين</text>
+          <text x="190" y="65" font-size="13" fill="var(--red)" class="lbl" text-anchor="middle">متطابق الأضلاع</text></svg>
+        <h3>تذكري</h3><ul><li>كل متطابق أضلاع هو متطابق ضلعين، والعكس ليس صحيحًا دائمًا.</li><li>على المستوى الإحداثي: صيغة المسافة للأضلاع، والميل للزاوية القائمة.</li><li>للمجهول: ساوي الضلعين المتطابقين وحلّي المعادلة.</li></ul></div>
+    </div>
+    <span class="thread">THREAD 10/10</span>
+  </section>
+  <footer>ثانوية 158 · رياضيات 1 · الفصل الثالث · درس تفاعلي</footer>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const minus = "−";
+const H = Math.sqrt(3) / 2, RAD = Math.PI / 180;
+const fmt = (v, d = 1) => { const r = Math.round(v * 10 ** d) / 10 ** d; return String(r).replace("-", minus); };
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const M = h => `<span class="m">${h}</span>`;
+
+/* ---------- Theme + stations ribbon ---------- */
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Names ---------- */
+const ANG = { acute: "حاد الزوايا", equi: "متطابق الزوايا", right: "قائم الزاوية", obtuse: "منفرج الزاوية" };
+const SIDE = { scalene: "مختلف الأضلاع", isosceles: "متطابق الضلعين", equilateral: "متطابق الأضلاع" };
+const ONE = { acute: "حادة", right: "قائمة", obtuse: "منفرجة" };
+const angCol = t => t === "right" ? "var(--indigo)" : t === "obtuse" ? "var(--red)" : "var(--green)";
+// Side i joins vertex i and vertex i+1. L holds exact squared lengths (or anything compared exactly), T each vertex's angle type.
+function classify(L, T) {
+  const side = L[0] === L[1] && L[1] === L[2] ? "equilateral" : L[0] === L[1] || L[1] === L[2] || L[0] === L[2] ? "isosceles" : "scalene";
+  const ang = T.includes("right") ? "right" : T.includes("obtuse") ? "obtuse" : side === "equilateral" ? "equi" : "acute";
+  return { side, ang };
+}
+const ticksOf = L => L[0] === L[1] && L[1] === L[2] ? [1, 1, 1] : [0, 1, 2].map(i => L.some((v, j) => j !== i && v === L[i]) ? 1 : 0);
+
+// √n in simplest form.
+function rad(n) { let k = 1, m = n; for (let i = 2; i * i <= m; i++) while (m % (i * i) === 0) { m /= i * i; k *= i; } return { k, m }; }
+const radTxt = n => { const { k, m } = rad(n); return m === 1 ? `${k}` : `${k === 1 ? "" : k}√${m}`; };
+const radH = n => { const { k, m } = rad(n); return m === 1 ? `${k}` : `${k === 1 ? "" : k}<span class="sq">√<span>${m}</span></span>`; };
+const lenH = n => rad(n).m === 1 ? radH(n) : `${radH(n)} ≈ ${fmt(Math.sqrt(n), 2)}`;
+
+/* ---------- Drawing a triangle ---------- */
+// V: three points in SVG pixels. o.ang[i] = {type, text}, o.sides[i] = text, o.ticks[i] = count, o.names = ["A","B","C"].
+function triSVG(V, o = {}) {
+  const G = [(V[0][0] + V[1][0] + V[2][0]) / 3, (V[0][1] + V[1][1] + V[2][1]) / 3];
+  const fs = o.fs || 15, r = o.arcR || 20;
+  let s = `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"/>`;
+  for (let i = 0; i < 3; i++) {
+    const P = V[i], Q = V[(i + 1) % 3], R = V[(i + 2) % 3];
+    const a = o.ang?.[i];
+    if (a) {
+      const u = unit(Q[0] - P[0], Q[1] - P[1]), v = unit(R[0] - P[0], R[1] - P[1]), col = angCol(a.type);
+      if (a.type === "right") {
+        const q = r * .62;
+        s += `<path d="M${P[0] + u[0] * q} ${P[1] + u[1] * q} L${P[0] + (u[0] + v[0]) * q} ${P[1] + (u[1] + v[1]) * q} L${P[0] + v[0] * q} ${P[1] + v[1] * q}" fill="${col}" fill-opacity=".14" stroke="${col}" stroke-width="2.2"/>`;
+      } else {
+        const sweep = u[0] * v[1] - u[1] * v[0] > 0 ? 1 : 0;
+        s += `<path d="M${P[0]} ${P[1]} L${P[0] + u[0] * r} ${P[1] + u[1] * r} A${r} ${r} 0 0 ${sweep} ${P[0] + v[0] * r} ${P[1] + v[1] * r} Z" fill="${col}" fill-opacity=".16" stroke="none"/>
+          <path d="M${P[0] + u[0] * r} ${P[1] + u[1] * r} A${r} ${r} 0 0 ${sweep} ${P[0] + v[0] * r} ${P[1] + v[1] * r}" fill="none" stroke="${col}" stroke-width="2.2"/>`;
+      }
+      if (a.text) {
+        // Narrow angles push their label further out so it clears the two sides.
+        const ang = Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1]))) / RAD;
+        const b = unit(u[0] + v[0], u[1] + v[1]), d = r + (o.angGap || 17) + Math.max(0, 70 - ang) * .9 * fs / 15;
+        s += `<text x="${P[0] + b[0] * d}" y="${P[1] + b[1] * d}" font-size="${fs}" fill="${col}" text-anchor="middle" dominant-baseline="central">${a.text}</text>`;
+      }
+    }
+  }
+  for (let i = 0; i < 3; i++) {
+    const P = V[i], Q = V[(i + 1) % 3], Mx = (P[0] + Q[0]) / 2, My = (P[1] + Q[1]) / 2;
+    const d = unit(Q[0] - P[0], Q[1] - P[1]);
+    let n = [-d[1], d[0]]; if ((Mx - G[0]) * n[0] + (My - G[1]) * n[1] < 0) n = [-n[0], -n[1]];
+    const k = o.ticks?.[i] || 0;
+    for (let j = 0; j < k; j++) {
+      const off = (j - (k - 1) / 2) * 6, cx = Mx + d[0] * off, cy = My + d[1] * off;
+      s += `<line x1="${cx - n[0] * 7}" y1="${cy - n[1] * 7}" x2="${cx + n[0] * 7}" y2="${cy + n[1] * 7}" stroke="${o.tickCol || "var(--red)"}" stroke-width="2.6" stroke-linecap="round"/>`;
+    }
+    if (o.sides?.[i]) s += `<text x="${Mx + n[0] * (o.sideGap || 19)}" y="${My + n[1] * (o.sideGap || 19)}" font-size="${fs}" fill="${o.sideCol || "var(--ochre)"}" text-anchor="middle" dominant-baseline="central">${o.sides[i]}</text>`;
+  }
+  if (o.names) for (let i = 0; i < 3; i++) {
+    const P = V[i], w = unit(P[0] - G[0], P[1] - G[1]);
+    s += `<text x="${P[0] + w[0] * 18}" y="${P[1] + w[1] * 18}" font-size="${fs + 2}" fill="var(--ink)" text-anchor="middle" dominant-baseline="central" font-style="italic" font-family="serif">${o.names[i]}</text>`;
+  }
+  return s;
+}
+// A triangle with angles A at vertex 0 and B at vertex 1 (degrees), in plain coordinates (y up), turned by rot degrees.
+function triFromAngles(A, B, rot = 0) {
+  const C = 180 - A - B, t = Math.sin(B * RAD) / Math.sin(C * RAD);
+  let P = [[0, 0], [1, 0], [t * Math.cos(A * RAD), t * Math.sin(A * RAD)]];
+  const g = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3], c = Math.cos(rot * RAD), s = Math.sin(rot * RAD);
+  return P.map(([x, y]) => [(x - g[0]) * c - (y - g[1]) * s, (x - g[0]) * s + (y - g[1]) * c]);
+}
+// Fit plain coordinates into a pixel box (y flipped).
+function fit(P, x, y, w, h, pad = 10) {
+  const xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min((w - 2 * pad) / (x1 - x0 || 1), (h - 2 * pad) / (y1 - y0 || 1));
+  const ox = x + (w - (x1 - x0) * k) / 2, oy = y + (h - (y1 - y0) * k) / 2;
+  return P.map(([px, py]) => [ox + (px - x0) * k, oy + (y1 - py) * k]);
+}
+// From three angles (A, B, C at vertices 0, 1, 2): angle types and which sides are equal (side i is opposite vertex i+2).
+function fromAngles(angs) {
+  const T = angs.map(a => a === 90 ? "right" : a > 90 ? "obtuse" : "acute");
+  const L = [angs[2], angs[0], angs[1]]; // side i (vertex i to i+1) is opposite vertex i+2, so equal opposite angles mean equal sides
+  return { T, L, ...classify(L, T) };
+}
+const KINDS = {
+  "acute-scalene": [70, 60], "acute-isosceles": [70, 70], "equi-equilateral": [60, 60],
+  "right-scalene": [90, 55], "right-isosceles": [90, 45], "obtuse-scalene": [120, 35], "obtuse-isosceles": [120, 30],
+};
+const sadu = ["var(--red)", "var(--ink)", "var(--ochre)"];
+
+/* ---------- 0. Loom ---------- */
+(function loom() {
+  const svg = $("#loom");
+  function weave() {
+    const keys = shuffle(Object.keys(KINDS)), W = 600 / 7;
+    let g = `<rect x="0" y="0" width="600" height="250" fill="var(--wool)"/>`;
+    // Two Sadu bands woven above and below.
+    for (const yy of [8, 214]) for (let i = 0; i < 25; i++) {
+      const x = i * 24;
+      g += `<polygon points="${x},${yy} ${x + 24},${yy} ${x + 12},${yy + 26}" fill="${i % 2 ? "var(--ochre)" : "var(--red)"}"/><polygon points="${x + 12},${yy + 26} ${x + 36},${yy + 26} ${x + 24},${yy}" fill="var(--ink)" opacity=".9"/>`;
+    }
+    keys.forEach((k, i) => {
+      const [A, B] = KINDS[k], P = fit(triFromAngles(A, B, i % 2 ? 180 : 0), i * W, 46, W, 160, 8), info = fromAngles([A, B, 180 - A - B]);
+      g += `<g class="tri in" data-k="${k}" style="animation-delay:${i * 90}ms">${triSVG(P, { fill: sadu[i % 3], stroke: "var(--ink)", sw: 2, ticks: ticksOf(info.L), tickCol: i % 3 === 1 ? "var(--wool)" : "var(--ink)" })}</g>`;
+    });
+    svg.innerHTML = g;
+  }
+  svg.addEventListener("click", e => {
+    const t = e.target.closest(".tri"); if (!t) return;
+    const [a, s] = t.dataset.k.split("-"), [A, B] = KINDS[t.dataset.k], C = 180 - A - B;
+    $$(".tri", svg).forEach(x => x.style.opacity = x === t ? 1 : .35);
+    $("#loomNarr").innerHTML = `زواياه <span class="num">${A}°، ${B}°، ${C}°</span>، فهو مثلث <b class="cr">${ANG[a]}</b> و<b class="co">${SIDE[s]}</b>. ${a === "equi" ? "(ومتطابق الزوايا هو حاد الزوايا أيضًا.)" : ""}`;
+  });
+  $("#reweave").onclick = () => { weave(); $("#loomNarr").textContent = "اضغطي على أي مثلث في النسيج وشوفي وش اسمه."; };
+  weave();
+})();
+
+/* ---------- Mini icons on the class cards ---------- */
+(function icons() {
+  const draw = (svg, k) => {
+    const [A, B] = { acute: [70, 60], equi: [60, 60], right: [90, 55], obtuse: [125, 30], scalene: [75, 45], isosceles: [72, 72], equilateral: [60, 60] }[k];
+    const info = fromAngles([A, B, 180 - A - B]);
+    svg.innerHTML = triSVG(fit(triFromAngles(A, B), 0, 0, 120, 54, 6), {
+      fill: "var(--ochre-soft)", sw: 2, arcR: 9,
+      ang: ["acute", "equi", "right", "obtuse"].includes(k) ? info.T.map(t => ({ type: t })) : null,
+      ticks: ["scalene", "isosceles", "equilateral"].includes(k) ? ticksOf(info.L) : null,
+    });
+  };
+  $$(".cl").forEach(c => draw($("svg", c), c.dataset.k));
+})();
+
+/* ---------- The looms: a triangle you drag on lattice points ---------- */
+// Square lattice: point (a, b) sits at (a, b). Triangular lattice: (a, b) sits at (a + b/2, b·√3/2).
+// Both give integer squared lengths and integer (doubled) dot products, so every classification below is exact.
+const LAT = {
+  sq: { xy: ([a, b]) => [a, b], snap: (x, y) => [Math.round(x), Math.round(y)], len2: ([a, b]) => a * a + b * b, dot2: (u, v) => 2 * (u[0] * v[0] + u[1] * v[1]) },
+  tri: { xy: ([a, b]) => [a + b / 2, b * H], snap: (x, y) => { const b = Math.round(y / H); return [Math.round(x - b / 2), b]; }, len2: ([a, b]) => a * a + a * b + b * b, dot2: (u, v) => 2 * u[0] * v[0] + u[0] * v[1] + u[1] * v[0] + 2 * u[1] * v[1] },
+};
+const PRESET = { sq: [[3, 1], [11, 2], [6, 7]], tri: [[2, 1], [10, 1], [4, 7]] };
+function Lab(svg, o) {
+  const S = 40, OX = 20, OY = 340, W = 14, HH = 8;
+  let lat = o.lat || "sq", P = (o.P || PRESET[lat]).map(p => p.slice()), drag = -1;
+  const sub = (p, q) => [p[0] - q[0], p[1] - q[1]];
+  const px = p => { const [x, y] = LAT[lat].xy(p); return [OX + x * S, OY - y * S]; };
+  const inside = p => { const [x, y] = LAT[lat].xy(p); return x > -1e-9 && x < W + 1e-9 && y > -1e-9 && y < HH + 1e-9; };
+  const cross = Q => { const u = sub(Q[1], Q[0]), v = sub(Q[2], Q[0]); return u[0] * v[1] - u[1] * v[0]; };
+  const grids = {};
+  function grid() {
+    if (grids[lat]) return grids[lat];
+    let g = `<defs><clipPath id="${svg.id}-clip"><rect x="${OX - 6}" y="${OY - HH * S - 6}" width="${W * S + 12}" height="${HH * S + 12}"/></clipPath></defs><g clip-path="url(#${svg.id}-clip)" stroke="var(--line)" stroke-width="1">`;
+    if (lat === "sq") {
+      for (let i = 0; i <= W; i++) g += `<line x1="${OX + i * S}" y1="${OY}" x2="${OX + i * S}" y2="${OY - HH * S}"/>`;
+      for (let j = 0; j <= HH; j++) g += `<line x1="${OX}" y1="${OY - j * S}" x2="${OX + W * S}" y2="${OY - j * S}"/>`;
+    } else {
+      const rows = Math.floor(HH / H + 1e-9);
+      for (let b = 0; b <= rows; b++) g += `<line x1="${OX}" y1="${OY - b * H * S}" x2="${OX + W * S}" y2="${OY - b * H * S}"/>`;
+      for (let a = -10; a <= W + 10; a++) {
+        g += `<line x1="${OX + a * S}" y1="${OY}" x2="${OX + (a + 6) * S}" y2="${OY - 12 * H * S}"/>`;
+        g += `<line x1="${OX + a * S}" y1="${OY}" x2="${OX + (a - 6) * S}" y2="${OY - 12 * H * S}"/>`;
+      }
+    }
+    g += `</g><g fill="var(--muted)" opacity=".55">`;
+    for (let b = -1; b <= 12; b++) for (let a = -8; a <= 16; a++) { const p = [a, b]; if (inside(p)) { const [x, y] = px(p); g += `<circle cx="${x}" cy="${y}" r="2"/>`; } }
+    return grids[lat] = g + "</g>";
+  }
+  function info() {
+    const L = [0, 1, 2].map(i => LAT[lat].len2(sub(P[(i + 1) % 3], P[i])));
+    const T = [0, 1, 2].map(i => { const d = LAT[lat].dot2(sub(P[(i + 1) % 3], P[i]), sub(P[(i + 2) % 3], P[i])); return d > 0 ? "acute" : d === 0 ? "right" : "obtuse"; });
+    const X = P.map(p => LAT[lat].xy(p));
+    const D = [0, 1, 2].map(i => {
+      if (T[i] === "right") return 90;
+      const u = sub(X[(i + 1) % 3], X[i]), v = sub(X[(i + 2) % 3], X[i]);
+      return Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1]) / Math.hypot(...u) / Math.hypot(...v)))) / RAD;
+    });
+    return { L, T, D, lat, P: P.map(p => p.slice()), X, ...classify(L, T) };
+  }
+  function draw() {
+    const I = info(), V = P.map(px);
+    const eqA = I.ang === "equi";
+    let g = grid() + triSVG(V, {
+      fill: "color-mix(in srgb, var(--ochre) 20%, transparent)", names: ["A", "B", "C"], fs: 15, arcR: 22,
+      ang: o.angles ? I.T.map((t, i) => ({ type: t, text: eqA ? "60°" : `${fmt(I.D[i])}°` })) : null,
+      sides: o.sides ? I.L.map(radTxt) : null, ticks: o.sides ? ticksOf(I.L) : null,
+    });
+    V.forEach(([x, y], i) => { g += `<g data-v="${i}"><circle cx="${x}" cy="${y}" r="24" fill="transparent"/><circle cx="${x}" cy="${y}" r="8" fill="var(--red)" stroke="var(--wool)" stroke-width="2.5"/></g>`; });
+    svg.innerHTML = g;
+    o.onChange?.(I);
+  }
+  const toSvg = e => { const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [(pt.x - OX) / S, (OY - pt.y) / S]; };
+  svg.addEventListener("pointerdown", e => {
+    const h = e.target.closest("[data-v]"); if (!h) return;
+    drag = +h.dataset.v; svg.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  svg.addEventListener("pointermove", e => {
+    if (drag < 0) return;
+    const q = LAT[lat].snap(...toSvg(e));
+    if (!inside(q) || (q[0] === P[drag][0] && q[1] === P[drag][1])) return;
+    const N = P.map((p, i) => i === drag ? q : p);
+    if (cross(N) === 0) return; // three points on one line make no triangle
+    P = N; draw();
+  });
+  const end = () => { drag = -1; };
+  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+  // Keyboard: Tab to a vertex is not possible inside SVG everywhere, so arrow keys move vertex A..C picked by 1/2/3.
+  return {
+    info, draw,
+    setLat(l) {
+      if (l === lat) return;
+      const X = P.map(p => LAT[lat].xy(p)); lat = l;
+      let N = X.map(([x, y]) => LAT[lat].snap(x, y));
+      if (!N.every(inside) || cross(N) === 0 || new Set(N.map(String)).size < 3) N = PRESET[lat].map(p => p.slice());
+      P = N; draw();
+    },
+    set(N, l) { if (l) lat = l; P = N.map(p => p.slice()); draw(); },
+    get lat() { return lat; },
+  };
+}
+function latToggle(box, lab, after) {
+  box.addEventListener("click", e => {
+    const b = e.target.closest("button[data-l]"); if (!b) return;
+    $$("button", box).forEach(x => x.setAttribute("aria-pressed", x === b));
+    lab.setLat(b.dataset.l); after?.(b.dataset.l);
+  });
+}
+function missions(box, list) {
+  box.innerHTML = list.map(m => `<span class="chip" data-m="${m.k}">${m.t}</span>`).join("");
+  return I => list.forEach(m => { if (m.ok(I)) box.querySelector(`[data-m="${m.k}"]`).classList.add("got"); });
+}
+function lightCards(box, main, also) {
+  $$(".cl", box).forEach(c => { c.classList.toggle("on", c.dataset.k === main || c.dataset.k === also); c.classList.toggle("also", c.dataset.k === also); });
+}
+
+/* ---------- 1. Angles ---------- */
+const mis1 = missions($("#mis1"), [
+  { k: "a", t: "كوّني مثلثًا حاد الزوايا", ok: I => I.ang === "acute" || I.ang === "equi" },
+  { k: "r", t: "كوّني مثلثًا قائم الزاوية", ok: I => I.ang === "right" },
+  { k: "o", t: "كوّني مثلثًا منفرج الزاوية", ok: I => I.ang === "obtuse" },
+]);
+const lab1 = Lab($("#lab1"), {
+  angles: true, P: [[2, 1], [12, 1], [9, 7]],
+  onChange(I) {
+    $("#ro1").innerHTML = I.T.map((t, i) => `<span class="ro ${t}">${M(`∠<i>${"ABC"[i]}</i>`)} <b>${I.ang === "equi" ? "60" : fmt(I.D[i])}°</b> ${ONE[t]}</span>`).join("");
+    lightCards($("#cls1"), I.ang, I.ang === "equi" ? "acute" : null);
+    mis1(I);
+  },
+});
+lab1.draw();
+
+/* ---------- 2. Sides ---------- */
+const mis2 = missions($("#mis2"), [
+  { k: "s", t: "مختلف الأضلاع", ok: I => I.side === "scalene" },
+  { k: "i", t: "متطابق الضلعين", ok: I => I.side === "isosceles" },
+  { k: "e", t: "متطابق الأضلاع", ok: I => I.side === "equilateral" },
+]);
+const SIDE_N = ["AB", "BC", "CA"];
+const lab2 = Lab($("#lab2"), {
+  sides: true, P: [[2, 1], [10, 1], [7, 6]],
+  onChange(I) {
+    const tk = ticksOf(I.L);
+    $("#ro2").innerHTML = I.L.map((n, i) => `<span class="ro${tk[i] ? " eq" : ""}">${M(`<i>${SIDE_N[i]}</i>`)} = <b>${lenH(n)}</b></span>`).join("");
+    lightCards($("#cls2"), I.side, I.side === "equilateral" ? "isosceles" : null);
+    mis2(I);
+  },
+});
+latToggle($("#lat2"), lab2, l => { $("#sqHint").innerHTML = l === "sq"
+  ? `<span class="tag">تحدّي</span>حاولي ترسمين مثلثًا <b>متطابق الأضلاع</b> على الشبكة المربعة… ما راح تقدرين! مهما قربتي، يبقى ضلع أطول من الثاني. بدّلي إلى <b>شبكة السدو المثلثية</b> وجربي.`
+  : `<span class="tag">تحدّي</span>على شبكة السدو يطلع لك <b>متطابق الأضلاع</b> بسهولة. الآن جربي العكس: هل تقدرين ترسمين عليها مثلثًا <b>قائم الزاوية ومتطابق الضلعين</b>؟ (الجواب في لوحة السدو 😉)`; });
+lab2.draw();
+
+/* ---------- 3. The Sadu board ---------- */
+(function board() {
+  const COLS = ["acute", "right", "obtuse"], ROWS = ["scalene", "isosceles", "equilateral"];
+  const NO = {
+    "right-equilateral": "زوايا المثلث المتطابق الأضلاع كلها متطابقة. لو كانت إحداها قائمة لكانت الثلاث قائمة، ومجموعها 270°، وهذا أكثر من مجموع زوايا أي مثلث (180°).",
+    "obtuse-equilateral": "زوايا المثلث المتطابق الأضلاع كلها متطابقة، ولو كانت إحداها منفرجة لكانت الثلاث منفرجة ومجموعها أكبر من 270°. مستحيل!",
+  };
+  const found = new Map();
+  const box = $("#board");
+  function render(now) {
+    let h = `<span></span>${COLS.map(c => `<span class="h">${ANG[c]}</span>`).join("")}`;
+    for (const r of ROWS) {
+      h += `<span class="h side">${SIDE[r]}</span>`;
+      for (const c of COLS) {
+        const k = `${c}-${r}`;
+        if (NO[k]) { h += `<button type="button" class="cell no" data-no="${k}"><b>✕</b>مستحيل؟</button>`; continue; }
+        const f = found.get(k);
+        h += `<div class="cell${f ? " got" : ""}${now === k ? " now" : ""}">${f ? `<span class="stamp">🧵</span><svg viewBox="0 0 110 70" aria-hidden="true">${f}</svg>` : (r === "equilateral" ? "متطابق الأضلاع<br>(ومتطابق الزوايا)" : "؟")}</div>`;
+      }
+    }
+    box.innerHTML = h;
+    $("#bCount").textContent = `${found.size}/7`; $("#bProg").style.width = `${found.size / 7 * 100}%`;
+  }
+  box.addEventListener("click", e => {
+    const b = e.target.closest("[data-no]"); if (!b) return;
+    $("#bNarr").innerHTML = `<b class="cr">مستحيل:</b> ${NO[b.dataset.no]}`;
+  });
+  let first = true;
+  const lab = Lab($("#lab3"), {
+    angles: true, sides: true, P: [[3, 1], [12, 1], [5, 6]],
+    onChange(I) {
+      const c = I.ang === "equi" ? "acute" : I.ang, k = `${c}-${I.side}`, fresh = !found.has(k);
+      const thumb = triSVG(fit(I.X, 0, 0, 110, 70, 8), { fill: "var(--ochre)", sw: 2, ticks: ticksOf(I.L), tickCol: "var(--ink)" });
+      if (fresh) found.set(k, thumb);
+      render(k);
+      const name = `<b class="cr">${ANG[I.ang]}</b> و<b class="co">${SIDE[I.side]}</b>`;
+      if (first) { first = false; $("#bNarr").innerHTML = `مثلثك الآن ${name}، وانختمت خانته. حرّكي الرؤوس لخانة جديدة.`; return; }
+      $("#bNarr").innerHTML = found.size === 7 && fresh ? `🎉 <b>اكتملت لوحة السدو!</b> كوّنتي الأنواع السبعة الممكنة كلها. لاحظتي إن «قائم الزاوية ومتطابق الضلعين» يحتاج الشبكة المربعة، و«متطابق الأضلاع» يحتاج شبكة السدو؟`
+        : fresh ? `✨ خانة جديدة! مثلثك ${name}.` : `مثلثك ${name}. هذي الخانة مختومة من قبل، جربي نوعًا ثانيًا.`;
+    },
+  });
+  latToggle($("#lat3"), lab);
+  lab.draw();
+})();
+
+/* ---------- 4. Classify from a figure ---------- */
+function figure(svgSel, pickSel, askSel, pts, base, items) {
+  const svg = $(svgSel);
+  let cur = 0;
+  const done = new Set();
+  function draw() {
+    const it = items[cur], poly = it.v.map(n => pts[n].join(",")).join(" ");
+    svg.innerHTML = `<polygon points="${poly}" fill="color-mix(in srgb, var(--ochre) 30%, transparent)" stroke="var(--red)" stroke-width="5" stroke-linejoin="round"/>` + base;
+    $(pickSel).innerHTML = items.map((x, i) => `<button type="button" class="chip${done.has(i) ? " got" : ""}" aria-pressed="${i === cur}" data-i="${i}">${M(`△<i>${x.name}</i>`)}</button>`).join("");
+    $(askSel).innerHTML = `<p class="q">صنّفي ${M(`△<i>${it.name}</i>`)} حسب ${it.by}:</p><div class="opts">${it.opts.map((o, j) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[j]}</b><span>${o}</span></button>`).join("")}</div><p class="why" hidden></p>`;
+  }
+  $(pickSel).addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) { cur = +b.dataset.i; draw(); } });
+  $(askSel).addEventListener("click", e => {
+    const b = e.target.closest(".opt"); if (!b || $(askSel).dataset.lock == cur) return;
+    const it = items[cur], ok = +b.dataset.j === it.ok, why = $(".why", $(askSel));
+    b.classList.add(ok ? "right" : "wrong");
+    why.hidden = false; why.innerHTML = ok ? `<b class="cg">صحيح ✓</b> ${it.why}` : `<b class="cr">حاولي مرة ثانية.</b> ${it.hint}`;
+    if (ok) { done.add(cur); $$(`${pickSel} .chip`)[cur].classList.add("got"); $$(".opt", $(askSel)).forEach(o => o.disabled = true); }
+  });
+  draw();
+}
+{
+  // Figure 1: AD ⟂ BC, ∠BAD = 40°, ∠DAC = 60°.
+  const h = 170, B = [70, 250], D = [70 + h * Math.tan(40 * RAD), 250], C = [D[0] + h * Math.tan(60 * RAD), 250], A = [D[0], 250 - h];
+  const pts = { A, B, C, D };
+  const arc = (P, a0, a1, r, col) => { const p = a => [P[0] + r * Math.cos(a * RAD), P[1] + r * Math.sin(a * RAD)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" fill="none" stroke="${col}" stroke-width="2.2"/>`; };
+  const base = `<polyline points="${B} ${A} ${C} ${B}" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="${A[0]}" y1="${A[1]}" x2="${D[0]}" y2="${D[1]}" stroke="var(--ink)" stroke-width="2.6"/>
+    <path d="M${D[0]} ${D[1] - 14} h-14 v14" fill="none" stroke="var(--indigo)" stroke-width="2.2"/>
+    ${arc(A, 90, 130, 46, "var(--green)")}${arc(A, 30, 90, 36, "var(--green)")}
+    <text x="${A[0] - 30}" y="${A[1] + 76}" font-size="16" fill="var(--green)" text-anchor="middle">40°</text>
+    <text x="${A[0] + 30}" y="${A[1] + 66}" font-size="16" fill="var(--green)" text-anchor="middle">60°</text>
+    ${[["A", A, 0, -16], ["B", B, -14, 12], ["C", C, 14, 12], ["D", D, 0, 22]].map(([n, P, dx, dy]) => `<circle cx="${P[0]}" cy="${P[1]}" r="4" fill="var(--ink)"/><text x="${P[0] + dx}" y="${P[1] + dy}" font-size="18" font-family="serif" font-style="italic" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${n}</text>`).join("")}`;
+  const opts = ["حاد الزوايا", "قائم الزاوية", "منفرج الزاوية", "متطابق الزوايا"];
+  figure("#figA", "#pickA", "#askA", pts, base, [
+    { name: "ABD", v: ["A", "B", "D"], by: "زواياه", opts, ok: 1, why: `علامة الزاوية القائمة عند D تعني ${M("<i>m</i>∠<i>ADB</i> = 90°")}، فهو قائم الزاوية.`, hint: "ابحثي عن علامة المربع الصغير عند D." },
+    { name: "ADC", v: ["A", "D", "C"], by: "زواياه", opts, ok: 1, why: `${M("∠<i>ADC</i>")} و${M("∠<i>ADB</i>")} متجاورتان على مستقيم (زوج خطي)، فقياسها ${M("180° − 90° = 90°")}. فهو قائم الزاوية.`, hint: "∠ADC و∠ADB زوج خطي، يعني مجموعهما 180°." },
+    { name: "ABC", v: ["A", "B", "C"], by: "زواياه", opts, ok: 2, why: `بمسلّمة جمع الزوايا: ${M("<i>m</i>∠<i>BAC</i> = 40° + 60° = 100°")}، وهي منفرجة، فالمثلث منفرج الزاوية.`, hint: "اجمعي الزاويتين عند A. كم يطلع قياس ∠BAC؟" },
+  ]);
+}
+{
+  // Figure 2: Y is the midpoint of VX, VX = 6, VW = WY = 3, so WX = 3√3.
+  const k = 70, P = ([x, y]) => [90 + x * k, 250 - y * k];
+  const V = P([0, 0]), X = P([6, 0]), Y = P([3, 0]), W = P([1.5, 1.5 * Math.sqrt(3)]);
+  const pts = { V, X, Y, W };
+  const tick = (A, B, n) => { const m = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], d = unit(B[0] - A[0], B[1] - A[1]), nn = [-d[1], d[0]]; let s = ""; for (let j = 0; j < n; j++) { const o = (j - (n - 1) / 2) * 6, c = [m[0] + d[0] * o, m[1] + d[1] * o]; s += `<line x1="${c[0] - nn[0] * 8}" y1="${c[1] - nn[1] * 8}" x2="${c[0] + nn[0] * 8}" y2="${c[1] + nn[1] * 8}" stroke="var(--red)" stroke-width="2.6"/>`; } return s; };
+  const lab = (A, B, t, off) => { const m = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2]; return `<text x="${m[0] + off[0]}" y="${m[1] + off[1]}" font-size="16" fill="var(--ochre)" text-anchor="middle" dominant-baseline="central">${t}</text>`; };
+  const base = `<polyline points="${V} ${W} ${X} ${V}" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
+    <line x1="${W[0]}" y1="${W[1]}" x2="${Y[0]}" y2="${Y[1]}" stroke="var(--ink)" stroke-width="2.6"/>
+    ${tick(V, Y, 1)}${tick(Y, X, 1)}
+    ${lab(V, W, "3", [-20, -6])}${lab(W, Y, "3", [20, -4])}${lab(W, X, "5.2", [18, -16])}${lab(V, X, "", [0, 0])}
+    <text x="${(V[0] + Y[0]) / 2}" y="${V[1] + 34}" font-size="15" fill="var(--muted)" text-anchor="middle">VX = 6</text>
+    ${[["V", V, -14, 12], ["X", X, 14, 12], ["Y", Y, 0, 22], ["W", W, 0, -16]].map(([n, Q, dx, dy]) => `<circle cx="${Q[0]}" cy="${Q[1]}" r="4" fill="var(--ink)"/><text x="${Q[0] + dx}" y="${Q[1] + dy}" font-size="18" font-family="serif" font-style="italic" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${n}</text>`).join("")}`;
+  const opts = ["مختلف الأضلاع", "متطابق الضلعين", "متطابق الأضلاع", "لا يمكن تحديده"];
+  figure("#figB", "#pickB", "#askB", pts, base, [
+    { name: "VWY", v: ["V", "W", "Y"], by: "أضلاعه", opts, ok: 2, why: `Y منتصف ${M("<span style='text-decoration:overline'><i>VX</i></span>")}، فـ ${M("<i>VY</i> = 6 ÷ 2 = 3")}. إذن ${M("<i>VW</i> = <i>WY</i> = <i>VY</i> = 3")}: الأضلاع الثلاثة متطابقة.`, hint: "Y منتصف VX وطوله 6. كم طول VY؟" },
+    { name: "WYX", v: ["W", "Y", "X"], by: "أضلاعه", opts, ok: 1, why: `${M("<i>WY</i> = <i>YX</i> = 3")} و${M("<i>WX</i> ≈ 5.2")}، فيه ضلعان متطابقان.`, hint: "قارني WY مع YX (نصف VX)." },
+    { name: "VWX", v: ["V", "W", "X"], by: "أضلاعه", opts, ok: 0, why: `الأطوال ${M("3")} و${M("5.2")} و${M("6")} كلها مختلفة.`, hint: "اكتبي أطوال الأضلاع الثلاثة: VW وWX وVX." },
+  ]);
+}
+
+/* ---------- 5. Algebra on a balance ---------- */
+(function algebra() {
+  // Each side is a·x + b. eq: the two sides the balance compares; the third is checked or found after.
+  const PROBS = [
+    { name: "RST", kind: "equilateral", s: { RS: [2, 1], ST: [4, -5], RT: [1, 4] }, eq: ["RS", "ST"], other: "RT",
+      start: 2, q: `${M("△<i>RST</i>")} متطابق الأضلاع. أوجدي قيمة ${M("<i>x</i>")} وطول كل ضلع.` },
+    { name: "FGH", kind: "isosceles", s: { FG: [3, -2], FH: [2, 3], GH: [1, 4] }, eq: ["FG", "FH"], other: "GH", start: 2,
+      q: `${M("△<i>FGH</i>")} متطابق الضلعين، فيه ${M("<span style='text-decoration:overline'><i>FG</i></span> ≅ <span style='text-decoration:overline'><i>FH</i></span>")}. أوجدي قيمة ${M("<i>x</i>")} وأطوال الأضلاع.` },
+    { name: "LMN", kind: "isosceles", s: { LM: [4, -8], MN: [2, 2], LN: [1, 3] }, eq: ["LM", "MN"], other: "LN", start: 3,
+      q: `${M("△<i>LMN</i>")} متطابق الضلعين، فيه ${M("<span style='text-decoration:overline'><i>LM</i></span> ≅ <span style='text-decoration:overline'><i>MN</i></span>")}. أوجدي قيمة ${M("<i>x</i>")} وأطوال الأضلاع.` },
+  ];
+  let p = PROBS[0];
+  const ex = ([a, b]) => `${a === 1 ? "" : a}<i>x</i> ${b < 0 ? minus : "+"} ${Math.abs(b)}`;
+  const val = ([a, b], x) => a * x + b;
+  const nm = k => `<i>${k}</i>`;
+  const neg = v => String(v).replace("-", minus);
+  function pick(i) {
+    p = PROBS[i];
+    $$("#algPick .chip").forEach((c, k) => c.setAttribute("aria-pressed", k === i));
+    $("#algQ").innerHTML = p.q + `<br><span class="muted" style="font-weight:500">${Object.entries(p.s).map(([k, e]) => M(`${nm(k)} = ${ex(e)}`)).join("، ")}</span>`;
+    $("#xS").value = p.start; $("#algSteps").innerHTML = ""; $("#algShow").disabled = false; step = 0; draw();
+  }
+  $("#algPick").innerHTML = PROBS.map((q, i) => `<button type="button" class="chip" data-i="${i}">${M(`△<i>${q.name}</i>`)}</button>`).join("");
+  $("#algPick").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) pick(+b.dataset.i); });
+  function draw() {
+    const x = +$("#xS").value; $("#xRo").textContent = String(x);
+    const [k1, k2] = p.eq, v1 = val(p.s[k1], x), v2 = val(p.s[k2], x), diff = v1 - v2;
+    const th = Math.max(-16, Math.min(16, diff * 2.2)) * RAD, cx = 300, cy = 62, L = 200;
+    // The first side hangs on the right (where Arabic reading starts); a heavier side sinks.
+    const R = [cx + L * Math.cos(th), cy + L * Math.sin(th)], Lf = [cx - L * Math.cos(th), cy - L * Math.sin(th)];
+    const ok = diff === 0, col = ok ? "var(--green)" : "var(--ink)";
+    const pan = (P, k, v) => `<line x1="${P[0]}" y1="${P[1]}" x2="${P[0] - 52}" y2="${P[1] + 70}" stroke="var(--muted)" stroke-width="1.5"/><line x1="${P[0]}" y1="${P[1]}" x2="${P[0] + 52}" y2="${P[1] + 70}" stroke="var(--muted)" stroke-width="1.5"/>
+      <path d="M${P[0] - 70} ${P[1] + 70} h140 q-10 34 -70 34 q-60 0 -70 -34z" fill="var(--ochre-soft)" stroke="var(--ochre)" stroke-width="2"/>
+      <text x="${P[0]}" y="${P[1] + 88}" font-size="16" fill="var(--ink)" text-anchor="middle" font-style="italic" font-family="serif">${k} = ${v < 0 ? minus + Math.abs(v) : v}</text>`;
+    $("#bal").innerHTML = `<polygon points="${cx},${cy} ${cx - 30},215 ${cx + 30},215" fill="var(--ink)" opacity=".85"/>
+      <line x1="${Lf[0]}" y1="${Lf[1]}" x2="${R[0]}" y2="${R[1]}" stroke="${col}" stroke-width="7" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="8" fill="var(--red)"/>
+      ${pan(R, k1, v1)}${pan(Lf, k2, v2)}
+      ${ok ? `<text x="${cx}" y="28" font-size="18" fill="var(--green)" text-anchor="middle" class="lbl">متوازن ✓</text>` : ""}`;
+    // The triangle with today's lengths, if they make one.
+    // Vertices come from the triangle's name (F, G, H); side i joins vertex i and i+1, whatever order the problem lists them in.
+    const names = [...p.name], ks = names.map((n, i) => Object.keys(p.s).find(k => k.includes(n) && k.includes(names[(i + 1) % 3])));
+    const len = ks.map(k => val(p.s[k], x)), [a, b, c] = len;
+    const okTri = len.every(v => v > 0) && a + b > c && a + c > b && b + c > a;
+    if (!okTri) { $("#sss").innerHTML = `<text x="300" y="165" font-size="18" fill="var(--red)" text-anchor="middle" class="lbl">بهذه القيمة ما يتكوّن مثلث</text>`; return; }
+    // Vertices: side 0 joins v0-v1 (length a), side 1 joins v1-v2 (b), side 2 joins v2-v0 (c).
+    const px = (a * a + c * c - b * b) / (2 * a), py = Math.sqrt(Math.max(0, c * c - px * px));
+    const V = fit([[0, 0], [a, 0], [px, py]], 20, 10, 560, 310, 40);
+    const Lq = len.map(v => Math.round(v * 1000));
+    $("#sss").innerHTML = triSVG(V, { fill: "color-mix(in srgb, var(--ochre) 22%, transparent)", names, sides: len.map(v => fmt(v, 2)), ticks: ticksOf(Lq), fs: 16 });
+  }
+  let step = 0;
+  $("#xS").addEventListener("input", draw);
+  $("#algShow").onclick = () => {
+    const [k1, k2] = p.eq, [a1, b1] = p.s[k1], [a2, b2] = p.s[k2], x = (b2 - b1) / (a1 - a2);
+    const o = p.s[p.other], side = val(p.s[k1], x), ov = val(o, x);
+    const steps = [
+      [p.kind === "equilateral" ? "أضلاع المثلث المتطابق الأضلاع متطابقة" : "الضلعان المتطابقان متساويان في الطول", M(`${nm(k1)} = ${nm(k2)}`)],
+      ["عوّضي", M(`${ex(p.s[k1])} = ${ex(p.s[k2])}`)],
+      // Gather x on the side where its coefficient stays positive.
+      ["اجمعي الحدود المتشابهة", M(a1 > a2 ? `${a1 - a2 === 1 ? "" : a1 - a2}<i>x</i> = ${neg(b2 - b1)}` : `${neg(b1 - b2)} = ${a2 - a1 === 1 ? "" : a2 - a1}<i>x</i>`)],
+      ["اقسمي", M(`<i>x</i> = ${x}`)],
+      ["عوّضي لإيجاد الأطوال", M(`${nm(k1)} = ${nm(k2)} = ${val(p.s[k1], x)}`) + "<br>" + M(`${nm(p.other)} = ${ex(o).replace("<i>x</i>", `(${x})`)} = ${ov}`)],
+    ];
+    const s = steps[step++];
+    $("#algSteps").insertAdjacentHTML("beforeend", `<div class="stepc pop"><h4><span class="n">${step}</span>${s[0]}</h4><div>${s[1]}</div></div>`);
+    if (step === steps.length) {
+      $("#algSteps").insertAdjacentHTML("beforeend", `<div class="answer pop">${M(`<i>x</i> = ${x}`)}، والأطوال ${M(`${side}, ${side}, ${ov}`)}. ${p.kind === "equilateral" ? (ov === side ? "الضلع الثالث طلع بنفس الطول، فالمثلث فعلًا متطابق الأضلاع ✓" : "") : (ov === side ? "" : "والضلع الثالث مختلف، فهو متطابق الضلعين وليس متطابق الأضلاع.")} حرّكي المؤشر إلى ${M(`<i>x</i> = ${x}`)} وشوفي الميزان يتوازن.</div>`);
+      $("#algShow").disabled = true;
+    }
+  };
+  pick(0);
+})();
+
+/* ---------- 6. Coordinate plane ---------- */
+(function plane() {
+  const svg = $("#plane"), S = 25, X = x => 200 + x * S, Y = y => 200 - y * S, R = 7;
+  const PRESETS = [
+    { t: "مثال", P: [[-2, 1], [1, 5], [2, -2]] },
+    { t: "مسألة 2", P: [[-3, -2], [3, -2], [0, 3]] },
+    { t: "مسألة 3", P: [[-4, 0], [3, -2], [0, 5]] },
+  ];
+  let P = PRESETS[0].P.map(p => p.slice()), drag = -1;
+  $("#plPick").innerHTML = PRESETS.map((q, i) => `<button type="button" class="chip" data-i="${i}" aria-pressed="${i === 0}">${q.t}</button>`).join("");
+  $("#plPick").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (!b) return; $$("#plPick .chip").forEach(c => c.setAttribute("aria-pressed", c === b)); P = PRESETS[+b.dataset.i].P.map(p => p.slice()); draw(); });
+  let grid = "";
+  for (let i = -R; i <= R; i++) grid += `<line x1="${X(i)}" y1="${Y(-R)}" x2="${X(i)}" y2="${Y(R)}" stroke="var(--line)"/><line x1="${X(-R)}" y1="${Y(i)}" x2="${X(R)}" y2="${Y(i)}" stroke="var(--line)"/>`;
+  grid += `<line x1="${X(-R - .6)}" y1="${Y(0)}" x2="${X(R + .6)}" y2="${Y(0)}" stroke="var(--muted)" stroke-width="1.6"/><line x1="${X(0)}" y1="${Y(-R - .6)}" x2="${X(0)}" y2="${Y(R + .6)}" stroke="var(--muted)" stroke-width="1.6"/>`;
+  grid += `<text x="${X(R + .5)}" y="${Y(0) - 8}" font-size="13" fill="var(--muted)" font-style="italic" font-family="serif">x</text><text x="${X(0) + 8}" y="${Y(R + .3)}" font-size="13" fill="var(--muted)" font-style="italic" font-family="serif">y</text>`;
+  for (let i = -6; i <= 6; i += 2) if (i) grid += `<text x="${X(i)}" y="${Y(0) + 15}" font-size="10.5" fill="var(--muted)" text-anchor="middle">${String(i).replace("-", minus)}</text><text x="${X(0) - 7}" y="${Y(i) + 4}" font-size="10.5" fill="var(--muted)" text-anchor="end">${String(i).replace("-", minus)}</text>`;
+  const N = ["A", "B", "C"], pairs = [[0, 1], [1, 2], [2, 0]];
+  const ptH = ([x, y]) => `(${String(x).replace("-", minus)}, ${String(y).replace("-", minus)})`;
+  const neg = v => String(v).replace("-", minus);
+  const sgn = v => v < 0 ? `(${minus}${Math.abs(v)})` : `${v}`;
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+  const slopeH = (dy, dx) => { if (dx === 0) return "غير معرّف"; if (dy === 0) return "0"; const g = gcd(dy, dx), n = dy / g * Math.sign(dx), d = Math.abs(dx) / g; return (n < 0 ? minus : "") + (d === 1 ? Math.abs(n) : `<span class="fr"><span>${Math.abs(n)}</span><span>${d}</span></span>`); };
+  function draw() {
+    const L = pairs.map(([i, j]) => (P[j][0] - P[i][0]) ** 2 + (P[j][1] - P[i][1]) ** 2);
+    const T = [0, 1, 2].map(i => { const a = P[(i + 1) % 3], b = P[(i + 2) % 3], d = (a[0] - P[i][0]) * (b[0] - P[i][0]) + (a[1] - P[i][1]) * (b[1] - P[i][1]); return d > 0 ? "acute" : d === 0 ? "right" : "obtuse"; });
+    const I = classify(L, T), V = P.map(([x, y]) => [X(x), Y(y)]);
+    let g = grid + triSVG(V, { fill: "color-mix(in srgb, var(--ochre) 22%, transparent)", ticks: ticksOf(L), ang: T.map(t => t === "right" ? { type: t } : null), arcR: 18 });
+    V.forEach(([x, y], i) => { g += `<g data-v="${i}"><circle cx="${x}" cy="${y}" r="20" fill="transparent"/><circle cx="${x}" cy="${y}" r="6.5" fill="var(--red)" stroke="var(--wool)" stroke-width="2"/></g>
+      <text x="${x + (x < 200 ? -10 : 10)}" y="${y - 12}" font-size="13" fill="var(--ink)" text-anchor="${x < 200 ? "end" : "start"}" class="lbl">${N[i]}${ptH(P[i])}</text>`; });
+    svg.innerHTML = g;
+    $("#plSteps").innerHTML = pairs.map(([i, j], k) => {
+      const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1];
+      return `<div class="stepc"><h4><span class="n">${k + 1}</span>${M(`<i>${N[i]}${N[j]}</i>`)}</h4><div>${M(`<span class="sq">√<span>(${neg(P[j][0])} ${minus} ${sgn(P[i][0])})<sup>2</sup> + (${neg(P[j][1])} ${minus} ${sgn(P[i][1])})<sup>2</sup></span></span> = <span class="sq">√<span>${dx * dx} + ${dy * dy}</span></span> = ${lenH(L[k])}`)}</div></div>`;
+    }).join("");
+    const right = T.indexOf("right");
+    let ang = "";
+    if (right >= 0) {
+      const a = P[right], b = P[(right + 1) % 3], c = P[(right + 2) % 3];
+      ang = `وحسب الزوايا: ميل ${M(`<i>${N[right]}${N[(right + 1) % 3]}</i>`)} = ${M(slopeH(b[1] - a[1], b[0] - a[0]))} وميل ${M(`<i>${N[right]}${N[(right + 2) % 3]}</i>`)} = ${M(slopeH(c[1] - a[1], c[0] - a[0]))}، فهما متعامدان، والمثلث <b>قائم الزاوية</b> عند ${N[right]}.`;
+    } else ang = `ولا يوجد ضلعان متعامدان، فالمثلث ليس قائم الزاوية (وهو ${ANG[I.ang === "equi" ? "acute" : I.ang]}).`;
+    $("#plAns").innerHTML = `<div class="answer">${I.side === "scalene" ? "الأطوال الثلاثة مختلفة" : I.side === "equilateral" ? "الأطوال الثلاثة متساوية" : "فيه طولان متساويان"}، فـ ${M("△<i>ABC</i>")} <b>${SIDE[I.side]}</b>.<br><span style="font-weight:500">${ang}</span></div>`;
+  }
+  const toU = e => { const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [Math.round((pt.x - 200) / S), Math.round((200 - pt.y) / S)]; };
+  svg.addEventListener("pointerdown", e => { const h = e.target.closest("[data-v]"); if (!h) return; drag = +h.dataset.v; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+  svg.addEventListener("pointermove", e => {
+    if (drag < 0) return;
+    const q = toU(e); if (Math.abs(q[0]) > 6 || Math.abs(q[1]) > 6) return;
+    const N2 = P.map((p, i) => i === drag ? q : p), u = [N2[1][0] - N2[0][0], N2[1][1] - N2[0][1]], v = [N2[2][0] - N2[0][0], N2[2][1] - N2[0][1]];
+    if (u[0] * v[1] - u[1] * v[0] === 0) return;
+    P = N2; $$("#plPick .chip").forEach(c => c.setAttribute("aria-pressed", false)); draw();
+  });
+  svg.addEventListener("pointerup", () => drag = -1); svg.addEventListener("pointercancel", () => drag = -1);
+  draw();
+})();
+
+/* ---------- 7. Sorting game ---------- */
+(function game() {
+  const ROUNDS = 8, AO = ["acute", "equi", "right", "obtuse"], SO = ["scalene", "isosceles", "equilateral"];
+  const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const MAKE = {
+    "acute-scalene": () => { for (;;) { const a = ri(45, 85), b = ri(40, 85), c = 180 - a - b; if (c > 30 && c < 90 && new Set([a, b, c]).size === 3 && Math.min(Math.abs(a - b), Math.abs(b - c), Math.abs(a - c)) >= 6) return [a, b, c]; } },
+    "acute-isosceles": () => { for (;;) { const b = ri(50, 80); if (b !== 60) return [b, b, 180 - 2 * b]; } },
+    "equi-equilateral": () => [60, 60, 60],
+    "right-scalene": () => { for (;;) { const a = ri(25, 65); if (Math.abs(a - 45) >= 8) return [90, a, 90 - a]; } },
+    "right-isosceles": () => [90, 45, 45],
+    "obtuse-scalene": () => { for (;;) { const o = ri(100, 140), a = ri(15, 180 - o - 15), b = 180 - o - a; if (Math.abs(a - b) >= 6) return [o, a, b]; } },
+    "obtuse-isosceles": () => { const o = 2 * ri(50, 70); return [o, (180 - o) / 2, (180 - o) / 2]; },
+  };
+  let round = 0, stars = 0, cur, ansA, ansS;
+  const deck = () => shuffle([...Object.keys(MAKE), ...shuffle(Object.keys(MAKE)).slice(0, 1)]);
+  let order = deck();
+  function newRound() {
+    const k = order[round];
+    let angs = MAKE[k]();
+    const sh = ri(0, 2); angs = [...angs.slice(sh), ...angs.slice(0, sh)];
+    const info = fromAngles(angs), V = fit(triFromAngles(angs[0], angs[1], ri(0, 359)), 0, 0, 400, 300, 50);
+    cur = { k, angs, info }; ansA = ansS = null;
+    $("#game").innerHTML = triSVG(V, { fill: "color-mix(in srgb, var(--ochre) 24%, transparent)", ang: info.T.map((t, i) => ({ type: t, text: t === "right" ? "" : `${angs[i]}°` })), ticks: ticksOf(info.L), arcR: 24, fs: 17 });
+    $("#gA").innerHTML = AO.map(a => `<button type="button" class="opt" data-a="${a}">${ANG[a]}</button>`).join("");
+    $("#gS").innerHTML = SO.map(s => `<button type="button" class="opt" data-s="${s}">${SIDE[s]}</button>`).join("");
+    $("#gRound").textContent = `${round + 1}/${ROUNDS}`; $("#gNext").hidden = true;
+    $("#gNarr").innerHTML = "اختاري تصنيفًا من كل صف.";
+  }
+  // Exact answer: 1 star. A true but less precise one (acute for equiangular, isosceles for equilateral): half a star.
+  const grade = (pick, best, ok2) => pick === best ? 1 : pick === ok2 ? .5 : 0;
+  function finish() {
+    const { ang, side } = cur.info;
+    const ga = grade(ansA, ang, ang === "equi" ? "acute" : null), gs = grade(ansS, side, side === "equilateral" ? "isosceles" : null), got = ga + gs;
+    stars += got; $("#gStars").textContent = fmt(stars);
+    const mark = (box, attr, pick, best, g) => $$(`#${box} .opt`).forEach(o => { o.disabled = true; const v = o.dataset[attr]; if (v === best) o.classList.add("right"); else if (v === pick) o.classList.add(g ? "meh" : "wrong"); });
+    mark("gA", "a", ansA, ang, ga); mark("gS", "s", ansS, side, gs);
+    const notes = [];
+    if (ga === .5) notes.push("صح إنه حاد الزوايا، لكن الأدق: <b>متطابق الزوايا</b>.");
+    if (gs === .5) notes.push("صح إنه متطابق الضلعين، لكن الأدق: <b>متطابق الأضلاع</b>.");
+    if (!ga) notes.push(ang === "right" ? "علامة المربع تعني زاوية قائمة." : ang === "obtuse" ? `فيه زاوية أكبر من <span class="num">90°</span>.` : "زواياه كلها أقل من 90°.");
+    if (!gs) notes.push(side === "scalene" ? "ما فيه شرطات، يعني الأضلاع مختلفة." : "انتبهي للشرطات على الأضلاع.");
+    $("#gNarr").innerHTML = `<span class="stars">${"★".repeat(Math.floor(got))}${got % 1 ? "⯪" : ""}${"☆".repeat(2 - Math.ceil(got))}</span> هو مثلث <b class="cr">${ANG[ang]}</b> و<b class="co">${SIDE[side]}</b>. ${notes.join(" ")}`;
+    round++;
+    if (round < ROUNDS) { $("#gNext").hidden = false; $("#gNext").textContent = "المثلث التالي"; }
+    else {
+      $("#gNarr").innerHTML += `<br><b>انتهت الجولات:</b> <span class="score-big">${fmt(stars)}/${ROUNDS * 2}</span> ${stars >= 14 ? "نسّاجة محترفة! 🧶" : stars >= 10 ? "ممتاز، عينك ما تخطي!" : "راجعي البطاقات في المحطتين 1 و2 وجربي ثانية."}`;
+      $("#gNext").hidden = false; $("#gNext").textContent = "العبي من جديد";
+    }
+  }
+  $("#gA").addEventListener("click", e => { const b = e.target.closest("[data-a]"); if (!b || b.disabled) return; ansA = b.dataset.a; $$("#gA .opt").forEach(o => o.setAttribute("aria-pressed", o === b)); $$("#gA .opt").forEach(o => o.style.borderColor = o === b ? "var(--ink)" : ""); if (ansS) finish(); });
+  $("#gS").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (!b || b.disabled) return; ansS = b.dataset.s; $$("#gS .opt").forEach(o => o.style.borderColor = o === b ? "var(--ink)" : ""); if (ansA) finish(); });
+  $("#gNext").onclick = () => { if (round >= ROUNDS) { round = 0; stars = 0; order = deck(); $("#gStars").textContent = 0; } newRound(); };
+  newRound();
+})();
+
+/* ---------- Summary drawings ---------- */
+{
+  const row = (sel, list, opt) => { $(sel).innerHTML = list.map(([A, B], i) => { const info = fromAngles([A, B, 180 - A - B]); return triSVG(fit(triFromAngles(A, B), i * (300 / list.length), 0, 300 / list.length, 110, 10), { fill: sadu[i % 3], sw: 2, arcR: 10, ...opt(info, i) }); }).join(""); };
+  row("#sumA", [[70, 60], [60, 60], [90, 55], [125, 30]], info => ({ ang: info.T.map(t => ({ type: t })), stroke: "var(--ink)", fill: "var(--wool)" }));
+  row("#sumS", [[75, 45], [72, 72], [60, 60]], info => ({ ticks: ticksOf(info.L), fill: "var(--wool)" }));
+}
+
+/* ---------- 8. Quiz ---------- */
+const pic = (angs, labels) => {
+  const info = fromAngles(angs);
+  return `<svg class="mini" viewBox="0 0 280 170" aria-hidden="true">${triSVG(fit(triFromAngles(angs[0], angs[1], 0), 0, 0, 280, 170, 34), { fill: "var(--ochre-soft)", ang: info.T.map((t, i) => ({ type: t, text: labels ? `${angs[i]}°` : "" })), ticks: ticksOf(info.L), arcR: 18, fs: 14 })}</svg>`;
+};
+const QUIZ = [
+  { q: `مثلث قياسات زواياه ${M("30°")} و${M("60°")} و${M("90°")}. صنّفيه حسب زواياه.`,
+    opts: ["حاد الزوايا", "قائم الزاوية", "منفرج الزاوية", "متطابق الزوايا"], ok: 1, why: "فيه زاوية قياسها 90°، فهو قائم الزاوية." },
+  { q: "صنّفي المثلث في الشكل حسب زواياه وأضلاعه.", pic: pic([40, 40, 100], true),
+    opts: ["منفرج الزاوية ومتطابق الضلعين", "حاد الزوايا ومتطابق الضلعين", "منفرج الزاوية ومختلف الأضلاع", "قائم الزاوية ومتطابق الضلعين"], ok: 0, why: "فيه زاوية 100° (منفرجة)، والشرطات تبين ضلعين متطابقين." },
+  { q: `أطوال أضلاع مثلث: ${M("5")} سم، ${M("8")} سم، ${M("5")} سم. صنّفيه حسب أضلاعه.`,
+    opts: ["مختلف الأضلاع", "متطابق الضلعين", "متطابق الأضلاع", "لا يمكن تحديده"], ok: 1, why: "فيه ضلعان طول كل منهما 5 سم." },
+  { q: `${M("△<i>ABC</i>")} متطابق الأضلاع، فيه ${M("<i>AB</i> = 3<i>x</i> − 4")} و${M("<i>BC</i> = <i>x</i> + 6")}. ما طول ضلعه؟`,
+    opts: [M("5"), M("11"), M("15"), M("8")], ok: 1, why: `${M("3<i>x</i> − 4 = <i>x</i> + 6")} ← ${M("2<i>x</i> = 10")} ← ${M("<i>x</i> = 5")}، فطول الضلع ${M("5 + 6 = 11")}.` },
+  { q: `صنّفي ${M("△<i>JKL</i>")} حسب أضلاعه، حيث ${M("<i>J</i>(1, 1)")} و${M("<i>K</i>(4, 5)")} و${M("<i>L</i>(7, 1)")}.`,
+    opts: ["مختلف الأضلاع", "متطابق الضلعين", "متطابق الأضلاع", "ليس مثلثًا"], ok: 1, why: `${M("<i>JK</i> = <span class='sq'>√<span>9 + 16</span></span> = 5")} و${M("<i>KL</i> = <span class='sq'>√<span>9 + 16</span></span> = 5")} و${M("<i>JL</i> = 6")}: ضلعان متطابقان.` },
+  { q: "«المثلث القائم الزاوية يكون متطابق الضلعين.» هذه العبارة صحيحة…",
+    opts: ["دائمًا", "أحيانًا", "أبدًا", "لا يمكن الحكم"], ok: 1, why: "أحيانًا: المثلث 90°، 45°، 45° قائم ومتطابق الضلعين، أما 90°، 60°، 30° فقائم ومختلف الأضلاع." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.pic || ""}
+    <div class="opts">${it.opts.map((o, j) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[j]}</b><span>${o}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="cg">صحيح ✓</b>` : `<b class="cr">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🧶 نسيج متقن!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("triangle-classification", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>

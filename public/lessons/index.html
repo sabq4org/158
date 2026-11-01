@@ -86,6 +86,7 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-paper .cover { background: #f6eedf; }
 .t-night .cover { background: radial-gradient(120% 120% at 80% 0%, #24386e, #14244d 45%, #0b1530); }
 .t-blueprint .cover { background: #1f4f8f; }
+.t-sadu .cover { background: #f1e6d3; }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -153,6 +154,11 @@ const COVERS = {
     <path d="M170 106 h14 v14" fill="none" stroke="#fff" stroke-width="2"/>
     <path d="M120 120 A 52 52 0 0 1 220 120" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.5"/>
     <circle cx="170" cy="30" r="6" fill="#fb923c"/><text x="182" y="34" font-family="serif" font-style="italic" font-size="18" fill="#fff">P</text></svg>`,
+  sadu: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    ${[0, 128].map(y => `<rect x="0" y="${y}" width="300" height="22" fill="#2b1a14"/>` + Array.from({ length: 22 }, (_, k) => `<polygon points="${k * 14 - 7},${y + 2} ${k * 14 + 7},${y + 2} ${k * 14},${y + 20}" fill="${k % 2 ? "#c27a0e" : "#b3261e"}"/>`).join("")).join("")}
+    <polygon points="40,110 110,110 75,40" fill="#b3261e" stroke="#2b1a14" stroke-width="2.5"/>
+    <polygon points="125,110 205,110 125,50" fill="#2b1a14"/><path d="M125 98 h12 v12" fill="none" stroke="#fffaf1" stroke-width="2"/>
+    <polygon points="215,110 290,110 230,75" fill="#c27a0e" stroke="#2b1a14" stroke-width="2.5"/></svg>`,
 };
 
 const scoreOf = key => who?.results?.[key] || null;
@@ -197,7 +203,7 @@ function card(l) {
   return `<article class="lesson t-${esc(l.theme)}">
     <div class="cover">${COVERS[l.theme] || ""}<span class="tag">الدرس <bdi dir="ltr">${esc(l.ref)}</bdi></span>${badge}</div>
     <div class="body">
-      <span class="ref">${esc(l.book)} · صفحات <bdi dir="ltr">${esc(l.pages)}</bdi></span>
+      <span class="ref">${esc(l.book)}${l.pages ? ` · صفحات <bdi dir="ltr">${esc(l.pages)}</bdi>` : ""}</span>
       <h3>${esc(l.name)}</h3>
       ${l.name !== l.title ? `<h4>${esc(l.title)}</h4>` : ""}
       <p>${esc(l.about)}</p>
