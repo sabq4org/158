@@ -854,13 +854,14 @@ function figure(svgSel, pickSel, askSel, pts, base, items) {
       ${pan(R, k1, v1)}${pan(Lf, k2, v2)}
       ${ok ? `<text x="${cx}" y="28" font-size="18" fill="var(--green)" text-anchor="middle" class="lbl">متوازن ✓</text>` : ""}`;
     // The triangle with today's lengths, if they make one.
-    const ks = Object.keys(p.s), len = ks.map(k => val(p.s[k], x)), [a, b, c] = len;
+    // Vertices come from the triangle's name (F, G, H); side i joins vertex i and i+1, whatever order the problem lists them in.
+    const names = [...p.name], ks = names.map((n, i) => Object.keys(p.s).find(k => k.includes(n) && k.includes(names[(i + 1) % 3])));
+    const len = ks.map(k => val(p.s[k], x)), [a, b, c] = len;
     const okTri = len.every(v => v > 0) && a + b > c && a + c > b && b + c > a;
     if (!okTri) { $("#sss").innerHTML = `<text x="300" y="165" font-size="18" fill="var(--red)" text-anchor="middle" class="lbl">بهذه القيمة ما يتكوّن مثلث</text>`; return; }
     // Vertices: side 0 joins v0-v1 (length a), side 1 joins v1-v2 (b), side 2 joins v2-v0 (c).
     const px = (a * a + c * c - b * b) / (2 * a), py = Math.sqrt(Math.max(0, c * c - px * px));
     const V = fit([[0, 0], [a, 0], [px, py]], 20, 10, 560, 310, 40);
-    const names = [ks[0][0], ks[0][1], ks[1][1]];
     const Lq = len.map(v => Math.round(v * 1000));
     $("#sss").innerHTML = triSVG(V, { fill: "color-mix(in srgb, var(--ochre) 22%, transparent)", names, sides: len.map(v => fmt(v, 2)), ticks: ticksOf(Lq), fs: 16 });
   }
