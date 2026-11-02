@@ -65,8 +65,11 @@ setInterval(() => {
 // grade is null when her class has no grade in its name (an old "1"/"2" name): she then sees every lesson.
 async function studentOf(pool, id) {
   const { rows } = await pool.query(
-    "SELECT s.name, s.class FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active WHERE s.national_id = $1 LIMIT 1", [id]);
-  return rows[0] ? { name: rows[0].name, grade: Report.classParts(rows[0].class)?.grade || null } : null;
+    "SELECT s.name, s.class FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active WHERE s.national_id = $1 ORDER BY s.teacher_id", [id]);
+  if (!rows.length) return null;
+  // She may be on several teachers' lists; a class that names her grade wins over an old name without one.
+  const grade = rows.map(r => Report.classParts(r.class)?.grade).find(Boolean) || null;
+  return { name: rows[0].name, grade };
 }
 // Each grade sees its own lessons only (the user asked, 2026-11-02): a student of الثاني الثانوي sees the second grade's.
 const forGrade = (l, grade) => !grade || l.grade === grade;
