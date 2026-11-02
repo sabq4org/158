@@ -314,6 +314,9 @@ module.exports = function mountAdmin(app, pool) {
     return null;
   }
 
+  // The lessons' library asks whether its visitor is signed-in staff (who see every grade's lessons).
+  app.locals.readSession = readSession;
+
   function setSession(res, ms, role = "admin", t = null) {
     const ver = role === "viewer" ? viewer.ver : role === "teacher" ? t.pw_ver : 0;
     const payload = `${role}.${t ? t.id : 0}.${Date.now() + ms}.${ver}`;

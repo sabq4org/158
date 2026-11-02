@@ -69,8 +69,9 @@ const LessonQuiz = (() => {
       if (id.length < 9) return drawAsk("رقم الهوية لازم يكون ١٠ أرقام.");
       const btn = form.querySelector("button[type=submit]"); btn.disabled = true; btn.textContent = "لحظة…";
       try {
-        const d = await api("/api/lessons/student", { id });
-        who = { id, name: d.name, results: d.results || {} }; store.set(who);
+        const d = await api("/api/lessons/student", { id, lesson: lesson.key });
+        who = { id, name: d.name, grade: d.grade || null, gradeLabel: d.gradeLabel || "", results: d.results || {} }; store.set(who);
+        lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || "";
         drawReady();
       } catch (x) {
         drawAsk(x.status === 404 ? "ما لقينا هذا الرقم بين الطالبات. تأكدي منه أو اسألي معلمتك." : x.status === 429 ? "محاولات كثيرة، انتظري شوي وجربي." : "تعذّر الاتصال. تأكدي من الإنترنت وجربي مرة ثانية.");
@@ -80,7 +81,19 @@ const LessonQuiz = (() => {
     show(false);
   }
 
+  // Each grade has its own lessons. A student who opens another grade's lesson (from a shared link) can still practise,
+  // but nothing is saved: the server refuses it too.
+  function drawOtherGrade() {
+    mode = "practice"; box.classList.add("on");
+    box.innerHTML = `<div class="lq-row"><div><h3>هذا الدرس مو لصفك</h3>
+      <p>الدرس ${lesson.gradeLabel ? `للصف ${esc(lesson.gradeLabel)}` : "لصف ثاني"}، فدرجتك فيه ما تنحفظ. تقدرين تتدربين عليه، ودروس صفك تلقينها في <a href="/lessons">مكتبة الدروس</a>.</p></div>
+      <button type="button" class="lq-link" data-out>مو أنا؟</button></div>`;
+    box.querySelector("[data-out]").onclick = () => { who = null; store.set(null); drawAsk(); };
+    show(true);
+  }
+
   function drawReady(fresh = true) {
+    if (lesson.fits === false) return drawOtherGrade();
     mode = "save"; box.classList.add("on");
     const r = saved();
     box.innerHTML = `<div class="lq-row"><div><h3>أهلًا يا ${esc(who.name)} 👋</h3>
@@ -106,7 +119,11 @@ const LessonQuiz = (() => {
     if (!who) return drawAsk();
     // Her scores may have changed in another tab: read them again before the quiz opens.
     drawReady();
-    api("/api/lessons/student", { id: who.id }).then(d => { who.results = d.results || {}; store.set(who); if (mode === "save") drawReady(false); })
+    api("/api/lessons/student", { id: who.id, lesson: key }).then(d => {
+      who.results = d.results || {}; who.grade = d.grade || null; who.gradeLabel = d.gradeLabel || ""; store.set(who);
+      lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || "";
+      if (mode === "save") drawReady(false);
+    })
       .catch(x => { if (x.status === 404) { who = null; store.set(null); drawAsk(); } });
   }
 
@@ -123,7 +140,8 @@ const LessonQuiz = (() => {
         <button type="button" class="lq-link" data-out>مو أنا؟</button></div>`;
       box.querySelector("[data-out]").onclick = () => { who = null; store.set(null); drawAsk(); };
       toast(d.first ? `✅ انحفظت درجتك عند معلمتك: ${savedText(d)}` : `محاولة تدريب. درجتك المحفوظة تبقى ${savedText(had || d)}`);
-    } catch {
+    } catch (x) {
+      if (x.status === 403) { lesson.fits = false; return drawOtherGrade(); }
       box.insertAdjacentHTML("beforeend", `<p class="lq-err" role="alert">ما قدرنا نحفظ الدرجة. تأكدي من الإنترنت وأعيدي الاختبار.</p>`);
       toast("ما قدرنا نحفظ الدرجة. تأكدي من الإنترنت وأعيدي الاختبار.", true);
     }
