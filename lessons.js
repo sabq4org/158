@@ -61,12 +61,15 @@ setInterval(() => {
   for (const [ip, list] of hits) if (list.every(t => now - t >= WINDOW_MS)) hits.delete(ip);
 }, WINDOW_MS).unref();
 
-// A student of any active teacher; only her first name ever leaves the server.
+// A student of any active teacher; only her first name and her grade ever leave the server.
+// grade is null when her class has no grade in its name (an old "1"/"2" name): she then sees every lesson.
 async function studentOf(pool, id) {
   const { rows } = await pool.query(
-    "SELECT s.name FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active WHERE s.national_id = $1 LIMIT 1", [id]);
-  return rows[0] || null;
+    "SELECT s.name, s.class FROM students s JOIN teachers t ON t.id = s.teacher_id AND t.active WHERE s.national_id = $1 LIMIT 1", [id]);
+  return rows[0] ? { name: rows[0].name, grade: Report.classParts(rows[0].class)?.grade || null } : null;
 }
+// Each grade sees its own lessons only (the user asked, 2026-11-02): a student of الثاني الثانوي sees the second grade's.
+const forGrade = (l, grade) => !grade || l.grade === grade;
 
 async function resultsOf(pool, id) {
   const { rows } = await pool.query("SELECT lesson, score, total, best, attempts FROM lesson_results WHERE national_id = $1", [id]);
@@ -80,9 +83,12 @@ function mount(app, pool) {
     try { await fn(req, res); } catch (err) { console.error(err); res.status(500).json({ error: "server_error" }); }
   };
 
+  // The library lists a student's own grade only, once she gives her ID. Staff signed in to the panel (a teacher, the
+  // principal, the admin) see every grade, so a teacher can open any lesson in class.
   app.get("/api/lessons", (req, res) => {
     res.set("Cache-Control", "no-cache");
-    res.json({ lessons: LESSONS.map(({ key, name, title, ref, book, grade, pages, total, quiz, about, theme }) =>
+    const staff = !!(typeof app.locals.readSession === "function" && app.locals.readSession(req));
+    res.json({ staff, lessons: LESSONS.map(({ key, name, title, ref, book, grade, pages, total, quiz, about, theme }) =>
       ({ key, name, title, ref, book, grade, gradeLabel: Report.GRADES[grade - 1], pages, total, quiz, about, theme })) });
   });
 
@@ -92,7 +98,10 @@ function mount(app, pool) {
     if (id.length < 9 || id.length > 10) return res.status(400).json({ error: "invalid_id" });
     const s = await studentOf(pool, id);
     if (!s) return res.status(404).json({ error: "not_found" });
-    res.json({ name: firstName(s.name), results: await resultsOf(pool, id) });
+    const g = s.grade, l = BY_KEY[req.body?.lesson];
+    // From a lesson's quiz: whether that lesson is for her grade (a link may have been passed on from another grade).
+    const fit = l ? { fits: forGrade(l, g), lessonGrade: Report.GRADES[l.grade - 1] } : {};
+    res.json({ name: firstName(s.name), grade: g, gradeLabel: g ? Report.GRADES[g - 1] : null, ...fit, results: await resultsOf(pool, id) });
   }));
 
   app.post("/api/lessons/:lesson/result", json, guard(async (req, res) => {
@@ -100,7 +109,9 @@ function mount(app, pool) {
     if (!l) return res.status(404).json({ error: "not_found" });
     const id = idOf(req.body?.id), score = Number(req.body?.score);
     if (!Number.isInteger(score) || score < 0 || score > l.total) return res.status(400).json({ error: "invalid_score" });
-    if (!(await studentOf(pool, id))) return res.status(404).json({ error: "not_found" });
+    const s = await studentOf(pool, id);
+    if (!s) return res.status(404).json({ error: "not_found" });
+    if (!forGrade(l, s.grade)) return res.status(403).json({ error: "wrong_grade" });
     const { rows } = await pool.query(
       `INSERT INTO lesson_results (national_id, lesson, score, total, best) VALUES ($1, $2, $3, $4, $3)
        ON CONFLICT (national_id, lesson) DO UPDATE SET attempts = lesson_results.attempts + 1,
@@ -140,4 +151,4 @@ function mountPanel(router, pool) {
   });
 }
 
-module.exports = { SCHEMA, LESSONS, panelLessons, mount, mountPanel };
+module.exports = { SCHEMA, LESSONS, panelLessons, forGrade, mount, mountPanel };

@@ -106,7 +106,7 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
   </div>
   <div class="copy">
     <h1>مكتبة الدروس التفاعلية</h1>
-    <p>دروس الرياضيات كلها في مكان واحد. افتحي الدرس، جرّبي بنفسك، وفي آخره اختبار قصير تنحفظ درجته عند معلمتك.</p>
+    <p>دروس الرياضيات لصفك في مكان واحد. افتحي الدرس، جرّبي بنفسك، وفي آخره اختبار قصير تنحفظ درجته عند معلمتك.</p>
   </div>
 </header>
 
@@ -127,7 +127,10 @@ const store = {
   get() { try { return JSON.parse(sessionStorage.getItem(KEY)) || null; } catch { return null; } },
   set(v) { try { v ? sessionStorage.setItem(KEY, JSON.stringify(v)) : sessionStorage.removeItem(KEY); } catch {} },
 };
-let lessons = [], who = store.get();
+let lessons = [], staff = false, who = store.get();
+// Each grade sees its own lessons: a student sees her grade's shelf once she gives her ID (every grade if her class has
+// no grade). Before that the shelves stay empty, unless the visitor is signed in to the panel as staff.
+const visible = () => who ? lessons.filter(l => !who.grade || l.grade === who.grade) : staff ? lessons : [];
 
 // Cover art for each theme: small drawings of what the lesson does.
 const COVERS = {
@@ -167,8 +170,10 @@ const pctColor = r => (r.score / r.total >= .75 ? "var(--good)" : r.score / r.to
 function drawMe(err) {
   const box = $("#me");
   if (!who) {
-    box.innerHTML = `<div><h2>نتائجي في الدروس</h2><p>اكتبي رقم هويتك وتشوفين الدروس اللي حلّيتي اختبارها ودرجاتك فيها.</p></div>
-      <form novalidate><input inputmode="numeric" autocomplete="off" maxlength="10" placeholder="رقم الهوية" aria-label="رقم الهوية"><button class="btn" type="submit">اعرضي نتائجي</button></form>
+    box.innerHTML = `<div><h2>${staff ? "دروس كل الصفوف" : "دروس صفك"}</h2><p>${staff
+        ? "أنتِ داخلة بحساب المنصة، فتشوفين دروس كل الصفوف. وتقدرين تكتبين رقم هوية طالبة وتشوفين المكتبة مثل ما تشوفها هي."
+        : "اكتبي رقم هويتك وتطلع لك دروس صفك، ودرجاتك في الاختبارات اللي حلّيتيها."}</p></div>
+      <form novalidate><input inputmode="numeric" autocomplete="off" maxlength="10" placeholder="رقم الهوية" aria-label="رقم الهوية"><button class="btn" type="submit">${staff ? "اعرضي مثل الطالبة" : "اعرضي دروسي"}</button></form>
       ${err ? `<p class="err" role="alert">${esc(err)}</p>` : ""}`;
     const form = box.querySelector("form"), input = form.querySelector("input");
     input.addEventListener("input", () => { input.value = toLatin(input.value).replace(/\D/g, "").slice(0, 10); });
@@ -181,10 +186,10 @@ function drawMe(err) {
     };
     return;
   }
-  const mine = lessons.filter(l => scoreOf(l.key));
+  const shown = visible(), mine = shown.filter(l => scoreOf(l.key));
   const pct = mine.length ? Math.round(100 * mine.reduce((s, l) => s + scoreOf(l.key).score / scoreOf(l.key).total, 0) / mine.length) : null;
   box.innerHTML = `<div><h2>أهلًا يا ${esc(who.name)} 👋</h2><p>${mine.length ? "درجاتك في أول محاولة لكل اختبار، وهي اللي تشوفها معلمتك." : "ما حلّيتي أي اختبار للحين. ابدئي بأي درس تحت."}</p></div>
-    <div class="sum">${mine.length ? `<span><b>${mine.length}</b> من ${lessons.length} دروس</span><span>المتوسط <b>${pct}٪</b></span>` : ""}
+    <div class="sum">${mine.length ? `<span><b>${mine.length}</b> من ${shown.length} دروس</span><span>المتوسط <b>${pct}٪</b></span>` : ""}
       <button class="btn ghost" type="button" id="out">مو أنا؟</button></div>`;
   $("#out").onclick = () => { who = null; store.set(null); drawMe(); drawShelves(); };
 }
@@ -193,7 +198,7 @@ async function signIn(id) {
   const r = await fetch("/api/lessons/student", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
   if (!r.ok) throw Object.assign(new Error("error"), { status: r.status });
   const d = await r.json();
-  who = { id, name: d.name, results: d.results || {} }; store.set(who);
+  who = { id, name: d.name, grade: d.grade || null, gradeLabel: d.gradeLabel || "", results: d.results || {} }; store.set(who);
   drawMe(); drawShelves();
 }
 
@@ -212,16 +217,21 @@ function card(l) {
 }
 
 function drawShelves() {
-  const grades = [...new Set(lessons.map(l => l.grade))].sort((a, b) => b - a);
+  const shown = visible();
+  if (!shown.length) {
+    $("#shelves").innerHTML = `<p class="empty">${who ? `ما فيه دروس ${who.gradeLabel ? `للصف ${esc(who.gradeLabel)}` : "لصفك"} للحين. أول ما تضيف معلمتك درسًا يطلع لك هنا.` : "اكتبي رقم هويتك فوق وتطلع لك دروس صفك."}</p>`;
+    return;
+  }
+  const grades = [...new Set(shown.map(l => l.grade))].sort((a, b) => b - a);
   $("#shelves").innerHTML = grades.map(g => {
-    const list = lessons.filter(l => l.grade === g);
+    const list = shown.filter(l => l.grade === g);
     return `<section class="shelf"><h2>${esc(list[0].gradeLabel)} <small>${list.length} ${list.length > 2 ? "دروس" : list.length === 2 ? "درسان" : "درس"}</small></h2>
       <div class="grid">${list.map(card).join("")}</div></section>`;
   }).join("");
 }
 
 (async () => {
-  try { lessons = (await (await fetch("/api/lessons")).json()).lessons; }
+  try { const d = await (await fetch("/api/lessons", { credentials: "same-origin" })).json(); lessons = d.lessons; staff = !!d.staff; }
   catch { $("#shelves").innerHTML = '<p class="empty">تعذّر تحميل الدروس. حدّثي الصفحة.</p>'; return; }
   drawMe(); drawShelves();
   // Her scores may have changed since she signed in: read them again.
