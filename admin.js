@@ -15,6 +15,7 @@ const staff = require("./staff");
 const alerts = require("./alerts");
 const reports = require("./reports");
 const lessons = require("./lessons");
+const exams = require("./exams");
 
 const scrypt = util.promisify(crypto.scrypt);
 const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
@@ -437,6 +438,7 @@ module.exports = function mountAdmin(app, pool) {
       user: req.role === "teacher" ? getTeacher(req.login).email : undefined, login: req.login,
       // The interactive lessons this panel owns: only their teacher sees them (and their tab), never the principal.
       lessons: lessons.panelLessons(req.role, req.login, t?.subject).map(l => l.key),
+      exams: exams.panelExams(req.role, req.login, t?.subject).map(e => e.key),
       max: maxOf(getSettings(req.tid)), styles: STYLES, settings: getSettings(req.tid),
       calendar: await calendarInfo(req.tid), school: { stage: school.STAGE, tracks: school.TRACKS } });
   });
@@ -1292,6 +1294,16 @@ module.exports = function mountAdmin(app, pool) {
   // Classes and subjects compared across the school, for the principal.
   reports.mount(router, pool);
   lessons.mountPanel(router, pool);
+  // An approved exam mark is the panel's own edit of that test: logged, and undone from the log like any edit.
+  exams.mountPanel(router, pool, { applyGrade: async (q, tid, id, field, value) => {
+    const row = (await q.query("SELECT * FROM students WHERE teacher_id = $1 AND national_id = $2 FOR UPDATE", [tid, id])).rows[0];
+    if (!row) return;
+    const before = fromRow(row), next = { ...before, [field]: value };
+    if (next.test1 != null && next.test2 != null) next.test_avg = Math.round(((next.test1 + next.test2) / 2) * 100) / 100;
+    await updateStudent(q, tid, id, next);
+    const changes = COLS.filter(c => !same(before[c], next[c])).map(c => ({ field: c, from: before[c], to: next[c] }));
+    if (changes.length) await log(q, tid, "edit", id, changes);
+  } });
 
   router.get("/school/overview", (req, res, next) => (req.role === "teacher" ? res.status(403).json({ error: "forbidden" }) : next()), async (req, res) => {
     // A teacher's other subjects show as rows of their own; her sign-in is on her first one.
