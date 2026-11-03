@@ -168,8 +168,14 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
     .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi class="eq">${e}</bdi>`);
 
+  // With a practice ID, the server keeps each visitor's try apart by this tab's own random token.
+  const TOKEN = (() => {
+    let t = SS.get("examToken");
+    if (!t) { t = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join(""); SS.set("examToken", t); }
+    return t;
+  })();
   async function call(path, body) {
-    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, token: TOKEN }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(d.error || "error"), { status: r.status, data: d });
     return d;

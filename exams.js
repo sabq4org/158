@@ -156,6 +156,12 @@ const modelFor = (ex, ld) => { const main = BY_KEY[ex.parent] || ex; return ld ?
 // Practice IDs: anyone (the teacher, the principal, a visitor) can try the exam with them, open or closed. Their attempts
 // start over every time and never reach the panel, since they are on no teacher's list.
 const DEMO = { "0000000000": false, "0000000001": true };
+// Each visitor practises on her own attempt: the page sends a random token of its own with a practice ID.
+const keyOf = (id, token) => {
+  if (!(id in DEMO)) return id;
+  const t = String(token ?? "").toLowerCase().replace(/[^0-9a-f]/g, "").slice(0, 32);
+  return t.length >= 16 ? `${id}:${t}` : null;
+};
 const SUBJECT = "رياضيات";
 const GRACE_MS = 2 * 60 * 1000;
 const round2 = n => Math.round(n * 100) / 100;
@@ -285,54 +291,61 @@ function mount(app, pool) {
   app.get("/api/exams/:exam", guard(async (req, res, ex) => res.json({ ...meta(ex), open: await isOpen(pool, ex) })));
 
   app.post("/api/exams/:exam/student", json, guard(async (req, res, ex) => {
-    const id = idOf(req.body?.id), w = await who(ex, id);
+    const id = idOf(req.body?.id), key = keyOf(id, req.body?.token), w = await who(ex, id);
+    if (!key) return res.status(400).json({ error: "no_token" });
     if (w.error) return res.status(w.error[0]).json({ error: w.error[1], gradeLabel: Report.GRADES[ex.grade - 1], to: w.to?.key });
-    await closeExpired(pool, ex, id);
+    await closeExpired(pool, ex, key);
     // A practice attempt that was handed in starts over.
-    if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, id]);
+    if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, key]);
     res.json({ name: w.s.demo ? w.s.name : firstName(w.s.name), classLabel: w.s.demo ? "تجربة" : Report.classLabel(w.s.class), email: w.s.email,
       demo: !!w.s.demo, open: w.s.demo || await isOpen(pool, ex),
-      now: new Date(), ...attemptView(ex, await attemptOf(pool, ex, id)) });
+      now: new Date(), ...attemptView(ex, await attemptOf(pool, ex, key)) });
   }));
 
   // Starting (or coming back to) her attempt. The clock starts once, here, and runs on the server.
   app.post("/api/exams/:exam/start", json, guard(async (req, res, ex) => {
-    const id = idOf(req.body?.id), w = await who(ex, id);
+    const id = idOf(req.body?.id), key = keyOf(id, req.body?.token), w = await who(ex, id);
+    if (!key) return res.status(400).json({ error: "no_token" });
     if (w.error) return res.status(w.error[0]).json({ error: w.error[1], to: w.to?.key });
-    await closeExpired(pool, ex, id);
-    if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, id]);
-    let a = await attemptOf(pool, ex, id);
+    await closeExpired(pool, ex, key);
+    if (w.s.demo) {
+      await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, key]);
+      await pool.query("DELETE FROM exam_attempts WHERE (national_id LIKE '0000000000:%' OR national_id LIKE '0000000001:%') AND started_at < now() - interval '1 day'");
+    }
+    let a = await attemptOf(pool, ex, key);
     if (!a) {
       if (!w.s.demo && !(await isOpen(pool, ex))) return res.status(423).json({ error: "closed" });
-      await pool.query(`INSERT INTO exam_attempts (exam, national_id, deadline) VALUES ($1, $2, now() + interval '${ex.minutes} minutes') ON CONFLICT DO NOTHING`, [ex.key, id]);
-      a = await attemptOf(pool, ex, id);
+      await pool.query(`INSERT INTO exam_attempts (exam, national_id, deadline) VALUES ($1, $2, now() + interval '${ex.minutes} minutes') ON CONFLICT DO NOTHING`, [ex.key, key]);
+      a = await attemptOf(pool, ex, key);
     }
     res.json({ now: new Date(), sections: publicSections(ex), ...attemptView(ex, a) });
   }));
 
   // Saved as she goes; the last save before the deadline is what gets marked if time runs out.
   app.post("/api/exams/:exam/answers", json, guard(async (req, res, ex) => {
-    const id = idOf(req.body?.id);
+    const id = idOf(req.body?.id), key = keyOf(id, req.body?.token);
+    if (!key) return res.status(400).json({ error: "no_token" });
     const answers = cleanAnswers(ex, req.body?.answers);
     const { rowCount } = await pool.query(
       `UPDATE exam_attempts SET answers = $3 WHERE exam = $1 AND national_id = $2 AND submitted_at IS NULL
-       AND now() < deadline + interval '${GRACE_MS / 1000} seconds'`, [ex.key, id, JSON.stringify(answers)]);
+       AND now() < deadline + interval '${GRACE_MS / 1000} seconds'`, [ex.key, key, JSON.stringify(answers)]);
     if (!rowCount) {
-      await closeExpired(pool, ex, id);
-      const a = await attemptOf(pool, ex, id);
+      await closeExpired(pool, ex, key);
+      const a = await attemptOf(pool, ex, key);
       return res.status(a ? 409 : 404).json({ error: a ? "closed" : "not_started", ...attemptView(ex, a) });
     }
     res.json({ ok: true, saved: Object.keys(answers).length });
   }));
 
   app.post("/api/exams/:exam/submit", json, guard(async (req, res, ex) => {
-    const id = idOf(req.body?.id);
+    const id = idOf(req.body?.id), key = keyOf(id, req.body?.token);
+    if (!key) return res.status(400).json({ error: "no_token" });
     const answers = cleanAnswers(ex, req.body?.answers);
     const { rows } = await pool.query(
       `UPDATE exam_attempts SET answers = $3, submitted_at = now(), score = $4 WHERE exam = $1 AND national_id = $2 AND submitted_at IS NULL
-       AND now() < deadline + interval '${GRACE_MS / 1000} seconds' RETURNING *`, [ex.key, id, JSON.stringify(answers), grade(ex, answers).score]);
-    if (!rows.length) await closeExpired(pool, ex, id);
-    const a = rows[0] || await attemptOf(pool, ex, id);
+       AND now() < deadline + interval '${GRACE_MS / 1000} seconds' RETURNING *`, [ex.key, key, JSON.stringify(answers), grade(ex, answers).score]);
+    if (!rows.length) await closeExpired(pool, ex, key);
+    const a = rows[0] || await attemptOf(pool, ex, key);
     if (!a) return res.status(404).json({ error: "not_started" });
     res.json(attemptView(ex, a));
   }));
