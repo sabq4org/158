@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>روبوت الزوايا</title>
+<meta name="description" content="درس تفاعلي: نظرية مجموع زوايا المثلث ونظرية الزاوية الخارجية ونتيجتاهما، رياضيات 1-2، الدرس 3-2">
+<meta name="theme-color" content="#0a7c78">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* «روبوت الزوايا»: lesson 3-2 built on the book's own «لماذا؟», a robot programmed to drive a triangular track. The
+   student watches it turn at the three pivots, tears the corners off a triangle she drags and lines them up on a straight
+   line, steps through the book's auxiliary-line proof, solves the book's examples, sees the exterior angle split into its
+   two remote interior angles, tests the two corollaries, and repairs robots in a quick game before the quiz.
+   Angle colours stay fixed through the page: A teal, B amber, C rose, exterior blue. */
+:root {
+  --bg: #e3ecec;
+  --sheet: #f8fbfa;
+  --panel: #ffffff;
+  --ink: #10242c;
+  --muted: #55707a;
+  --line: #cddcdc;
+  --teal: #0a7c78;
+  --teal-soft: #d2efeb;
+  --amber: #b86e00;
+  --amber-soft: #fbe8c8;
+  --rose: #c0265e;
+  --rose-soft: #f8dbe6;
+  --blue: #2257b5;
+  --blue-soft: #dbe5f7;
+  --field: #d9efd9;
+  --shadow: 0 1px 1px rgba(16, 36, 44, .06), 0 16px 36px -20px rgba(16, 36, 44, .5);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1317; --sheet: #111e24; --panel: #0d181d; --ink: #e2f1ef; --muted: #8eaeb3; --line: #24404a;
+    --teal: #4fd1c5; --teal-soft: #11342f; --amber: #ffb648; --amber-soft: #3b2b10; --rose: #ff7aa8; --rose-soft: #41172a;
+    --blue: #8fb2ff; --blue-soft: #1a2947; --field: #133022;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1317; --sheet: #111e24; --panel: #0d181d; --ink: #e2f1ef; --muted: #8eaeb3; --line: #24404a;
+  --teal: #4fd1c5; --teal-soft: #11342f; --amber: #ffb648; --amber-soft: #3b2b10; --rose: #ff7aa8; --rose-soft: #41172a;
+  --blue: #8fb2ff; --blue-soft: #1a2947; --field: #133022;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image: radial-gradient(color-mix(in srgb, var(--teal) 22%, transparent) 1.2px, transparent 1.6px);
+  background-size: 22px 22px;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m i { font-style: italic; }
+.ct { color: var(--teal); } .ca { color: var(--amber); } .cr { color: var(--rose); } .cb { color: var(--blue); }
+
+/* Ribbon */
+.ribbon { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--sheet) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 2px solid var(--teal); }
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--teal); display: flex; align-items: center; gap: 6px; }
+.ribbon .brand i { width: 9px; height: 9px; border-radius: 50%; background: #12b886; box-shadow: 0 0 8px #12b886; }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 2px 12px; border: 1.5px solid var(--line); border-radius: 6px; font-weight: 600; }
+.ribbon nav a.on { color: #fff; background: var(--teal); border-color: var(--teal); }
+.ribbon nav a.done { color: var(--teal); border-color: var(--teal); }
+:root[data-theme="dark"] .ribbon nav a.on { color: #06201d; }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Sheets: circuit boards with a trace along the top and four screws. */
+main { max-width: 1000px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet { position: relative; margin: 34px 0 0; padding: 38px 28px 40px; scroll-margin-top: 66px; background: var(--sheet);
+  border-radius: 16px; box-shadow: var(--shadow); border: 1.5px solid var(--line); overflow: hidden; }
+.sheet::before { content: ""; position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, var(--teal) 0 34%, var(--amber) 34% 67%, var(--rose) 67%); }
+.sheet::after { content: ""; position: absolute; inset: 14px; pointer-events: none; background:
+  radial-gradient(circle, var(--line) 3.5px, transparent 4px) top left / 9px 9px no-repeat,
+  radial-gradient(circle, var(--line) 3.5px, transparent 4px) top right / 9px 9px no-repeat,
+  radial-gradient(circle, var(--line) 3.5px, transparent 4px) bottom left / 9px 9px no-repeat,
+  radial-gradient(circle, var(--line) 3.5px, transparent 4px) bottom right / 9px 9px no-repeat; }
+.chipno { position: absolute; left: 30px; bottom: 14px; font: 600 11px var(--mono); color: var(--muted); direction: ltr; letter-spacing: .5px; }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--teal); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: var(--sheet); background: var(--ink); padding: 1px 9px; border-radius: 4px; }
+h2 { margin: 4px 0 6px; font-size: 27px; line-height: 1.4; }
+h3 { line-height: 1.5; margin: 0 0 6px; font-size: 18px; }
+.lead { color: var(--muted); max-width: 800px; }
+.note { margin-top: 14px; padding: 12px 16px; border-radius: 10px; border: 1.5px dashed var(--amber); background: color-mix(in srgb, var(--amber-soft) 70%, transparent); }
+.note.thm { border: 1.5px solid var(--teal); background: color-mix(in srgb, var(--teal-soft) 70%, transparent); }
+.note .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--amber); padding: 0 8px; border-radius: 4px; margin-inline-end: 6px; }
+.note.thm .tag { background: var(--teal); }
+:root[data-theme="dark"] .note .tag { color: #06201d; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 0; background: var(--teal); color: #fff; font-weight: 700; padding: 8px 18px; border-radius: 10px; cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--teal) 55%, #000); transition: transform .12s, box-shadow .12s; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--teal) 55%, #000); }
+.btn.soft { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); box-shadow: 0 3px 0 var(--line); }
+.btn:disabled { opacity: .45; cursor: default; }
+:root[data-theme="dark"] .btn:not(.soft) { color: #06201d; }
+.stage { width: 100%; display: block; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; user-select: none; -webkit-user-select: none; touch-action: none; }
+svg { direction: ltr; }
+svg text { font-family: var(--mono); font-weight: 600; }
+svg .lbl { font-family: var(--font); font-weight: 700; }
+svg .nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 600; }
+[data-v] { cursor: grab; }
+.narr { margin-top: 12px; padding: 12px 16px; background: var(--panel); border: 1.5px solid var(--line); border-inline-start: 5px solid var(--teal); border-radius: 10px; min-height: 54px; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pop { animation: pop .35s both; }
+.ros { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.ro { display: inline-flex; align-items: baseline; gap: 6px; border: 1.5px solid var(--line); background: var(--panel); padding: 3px 12px; border-radius: 8px; font-size: 14px; }
+.ro b { font: 600 17px var(--mono); direction: ltr; unicode-bidi: isolate; }
+.ro.t { border-color: var(--teal); } .ro.t b { color: var(--teal); }
+.ro.a { border-color: var(--amber); } .ro.a b { color: var(--amber); }
+.ro.r { border-color: var(--rose); } .ro.r b { color: var(--rose); }
+.ro.x { border-color: var(--blue); } .ro.x b { color: var(--blue); }
+.ro.sum { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.ro.sum b { color: var(--sheet); }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 12px; }
+
+/* Hero */
+.hero { text-align: center; }
+.logos { display: inline-flex; gap: 14px; align-items: center; background: #fff; padding: 8px 16px; border-radius: 10px; box-shadow: var(--shadow); }
+.logos img { height: 44px; width: auto; }
+.hero h1 { margin: 16px 0 0; font-size: clamp(40px, 9vw, 72px); line-height: 1.15; }
+.hero h1 span { color: var(--teal); }
+.hero .sub { color: var(--muted); font-weight: 600; }
+.hero .story { text-align: right; max-width: 760px; margin: 14px auto 0; }
+.pivots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.pv { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 6px 8px; text-align: center; font-size: 13px; color: var(--muted); transition: border-color .3s, background .3s; }
+.pv b { display: block; font: 600 22px var(--mono); color: var(--ink); direction: ltr; }
+.pv.on { border-color: var(--teal); background: var(--teal-soft); }
+.pv.total.on { border-color: var(--ink); background: var(--ink); color: var(--sheet); }
+.pv.total.on b { color: var(--sheet); }
+
+/* Proof table */
+.proof { width: 100%; border-collapse: separate; border-spacing: 0 6px; margin-top: 10px; font-size: 15px; }
+.proof th { font-size: 13px; color: var(--muted); text-align: right; padding: 0 12px; }
+.proof td { background: var(--panel); border-block: 1.5px solid var(--line); padding: 7px 12px; vertical-align: middle; }
+.proof td:first-child { border-inline-start: 1.5px solid var(--line); border-radius: 0 10px 10px 0; width: 54%; }
+.proof td:last-child { border-inline-end: 1.5px solid var(--line); border-radius: 10px 0 0 10px; color: var(--muted); }
+.proof td .n { font: 600 12px var(--mono); color: var(--sheet); background: var(--ink); padding: 0 7px; border-radius: 4px; margin-inline-end: 6px; }
+.proof tr.now td { border-color: var(--teal); background: var(--teal-soft); color: var(--ink); }
+.proof tr.later { display: none; }
+#proofFig .pa { transition: opacity .3s; }
+#proofFig .pa.dim { opacity: .18; }
+#proofFig .pa.hot path { stroke-width: 3.4; }
+
+/* Steps with inputs */
+.steps { display: grid; gap: 10px; margin-top: 12px; }
+.step { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 10px 14px; }
+.step h4 { margin: 0 0 6px; font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.step h4 .n { font: 600 11.5px var(--mono); color: #fff; background: var(--teal); padding: 0 7px; border-radius: 4px; }
+.step.lock { opacity: .45; pointer-events: none; }
+.step.ok { border-color: var(--teal); background: color-mix(in srgb, var(--teal-soft) 60%, var(--panel)); }
+.ans { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ans input { font: 600 17px var(--mono); direction: ltr; text-align: center; width: 7ch; padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--sheet); color: var(--ink); }
+.ans input.bad { border-color: var(--rose); }
+.ans .deg { font: 600 17px var(--mono); }
+.fb { font-size: 14.5px; margin-top: 6px; }
+.fb.good { color: var(--teal); }
+.fb.bad { color: var(--rose); }
+
+/* Sliders */
+.slider { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-top: 10px; }
+.slider label { font-weight: 600; font-size: 14px; white-space: nowrap; }
+.slider output { font: 600 16px var(--mono); direction: ltr; min-width: 4ch; text-align: center; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--teal); border: 4px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--teal); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--teal); border: 4px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--teal); cursor: pointer; }
+.bars { display: grid; gap: 8px; margin-top: 10px; }
+.bar { display: grid; grid-template-columns: 130px 1fr 64px; gap: 10px; align-items: center; font-size: 14px; }
+.bar .track { height: 14px; background: var(--line); border-radius: 7px; overflow: hidden; }
+.bar .track i { display: block; height: 100%; border-radius: 7px; transition: width .2s; }
+.bar b { font: 600 16px var(--mono); direction: ltr; text-align: center; }
+.verdict { margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-weight: 600; border: 2px solid var(--line); background: var(--panel); }
+.verdict.ok { border-color: var(--teal); background: var(--teal-soft); }
+.verdict.no { border-color: var(--rose); background: var(--rose-soft); }
+
+/* Game */
+.gamehead { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.battery { flex: 1; min-width: 160px; max-width: 320px; height: 18px; border: 2px solid var(--ink); border-radius: 5px; position: relative; padding: 2px; }
+.battery::after { content: ""; position: absolute; left: -7px; top: 3px; width: 5px; height: 8px; background: var(--ink); border-radius: 2px 0 0 2px; }
+.battery i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #12b886 0 12px, transparent 12px 14px); transition: width .5s; float: right; }
+.num { font-family: var(--mono); }
+.score-big { font: 600 28px var(--mono); color: var(--teal); }
+
+/* Quiz */
+.qcard { border: 1.5px solid var(--line); background: var(--panel); border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+.qq { font-weight: 700; margin-bottom: 10px; }
+.mini { width: 100%; max-width: 300px; display: block; margin: 0 auto 8px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: right; border: 1.5px solid var(--line); background: var(--sheet); border-radius: 8px; padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.opt b { font: 600 13px var(--mono); color: var(--teal); }
+.opt.right { border-color: var(--teal); background: var(--teal-soft); }
+.opt.wrong { border-color: var(--rose); background: var(--rose-soft); }
+.why { margin-top: 10px; font-size: 14.5px; }
+
+/* Summary */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.card { border: 1.5px solid var(--line); background: var(--panel); border-radius: 12px; padding: 14px; border-top: 5px solid var(--teal); }
+.card:nth-child(2) { border-top-color: var(--blue); }
+.card:nth-child(3) { border-top-color: var(--amber); }
+.card h3 { font-size: 16px; }
+.card ul { margin: 0; padding-inline-start: 18px; font-size: 14.5px; }
+.card svg { width: 100%; height: 120px; display: block; }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+
+@media (max-width: 760px) {
+  .sheet { padding: 32px 16px 40px; }
+  .split { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  .pivots { grid-template-columns: repeat(2, 1fr); }
+  h2 { font-size: 23px; }
+  .ribbon .brand { display: none; }
+  .bar { grid-template-columns: 96px 1fr 54px; font-size: 13px; }
+  .proof, .proof tbody { display: block; font-size: 14px; }
+  .proof thead { display: none; }
+  .proof tr { display: block; margin-top: 6px; }
+  .proof tr.later { display: none; }
+  .proof td { display: block; width: auto !important; border-inline: 1.5px solid var(--line); }
+  .proof td:first-child { border-radius: 10px 10px 0 0; border-bottom: 0; }
+  .proof td:last-child { border-radius: 0 0 10px 10px; border-top: 1px dashed var(--line); font-size: 13px; padding-top: 3px; }
+  .proof td:last-child::before { content: "المبرر: "; font-weight: 700; }
+  /* Wide drawings shrink to about half on a phone, so their labels are enlarged to stay readable. */
+  #track text, #lab text, #proofFig text, #ball text, #ext text, #gym text, #corB text, #rect3 text { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="ribbon">
+  <span class="brand"><i></i>روبوت الزوايا</span>
+  <nav id="stations" aria-label="محطات الدرس"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div>
+<main>
+  <!-- 0: the robot's track (the book's «لماذا؟») -->
+  <section class="sheet hero" id="s0" data-name="المسار">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>روبوت <span>الزوايا</span></h1>
+    <p class="sub">الدرس 3-2 · زوايا المثلثات · رياضيات 1-2 · الفصل 3 المثلثات المتطابقة</p>
+    <p class="story">في مسابقة تقنية، برمجت طالبات المعهد <b>روبوتًا</b> يمشي على مسار على شكل مثلث: ينطلق من نقطة الارتكاز 3، ويلف عند نقطة الارتكاز 1 ثم 2، ويرجع لنقطة البداية. شغّليه وراقبي الزوايا اللي يلف عندها. ثم غيّري المسار وشغّليه مرة ثانية: <b>وش اللي يتغير، ووش اللي ما يتغير أبدًا؟</b></p>
+    <svg class="stage" id="track" viewBox="0 0 600 320" style="margin-top:14px" aria-label="مسار الروبوت المثلث"></svg>
+    <div class="pivots">
+      <div class="pv" id="pv1">نقطة الارتكاز 1<b>—</b></div>
+      <div class="pv" id="pv2">نقطة الارتكاز 2<b>—</b></div>
+      <div class="pv" id="pv0">نقطة الارتكاز 3<b>—</b></div>
+      <div class="pv total" id="pvT">المجموع<b>—</b></div>
+    </div>
+    <p class="narr" id="trackNarr" style="text-align:right">اضغطي «شغّلي الروبوت».</p>
+    <div class="row" style="justify-content:center;margin-top:12px">
+      <button class="btn" id="run" type="button">شغّلي الروبوت</button>
+      <button class="btn soft" id="newTrack" type="button">مسار جديد</button>
+    </div>
+    <span class="chipno">BOARD 01/09</span>
+  </section>
+
+  <!-- 1: tear the corners -->
+  <section class="sheet" id="s1" data-name="اكتشفي">
+    <div class="kicker"><span class="no">01</span> نظرية 3.1</div>
+    <h2>قصّي زوايا المثلث وصفّيها</h2>
+    <p class="lead">اسحبي رؤوس المثلث <span class="m"><i>A</i></span> و<span class="m"><i>B</i></span> و<span class="m"><i>C</i></span> لأي مكان. ثم اضغطي «قصّي الزوايا» وشوفي وين تروح الزوايا الثلاث لما نرصّها جنب بعض.</p>
+    <svg class="stage" id="lab" viewBox="0 0 600 400" style="margin-top:12px" aria-label="مثلث تسحبين رؤوسه وتقصين زواياه"></svg>
+    <div class="ros" id="labRo"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="tear" type="button">قصّي الزوايا</button>
+      <button class="btn soft" id="labReset" type="button">مثلث جديد</button>
+    </div>
+    <p class="narr" id="labNarr">الزوايا الثلاث في مكانها الآن.</p>
+    <div class="note thm"><span class="tag">نظرية 3.1</span><b>مجموع قياسات زوايا المثلث</b> يساوي <span class="m">180°</span>:
+      <span class="m"><span class="ct"><i>m</i>∠<i>A</i></span> + <span class="ca"><i>m</i>∠<i>B</i></span> + <span class="cr"><i>m</i>∠<i>C</i></span> = 180°</span></div>
+    <span class="chipno">BOARD 02/09</span>
+  </section>
+
+  <!-- 2: the book's proof with an auxiliary line -->
+  <section class="sheet" id="s2" data-name="البرهان">
+    <div class="kicker"><span class="no">02</span> المستقيم المساعد</div>
+    <h2>ليش دائمًا 180°؟ البرهان</h2>
+    <p class="lead">القص يقنعنا، لكن الرياضيات تحتاج برهانًا. الفكرة: نرسم من <span class="m"><i>A</i></span> مستقيمًا <span class="m"><i>AD</i></span> يوازي <span class="m"><i>BC</i></span>. هذا اسمه <b>المستقيم المساعد</b>: مستقيم إضافي نرسمه في الشكل عشان يساعدنا في البرهان. امشي مع البرهان خطوة خطوة.</p>
+    <div style="margin-top:12px">
+      <div style="max-width:600px;margin:0 auto"><svg class="stage" id="proofFig" viewBox="0 0 600 300" aria-label="المثلث ABC والمستقيم AD الموازي لـ BC"></svg>
+        <p class="muted" style="font-size:14px;margin-top:8px"><b>المعطيات:</b> <span class="m">△<i>ABC</i></span> · <b>المطلوب:</b> <span class="m"><i>m</i>∠1 + <i>m</i>∠2 + <i>m</i>∠3 = 180°</span></p></div>
+      <div>
+        <table class="proof" id="proof"><thead><tr><th>العبارات</th><th>المبررات</th></tr></thead><tbody></tbody></table>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="pNext" type="button">الخطوة التالية</button>
+          <button class="btn soft" id="pPrev" type="button">السابقة</button>
+        </div>
+      </div>
+    </div>
+    <span class="chipno">BOARD 03/09</span>
+  </section>
+
+  <!-- 3: example 1 -->
+  <section class="sheet" id="s3" data-name="مثال الكرة">
+    <div class="kicker"><span class="no">03</span> مثال 1 من واقع الحياة</div>
+    <h2>تمريرات كرة القدم</h2>
+    <p class="lead">يبيّن الشكل مسار الكرة في تدريب على تمريرات نفّذها أربعة لاعبين. أوجدي قياسات الزوايا المرقّمة. نجزّئ المسألة: نبدأ بـ <span class="m">∠3</span>، ثم <span class="m">∠2</span>، وبعدها نقدر نوجد <span class="m">∠1</span>.</p>
+    <div class="split">
+      <svg class="stage" id="ball" viewBox="0 0 600 340" aria-label="مسار الكرة بين اللاعبين"></svg>
+      <div class="steps" id="ballSteps"></div>
+    </div>
+    <div class="note" id="ballCheck" hidden><span class="tag">تحقق</span>مجموع زوايا كل مثلث لازم 180°:
+      <br><span class="m">△<i>ABC</i>: 82° + 20° + 78° = 180°</span> ✓ <span class="m">△<i>CDE</i>: 41° + 78° + 61° = 180°</span> ✓</div>
+    <span class="chipno">BOARD 04/09</span>
+  </section>
+
+  <!-- 4: exterior angle -->
+  <section class="sheet" id="s4" data-name="الزاوية الخارجية">
+    <div class="kicker"><span class="no">04</span> نظرية 3.2</div>
+    <h2>الزاوية الخارجية</h2>
+    <p class="lead">لو مددنا ضلعًا من أضلاع المثلث تتكون <b class="cb">زاوية خارجية</b> مجاورة للزاوية الداخلية. والزاويتان الداخليتان اللي مو مجاورتين لها اسمهن <b>الزاويتان الداخليتان البعيدتان</b>. اسحبي <span class="m"><i>A</i></span> و<span class="m"><i>B</i></span>، وشغّلي المستقيم المساعد وشوفي كيف تنقسم الزاوية الخارجية.</p>
+    <svg class="stage" id="ext" viewBox="0 0 600 320" style="margin-top:12px" aria-label="مثلث وزاويته الخارجية"></svg>
+    <div class="ros" id="extRo"></div>
+    <div class="row" style="margin-top:10px"><button class="btn soft" id="extAux" type="button" aria-pressed="false">أظهري المستقيم المساعد</button></div>
+    <p class="narr" id="extNarr"></p>
+    <div class="note thm"><span class="tag">نظرية 3.2</span>قياس <b>الزاوية الخارجية</b> في مثلث يساوي مجموع قياسي <b>الزاويتين الداخليتين البعيدتين</b>:
+      <span class="m"><span class="ct"><i>m</i>∠<i>A</i></span> + <span class="ca"><i>m</i>∠<i>B</i></span> = <span class="cb"><i>m</i>∠1</span></span></div>
+
+    <h3 style="margin-top:26px">مثال 2: اللياقة البدنية</h3>
+    <p>أوجدي <span class="m"><i>m</i>∠<i>JKL</i></span> في الوضع اللي يظهر فيه المتدرب. حرّكي <span class="m"><i>x</i></span> حتى يتساوى الطرفان.</p>
+    <div class="split">
+      <svg class="stage" id="gym" viewBox="0 0 600 300" aria-label="المثلث KLM والزاوية الخارجية JKL"></svg>
+      <div>
+        <div class="slider"><label for="gx"><span class="m"><i>x</i></span> =</label><input type="range" id="gx" min="20" max="110" step="1" value="40"><output id="gxo" class="m">40</output></div>
+        <div class="bars">
+          <div class="bar"><span>البعيدتان <span class="m"><i>x</i> + 50</span></span><span class="track"><i id="gb1" style="background:var(--teal)"></i></span><b id="gv1"></b></div>
+          <div class="bar"><span>الخارجية <span class="m">2<i>x</i> − 15</span></span><span class="track"><i id="gb2" style="background:var(--blue)"></i></span><b id="gv2"></b></div>
+        </div>
+        <p class="verdict" id="gymV"></p>
+      </div>
+    </div>
+    <div class="steps" id="gymSteps" hidden>
+      <div class="step ok"><p><span class="m"><i>m</i>∠<i>KLM</i> + <i>m</i>∠<i>LMK</i> = <i>m</i>∠<i>JKL</i></span> <span class="muted">نظرية الزاوية الخارجية</span></p>
+        <p><span class="m"><i>x</i> + 50 = 2<i>x</i> − 15</span> <span class="muted">بالتعويض</span></p>
+        <p><span class="m">50 = <i>x</i> − 15</span> <span class="muted">اطرحي <span class="m"><i>x</i></span> من الطرفين</span></p>
+        <p><span class="m">65 = <i>x</i></span> <span class="muted">اجمعي 15 إلى الطرفين</span></p>
+        <p>إذن <span class="m"><i>m</i>∠<i>JKL</i> = 2(65) − 15 = 115°</span></p></div>
+    </div>
+
+    <h3 style="margin-top:26px">تحقّقي من فهمك 2: تنظيم خزانة الملابس</h3>
+    <div class="split">
+      <svg class="stage" id="shelf" viewBox="0 0 300 220" style="max-width:340px;margin:0 auto" aria-label="جسر رف مثبت في جدار"></svg>
+      <div class="step" id="shelfStep"><h4><span class="n">؟</span> ما قياس <span class="m">∠1</span> اللي يصنعه الجسر مع جدار الخزانة؟</h4>
+        <div class="ans"><span class="m"><i>m</i>∠1 =</span><input type="text" inputmode="numeric" aria-label="قياس الزاوية 1"><span class="deg">°</span><button class="btn soft" type="button">تحقّقي</button></div><p class="fb"></p></div>
+    </div>
+    <span class="chipno">BOARD 05/09</span>
+  </section>
+
+  <!-- 5: corollaries -->
+  <section class="sheet" id="s5" data-name="النتيجتان">
+    <div class="kicker"><span class="no">05</span> نتيجتا نظرية مجموع الزوايا</div>
+    <h2>النتيجتان</h2>
+    <p class="lead"><b>النتيجة</b> نظرية برهانها مبني على نظرية أخرى. ومن نظرية مجموع زوايا المثلث نطلع بنتيجتين:</p>
+    <div class="split">
+      <div>
+        <div class="note thm" style="margin-top:0"><span class="tag">نتيجة 3.1</span>الزاويتان الحادتان في أي مثلث قائم الزاوية <b>متتامتان</b> (مجموعهما <span class="m">90°</span>).</div>
+        <svg class="stage" id="corA" viewBox="0 0 300 200" style="margin-top:10px" aria-label="مثلث قائم الزاوية"></svg>
+        <div class="slider"><label for="ca">الزاوية الحادة</label><input type="range" id="ca" min="10" max="80" step="1" value="35"><output id="cao" class="m">35°</output></div>
+        <p class="narr" id="corANarr"></p>
+      </div>
+      <div>
+        <div class="note thm" style="margin-top:0"><span class="tag">نتيجة 3.2</span>يوجد في أي مثلث زاوية <b>قائمة</b> واحدة أو زاوية <b>منفرجة</b> واحدة <b>على الأكثر</b>.</div>
+        <svg class="stage" id="corB" viewBox="0 0 600 340" style="margin-top:10px" aria-label="ضلعان يخرجان من طرفي القاعدة"></svg>
+        <div class="slider"><label for="cb1"><span class="m">∠<i>B</i></span></label><input type="range" id="cb1" min="20" max="160" step="1" value="60"><output id="cb1o" class="m">60°</output></div>
+        <div class="slider"><label for="cb2"><span class="m">∠<i>C</i></span></label><input type="range" id="cb2" min="20" max="160" step="1" value="70"><output id="cb2o" class="m">70°</output></div>
+        <p class="verdict" id="corBV"></p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:26px">مثال 3: قياسات الزوايا في مثلث قائم الزاوية</h3>
+    <div class="split">
+      <svg class="stage" id="rect3" viewBox="0 0 600 340" aria-label="المستطيل TWXY والقطعة YZ العمودية على TX"></svg>
+      <div class="step" id="ex3Step"><h4><span class="n">1</span> أوجدي <span class="m"><i>m</i>∠1</span></h4>
+        <p class="muted" style="font-size:14px">في <span class="m">△<i>TYZ</i></span> الزاوية عند <span class="m"><i>Z</i></span> قائمة.</p>
+        <div class="ans"><span class="m"><i>m</i>∠1 =</span><input type="text" inputmode="numeric" aria-label="قياس الزاوية 1"><span class="deg">°</span><button class="btn soft" type="button">تحقّقي</button></div><p class="fb"></p></div>
+    </div>
+    <span class="chipno">BOARD 06/09</span>
+  </section>
+
+  <!-- 6: game -->
+  <section class="sheet" id="s6" data-name="ورشة الصيانة">
+    <div class="kicker"><span class="no">06</span> لعبة</div>
+    <h2>ورشة صيانة الروبوتات</h2>
+    <p class="lead">كل روبوت ضاعت منه زاوية من مساره. أوجديها عشان يرجع يشتغل. ثماني جولات، وكل إجابة صحيحة تشحن البطارية.</p>
+    <div class="gamehead" style="margin-top:10px">
+      <span>الجولة <b class="num" id="gRound">1</b> من 8</span>
+      <span class="battery" aria-label="البطارية"><i id="gBat"></i></span>
+      <span class="score-big" id="gScore">0</span>
+    </div>
+    <div class="split">
+      <svg class="stage" id="gFig" viewBox="0 0 600 320" aria-label="مسار روبوت ناقص زاوية"></svg>
+      <div>
+        <p id="gQ" style="font-weight:700"></p>
+        <div class="ans" style="margin-top:8px"><span class="m">? =</span><input type="text" inputmode="numeric" id="gIn" aria-label="قياس الزاوية الناقصة"><span class="deg">°</span><button class="btn" id="gGo" type="button">تحقّقي</button></div>
+        <p class="fb" id="gFb"></p>
+        <div class="row" style="margin-top:10px"><button class="btn soft" id="gNext" type="button" hidden>الروبوت التالي</button></div>
+      </div>
+    </div>
+    <span class="chipno">BOARD 07/09</span>
+  </section>
+
+  <!-- 7: quiz -->
+  <section class="sheet" id="s7" data-name="الاختبار">
+    <div class="kicker"><span class="no">07</span> من «تأكد» و«تدرب وحل المسائل»</div>
+    <h2>اختبري نفسك</h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700"></p>
+    <span class="chipno">BOARD 08/09</span>
+  </section>
+
+  <!-- 8: summary -->
+  <section class="sheet" id="s8" data-name="الخلاصة">
+    <div class="kicker"><span class="no">08</span> قبل ما تطلعين</div>
+    <h2>الخلاصة</h2>
+    <div class="cards">
+      <div class="card"><svg id="sum1" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>نظرية مجموع الزوايا</h3>
+        <ul><li>مجموع قياسات زوايا المثلث <b>180°</b>.</li><li>إذا عرفتي زاويتين تقدرين توجدين الثالثة.</li><li>البرهان: مستقيم مساعد يوازي ضلعًا، وزوايا متبادلة داخليًّا.</li></ul></div>
+      <div class="card"><svg id="sum2" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>نظرية الزاوية الخارجية</h3>
+        <ul><li>الزاوية الخارجية = مجموع الزاويتين الداخليتين البعيدتين.</li><li>الخارجية ومجاورتها الداخلية متكاملتان (180°).</li><li>البرهان التسلسلي: عبارات في مستطيلات وأسهم.</li></ul></div>
+      <div class="card"><svg id="sum3" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>النتيجتان</h3>
+        <ul><li>الحادتان في المثلث القائم متتامتان (90°).</li><li>زاوية قائمة أو منفرجة واحدة على الأكثر.</li><li>تحقّقي دائمًا: مجموع إجاباتك في كل مثلث 180°.</li></ul></div>
+    </div>
+    <span class="chipno">BOARD 09/09</span>
+  </section>
+  <footer>ثانوية 158 · رياضيات 1-2 · الفصل 3 · صفحات 20–27 · درس تفاعلي</footer>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RAD = Math.PI / 180, minus = "−";
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const M = h => `<span class="m">${h}</span>`;
+const f = P => `${P[0].toFixed(1)} ${P[1].toFixed(1)}`;
+const pol = (P, a, r) => [P[0] + r * Math.cos(a * RAD), P[1] + r * Math.sin(a * RAD)];
+const COL = ["var(--teal)", "var(--amber)", "var(--rose)"], EXT = "var(--blue)";
+const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,]/g, ".").replace(/[°\s]/g, "");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Theme + stations ribbon ---------- */
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Geometry ---------- */
+// The angle at P between rays PQ and PR: its start and end directions in SVG degrees (sweeping clockwise on screen) and its size.
+function span(P, Q, R) {
+  const t1 = Math.atan2(Q[1] - P[1], Q[0] - P[0]) / RAD, t2 = Math.atan2(R[1] - P[1], R[0] - P[0]) / RAD;
+  const d = ((t2 - t1) % 360 + 360) % 360;
+  return d <= 180 ? { a0: t1, a1: t1 + d, m: d } : { a0: t2, a1: t2 + 360 - d, m: 360 - d };
+}
+const angAt = (P, Q, R) => span(P, Q, R).m;
+const sector = (P, a0, a1, r) => `M${f(P)} L${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))} Z`;
+const arc = (P, a0, a1, r) => `M${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))}`;
+// An angle mark at P between PQ and PR. o: col, r, text, fs, right (force a square), op (fill opacity), sw, cls, gap.
+function mark(P, Q, R, o = {}) {
+  const { a0, a1, m } = span(P, Q, R), r = o.r || 24, col = o.col || COL[0], fs = o.fs || 16;
+  let s = "";
+  if (o.right ?? Math.abs(m - 90) < 1e-6) {
+    const u = unit(Q[0] - P[0], Q[1] - P[1]), v = unit(R[0] - P[0], R[1] - P[1]), q = r * .6;
+    s += `<path d="M${P[0] + u[0] * q} ${P[1] + u[1] * q} L${P[0] + (u[0] + v[0]) * q} ${P[1] + (u[1] + v[1]) * q} L${P[0] + v[0] * q} ${P[1] + v[1] * q}" fill="${col}" fill-opacity=".15" stroke="${col}" stroke-width="${o.sw || 2.2}"/>`;
+  } else {
+    s += `<path d="${sector(P, a0, a1, r)}" fill="${col}" fill-opacity="${o.op ?? .18}" stroke="none"/><path d="${arc(P, a0, a1, r)}" fill="none" stroke="${col}" stroke-width="${o.sw || 2.2}"/>`;
+  }
+  if (o.text) {
+    // Narrow angles push their label further out so it clears the two sides.
+    // o.out puts the label on the far side of the vertex, outside the triangle, for long labels in a crowded figure.
+    const d = o.out ? fs * .9 + 6 : r + (o.gap ?? 16) + Math.max(0, 62 - m) * .75 * fs / 15 + (o.text.length > 4 ? fs * .9 : 0), L = pol(P, (a0 + a1) / 2 + (o.out ? 180 : 0), d);
+    s += `<text x="${L[0].toFixed(1)}" y="${L[1].toFixed(1)}" font-size="${fs}" fill="${col}" text-anchor="middle" dominant-baseline="central">${o.text}</text>`;
+  }
+  return o.cls ? `<g class="${o.cls}">${s}</g>` : s;
+}
+const poly = (V, o = {}) => `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"/>`;
+const seg = (P, Q, o = {}) => `<line x1="${P[0].toFixed(1)}" y1="${P[1].toFixed(1)}" x2="${Q[0].toFixed(1)}" y2="${Q[1].toFixed(1)}" stroke="${o.col || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}${o.marker ? ` marker-end="url(#${o.marker})"` : ""}/>`;
+// A vertex name pushed away from the point G (usually the centroid).
+const name = (P, G, t, o = {}) => { const w = unit(P[0] - G[0], P[1] - G[1]), d = o.d || 20; return `<text class="nm" x="${(P[0] + w[0] * d).toFixed(1)}" y="${(P[1] + w[1] * d).toFixed(1)}" font-size="${o.fs || 19}" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${t}</text>`; };
+const cent = V => [(V[0][0] + V[1][0] + V[2][0]) / 3, (V[0][1] + V[1][1] + V[2][1]) / 3];
+// A triangle with angle a at vertex 0 and b at vertex 1 in plain coordinates (y up), turned by rot degrees.
+function triFromAngles(a, b, rot = 0) {
+  const c = 180 - a - b, t = Math.sin(b * RAD) / Math.sin(c * RAD);
+  const P = [[0, 0], [1, 0], [t * Math.cos(a * RAD), t * Math.sin(a * RAD)]];
+  const g = cent(P), cs = Math.cos(rot * RAD), sn = Math.sin(rot * RAD);
+  return P.map(([x, y]) => [(x - g[0]) * cs - (y - g[1]) * sn, (x - g[0]) * sn + (y - g[1]) * cs]);
+}
+// Fit plain coordinates into a pixel box (y flipped, so angles keep their size).
+function fit(P, x, y, w, h, pad = 10) {
+  const xs = P.map(p => p[0]), ys = P.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min((w - 2 * pad) / (x1 - x0 || 1), (h - 2 * pad) / (y1 - y0 || 1));
+  const ox = x + (w - (x1 - x0) * k) / 2, oy = y + (h - (y1 - y0) * k) / 2;
+  return P.map(([px, py]) => [ox + (px - x0) * k, oy + (y1 - py) * k]);
+}
+// Three real angles rounded to whole degrees that still add to exactly 180 (largest remainder), so readouts never show 179.
+function round180(a) {
+  const fl = a.map(Math.floor), left = 180 - fl.reduce((s, v) => s + v, 0);
+  [0, 1, 2].sort((i, j) => (a[j] - fl[j]) - (a[i] - fl[i])).slice(0, left).forEach(i => fl[i]++);
+  return fl;
+}
+// Integer angles for a random triangle, each at least lo and at most hi.
+function randAngles(lo = 30, hi = 100) {
+  for (;;) { const a = ri(lo, hi), b = ri(lo, hi), c = 180 - a - b; if (c >= lo && c <= hi) return [a, b, c]; }
+}
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+const ARROWS = `<defs><marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink)"/></marker>
+  <marker id="arwB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--blue)"/></marker></defs>`;
+
+// Dragging points on an SVG: pts is read live, move(i, [x, y]) sets them.
+function draggable(svg, pts, move, hit = 36) {
+  let drag = -1;
+  const at = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
+  svg.addEventListener("pointerdown", e => {
+    const p = at(e); let best = -1, bd = hit;
+    pts().forEach((v, i) => { if (!v) return; const d = Math.hypot(v[0] - p[0], v[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+    if (best < 0) return;
+    drag = best; svg.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  svg.addEventListener("pointermove", e => { if (drag >= 0) move(drag, at(e)); });
+  const end = () => { drag = -1; };
+  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+}
+const handle = (P, col) => `<circle data-v cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="11" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-width="2"/><circle cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="4.5" fill="${col}"/>`;
+
+// Answer boxes: a .step with an input and a button; ok(value) decides, then reveal() runs once.
+function answerBox(box, want, good, hint, after) {
+  const inp = $("input", box), fb = $(".fb", box), btn = $("button", box);
+  const check = () => {
+    const v = parseFloat(toLatin(inp.value));
+    if (Number.isNaN(v)) { fb.className = "fb bad"; fb.textContent = "اكتبي رقمًا."; return; }
+    if (Math.abs(v - want) < 1e-6) {
+      fb.className = "fb good"; fb.innerHTML = `صحيح ✓ ${good}`; inp.classList.remove("bad"); inp.disabled = btn.disabled = true; box.classList.add("ok"); after?.();
+    } else { fb.className = "fb bad"; fb.innerHTML = `مو هذا. ${hint}`; inp.classList.add("bad"); }
+  };
+  btn.onclick = check;
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+}
+
+/* ---------- 0. Robot track ---------- */
+(function track() {
+  const svg = $("#track"), narr = $("#trackNarr");
+  let angs, V, marks, playing = false, raf = 0;
+  const pivotNo = [3, 1, 2]; // vertex 0 is the start, pivot 3 in the book
+  const robot = `<g id="robot"><rect x="-17" y="-19" width="12" height="6" rx="2" fill="var(--ink)"/><rect x="-17" y="13" width="12" height="6" rx="2" fill="var(--ink)"/><rect x="5" y="-19" width="10" height="6" rx="2" fill="var(--ink)"/><rect x="5" y="13" width="10" height="6" rx="2" fill="var(--ink)"/>
+    <rect x="-19" y="-14" width="38" height="28" rx="7" fill="var(--amber)" stroke="var(--ink)" stroke-width="2.2"/><rect x="2" y="-10" width="12" height="20" rx="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/>
+    <circle cx="9" cy="-4.5" r="2.6" fill="var(--teal)"/><circle cx="9" cy="4.5" r="2.6" fill="var(--teal)"/><line x1="-10" y1="0" x2="-20" y2="0" stroke="var(--ink)" stroke-width="2"/><circle cx="-11" cy="0" r="3.5" fill="#12b886"/></g>`;
+  function setup() {
+    angs = randAngles(38, 95);
+    V = fit(triFromAngles(angs[0], angs[1], ri(-25, 25)), 0, 0, 600, 320, 58);
+    marks = ["", "", ""];
+    ["#pv0", "#pv1", "#pv2", "#pvT"].forEach(s => { $(s).classList.remove("on"); $("b", $(s)).textContent = "—"; });
+    draw(V[0], heading(0, 1));
+    narr.textContent = "اضغطي «شغّلي الروبوت».";
+  }
+  const heading = (i, j) => Math.atan2(V[j][1] - V[i][1], V[j][0] - V[i][0]) / RAD;
+  function draw(pos, rot) {
+    const G = cent(V);
+    svg.innerHTML = `<polygon points="${V.map(p => p.join(",")).join(" ")}" fill="var(--teal-soft)" fill-opacity=".5" stroke="var(--muted)" stroke-width="3" stroke-dasharray="10 8" stroke-linejoin="round"/>
+      ${marks.join("")}
+      ${V.map((P, i) => `<circle cx="${P[0]}" cy="${P[1]}" r="8" fill="var(--panel)" stroke="${COL[i]}" stroke-width="3"/>` + name(P, G, `${pivotNo[i]}`, { d: 26, fs: 16 }).replace('class="nm"', 'class="lbl"')).join("")}
+      <g transform="translate(${pos[0].toFixed(1)} ${pos[1].toFixed(1)}) rotate(${rot.toFixed(1)})">${robot}</g>`;
+  }
+  function reveal(i) {
+    marks[i] = mark(V[i], V[(i + 1) % 3], V[(i + 2) % 3], { col: COL[i], r: 30, text: `${angs[i]}°`, fs: 17 });
+    $(`#pv${i}`).classList.add("on"); $(`#pv${i} b`).textContent = `${angs[i]}°`;
+  }
+  function run() {
+    if (playing) return;
+    if (marks.some(Boolean)) { marks = ["", "", ""]; ["#pv0", "#pv1", "#pv2", "#pvT"].forEach(s => { $(s).classList.remove("on"); $("b", $(s)).textContent = "—"; }); }
+    playing = true; $("#run").disabled = $("#newTrack").disabled = true;
+    // Moves along each side, then turns at the pivot by the exterior angle.
+    const plan = [];
+    let rot = heading(0, 1);
+    for (let k = 0; k < 3; k++) {
+      const a = k, b = (k + 1) % 3, len = Math.hypot(V[b][0] - V[a][0], V[b][1] - V[a][1]);
+      plan.push({ type: "move", from: V[a], to: V[b], rot, dur: reduceMotion ? 1 : len / .22 });
+      const next = heading(b, (b + 1) % 3);
+      let d = ((next - rot) % 360 + 540) % 360 - 180;
+      plan.push({ type: "turn", at: V[b], from: rot, to: rot + d, dur: reduceMotion ? 1 : 750, pivot: b, turn: Math.abs(d) });
+      rot += d;
+    }
+    let step = 0, t0 = performance.now(), sum = 0;
+    const tick = now => {
+      const p = plan[step], t = Math.min(1, (now - t0) / p.dur), e = ease(t);
+      if (p.type === "move") draw([p.from[0] + (p.to[0] - p.from[0]) * e, p.from[1] + (p.to[1] - p.from[1]) * e], p.rot);
+      else draw(p.at, p.from + (p.to - p.from) * e);
+      if (t >= 1) {
+        if (p.type === "move") {
+          const b = (step / 2 + 1) % 3;
+          reveal(b); sum += angs[b];
+          narr.innerHTML = `عند نقطة الارتكاز ${pivotNo[b]} الزاوية الداخلية <b style="color:${COL[b]}">${angs[b]}°</b>، والروبوت يلف ${M(`180° − ${angs[b]}° = ${180 - angs[b]}°`)} عشان يكمل على الضلع التالي.`;
+          draw(p.to, p.rot);
+        }
+        step++; t0 = now;
+        if (step >= plan.length) {
+          playing = false; $("#run").disabled = $("#newTrack").disabled = false;
+          $("#pvT").classList.add("on"); $("#pvT b").textContent = `${sum}°`;
+          narr.innerHTML = `${M(`${angs[1]}° + ${angs[2]}° + ${angs[0]}° = <b>180°</b>`)}. رجع الروبوت لنقطة البداية. اضغطي «مسار جديد» وجرّبي: المسار يتغير، والمجموع؟`;
+          return;
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  $("#run").onclick = run;
+  $("#newTrack").onclick = () => { if (!playing) setup(); };
+  setup();
+})();
+
+/* ---------- 1. Tear the corners ---------- */
+(function lab() {
+  const svg = $("#lab"), R = 44, O = [300, 352];
+  let V = [[120, 230], [480, 210], [330, 50]], torn = 0, prog = 0, anim = 0;
+  const names = ["A", "B", "C"];
+  // Where each corner sits on the triangle, and where it goes on the straight line (A, then B, then C, side by side).
+  function poses() {
+    const sp = V.map((P, i) => span(P, V[(i + 1) % 3], V[(i + 2) % 3]));
+    const ints = round180(sp.map(s => s.m));
+    let at = 180;
+    return sp.map((s, i) => { const p = { home: [P0(i), s.a0], line: [O, at], m: s.m, int: ints[i] }; at += s.m; return p; });
+  }
+  const P0 = i => V[i];
+  function draw() {
+    const ps = poses(), G = cent(V), e = ease(prog);
+    let s = `<line x1="150" y1="${O[1]}" x2="450" y2="${O[1]}" stroke="var(--muted)" stroke-width="2.5"/><circle cx="${O[0]}" cy="${O[1]}" r="3.5" fill="var(--muted)"/>
+      <text x="${O[0]}" y="${O[1] + 26}" font-size="14" class="lbl" direction="rtl" fill="var(--muted)" text-anchor="middle">خط مستقيم = 180°</text>`;
+    s += poly(V, { fill: "var(--teal-soft)", sw: 2.6 });
+    // Holes left behind once the corners leave.
+    ps.forEach((p, i) => { if (prog > 0) s += `<path d="${sector(V[i], p.home[1], p.home[1] + p.m, R)}" fill="var(--panel)" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>`; });
+    ps.forEach((p, i) => {
+      let d = p.line[1] - p.home[1]; d = ((d % 360) + 540) % 360 - 180;
+      const x = p.home[0][0] + (p.line[0][0] - p.home[0][0]) * e, y = p.home[0][1] + (p.line[0][1] - p.home[0][1]) * e, rot = p.home[1] + d * e;
+      s += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(2)})"><path d="M0 0 L${R} 0 A${R} ${R} 0 0 1 ${(R * Math.cos(p.m * RAD)).toFixed(2)} ${(R * Math.sin(p.m * RAD)).toFixed(2)} Z" fill="${COL[i]}" fill-opacity=".85" stroke="var(--panel)" stroke-width="1.5"/></g>`;
+      const L = pol([x, y], rot + p.m / 2, R * .62);
+      s += `<text x="${L[0].toFixed(1)}" y="${L[1].toFixed(1)}" font-size="${p.m < 32 ? 11 : 14}" fill="#fff" text-anchor="middle" dominant-baseline="central">${names[i]}</text>`;
+    });
+    V.forEach((P, i) => { s += name(P, G, names[i], { d: 24 }) + handle(P, COL[i]); });
+    svg.innerHTML = s;
+    $("#labRo").innerHTML = ps.map((p, i) => `<span class="ro ${"tar"[i]}">${M(`<i>m</i>∠<i>${names[i]}</i>`)} <b>${p.int}°</b></span>`).join("")
+      + `<span class="ro sum">المجموع <b>${ps.reduce((a, p) => a + p.int, 0)}°</b></span>`;
+  }
+  function go(to) {
+    torn = to; cancelAnimationFrame(anim);
+    const from = prog, t0 = performance.now(), dur = reduceMotion ? 1 : 1100;
+    const tick = now => { const t = Math.min(1, (now - t0) / dur); prog = from + (to - from) * t; draw(); if (t < 1) anim = requestAnimationFrame(tick); };
+    anim = requestAnimationFrame(tick);
+    $("#tear").textContent = to ? "رجّعي الزوايا" : "قصّي الزوايا";
+    $("#labNarr").innerHTML = to
+      ? "الزوايا الثلاث رُصّت جنب بعض عند نقطة واحدة فكوّنت <b>نصف دائرة</b> على الخط المستقيم، يعني مجموعها <b>180°</b>. اسحبي أي رأس الحين: الزوايا تتغير، لكنها تظل تملأ الخط بالضبط."
+      : "الزوايا الثلاث في مكانها الآن.";
+  }
+  draggable(svg, () => V, (i, p) => {
+    const q = [Math.max(24, Math.min(576, p[0])), Math.max(24, Math.min(262, p[1]))];
+    const W = V.map((v, k) => k === i ? q : v);
+    const area = Math.abs((W[1][0] - W[0][0]) * (W[2][1] - W[0][1]) - (W[2][0] - W[0][0]) * (W[1][1] - W[0][1])) / 2;
+    const minSide = Math.min(...[0, 1, 2].map(k => Math.hypot(W[(k + 1) % 3][0] - W[k][0], W[(k + 1) % 3][1] - W[k][1])));
+    if (area < 1500 || minSide < 50) return;
+    V = W; draw();
+  });
+  $("#tear").onclick = () => go(torn ? 0 : 1);
+  $("#labReset").onclick = () => {
+    const a = randAngles(28, 110);
+    V = fit(triFromAngles(a[0], a[1], ri(-15, 15)), 20, 18, 560, 250, 30);
+    draw();
+  };
+  draw();
+})();
+
+/* ---------- 2. The book's proof ---------- */
+(function proof() {
+  const A = [250, 80], B = [100, 240], C = [470, 240], L = [30, 80], D = [560, 80];
+  const ang = {
+    1: mark(B, C, A, { col: COL[0], r: 34, text: "1", fs: 18 }),
+    2: mark(A, B, C, { col: COL[1], r: 30, text: "2", fs: 18 }),
+    3: mark(C, A, B, { col: COL[2], r: 34, text: "3", fs: 18 }),
+    4: mark(A, L, B, { col: COL[0], r: 30, text: "4", fs: 18 }),
+    5: mark(A, C, D, { col: COL[2], r: 30, text: "5", fs: 18 }),
+  };
+  const chev = (x, y, c) => `<path d="M${x - 6} ${y - 7} L${x + 4} ${y} L${x - 6} ${y + 7}" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+  const STEPS = [
+    ["△<i>ABC</i>", "معطى", [1, 2, 3]],
+    ["∠4 ، ∠<i>BAD</i> زاويتان متجاورتان على مستقيم", "تعريف الزاويتين المتجاورتين على مستقيم", [4, 2, 5]],
+    ["∠4 ، ∠<i>BAD</i> متكاملتان", "الزاويتان المتجاورتان على مستقيم متكاملتان", [4, 2, 5]],
+    ["<i>m</i>∠4 + <i>m</i>∠<i>BAD</i> = 180°", "تعريف الزاويتين المتكاملتين", [4, 2, 5]],
+    ["<i>m</i>∠<i>BAD</i> = <i>m</i>∠2 + <i>m</i>∠5", "مسلّمة جمع قياسات الزوايا", [2, 5]],
+    ["<i>m</i>∠4 + <i>m</i>∠2 + <i>m</i>∠5 = 180°", "بالتعويض", [4, 2, 5]],
+    ["∠4 ≅ ∠1 ، ∠5 ≅ ∠3", "نظرية الزاويتين المتبادلتين داخليًّا", [4, 1, 5, 3]],
+    ["<i>m</i>∠4 = <i>m</i>∠1 ، <i>m</i>∠5 = <i>m</i>∠3", "تعريف تطابق الزوايا", [4, 1, 5, 3]],
+    ["<i>m</i>∠1 + <i>m</i>∠2 + <i>m</i>∠3 = 180°", "بالتعويض", [1, 2, 3]],
+  ];
+  let k = 0;
+  $("#proof tbody").innerHTML = STEPS.map(([s, r], i) => `<tr><td><span class="n">${i + 1}</span>${M(s)}</td><td>${r}</td></tr>`).join("");
+  function draw() {
+    const hot = STEPS[k][2];
+    $("#proofFig").innerHTML = seg(L, D, { col: "var(--muted)", sw: 2.2, dash: "8 6" }) + chev(420, 80, "var(--muted)") + chev(300, 240, "var(--ink)")
+      + poly([A, B, C], { fill: "var(--teal-soft)" }) + Object.entries(ang).map(([n, s]) => `<g class="pa ${hot.includes(+n) ? "hot" : "dim"}">${s}</g>`).join("")
+      + [[A, "A", [0, -22]], [B, "B", [-20, 10]], [C, "C", [20, 10]], [D, "D", [0, -20]]].map(([P, t, o]) => `<text class="nm" x="${P[0] + o[0]}" y="${P[1] + o[1]}" font-size="20" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${t}</text>`).join("")
+      + `<circle cx="${D[0]}" cy="${D[1]}" r="4" fill="var(--ink)"/>`;
+    $$("#proof tbody tr").forEach((tr, i) => { tr.classList.toggle("now", i === k); tr.classList.toggle("later", i > k); });
+    $("#pPrev").disabled = k === 0;
+    $("#pNext").textContent = k === STEPS.length - 1 ? "من البداية" : "الخطوة التالية";
+  }
+  $("#pNext").onclick = () => { k = k === STEPS.length - 1 ? 0 : k + 1; draw(); };
+  $("#pPrev").onclick = () => { if (k) { k--; draw(); } };
+  draw();
+})();
+
+/* ---------- 3. Example 1: football passes ---------- */
+(function ball() {
+  // Built from the book's measures: ∠BAC = 20°, ∠ACB = 78°, ∠CED = 61°, with B, C, E on one line and A, C, D on another.
+  const dir = a => [Math.cos(a * RAD), Math.sin(a * RAD)];
+  const CB = 95, CA = CB + 78, CE = CB + 180, CD = CA + 180;
+  const lenCA = 260, lenCB = lenCA * Math.sin(20 * RAD) / Math.sin(82 * RAD), lenCE = 120, lenCD = lenCE * Math.sin(61 * RAD) / Math.sin(41 * RAD);
+  const at = (a, l) => [dir(a)[0] * l, dir(a)[1] * l];
+  const pts = fit([[0, 0], at(CA, lenCA), at(CB, lenCB), at(CE, lenCE), at(CD, lenCD)], 0, 0, 600, 340, 46);
+  const [C, A, B, E, D] = pts, G5 = cent([A, D, [(B[0] + E[0]) / 2, (B[1] + E[1]) / 2]]);
+  const known = { 3: "3", 2: "2", 1: "1" };
+  function draw() {
+    const s = `<rect x="6" y="6" width="588" height="328" rx="10" fill="var(--field)"/>`
+      + seg(A, B, { sw: 2.4 }) + seg(B, E, { sw: 2.4 }) + seg(A, D, { sw: 2.4 }) + seg(E, D, { sw: 2.4 })
+      + mark(A, C, B, { col: COL[0], r: 46, text: "20°", fs: 15, gap: 14 })
+      + mark(C, A, B, { col: COL[1], r: 22, text: "78°", fs: 15 })
+      + mark(B, A, C, { col: known[3] === "3" ? "var(--muted)" : COL[2], r: 22, text: known[3], fs: 16 })
+      + mark(C, E, D, { col: known[2] === "2" ? "var(--muted)" : COL[1], r: 22, text: known[2], fs: 16 })
+      + mark(E, C, D, { col: COL[0], r: 24, text: "61°", fs: 15 })
+      + mark(D, E, C, { col: known[1] === "1" ? "var(--muted)" : COL[2], r: 40, text: known[1], fs: 16, gap: 10 })
+      + [[A, "A"], [B, "B"], [D, "D"], [E, "E"]].map(([P, t]) => name(P, G5, t, { d: 22 })).join("") + name(C, [C[0] - 30, C[1] + 30], "C", { d: 22 })
+      + [A, B, D, E].map(P => `<circle cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="7" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>`).join("");
+    $("#ball").innerHTML = s;
+  }
+  const STEPS = [
+    { n: 3, want: 82, q: `أوجدي ${M("<i>m</i>∠3")} في ${M("△<i>ABC</i>")}`, good: `${M("<i>m</i>∠3 + 20° + 78° = 180°")} ← ${M("<i>m</i>∠3 = 82°")} (نظرية مجموع زوايا المثلث).`, hint: `مجموع زوايا ${M("△<i>ABC</i>")} يساوي 180°، والزاويتان المعلومتان 20° و78°.` },
+    { n: 2, want: 78, q: `أوجدي ${M("<i>m</i>∠2")}`, good: `${M("∠2")} و${M("∠<i>ACB</i>")} متقابلتان بالرأس، فهما متطابقتان: ${M("<i>m</i>∠2 = 78°")}.`, hint: `لاحظي أن ${M("∠2")} و${M("∠<i>ACB</i>")} متقابلتان بالرأس.` },
+    { n: 1, want: 41, q: `أوجدي ${M("<i>m</i>∠1")} في ${M("△<i>CDE</i>")}`, good: `${M("<i>m</i>∠1 + 78° + 61° = 180°")} ← ${M("<i>m</i>∠1 = 41°")}.`, hint: `في ${M("△<i>CDE</i>")}: ${M("<i>m</i>∠2 = 78°")} و${M("<i>m</i>∠<i>CED</i> = 61°")}.` },
+  ];
+  $("#ballSteps").innerHTML = STEPS.map((s, i) => `<div class="step${i ? " lock" : ""}"><h4><span class="n">${i + 1}</span>${s.q}</h4>
+    <div class="ans">${M(`<i>m</i>∠${s.n} =`)}<input type="text" inputmode="numeric" aria-label="قياس الزاوية ${s.n}"><span class="deg">°</span><button class="btn soft" type="button">تحقّقي</button></div><p class="fb"></p></div>`).join("");
+  $$("#ballSteps .step").forEach((box, i) => answerBox(box, STEPS[i].want, STEPS[i].good, STEPS[i].hint, () => {
+    known[STEPS[i].n] = `${STEPS[i].want}°`; draw();
+    const nx = $$("#ballSteps .step")[i + 1]; if (nx) nx.classList.remove("lock"); else $("#ballCheck").hidden = false;
+  }));
+  draw();
+})();
+
+/* ---------- 4. Exterior angle ---------- */
+(function ext() {
+  const svg = $("#ext"), Y = 250, C = [370, Y];
+  let A = [90, Y], B = [250, 70], aux = false;
+  function draw() {
+    const a = angAt(A, C, B), b = angAt(B, A, C), c = angAt(C, B, A), [ai, bi, ci] = round180([a, b, c]), x = ai + bi;
+    const tCB = Math.atan2(B[1] - Y, B[0] - C[0]) / RAD, R = 42;
+    let s = ARROWS + seg([20, Y], [590, Y], { col: "var(--muted)", sw: 2 }) + `<circle cx="560" cy="${Y}" r="4" fill="var(--ink)"/>`;
+    s += poly([A, B, C], { fill: "var(--teal-soft)" });
+    // The exterior angle split by a line through C parallel to AB: the part next to CD matches ∠A (corresponding), the part next to CB matches ∠B (alternate).
+    if (aux) {
+      const u = unit(B[0] - A[0], B[1] - A[1]);
+      s += seg([C[0] - u[0] * 60, C[1] - u[1] * 60], [C[0] + u[0] * 190, C[1] + u[1] * 190], { col: "var(--muted)", dash: "7 6", sw: 2 });
+      s += `<path d="${sector(C, -a, 0, R)}" fill="${COL[0]}" fill-opacity=".55"/><path d="${sector(C, tCB, -a, R)}" fill="${COL[1]}" fill-opacity=".55"/>`;
+      s += `<text x="${pol(C, -a / 2, R + 18)[0].toFixed(1)}" y="${pol(C, -a / 2, R + 18)[1].toFixed(1)}" font-size="14" fill="${COL[0]}" text-anchor="middle" dominant-baseline="central">${ai}°</text>`;
+      s += `<text x="${pol(C, (tCB - a) / 2, R + 18)[0].toFixed(1)}" y="${pol(C, (tCB - a) / 2, R + 18)[1].toFixed(1)}" font-size="14" fill="${COL[1]}" text-anchor="middle" dominant-baseline="central">${bi}°</text>`;
+    } else s += mark(C, [560, Y], B, { col: EXT, r: R, text: `1`, fs: 17, op: .3 });
+    s += mark(A, C, B, { col: COL[0], r: 30, text: `${ai}°`, fs: 15 }) + mark(B, A, C, { col: COL[1], r: 26, text: `${bi}°`, fs: 15 }) + mark(C, B, A, { col: COL[2], r: 22, text: "2", fs: 15 });
+    s += `<text class="nm" x="${A[0]}" y="${Y + 24}" font-size="19" fill="var(--ink)" text-anchor="middle">A</text><text class="nm" x="${C[0]}" y="${Y + 24}" font-size="19" fill="var(--ink)" text-anchor="middle">C</text><text class="nm" x="560" y="${Y + 24}" font-size="19" fill="var(--ink)" text-anchor="middle">D</text>`;
+    s += `<text class="nm" x="${B[0]}" y="${B[1] - 20}" font-size="19" fill="var(--ink)" text-anchor="middle">B</text>`;
+    s += handle(A, COL[0]) + handle(B, COL[1]);
+    svg.innerHTML = s;
+    $("#extRo").innerHTML = `<span class="ro t">${M("<i>m</i>∠<i>A</i>")} <b>${ai}°</b></span><span class="ro a">${M("<i>m</i>∠<i>B</i>")} <b>${bi}°</b></span><span class="ro r">${M("<i>m</i>∠2")} <b>${ci}°</b></span><span class="ro x">${M("<i>m</i>∠1")} <b>${x}°</b></span>`;
+    $("#extNarr").innerHTML = `${M(`<span class="ct">${ai}°</span> + <span class="ca">${bi}°</span> = <span class="cb">${x}°</span>`)}: الزاوية الخارجية ${M("∠1")} تساوي مجموع البعيدتين. وهي ومجاورتها ${M("∠2")} على خط مستقيم: ${M(`${x}° + ${ci}° = 180°`)}.${aux ? " المستقيم المساعد يوازي <i>AB</i>، فالجزء الأخضر يطابق ∠A (متناظرتان)، والجزء البرتقالي يطابق ∠B (متبادلتان داخليًّا)." : ""}`;
+  }
+  draggable(svg, () => [A, B], (i, p) => {
+    if (i === 0) { const nx = Math.max(30, Math.min(C[0] - 90, p[0])); A = [nx, Y]; }
+    else { const q = [Math.max(40, Math.min(560, p[0])), Math.max(40, Math.min(Y - 60, p[1]))]; if (angAt(C, q, [560, Y]) < 18 || angAt(A, C, q) < 12) return; B = q; }
+    draw();
+  });
+  $("#extAux").onclick = e => { aux = !aux; e.currentTarget.setAttribute("aria-pressed", aux); e.currentTarget.textContent = aux ? "أخفي المستقيم المساعد" : "أظهري المستقيم المساعد"; draw(); };
+  draw();
+
+  /* Example 2: ∠L = x, ∠M = 50°, so the true exterior at K is x + 50; the book calls it 2x − 15. */
+  const gx = $("#gx");
+  function gym() {
+    const x = +gx.value, real = x + 50, claim = 2 * x - 15, eq = real === claim;
+    $("#gxo").textContent = x;
+    const K = [170, 230], M_ = [480, 230], k = 180 - real;
+    // Apex L from the base angles at K (180 − exterior) and at M (50°).
+    const t = (M_[0] - K[0]) * Math.sin(50 * RAD) / Math.sin(x * RAD), L = [K[0] + t * Math.cos(k * RAD), K[1] - t * Math.sin(k * RAD)];
+    const sc = L[1] < 30 ? (K[1] - 30) / (K[1] - L[1]) : 1;
+    const Ls = [K[0] + (L[0] - K[0]) * sc, K[1] + (L[1] - K[1]) * sc], Ms = [K[0] + (M_[0] - K[0]) * sc, K[1]];
+    let s = seg([30, K[1]], [Ms[0] + 30, K[1]], { col: "var(--muted)", sw: 2 }) + poly([K, Ls, Ms], { fill: "var(--teal-soft)" });
+    s += mark(K, Ls, [40, K[1]], { col: EXT, r: 34, text: `(2x−15)°`, fs: 14, op: .28, gap: 10 }) + mark(Ls, Ms, K, { col: COL[0], r: 24, text: "x°", fs: 15 }) + mark(Ms, K, Ls, { col: COL[1], r: 26, text: "50°", fs: 15 });
+    s += [[[40, K[1]], "J", [0, 22]], [K, "K", [0, 22]], [Ms, "M", [0, 22]], [Ls, "L", [0, -20]]].map(([P, n, o]) => `<text class="nm" x="${(P[0] + o[0]).toFixed(1)}" y="${(P[1] + o[1]).toFixed(1)}" font-size="19" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${n}</text>`).join("");
+    $("#gym").innerHTML = s;
+    $("#gb1").style.width = `${real / 2.1}%`; $("#gb2").style.width = `${Math.max(0, claim) / 2.1}%`;
+    $("#gv1").textContent = `${real}°`; $("#gv2").textContent = `${claim}°`;
+    const v = $("#gymV"); v.className = `verdict ${eq ? "ok" : "no"}`;
+    v.innerHTML = eq ? `تساوى الطرفان عند ${M("<i>x</i> = 65")}، إذن ${M("<i>m</i>∠<i>JKL</i> = 2(65) − 15 = 115°")} ✓` : claim < real ? `${M("2<i>x</i> − 15")} أصغر من ${M("<i>x</i> + 50")}: زيدي ${M("<i>x</i>")}.` : `${M("2<i>x</i> − 15")} أكبر من ${M("<i>x</i> + 50")}: نقّصي ${M("<i>x</i>")}.`;
+    if (eq) $("#gymSteps").hidden = false;
+  }
+  gx.oninput = gym; gym();
+
+  /* Check 2: the shelf bracket. The brace meets the shelf at 40°, the wall meets the shelf at a right angle. */
+  const W = [70, 30], S = [250, 30], Bt = [70, 30 + 180 * Math.tan(40 * RAD)];
+  $("#shelf").innerHTML = `<rect x="56" y="10" width="10" height="200" fill="var(--line)"/><rect x="66" y="18" width="200" height="12" rx="2" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1.5"/>`
+    + seg(W, S, { sw: 3 }) + seg(W, [70, 205], { sw: 3 }) + seg(S, Bt, { sw: 3 })
+    + mark(W, S, Bt, { col: COL[0], r: 18 }) + mark(S, W, Bt, { col: COL[1], r: 30, text: "40°", fs: 14 })
+    + mark(Bt, S, [70, 205], { col: EXT, r: 22, text: "1", fs: 15, op: .3 });
+  answerBox($("#shelfStep"), 130, `الزاوية 1 خارجية، والبعيدتان القائمة و40°: ${M("90° + 40° = 130°")}.`, `${M("∠1")} زاوية خارجية للمثلث. وش الزاويتان الداخليتان البعيدتان عنها؟`);
+})();
+
+/* ---------- 5. Corollaries ---------- */
+(function cors() {
+  const ca = $("#ca");
+  function right() {
+    const a = +ca.value, b = 90 - a;
+    $("#cao").textContent = `${a}°`;
+    const V = fit(triFromAngles(90, a, 0), 0, 0, 300, 200, 34);
+    $("#corA").innerHTML = poly(V, { fill: "var(--teal-soft)" }) + mark(V[0], V[1], V[2], { col: "var(--ink)", r: 20 })
+      + mark(V[1], V[2], V[0], { col: COL[1], r: 26, text: `${a}°`, fs: 14 }) + mark(V[2], V[0], V[1], { col: COL[2], r: 24, text: `${b}°`, fs: 14 });
+    $("#corANarr").innerHTML = `${M(`<span class="ca">${a}°</span> + <span class="cr">${b}°</span> = 90°`)}: لأن القائمة أخذت 90° من الـ 180°، فيتبقى للحادتين 90° بالضبط.`;
+  }
+  ca.oninput = right; right();
+
+  const b1 = $("#cb1"), b2 = $("#cb2");
+  function meet() {
+    const b = +b1.value, c = +b2.value, B = [170, 290], C = [430, 290], sum = b + c;
+    $("#cb1o").textContent = `${b}°`; $("#cb2o").textContent = `${c}°`;
+    const rb = [Math.cos(b * RAD), -Math.sin(b * RAD)], rc = [-Math.cos(c * RAD), -Math.sin(c * RAD)];
+    let s = seg([20, 290], [580, 290], { col: "var(--muted)", sw: 2 }) + seg(B, C, { sw: 3 });
+    let A = null;
+    if (sum < 180) {
+      const t = (C[0] - B[0]) * Math.sin(c * RAD) / Math.sin((180 - sum) * RAD);
+      A = [B[0] + rb[0] * t, B[1] + rb[1] * t];
+    }
+    const far = 900, Bend = A && A[1] > 8 ? A : [B[0] + rb[0] * far, B[1] + rb[1] * far], Cend = A && A[1] > 8 ? A : [C[0] + rc[0] * far, C[1] + rc[1] * far];
+    s += `<clipPath id="corClip"><rect x="0" y="0" width="600" height="340"/></clipPath><g clip-path="url(#corClip)">`;
+    if (A && A[1] > 8) s += poly([B, C, A], { fill: "var(--teal-soft)" }) + mark(A, B, C, { col: COL[0], r: 22, text: `${180 - sum}°`, fs: 14 });
+    else s += seg(B, Bend, { col: COL[1], sw: 3 }) + seg(C, Cend, { col: COL[2], sw: 3 });
+    s += `</g>`;
+    s += mark(B, C, [B[0] + rb[0] * 100, B[1] + rb[1] * 100], { col: COL[1], r: 30, text: `${b}°`, fs: 15 }) + mark(C, [C[0] + rc[0] * 100, C[1] + rc[1] * 100], B, { col: COL[2], r: 30, text: `${c}°`, fs: 15 });
+    s += `<text class="nm" x="${B[0]}" y="316" font-size="19" fill="var(--ink)" text-anchor="middle">B</text><text class="nm" x="${C[0]}" y="316" font-size="19" fill="var(--ink)" text-anchor="middle">C</text>`;
+    if (A && A[1] > 8) s += `<text class="nm" x="${A[0].toFixed(1)}" y="${(A[1] - 18).toFixed(1)}" font-size="19" fill="var(--ink)" text-anchor="middle">A</text>`;
+    $("#corB").innerHTML = s;
+    const v = $("#corBV"), big = [b, c].filter(t => t >= 90).length;
+    v.className = `verdict ${sum < 180 ? "ok" : "no"}`;
+    v.innerHTML = sum < 180
+      ? `${M(`${b}° + ${c}° = ${sum}° &lt; 180°`)}: الضلعان يلتقيان في ${M("<i>A</i>")}، و${M(`<i>m</i>∠<i>A</i> = 180° − ${sum}° = ${180 - sum}°`)}.${big ? " فيه زاوية قائمة أو منفرجة، فالثانية لازم حادة." : ""}`
+      : sum === 180
+        ? `${M(`${b}° + ${c}° = 180°`)}: الضلعان <b>متوازيان</b> وما يلتقيان أبدًا، فما يتكون مثلث. ${big === 2 ? "زاويتان قائمتان مستحيل تكونان في مثلث." : ""}`
+        : `${M(`${b}° + ${c}° = ${sum}° &gt; 180°`)}: الضلعان <b>يتباعدان</b> وما يتكون مثلث. ${big === 2 ? "زاويتان قائمتان أو منفرجتان مستحيل تكونان في مثلث واحد." : ""}`;
+  }
+  b1.oninput = b2.oninput = meet; meet();
+
+  /* Example 3: rectangle TWXY, YZ ⊥ TX, ∠TYZ = 52°, ∠ZYX = 38°. For YZ to be perpendicular to TX with those angles, ∠YTX must be 38°. */
+  const h = 230, w = h * Math.tan(38 * RAD), x0 = 300 - w / 2, y0 = 50;
+  const T = [x0, y0], Wp = [x0 + w, y0], X = [x0 + w, y0 + h], Yp = [x0, y0 + h];
+  const d = unit(X[0] - T[0], X[1] - T[1]), tt = (Yp[0] - T[0]) * d[0] + (Yp[1] - T[1]) * d[1], Z = [T[0] + d[0] * tt, T[1] + d[1] * tt];
+  let one = "1";
+  const r3 = () => {
+    $("#rect3").innerHTML = poly([T, Wp, X, Yp], { fill: "var(--panel)" }) + seg(T, X) + seg(Yp, Z)
+      + mark(Z, Yp, T, { col: "var(--ink)", r: 14 }) + mark(Yp, X, Z, { col: COL[1], r: 34, text: "38°", fs: 14 }) + mark(Yp, Z, T, { col: COL[2], r: 30, text: "52°", fs: 14 })
+      + mark(T, Yp, Z, { col: one === "1" ? "var(--muted)" : COL[0], r: 40, text: one, fs: 15 })
+      + mark(Wp, T, X, { col: "var(--ink)", r: 14 }) + mark(X, Wp, Yp, { col: "var(--ink)", r: 14 })
+      + [[T, "T", [-16, -12]], [Wp, "W", [16, -12]], [X, "X", [16, 14]], [Yp, "Y", [-16, 14]], [Z, "Z", [14, 16]]].map(([P, n, o]) => `<text class="nm" x="${(P[0] + o[0]).toFixed(1)}" y="${(P[1] + o[1]).toFixed(1)}" font-size="19" fill="var(--ink)" text-anchor="middle" dominant-baseline="central">${n}</text>`).join("");
+  };
+  answerBox($("#ex3Step"), 38, `${M("<i>m</i>∠1 + <i>m</i>∠<i>TYZ</i> = 90°")} (الحادتان في المثلث القائم متتامتان)، إذن ${M("<i>m</i>∠1 + 52° = 90°")} و${M("<i>m</i>∠1 = 38°")}.`, `${M("△<i>TYZ</i>")} قائم في ${M("<i>Z</i>")}، فالحادتان فيه متتامتان.`, () => { one = "38°"; r3(); });
+  r3();
+})();
+
+/* ---------- Figures for the game, the quiz and the summary ---------- */
+// angs at P0, P1, P2 (P2 the apex). o.labels[i] text per vertex; o.ext: extend P0→P1 past P1 and mark the exterior angle with o.extLabel.
+function fig(angs, o = {}) {
+  const W = o.w || 600, Hh = o.h || 320;
+  let P = triFromAngles(angs[0], angs[1], o.rot || 0);
+  let E = null;
+  if (o.ext) { const v = [P[1][0] - P[0][0], P[1][1] - P[0][1]]; E = [P[1][0] + v[0] * .5, P[1][1] + v[1] * .5]; }
+  const all = fit(E ? [...P, E] : P, 0, 0, W, Hh, o.pad || 56), V = all.slice(0, 3), Ep = E ? all[3] : null;
+  const G = cent(V), fs = o.fs || 18;
+  let s = Ep ? seg(V[1], Ep, { sw: 2.4, col: "var(--ink)" }) : "";
+  s += poly(V, { fill: o.fill || "var(--teal-soft)" });
+  V.forEach((Pt, i) => {
+    const lab = o.labels?.[i];
+    if (lab == null) return;
+    const q = lab === "?";
+    s += mark(Pt, V[(i + 1) % 3], V[(i + 2) % 3], { col: q ? "var(--rose)" : COL[i], r: o.r || 28, text: lab, fs, op: q ? .35 : .18, right: angs[i] === 90, out: o.outs?.includes(i) });
+  });
+  if (Ep) s += mark(V[1], Ep, V[2], { col: EXT, r: (o.r || 28) + 6, text: o.extLabel, fs, op: o.extLabel === "?" ? .4 : .25 });
+  // A vertex whose label sits outside gets its name beside it instead of on top of the label.
+  if (o.names) V.forEach((Pt, i) => { s += o.outs?.includes(i) ? name(Pt, [Pt[0] + 10, Pt[1]], o.names[i], { d: 18, fs: fs + 2 }) : name(Pt, G, o.names[i], { d: 22, fs: fs + 2 }); });
+  return s;
+}
+
+/* ---------- 6. Game: repair the robots ---------- */
+(function game() {
+  const ROUNDS = 8;
+  let round = 0, score = 0, cur = null, tries = 0;
+  const MAKE = {
+    inner() { const a = randAngles(25, 115), hide = ri(0, 2); return { angs: a, labels: a.map((v, i) => i === hide ? "?" : `${v}°`), want: a[hide], q: "أوجدي الزاوية الناقصة في المسار.", why: `${M(`180° − ${a.filter((_, i) => i !== hide).join("° − ")}° = ${a[hide]}°`)}` }; },
+    exterior() { const a = randAngles(30, 110); return { angs: a, labels: [`${a[0]}°`, null, `${a[2]}°`], ext: true, extLabel: "?", want: a[0] + a[2], q: "أوجدي قياس الزاوية الخارجية.", why: `الخارجية = مجموع البعيدتين: ${M(`${a[0]}° + ${a[2]}° = ${a[0] + a[2]}°`)}` }; },
+    remote() { const a = randAngles(30, 110), hide = Math.random() < .5 ? 0 : 2, show = 2 - hide, x = a[0] + a[2]; return { angs: a, labels: [hide === 0 ? "?" : `${a[0]}°`, null, hide === 2 ? "?" : `${a[2]}°`], ext: true, extLabel: `${x}°`, want: a[hide], q: "الزاوية الخارجية معلومة. أوجدي الزاوية الداخلية البعيدة الناقصة.", why: `${M(`${x}° − ${a[show]}° = ${a[hide]}°`)}، لأن الخارجية = مجموع البعيدتين.` }; },
+    right() { const t = ri(15, 75), a = [90, t, 90 - t], hide = Math.random() < .5 ? 1 : 2; return { angs: a, labels: ["", hide === 1 ? "?" : `${a[1]}°`, hide === 2 ? "?" : `${a[2]}°`], want: a[hide], q: "مسار قائم الزاوية. أوجدي الزاوية الحادة الناقصة.", why: `الحادتان متتامتان: ${M(`90° − ${a[3 - hide]}° = ${a[hide]}°`)}` }; },
+  };
+  let deck = [];
+  function next() {
+    if (!deck.length) deck = shuffle(["inner", "inner", "exterior", "exterior", "remote", "remote", "right", "right"]);
+    cur = MAKE[deck.pop()](); tries = 0; cur.rot = cur.ext ? 0 : ri(-30, 30);
+    $("#gFig").innerHTML = fig(cur.angs, { labels: cur.labels, ext: cur.ext, extLabel: cur.extLabel, rot: cur.rot });
+    $("#gQ").textContent = cur.q;
+    $("#gIn").value = ""; $("#gIn").disabled = $("#gGo").disabled = false; $("#gIn").classList.remove("bad");
+    $("#gFb").textContent = ""; $("#gFb").className = "fb"; $("#gNext").hidden = true;
+    $("#gRound").textContent = round + 1;
+  }
+  function check() {
+    const v = parseFloat(toLatin($("#gIn").value));
+    if (Number.isNaN(v)) { $("#gFb").className = "fb bad"; $("#gFb").textContent = "اكتبي رقمًا."; return; }
+    const ok = v === cur.want;
+    tries++;
+    if (!ok && tries < 2) { $("#gFb").className = "fb bad"; $("#gFb").textContent = "قريب؟ راجعي الحساب وجرّبي مرة ثانية."; $("#gIn").classList.add("bad"); return; }
+    if (ok) score += tries === 1 ? 2 : 1;
+    $("#gIn").disabled = $("#gGo").disabled = true;
+    $("#gFb").className = `fb ${ok ? "good" : "bad"}`;
+    $("#gFb").innerHTML = `${ok ? (tries === 1 ? "اشتغل الروبوت ✓" : "اشتغل من المحاولة الثانية ✓") : `الجواب ${cur.want}°.`} ${cur.why}`;
+    $("#gFig").innerHTML = fig(cur.angs, { labels: cur.labels.map(l => l === "?" ? `${cur.want}°` : l), ext: cur.ext, extLabel: cur.extLabel === "?" ? `${cur.want}°` : cur.extLabel, rot: cur.rot });
+    round++;
+    $("#gScore").textContent = score; $("#gBat").style.width = `${score / (ROUNDS * 2) * 100}%`;
+    $("#gNext").hidden = false;
+    if (round >= ROUNDS) {
+      $("#gNext").textContent = "ورشة جديدة";
+      $("#gFb").innerHTML += `<br><b>خلصت الورشة: ${score} من ${ROUNDS * 2} ${score >= 14 ? "🔋 بطارية ممتلئة!" : ""}</b>`;
+    }
+  }
+  $("#gGo").onclick = check;
+  $("#gIn").addEventListener("keydown", e => { if (e.key === "Enter" && !$("#gGo").disabled) check(); });
+  $("#gNext").onclick = () => { if (round >= ROUNDS) { round = score = 0; $("#gScore").textContent = 0; $("#gBat").style.width = "0"; $("#gNext").textContent = "الروبوت التالي"; } next(); };
+  next();
+})();
+
+/* ---------- Summary drawings ---------- */
+{
+  const one = (sel, angs, o) => { $(sel).innerHTML = fig(angs, { w: 300, h: 120, pad: 18, r: 16, fs: 12, ...o }); };
+  one("#sum1", [55, 75, 50], { labels: ["55°", "75°", "50°"] });
+  one("#sum2", [50, 60, 70], { labels: ["50°", null, "70°"], ext: true, extLabel: "120°" });
+  one("#sum3", [90, 35, 55], { labels: ["", "35°", "55°"] });
+}
+
+/* ---------- 7. Quiz ---------- */
+const qfig = (angs, o) => `<svg class="mini" viewBox="0 0 300 180" aria-hidden="true">${fig(angs, { w: 300, h: 180, pad: 36, r: 20, fs: 14, ...o })}</svg>`;
+// From the book's exercises (pp. 24–27); the number in brackets is the exercise.
+const QUIZ = [
+  { q: `أوجدي ${M("<i>m</i>∠1")}. (تمرين 1)`, pic: qfig([59, 58, 63], { labels: ["59°", "1", "63°"] }),
+    opts: ["58°", "62°", "68°", "122°"], ok: 0, why: `${M("180° − 63° − 59° = 58°")}.` },
+  { q: `أوجدي ${M("<i>m</i>∠1")}. (تمرين 13)`, pic: qfig([27, 101, 52], { labels: ["27°", null, "52°"], ext: true, extLabel: "1" }),
+    opts: ["25°", "79°", "101°", "89°"], ok: 1, why: `${M("∠1")} خارجية، فقياسها مجموع البعيدتين: ${M("52° + 27° = 79°")}.` },
+  { q: `في الشكل ${M("(2<i>x</i> − 15)°")} عند ${M("<i>A</i>")} و${M("(<i>x</i> − 5)°")} عند ${M("<i>B</i>")}، والزاوية الخارجية عند ${M("<i>C</i>")} قياسها ${M("148°")}. أوجدي ${M("<i>m</i>∠<i>ABC</i>")}. (تمرين 15)`,
+    pic: qfig([51, 32, 97], { labels: ["(x−5)°", null, "(2x−15)°"], ext: true, extLabel: "148°", names: ["B", "C", "A"], outs: [2], rot: 0 }),
+    opts: ["56°", "97°", "51°", "32°"], ok: 2, why: `${M("(2<i>x</i> − 15) + (<i>x</i> − 5) = 148")} ← ${M("3<i>x</i> = 168")} ← ${M("<i>x</i> = 56")}، إذن ${M("<i>m</i>∠<i>ABC</i> = 56 − 5 = 51°")}.` },
+  { q: "طائرات: زاوية الرأس في مسار الطيران 173°، وزاويتا الإقلاع والهبوط متطابقتان. ما قياس كل منهما؟ (تمرين 12)",
+    opts: ["7°", "3.5°", "13.5°", "87°"], ok: 1, why: `${M("(180° − 173°) ÷ 2 = 3.5°")}.` },
+  { q: `بستنة: حوض زهور على شكل مثلث متطابق الضلعين، والمهندس يريد قياس ${M("∠<i>A</i>")} (الرأس) ثلاثة أمثال قياس كل من ${M("∠<i>B</i>")} و${M("∠<i>C</i>")}. ما قياسات الزوايا؟ (تمرين 22)`,
+    opts: ["30° ، 30° ، 120°", "45° ، 45° ، 90°", "36° ، 36° ، 108°", "60° ، 60° ، 60°"], ok: 2, why: `${M("<i>b</i> + <i>b</i> + 3<i>b</i> = 180")} ← ${M("<i>b</i> = 36")}، فالزوايا ${M("36°")} و${M("36°")} و${M("108°")}.` },
+  { q: `جبر: زوايا مثلث قياساتها ${M("(15<i>x</i> + 1)°")} و${M("(6<i>x</i> + 5)°")} و${M("(4<i>x</i> − 1)°")}. صنّفيه وفقًا لزواياه. (تمرين 27)`,
+    opts: ["حاد الزوايا", "قائم الزاوية", "منفرج الزاوية", "متطابق الزوايا"], ok: 2, why: `${M("25<i>x</i> + 5 = 180")} ← ${M("<i>x</i> = 7")}، فالزوايا ${M("106°")} و${M("47°")} و${M("27°")}: فيه زاوية منفرجة.` },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.pic || ""}
+    <div class="opts">${it.opts.map((o, j) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[j]}</b><span>${/°/.test(o) ? M(o) : o}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="ct">صحيح ✓</b>` : `<b class="cr">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🤖 برمجة متقنة!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("triangle-angles", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>

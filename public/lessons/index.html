@@ -87,6 +87,7 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-night .cover { background: radial-gradient(120% 120% at 80% 0%, #24386e, #14244d 45%, #0b1530); }
 .t-blueprint .cover { background: #1f4f8f; }
 .t-sadu .cover { background: #f1e6d3; }
+.t-robot .cover { background: #e3ecec; }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -162,6 +163,12 @@ const COVERS = {
     <polygon points="40,110 110,110 75,40" fill="#b3261e" stroke="#2b1a14" stroke-width="2.5"/>
     <polygon points="125,110 205,110 125,50" fill="#2b1a14"/><path d="M125 98 h12 v12" fill="none" stroke="#fffaf1" stroke-width="2"/>
     <polygon points="215,110 290,110 230,75" fill="#c27a0e" stroke="#2b1a14" stroke-width="2.5"/></svg>`,
+  robot: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    ${Array.from({ length: 14 }, (_, i) => Array.from({ length: 7 }, (_, j) => `<circle cx="${i * 22 + 8}" cy="${j * 22 + 8}" r="1.4" fill="#0a7c78" fill-opacity=".35"/>`).join("")).join("")}
+    <polygon points="60,122 250,122 170,28" fill="#d2efeb" stroke="#55707a" stroke-width="3" stroke-dasharray="9 7" stroke-linejoin="round"/>
+    <path d="M60 122 L88 122 A28 28 0 0 0 81.3 103.8 Z" fill="#0a7c78"/><path d="M250 122 L222 122 A28 28 0 0 1 228.5 103.8 Z" fill="#b86e00"/>
+    <path d="M170 28 L152.6 49.4 A28 28 0 0 0 187.1 50.2 Z" fill="#c0265e"/>
+    <g transform="translate(118 74) rotate(-49)"><rect x="-17" y="-14" width="34" height="28" rx="7" fill="#b86e00" stroke="#10242c" stroke-width="2.5"/><rect x="2" y="-9" width="11" height="18" rx="3" fill="#fff"/><circle cx="8" cy="-4" r="2.4" fill="#0a7c78"/><circle cx="8" cy="4" r="2.4" fill="#0a7c78"/></g></svg>`,
 };
 
 const scoreOf = key => who?.results?.[key] || null;
