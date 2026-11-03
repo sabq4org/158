@@ -33,6 +33,8 @@ const LESSONS = [
     quiz: "6 أسئلة من تمارين الكتاب", about: "البعد بين نقطة ومستقيم وبين مستقيمين متوازيين، بفرجار متحرك ومستوى إحداثي تسحبين فيه.", theme: "blueprint", owner: FAIZA },
   { key: "triangle-classification", name: "سدو المثلثات", title: "تصنيف المثلثات", ref: "3-1", book: "رياضيات 1-2", grade: 1, pages: "12–18", total: 6,
     quiz: "6 أسئلة من تمارين الكتاب", about: "تسحبين رؤوس المثلث على نول السدو فيصنّف نفسه حسب الزوايا والأضلاع، ثم تكملين لوحة الأنواع السبعة.", theme: "sadu", owner: FAIZA },
+  { key: "triangle-angles", name: "روبوت الزوايا", title: "زوايا المثلثات", ref: "3-2", book: "رياضيات 1-2", grade: 1, pages: "20–27", total: 6,
+    quiz: "6 أسئلة من تمارين الكتاب", about: "تشغّلين روبوتًا على مسار مثلث، وتقصّين زوايا المثلث وترصّينها على خط مستقيم، ثم الزاوية الخارجية والنتيجتان وورشة صيانة الروبوتات.", theme: "robot", owner: FAIZA },
 ];
 const BY_KEY = Object.fromEntries(LESSONS.map(l => [l.key, l]));
 const SUBJECT = "رياضيات";
