@@ -10,6 +10,7 @@ const feedback = require("./feedback");
 const staff = require("./staff");
 const alerts = require("./alerts");
 const lessons = require("./lessons");
+const exams = require("./exams");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set");
@@ -186,11 +187,15 @@ app.get(["/lessons/polynomials/feedback", "/lessons/polynomials/feedback/"], pag
 app.get(["/lessons/polynomials/dashboard", "/lessons/polynomials/feedback/results"], page("polynomials-dashboard.html"));
 feedback.mount(app, pool);
 lessons.mount(app, pool);
+// Interactive exams: one page reads any exam from the API; the answer key stays on the server.
+app.get(["/exams/:exam", "/exams/:exam/"], (req, res, next) => (exams.EXAMS.some(e => e.key === req.params.exam)
+  ? res.sendFile(path.join(__dirname, "public", "exams", "exam.html"), { headers: { "Cache-Control": "no-cache" } }) : next()));
+exams.mount(app, pool);
 app.use("/img", express.static(path.join(__dirname, "public", "img"), { maxAge: WEEK }));
 app.use(express.static(path.join(__dirname, "public"), { setHeaders: res => res.setHeader("Cache-Control", "no-cache") }));
 
 // The teachers' table and the teacher on every row come last, once every table they touch exists.
-const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, lessons.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA, alerts.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
+const adminReady = [SCHEMA, grades.SCHEMA, feedback.SCHEMA, lessons.SCHEMA, exams.SCHEMA, mountAdmin.SCHEMA, staff.SCHEMA, alerts.SCHEMA].reduce((p, sql) => p.then(() => pool.query(sql)), Promise.resolve())
   .then(() => school.load(pool)).then(() => loadSettings(pool)).then(() => mountAdmin(app, pool));
 
 const port = process.env.PORT || 3000;

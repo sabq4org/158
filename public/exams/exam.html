@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اختبار تفاعلي</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/img/school-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #e3ecec; --sheet: #f8fbfa; --panel: #fff; --ink: #10242c; --muted: #55707a; --line: #cddcdc;
+  --teal: #0a7c78; --teal-ink: #fff; --teal-soft: #d2efeb; --amber: #b86e00; --amber-soft: #fbe8c8;
+  --rose: #c0265e; --rose-soft: #f8dbe6; --blue: #2257b5; --blue-soft: #dbe5f7; --chip: #eef3f3;
+  --shadow: 0 1px 1px rgba(16, 36, 44, .06), 0 16px 36px -20px rgba(16, 36, 44, .5);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1317; --sheet: #111e24; --panel: #0d181d; --ink: #e2f1ef; --muted: #8eaeb3; --line: #24404a;
+    --teal: #4fd1c5; --teal-ink: #062421; --teal-soft: #11342f; --amber: #ffb648; --amber-soft: #3b2b10;
+    --rose: #ff7aa8; --rose-soft: #41172a; --blue: #8fb2ff; --blue-soft: #1a2947; --chip: #183038;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1317; --sheet: #111e24; --panel: #0d181d; --ink: #e2f1ef; --muted: #8eaeb3; --line: #24404a;
+  --teal: #4fd1c5; --teal-ink: #062421; --teal-soft: #11342f; --amber: #ffb648; --amber-soft: #3b2b10;
+  --rose: #ff7aa8; --rose-soft: #41172a; --blue: #8fb2ff; --blue-soft: #1a2947; --chip: #183038;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.wrap { max-width: 680px; margin: 0 auto; padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); }
+.sheet { background: var(--sheet); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+.head { background: var(--teal); color: var(--teal-ink); padding: 16px 20px 14px; display: flex; gap: 12px; align-items: center; }
+.head img { width: 44px; height: 44px; border-radius: 12px; background: #fff; padding: 4px; flex: none; }
+.head h1 { font-size: 18px; margin: 0; line-height: 1.5; }
+.head small { display: block; opacity: .88; font-size: 13px; }
+.body { padding: 18px 20px 22px; }
+.note { color: var(--muted); font-size: 14.5px; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 16px; }
+.facts div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px; text-align: center; }
+.facts b { display: block; font-size: 20px; color: var(--teal); line-height: 1.4; }
+.facts span { font-size: 12.5px; color: var(--muted); }
+label.lbl { display: block; font-weight: 600; margin-bottom: 6px; }
+.idrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.idrow input { flex: 1 1 180px; min-width: 0; font: inherit; font-size: 19px; letter-spacing: 2px; direction: ltr; text-align: center; padding: 10px 12px;
+  border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); }
+.idrow input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+.btn { border: 0; border-radius: 14px; padding: 11px 18px; font-weight: 700; background: var(--teal); color: var(--teal-ink); font-size: 15.5px; }
+.btn.ghost { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); }
+.btn.warn { background: var(--amber-soft); color: var(--amber); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.wide { width: 100%; }
+.err { color: var(--rose); background: var(--rose-soft); border-radius: 12px; padding: 8px 12px; margin: 12px 0 0; font-size: 14.5px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; margin: 14px 0; }
+.card .kv { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 15px; }
+.card .kv span { color: var(--muted); }
+.rules { margin: 0 0 16px; padding-inline-start: 20px; font-size: 14.5px; }
+.rules li { margin-bottom: 3px; }
+.banner { border-radius: 14px; padding: 10px 14px; margin: 12px 0; font-size: 15px; }
+.banner.info { background: var(--blue-soft); color: var(--blue); }
+.banner.wait { background: var(--amber-soft); color: var(--amber); }
+
+/* The exam itself */
+.bar { position: sticky; top: 0; z-index: 5; background: var(--sheet); border-bottom: 1px solid var(--line); padding: 10px 20px 8px; }
+.bar .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; }
+.timer { font-weight: 700; direction: ltr; padding: 2px 12px; border-radius: 99px; background: var(--amber-soft); color: var(--amber); font-variant-numeric: tabular-nums; }
+.timer.low { background: var(--rose-soft); color: var(--rose); animation: pulse 1s infinite alternate; }
+@keyframes pulse { to { opacity: .6; } }
+.save { font-size: 12.5px; color: var(--muted); }
+.save.bad { color: var(--rose); }
+.dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; margin-top: 8px; }
+.dots button { aspect-ratio: 1; border: 0; border-radius: 4px; background: var(--line); padding: 0; position: relative; }
+.dots button.done { background: var(--teal); }
+.dots button.flag { background: var(--amber); }
+.dots button.cur { outline: 2px solid var(--ink); outline-offset: 1px; }
+.dots button.sep { margin-inline-start: 0; }
+.sec { display: inline-block; background: var(--blue-soft); color: var(--blue); font-size: 12.5px; font-weight: 600; padding: 2px 10px; border-radius: 99px; }
+.q { font-weight: 600; font-size: 18px; margin: 12px 0 14px; line-height: 1.9; }
+.qn { color: var(--muted); font-weight: 500; font-size: 14px; }
+.opts { display: grid; gap: 9px; }
+.opt { display: flex; gap: 12px; align-items: center; text-align: start; width: 100%; border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px;
+  background: var(--panel); font-size: 16.5px; line-height: 1.7; }
+.opt .k { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--chip); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.opt[aria-checked="true"] { border-color: var(--teal); background: var(--teal-soft); }
+.opt[aria-checked="true"] .k { background: var(--teal); color: var(--teal-ink); }
+.opt .used { margin-inline-start: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.tf { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tf .opt { justify-content: center; font-weight: 700; font-size: 18px; padding: 16px; }
+.nav { display: flex; gap: 8px; margin-top: 18px; }
+.nav .btn { flex: 1; }
+.nav .flagbtn { flex: 0 0 auto; }
+.flagbtn[aria-pressed="true"] { background: var(--amber); color: #fff; }
+
+/* Review and result */
+.sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.sum div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; text-align: center; padding: 8px; }
+.sum b { display: block; font-size: 22px; }
+.sum span { font-size: 12.5px; color: var(--muted); }
+.jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+.jump button { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 2px 10px; font-size: 14px; }
+.jump button.flag { border-color: var(--amber); color: var(--amber); }
+.score { text-align: center; padding: 10px 0 6px; }
+.score .big { font-size: 58px; font-weight: 700; color: var(--teal); line-height: 1.1; }
+.score .big small { font-size: 22px; color: var(--muted); }
+.parts { margin: 14px 0 6px; }
+.parts .kv { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px dashed var(--line); font-size: 15.5px; }
+dialog { border: 0; border-radius: 18px; padding: 20px; max-width: min(420px, calc(100vw - 32px)); background: var(--sheet); color: var(--ink); box-shadow: var(--shadow); }
+dialog::backdrop { background: rgba(5, 15, 18, .55); }
+dialog h3 { margin: 0 0 6px; }
+dialog .nav { margin-top: 14px; }
+.toast { position: fixed; z-index: 20; bottom: max(16px, env(safe-area-inset-bottom)); inset-inline: 16px; margin: 0 auto; max-width: 420px; padding: 11px 16px;
+  border-radius: 14px; background: #0f3d3a; color: #fff; text-align: center; font-size: 15px; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .5); transition: opacity .3s; }
+.toast.off { opacity: 0; pointer-events: none; }
+
+/* Maths marks */
+bdi.eq, bdi.pt { white-space: nowrap; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.15; font-size: .88em; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
+.fw { white-space: nowrap; }
+[hidden] { display: none !important; }
+@media (max-width: 420px) {
+  .body { padding: 16px 14px 20px; }
+  .bar { padding: 8px 14px 6px; }
+  .dots { grid-template-columns: repeat(20, 1fr); gap: 3px; }
+  .q { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="sheet">
+    <header class="head">
+      <img src="/img/school-logo.png" alt="" onerror="this.remove()">
+      <div><h1 id="title">اختبار تفاعلي</h1><small id="subtitle">جاري التحميل…</small></div>
+    </header>
+    <section id="screen"></section>
+  </div>
+</main>
+<dialog id="confirm">
+  <h3>تسلّمين الاختبار؟</h3>
+  <p class="note" id="confirmText"></p>
+  <div class="nav"><button class="btn ghost" value="no" id="cNo">لا، أرجع</button><button class="btn" id="cYes">إيه، سلّمي</button></div>
+</dialog>
+<script>
+(() => {
+  const KEY = location.pathname.split("/").filter(Boolean)[1];
+  const $ = s => document.querySelector(s);
+  const screen = $("#screen");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  const LETTERS = ["أ", "ب", "ج", "د"];
+  const SS = { get: k => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+  const LS = { get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del: k => { try { localStorage.removeItem(k); } catch {} } };
+
+  // {p:2,1} a point, {f:-2/3} a fraction, {e:…} an equation (read right to left), {d:90} degrees.
+  const rich = s => esc(s)
+    .replace(/\{p:(-?[\d.]+),(-?[\d.]+)\}/g, (_, x, y) => `<bdi dir="ltr" class="pt">(${x}, ${y})</bdi>`)
+    .replace(/\{f:(-?)(\d+)\/(\d+)\}/g, (_, n, a, b) => `<bdi dir="ltr" class="fw">${n ? "−" : ""}<span class="fr"><span>${a}</span><span>${b}</span></span></bdi>`)
+    .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
+    .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi class="eq">${e}</bdi>`);
+
+  async function call(path, body) {
+    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(d.error || "error"), { status: r.status, data: d });
+    return d;
+  }
+  let toastTimer;
+  function toast(text) {
+    let t = $(".toast");
+    if (!t) { t = document.createElement("div"); t.className = "toast off"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.textContent = text; requestAnimationFrame(() => t.classList.remove("off"));
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("off"), 4500);
+  }
+
+  // The same order every time for the same student, a different one from her neighbour's.
+  function rng(seed) {
+    let h = 2166136261;
+    for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  const shuffle = (list, r) => { const a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  let exam = null, me = null, items = [], answers = {}, flags = new Set(), cur = 0, deadline = 0, offset = 0, tick = null, warned = {}, saving = null, dirty = false, finished = false;
+  const localKey = () => `exam:${KEY}:${me.id}`;
+
+  async function boot() {
+    try { exam = await call(`/api/exams/${encodeURIComponent(KEY)}`); }
+    catch { screen.innerHTML = `<div class="body"><div class="err">ما قدرنا نفتح الاختبار. تأكدي من الرابط والإنترنت.</div></div>`; $("#subtitle").textContent = ""; return; }
+    document.title = exam.title;
+    $("#title").textContent = exam.title;
+    $("#subtitle").textContent = `${exam.subject} · ${exam.gradeLabel} · ${exam.semester}`;
+    const saved = SS.get(`examStudent:${KEY}`);
+    if (saved?.id) return identify(saved.id, true);
+    drawId();
+  }
+
+  function drawId(err, value = "") {
+    screen.innerHTML = `<div class="body">
+      <div class="facts"><div><b>${exam.total}</b><span>درجة</span></div><div><b>${exam.minutes}</b><span>دقيقة</span></div><div><b>${exam.count}</b><span>فقرة</span></div></div>
+      <form id="idForm" novalidate>
+        <label class="lbl" for="nid">اكتبي رقم هويتك</label>
+        <div class="idrow"><input id="nid" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="رقم الهوية" value="${esc(value)}"><button class="btn" type="submit">متابعة</button></div>
+        ${err ? `<div class="err" role="alert">${err}</div>` : ""}
+      </form>
+      <p class="note" style="margin:14px 0 0">اسمك وصفك وإيميلك الوزاري ينسحبون من سجل معلمتك، فما تحتاجين تكتبينهم.</p>
+    </div>`;
+    const input = $("#nid");
+    input.addEventListener("input", () => { input.value = toLatin(input.value).replace(/\D/g, "").slice(0, 10); });
+    $("#idForm").onsubmit = e => {
+      e.preventDefault();
+      const id = toLatin(input.value).replace(/\D/g, "");
+      if (id.length < 9) return drawId("رقم الهوية لازم يكون ١٠ أرقام.", id);
+      identify(id);
+    };
+    if (!err) input.focus();
+  }
+
+  async function identify(id, quiet) {
+    if (!quiet) { const b = $("#idForm button"); if (b) { b.disabled = true; b.textContent = "لحظة…"; } }
+    try {
+      const d = await call(`/api/exams/${encodeURIComponent(KEY)}/student`, { id });
+      me = { id, ...d };
+      SS.set(`examStudent:${KEY}`, { id });
+      if (d.status === "submitted") return drawResult(d);
+      drawReady();
+    } catch (x) {
+      SS.set(`examStudent:${KEY}`, null);
+      const msg = x.status === 404 ? "ما لقينا هذا الرقم بين طالبات معلمة المادة. تأكدي منه أو اسألي معلمتك."
+        : x.status === 403 ? `هذا الاختبار لطالبات ${esc(x.data?.gradeLabel || "صف ثاني")} فقط.`
+        : x.status === 429 ? "محاولات كثيرة، انتظري شوي وجربي." : "تعذّر الاتصال. تأكدي من الإنترنت وجربي مرة ثانية.";
+      drawId(msg, id);
+    }
+  }
+
+  function drawReady(err) {
+    const going = me.status === "in_progress";
+    const left = going ? Math.max(0, Math.round((new Date(me.deadline) - new Date(me.now)) / 60000)) : 0;
+    screen.innerHTML = `<div class="body">
+      <div class="card">
+        <div class="kv"><span>الاسم</span><b>${esc(me.name)}</b></div>
+        <div class="kv"><span>الصف</span><b>${esc(me.classLabel || "—")}</b></div>
+        <div class="kv"><span>الإيميل الوزاري</span><b>${me.email ? "مسجّل ✓" : "غير مسجّل"}</b></div>
+      </div>
+      ${going ? `<div class="banner info">بدأتي الاختبار من قبل، وباقي لك تقريبًا ${left} دقيقة. إجاباتك المحفوظة بترجع لك.</div>`
+        : me.open ? `<ul class="rules">
+          ${exam.sections.map(s => `<li>${esc(s.title)}: ${s.count} فقرات (${s.marks} درجات)</li>`).join("")}
+          <li>المؤقت ${exam.minutes} دقيقة، ويبدأ أول ما تضغطين «ابدئي».</li>
+          <li>إجاباتك تنحفظ أول بأول، ولو طفى الجهاز أو انقطع النت ترجعين لها برقم هويتك.</li>
+          <li>تقدرين تتنقلين بين الفقرات وتعلّمين ⚑ على اللي تبين ترجعين لها.</li>
+          <li>محاولة وحدة فقط، ويتسلّم الاختبار لحاله إذا خلص الوقت.</li></ul>`
+        : `<div class="banner wait">الاختبار مقفل الحين. أول ما تفتحه معلمتك اضغطي «تحديث».</div>`}
+      ${err ? `<div class="err" role="alert">${err}</div>` : ""}
+      <div class="nav">
+        <button class="btn ghost" id="notMe">مو أنا</button>
+        ${going || me.open ? `<button class="btn" id="go">${going ? "كمّلي الاختبار" : "ابدئي الاختبار"}</button>` : `<button class="btn" id="again">تحديث</button>`}
+      </div></div>`;
+    $("#notMe").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
+    $("#again")?.addEventListener("click", () => identify(me.id, true));
+    $("#go")?.addEventListener("click", start);
+  }
+
+  async function start() {
+    const b = $("#go"); b.disabled = true; b.textContent = "لحظة…";
+    let d;
+    try { d = await call(`/api/exams/${encodeURIComponent(KEY)}/start`, { id: me.id }); }
+    catch (x) {
+      if (x.status === 423) { me.open = false; return drawReady(); }
+      return drawReady("تعذّر بدء الاختبار. تأكدي من الإنترنت وجربي مرة ثانية.");
+    }
+    if (d.status === "submitted") return drawResult(d);
+    offset = new Date(d.now) - Date.now();
+    deadline = new Date(d.deadline).getTime();
+    // The sections in the paper's order; inside each, the items (and a question's choices) in her own order.
+    const r = rng(`${KEY}:${me.id}`);
+    items = [];
+    for (const s of d.sections) {
+      for (const it of shuffle(s.items, r)) {
+        items.push({ ...it, section: s, order: it.options ? shuffle(it.options.map((_, i) => i), r) : null });
+      }
+    }
+    const local = LS.get(localKey()) || {};
+    answers = { ...(d.answers || {}), ...(local.answers || {}) };
+    flags = new Set(local.flags || []);
+    cur = Math.min(local.cur || 0, items.length - 1);
+    finished = false;
+    if (Object.keys(local.answers || {}).length) queueSave(0);
+    window.addEventListener("beforeunload", guardLeave);
+    clearInterval(tick); tick = setInterval(clock, 1000);
+    drawExam();
+  }
+  const guardLeave = e => { if (!finished && dirty) { e.preventDefault(); e.returnValue = ""; } };
+
+  const left = () => deadline - (Date.now() + offset);
+  function clock() {
+    const ms = left(), el = $("#timer");
+    if (el) {
+      const s = Math.max(0, Math.ceil(ms / 1000));
+      el.textContent = `⏱ ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+      el.classList.toggle("low", s <= 300);
+    }
+    if (ms <= 10 * 60000 && !warned[10]) { warned[10] = 1; if (ms > 9 * 60000) toast("باقي ١٠ دقايق على نهاية الاختبار."); }
+    if (ms <= 60000 && !warned[1]) { warned[1] = 1; toast("باقي دقيقة وحدة! راجعي إجاباتك."); }
+    if (ms <= 0 && !finished) submit(true);
+  }
+
+  function remember() { LS.set(localKey(), { answers, flags: [...flags], cur }); }
+  function queueSave(delay = 1200) {
+    dirty = true; remember(); setSave("wait");
+    clearTimeout(saving); saving = setTimeout(save, delay);
+  }
+  async function save() {
+    if (finished) return;
+    try {
+      await call(`/api/exams/${encodeURIComponent(KEY)}/answers`, { id: me.id, answers });
+      dirty = false; setSave("ok");
+    } catch (x) {
+      if (x.status === 409 && x.data?.status === "submitted") { finish(); return drawResult(x.data); }
+      setSave("bad"); clearTimeout(saving); saving = setTimeout(save, 5000);
+    }
+  }
+  function setSave(state) {
+    const el = $("#save");
+    if (!el) return;
+    el.className = "save" + (state === "bad" ? " bad" : "");
+    el.textContent = state === "ok" ? "محفوظ ✓" : state === "bad" ? "غير متصل، بنحاول نحفظ…" : "يحفظ…";
+  }
+
+  const answered = it => answers[it.id] !== undefined;
+  function drawExam() {
+    const it = items[cur], s = it.section;
+    const list = items.map((x, i) => `<button type="button" data-go="${i}" class="${answered(x) ? "done" : ""}${flags.has(x.id) ? " flag" : ""}${i === cur ? " cur" : ""}"
+      aria-label="الفقرة ${i + 1}${answered(x) ? "، مجابة" : ""}${flags.has(x.id) ? "، معلّمة" : ""}"></button>`).join("");
+    let body;
+    if (s.type === "mcq") {
+      body = `<div class="opts" role="radiogroup">${it.order.map((o, k) => `<button type="button" class="opt" role="radio" aria-checked="${answers[it.id] === o}" data-v="${o}">
+        <span class="k">${LETTERS[k]}</span><span>${rich(it.options[o])}</span></button>`).join("")}</div>`;
+    } else if (s.type === "tf") {
+      body = `<div class="tf" role="radiogroup">
+        <button type="button" class="opt" role="radio" aria-checked="${answers[it.id] === true}" data-v="true">✓ صح</button>
+        <button type="button" class="opt" role="radio" aria-checked="${answers[it.id] === false}" data-v="false">✗ خطأ</button></div>`;
+    } else {
+      const usedBy = {};
+      for (const x of items) if (x.section === s && x.id !== it.id && answers[x.id]) usedBy[answers[x.id]] = true;
+      body = `<p class="note" style="margin:-4px 0 10px">اختاري من العمود الثاني:</p><div class="opts" role="radiogroup">${s.choices.map(c => `<button type="button" class="opt" role="radio" aria-checked="${answers[it.id] === c.sym}" data-v="${esc(c.sym)}">
+        <span class="k">${esc(c.sym)}</span><span>${rich(c.text)}</span>${usedBy[c.sym] ? `<span class="used">مستخدم</span>` : ""}</button>`).join("")}</div>`;
+    }
+    const nInSec = items.filter(x => x.section === s).indexOf(it) + 1;
+    const last = cur === items.length - 1;
+    screen.innerHTML = `
+      <div class="bar">
+        <div class="row"><span>الفقرة <b>${cur + 1}</b> من ${items.length} · <span id="save" class="save">محفوظ ✓</span></span><span class="timer" id="timer">⏱ --:--</span></div>
+        <div class="dots">${list}</div>
+      </div>
+      <div class="body">
+        <span class="sec">${esc(s.title)} · ${nInSec} من ${s.items.length}</span>
+        <p class="note" style="margin:8px 0 0">${esc(s.hint)}</p>
+        <div class="q">${rich(it.q)}</div>
+        ${body}
+        <div class="nav">
+          <button type="button" class="btn ghost" id="prev" ${cur === 0 ? "disabled" : ""}>السابق</button>
+          <button type="button" class="btn warn flagbtn" id="flag" aria-pressed="${flags.has(it.id)}" title="علّميها عشان ترجعين لها">⚑</button>
+          <button type="button" class="btn" id="next">${last ? "مراجعة وتسليم" : "التالي"}</button>
+        </div>
+        <p style="text-align:center;margin:14px 0 0"><button type="button" class="btn ghost" id="review" style="font-size:14px;padding:7px 14px">مراجعة الإجابات والتسليم</button></p>
+      </div>`;
+    setSave(dirty ? "wait" : "ok"); clock();
+    screen.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { cur = Number(b.dataset.go); remember(); drawExam(); });
+    screen.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      const v = b.dataset.v;
+      answers[it.id] = s.type === "mcq" ? Number(v) : s.type === "tf" ? v === "true" : v;
+      queueSave(); drawExam();
+    });
+    $("#prev").onclick = () => { cur--; remember(); drawExam(); };
+    $("#next").onclick = () => { if (last) return drawReview(); cur++; remember(); drawExam(); };
+    $("#flag").onclick = () => { flags.has(it.id) ? flags.delete(it.id) : flags.add(it.id); remember(); drawExam(); };
+    $("#review").onclick = drawReview;
+  }
+
+  function drawReview() {
+    const empty = items.map((x, i) => [x, i]).filter(([x]) => !answered(x)), flagged = items.map((x, i) => [x, i]).filter(([x]) => flags.has(x.id));
+    const btns = (list, cls) => list.map(([, i]) => `<button type="button" class="${cls}" data-go="${i}">${i + 1}</button>`).join("");
+    screen.innerHTML = `
+      <div class="bar"><div class="row"><span>مراجعة قبل التسليم · <span id="save" class="save"></span></span><span class="timer" id="timer">⏱ --:--</span></div></div>
+      <div class="body">
+        <div class="sum"><div><b>${items.length - empty.length}</b><span>مجابة</span></div><div><b>${empty.length}</b><span>بدون إجابة</span></div><div><b>${flagged.length}</b><span>معلّمة ⚑</span></div></div>
+        ${empty.length ? `<div class="note">فقرات بدون إجابة (اضغطي الرقم ترجعين لها):</div><div class="jump">${btns(empty, "")}</div>` : `<div class="banner info">جاوبتي على كل الفقرات 👏</div>`}
+        ${flagged.length ? `<div class="note">فقرات علّمتيها:</div><div class="jump">${btns(flagged, "flag")}</div>` : ""}
+        <div class="nav"><button type="button" class="btn ghost" id="back">رجوع للأسئلة</button><button type="button" class="btn" id="send">سلّمي الاختبار</button></div>
+      </div>`;
+    setSave(dirty ? "wait" : "ok"); clock();
+    screen.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { cur = Number(b.dataset.go); remember(); drawExam(); });
+    $("#back").onclick = drawExam;
+    $("#send").onclick = () => {
+      $("#confirmText").textContent = empty.length ? `باقي ${empty.length} فقرة بدون إجابة. بعد التسليم ما تقدرين تغيّرين شي.` : "بعد التسليم ما تقدرين تغيّرين شي.";
+      $("#confirm").showModal();
+    };
+  }
+  $("#cNo").onclick = () => $("#confirm").close();
+  $("#cYes").onclick = () => { $("#confirm").close(); submit(false); };
+
+  function finish() { finished = true; clearInterval(tick); clearTimeout(saving); window.removeEventListener("beforeunload", guardLeave); }
+  async function submit(auto) {
+    if (finished) return;
+    finish();
+    screen.innerHTML = `<div class="body"><div class="banner info">${auto ? "خلص الوقت، جاري تسليم إجاباتك…" : "جاري التسليم…"}</div></div>`;
+    for (let i = 0; i < 6; i++) {
+      try {
+        const d = await call(`/api/exams/${encodeURIComponent(KEY)}/submit`, { id: me.id, answers });
+        LS.del(localKey());
+        return drawResult(d);
+      } catch (x) {
+        if (x.status === 404) break;
+        await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+      }
+    }
+    screen.innerHTML = `<div class="body"><div class="err">ما قدرنا نوصل للسيرفر. إجاباتك محفوظة في جهازك؛ تأكدي من الإنترنت واضغطي «حاولي مرة ثانية».</div>
+      <div class="nav"><button class="btn" id="retry">حاولي مرة ثانية</button></div></div>`;
+    $("#retry").onclick = () => { finished = false; submit(auto); };
+  }
+
+  function drawResult(d) {
+    finish();
+    const pct = d.total ? d.score / d.total : 0;
+    const word = pct >= .9 ? "ممتاز" : pct >= .75 ? "جيد جدًا" : pct >= .6 ? "جيد" : "تحتاجين مراجعة، وتقدرين";
+    const fmt = n => String(Number(n)).replace(/\.0+$/, "");
+    screen.innerHTML = `<div class="body">
+      <div class="banner info">تم تسليم اختبارك${d.auto ? " تلقائيًا عند نهاية الوقت" : ""} ✓</div>
+      <div class="score"><div class="big">${fmt(d.score)} <small>/ ${d.total}</small></div><div class="note">${esc(word)} يا ${esc(me?.name || "")} ${pct >= .75 ? "🌟" : "💪"}</div></div>
+      <div class="parts">${(d.parts || []).map(p => `<div class="kv"><span>${esc(p.title.replace(/^.+?:\s*/, ""))}</span><b>${fmt(p.score)} من ${p.marks}</b></div>`).join("")}</div>
+      <p class="note">درجتك وصلت لمعلمتك، وتنتقل لبطاقة نتيجتك بعد ما تعتمدها.</p>
+      <div class="nav"><button class="btn ghost" id="out">خروج</button></div></div>`;
+    $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
