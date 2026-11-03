@@ -101,12 +101,12 @@ const EXAMS = [{
     TF, MATCH,
   ],
 }, {
-  // The model for students with learning difficulties (صعوبات التعلم): two choices per item and 45 minutes. The
+  // The model for students with learning difficulties (صعوبات التعلم): two choices per item and 55 minutes (the teacher set both models to 55). The
   // same link takes them here; it opens and closes with the main exam.
   key: "parallel-perpendicular-2", parent: "parallel-perpendicular", ld: true, model: "نموذج صعوبات التعلم (بخيارين)",
   title: "اختبار الباب الثاني: التوازي والتعامد",
   subject: "الرياضيات 1", book: "رياضيات 1", grade: 1, semester: "الفصل الدراسي الأول",
-  minutes: 45, total: 20, owner: FAIZA,
+  minutes: 55, total: 20, owner: FAIZA,
   sections: [
     { key: "m", type: "mcq", title: "السؤال الأول: اختيار من متعدد", marks: 10, hint: "اختاري الإجابة الصحيحة لكل فقرة (لكل فقرة نصف درجة).", items: [
       ["المستقيمان اللذان لا يتقاطعان ولا يقعان في مستوى واحد يسمّيان:", ["متخالفين", "متوازيين"], 0],
