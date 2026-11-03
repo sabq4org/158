@@ -14,7 +14,7 @@ const ExamResults = (() => {
     .replace(/\{p:(-?[\d.]+),(-?[\d.]+)\}/g, (_, x, y) => `<bdi dir="ltr">(${x}, ${y})</bdi>`)
     .replace(/\{f:(-?)(\d+)\/(\d+)\}/g, (_, n, a, b) => `<bdi dir="ltr">${n ? "−" : ""}${a}/${b}</bdi>`)
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
-    .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi>${e}</bdi>`);
+    .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi dir="ltr">${e}</bdi>`);
 
   async function load() {
     if (!data) host().innerHTML = '<div class="card note" style="padding:20px">جاري التحميل…</div>';
