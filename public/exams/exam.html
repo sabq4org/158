@@ -166,7 +166,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     .replace(/\{p:(-?[\d.]+),(-?[\d.]+)\}/g, (_, x, y) => `<bdi dir="ltr" class="pt">(${x}, ${y})</bdi>`)
     .replace(/\{f:(-?)(\d+)\/(\d+)\}/g, (_, n, a, b) => `<bdi dir="ltr" class="fw">${n ? "−" : ""}<span class="fr"><span>${a}</span><span>${b}</span></span></bdi>`)
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
-    .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi class="eq">${e}</bdi>`);
+    .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi dir="ltr" class="eq">${e}</bdi>`);
 
   // With a practice ID, the server keeps each visitor's try apart by this tab's own random token.
   const TOKEN = (() => {
@@ -296,7 +296,8 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     offset = new Date(d.now) - Date.now();
     deadline = new Date(d.deadline).getTime();
     // The sections in the paper's order; inside each, the items (and a question's choices) in her own order.
-    const r = rng(`${KEY}:${me.id}`);
+    // A practice try gets a new order every time (its deadline is new); a student keeps hers.
+    const r = rng(`${KEY}:${me.id}${me.demo ? ":" + d.deadline : ""}`);
     items = [];
     for (const s of d.sections) {
       for (const it of shuffle(s.items, r)) {
