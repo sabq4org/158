@@ -168,8 +168,14 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
     .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi class="eq">${e}</bdi>`);
 
+  // With a practice ID, the server keeps each visitor's try apart by this tab's own random token.
+  const TOKEN = (() => {
+    let t = SS.get("examToken");
+    if (!t) { t = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join(""); SS.set("examToken", t); }
+    return t;
+  })();
   async function call(path, body) {
-    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, token: TOKEN }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(d.error || "error"), { status: r.status, data: d });
     return d;
@@ -234,12 +240,19 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       if (d.status === "submitted") return drawResult(d);
       drawReady();
     } catch (x) {
+      // Her own model of the exam has its own link: she carries on there with the same ID.
+      if (x.status === 409 && x.data?.to) return moveTo(x.data.to, id);
       SS.set(`examStudent:${KEY}`, null);
       const msg = x.status === 404 ? "ما لقينا هذا الرقم بين طالبات معلمة المادة. تأكدي منه أو اسألي معلمتك."
         : x.status === 403 ? `هذا الاختبار لطالبات ${esc(x.data?.gradeLabel || "صف ثاني")} فقط.`
         : x.status === 429 ? "محاولات كثيرة، انتظري شوي وجربي." : "تعذّر الاتصال. تأكدي من الإنترنت وجربي مرة ثانية.";
       drawId(msg, id);
     }
+  }
+
+  function moveTo(key, id) {
+    SS.set(`examStudent:${key}`, { id });
+    location.replace(`/exams/${encodeURIComponent(key)}`);
   }
 
   function drawReady(err) {
@@ -251,6 +264,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
         <div class="kv"><span>الصف</span><b>${esc(me.classLabel || "—")}</b></div>
         <div class="kv"><span>الإيميل الوزاري</span><b>${me.email ? "مسجّل ✓" : "غير مسجّل"}</b></div>
       </div>
+      ${me.demo ? `<div class="banner wait">هذا رقم تجريبي: تقدرين تجربين الاختبار متى ما بغيتي، وما تنحفظ درجته عند المعلمة.</div>` : ""}
       ${going ? `<div class="banner info">بدأتي الاختبار من قبل، وباقي لك تقريبًا ${left} دقيقة. إجاباتك المحفوظة بترجع لك.</div>`
         : me.open ? `<ul class="rules">
           ${exam.sections.map(s => `<li>${esc(s.title)}: ${s.count} فقرات (${s.marks} درجات)</li>`).join("")}
@@ -275,6 +289,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     try { d = await call(`/api/exams/${encodeURIComponent(KEY)}/start`, { id: me.id }); }
     catch (x) {
       if (x.status === 423) { me.open = false; return drawReady(); }
+      if (x.status === 409 && x.data?.to) return moveTo(x.data.to, me.id);
       return drawReady("تعذّر بدء الاختبار. تأكدي من الإنترنت وجربي مرة ثانية.");
     }
     if (d.status === "submitted") return drawResult(d);
@@ -437,8 +452,9 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       <div class="banner info">تم تسليم اختبارك${d.auto ? " تلقائيًا عند نهاية الوقت" : ""} ✓</div>
       <div class="score"><div class="big">${fmt(d.score)} <small>/ ${d.total}</small></div><div class="note">${esc(word)} يا ${esc(me?.name || "")} ${pct >= .75 ? "🌟" : "💪"}</div></div>
       <div class="parts">${(d.parts || []).map(p => `<div class="kv"><span>${esc(p.title.replace(/^.+?:\s*/, ""))}</span><b>${fmt(p.score)} من ${p.marks}</b></div>`).join("")}</div>
-      <p class="note">درجتك وصلت لمعلمتك، وتنتقل لبطاقة نتيجتك بعد ما تعتمدها.</p>
-      <div class="nav"><button class="btn ghost" id="out">خروج</button></div></div>`;
+      <p class="note">${me?.demo ? "هذي تجربة، وما تنحفظ عند المعلمة." : "درجتك وصلت لمعلمتك، وتنتقل لبطاقة نتيجتك بعد ما تعتمدها."}</p>
+      <div class="nav"><button class="btn ghost" id="out">خروج</button>${me?.demo ? '<button class="btn" id="redo">جرّبي من جديد</button>' : ""}</div></div>`;
+    $("#redo")?.addEventListener("click", () => identify(me.id, true));
     $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
   }
 

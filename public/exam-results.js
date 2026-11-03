@@ -46,15 +46,16 @@ const ExamResults = (() => {
     const pending = done.filter(s => !s.approved || s.approved.field !== field || s[field] !== s.approved.value);
     const max = data.max;
     const head = `<div class="toolbar" style="border-bottom:1px solid var(--line)">
-        <div class="grow"><b style="font-size:17px">${esc(ex.title)}</b><div class="note">${esc(ex.subject)} · ${esc(ex.gradeLabel)} · ${ex.total} درجة · ${ex.minutes} دقيقة · ${ex.count} فقرة</div></div>
+        <div class="grow"><b style="font-size:17px">${esc(ex.title)}</b>${ex.model ? ` <span class="pill warn">${esc(ex.model)}</span>` : ""}<div class="note">${esc(ex.subject)} · ${esc(ex.gradeLabel)} · ${ex.total} درجة · ${ex.minutes} دقيقة · ${ex.count} فقرة</div></div>
         <span class="pill ${ex.open ? "good" : "none"}">${ex.open ? "مفتوح للطالبات" : "مقفل"}</span>
-        <button class="btn sm ${ex.open ? "quiet" : ""}" data-ex-open="${ex.open ? 0 : 1}">${ex.open ? "قفل الاختبار" : "فتح الاختبار"}</button>
+        ${ex.parent ? "" : `<button class="btn sm ${ex.open ? "quiet" : ""}" data-ex-open="${ex.open ? 0 : 1}">${ex.open ? "قفل الاختبار" : "فتح الاختبار"}</button>`}
       </div>
-      <div class="toolbar">
+      ${ex.parent ? `<div class="toolbar"><div class="grow note">طالبات «صعوبات التعلم» يفتح لهن هذا النموذج تلقائيًا من رابط الاختبار نفسه، ويفتح ويقفل معه.
+        للتجربة: رقم الهوية <bdi dir="ltr"><b>0000000001</b></bdi>.</div></div>` : `<div class="toolbar">
         <div class="grow note">رابط الطالبات: <bdi dir="ltr"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//, ""))}</a></bdi>
-          · الطالبة تدخل برقم هويتها، ولها محاولة وحدة.</div>
+          · الطالبة تدخل برقم هويتها، ولها محاولة وحدة. للتجربة: رقم الهوية <bdi dir="ltr"><b>0000000000</b></bdi> (يشتغل حتى والاختبار مقفل، وما تنحفظ درجته).</div>
         <button class="btn sm quiet" data-ex-copy>نسخ الرابط</button>
-      </div>
+      </div>`}
       <div class="toolbar" style="padding-top:0">
         <span class="pill none">سلّمت ${done.length} من ${list.length}</span>
         ${going.length ? `<span class="pill warn">تختبر الحين ${going.length}</span>` : ""}
@@ -144,14 +145,14 @@ const ExamResults = (() => {
   function bind(ex) {
     const card = host().querySelector(`[data-exam="${CSS.escape(ex.key)}"]`);
     const q = s => card.querySelector(s);
-    q("[data-ex-open]").onclick = async e => {
+    if (q("[data-ex-open]")) q("[data-ex-open]").onclick = async e => {
       const open = e.target.dataset.exOpen === "1";
       if (!open && !(await confirmBox("قفل الاختبار؟", "ما تقدر طالبة جديدة تبدأ. اللي بدأت تكمل لين يخلص وقتها.", "قفل"))) return;
       try { await api(`/exams/${ex.key}/open`, { method: "PUT", body: { open } }); toast(open ? "فتحتي الاختبار للطالبات" : "قفلتي الاختبار"); }
       catch (x) { toast((x.data?.errors || ["تعذّر الحفظ"])[0]); }
       load();
     };
-    q("[data-ex-copy]").onclick = async () => {
+    if (q("[data-ex-copy]")) q("[data-ex-copy]").onclick = async () => {
       try { await navigator.clipboard.writeText(`${location.origin}/exams/${ex.key}`); toast("تم نسخ الرابط"); } catch { toast("ما قدرنا ننسخ، انسخيه من السطر"); }
     };
     q("[data-ex-cls]")?.addEventListener("change", e => { cls = e.target.value; render(); });
