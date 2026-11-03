@@ -29,34 +29,8 @@ CREATE TABLE IF NOT EXISTS exam_state (
 
 // Text marks the page renders: {p:2,1} a point, {f:-2/3} a fraction, {e:ص = 3س + 1} an equation, {d:90} degrees.
 const FAIZA = 1;
-const EXAMS = [{
-  key: "parallel-perpendicular",
-  title: "اختبار الباب الثاني: التوازي والتعامد",
-  subject: "الرياضيات 1", book: "رياضيات 1", grade: 1, semester: "الفصل الدراسي الأول",
-  minutes: 60, total: 20, owner: FAIZA,
-  sections: [
-    { key: "m", type: "mcq", title: "السؤال الأول: اختيار من متعدد", marks: 10, hint: "اختاري الإجابة الصحيحة لكل فقرة (لكل فقرة نصف درجة).", items: [
-      ["المستقيمان اللذان لا يتقاطعان ولا يقعان في مستوى واحد يسمّيان:", ["متخالفين", "متوازيين", "متعامدين", "متقاطعين"], 0],
-      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متبادلتين داخليًا تكونان:", ["متكاملتين", "متتامّتين", "متطابقتين", "غير متطابقتين"], 2],
-      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متناظرتين تكونان:", ["مجموعهما {d:90}", "مجموعهما {d:180}", "مجموعهما {d:360}", "متطابقتين"], 3],
-      ["مجموع قياسي زاويتين متحالفتين (داخليتين على جهة واحدة من القاطع) عند توازي المستقيمين يساوي:", ["{d:180}", "{d:90}", "{d:360}", "{d:120}"], 0],
-      ["إذا كانت الزاويتان 1 و 2 متحالفتين، وكان {e:ق∠1 = 65°}، والمستقيمان متوازيان، فإن ق∠2 يساوي:", ["{d:25}", "{d:65}", "{d:295}", "{d:115}"], 3],
-      ["قطع قاطع مستقيمين متوازيين، وكان قياسا زاويتين متبادلتين خارجيًا {e:(3س + 10)°} و {e:(5س − 30)°}، فإن قيمة س تساوي:", ["10", "20", "15", "25"], 1],
-      ["إذا قطع قاطع مستقيمين وكانت زاويتان متناظرتان متطابقتين، فإن المستقيمين:", ["متخالفان", "متقاطعان", "متوازيان", "متعامدان"], 2],
-      ["إذا كان مستقيم عموديًا على أحد مستقيمين متوازيين في المستوى نفسه، فإنه:", ["يوازي المستقيم الآخر", "عمودي على المستقيم الآخر", "ينطبق على المستقيم الآخر", "يقطع المستقيم الآخر بزاوية {d:45}"], 1],
-      ["ميل المستقيم المار بالنقطتين {p:2,1} و {p:4,7} يساوي:", ["{f:1/3}", "2", "3", "6"], 2],
-      ["ميل المستقيم الأفقي يساوي:", ["0", "1", "{e:−1}", "غير معرّف"], 0],
-      ["ميل المستقيم الرأسي:", ["0", "1", "{e:−1}", "غير معرّف"], 3],
-      ["ميل أي مستقيم يوازي المستقيم {e:ص = −2س + 5} يساوي:", ["2", "{e:−2}", "{f:1/2}", "5"], 1],
-      ["ميل المستقيم العمودي على مستقيم ميله 4 يساوي:", ["4", "{e:−4}", "{f:1/4}", "{f:-1/4}"], 3],
-      ["المستقيمان اللذان ميلاهما {f:3/2} و {f:-2/3} يكونان:", ["متوازيين", "متعامدين", "متقاطعين وغير متعامدين", "منطبقين"], 1],
-      ["معادلة المستقيم الذي ميله 3 ومقطعه الصادي {e:−2} هي:", ["{e:ص = −2س + 3}", "{e:ص = 2س − 3}", "{e:ص = 3س − 2}", "{e:ص = 3س + 2}"], 2],
-      ["معادلة المستقيم المار بالنقطة {p:1,5} وميله 2 بصيغة الميل ونقطة هي:", ["{e:ص − 1 = 2(س − 5)}", "{e:ص + 5 = 2(س + 1)}", "{e:ص − 5 = 2(س − 1)}", "{e:ص − 2 = 5(س − 1)}"], 2],
-      ["معادلة المستقيم المار بالنقطتين {p:0,3} و {p:2,7} هي:", ["{e:ص = 2س + 3}", "{e:ص = 3س + 2}", "{e:ص = 2س − 3}", "{e:ص = 4س + 3}"], 0],
-      ["المسافة بين نقطة ومستقيم لا تنتمي إليه هي طول:", ["أي قطعة مستقيمة تصل بين النقطة والمستقيم", "القطعة المستقيمة العمودية من النقطة إلى المستقيم", "أطول قطعة مستقيمة بين النقطة والمستقيم", "القطعة المستقيمة الموازية للمستقيم"], 1],
-      ["المسافة بين النقطة {p:3,4} والمستقيم {e:س = 7} تساوي:", ["3", "7", "11", "4"], 3],
-      ["المسافة بين المستقيمين المتوازيين {e:ص = 2} و {e:ص = −3} تساوي:", ["5", "1", "6", "2"], 0],
-    ] },
+// The true/false and matching questions are the same in both models of the chapter-2 exam.
+const [TF, MATCH] = [
     { key: "t", type: "tf", title: "السؤال الثاني: صح وخطأ", marks: 5, hint: "اختاري «صح» للعبارة الصحيحة و«خطأ» للعبارة الخاطئة (لكل فقرة نصف درجة).", items: [
       ["المستقيمان المتخالفان يقعان في مستوى واحد.", false],
       ["إذا قطع قاطع مستقيمين متوازيين، فإن الزاويتين المتناظرتين متطابقتان.", true],
@@ -94,12 +68,75 @@ const EXAMS = [{
         ["صيغة الميل والمقطع", "ط"],
         ["صيغة الميل ونقطة", "ج"],
         ["المسافة بين نقطة ومستقيم", "و"],
-      ] },
+      ] }
+];
+const EXAMS = [{
+  key: "parallel-perpendicular",
+  title: "اختبار الباب الثاني: التوازي والتعامد",
+  subject: "الرياضيات 1", book: "رياضيات 1", grade: 1, semester: "الفصل الدراسي الأول",
+  minutes: 60, total: 20, owner: FAIZA,
+  sections: [
+    { key: "m", type: "mcq", title: "السؤال الأول: اختيار من متعدد", marks: 10, hint: "اختاري الإجابة الصحيحة لكل فقرة (لكل فقرة نصف درجة).", items: [
+      ["المستقيمان اللذان لا يتقاطعان ولا يقعان في مستوى واحد يسمّيان:", ["متخالفين", "متوازيين", "متعامدين", "متقاطعين"], 0],
+      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متبادلتين داخليًا تكونان:", ["متكاملتين", "متتامّتين", "متطابقتين", "غير متطابقتين"], 2],
+      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متناظرتين تكونان:", ["مجموعهما {d:90}", "مجموعهما {d:180}", "مجموعهما {d:360}", "متطابقتين"], 3],
+      ["مجموع قياسي زاويتين متحالفتين (داخليتين على جهة واحدة من القاطع) عند توازي المستقيمين يساوي:", ["{d:180}", "{d:90}", "{d:360}", "{d:120}"], 0],
+      ["إذا كانت الزاويتان 1 و 2 متحالفتين، وكان {e:ق∠1 = 65°}، والمستقيمان متوازيان، فإن ق∠2 يساوي:", ["{d:25}", "{d:65}", "{d:295}", "{d:115}"], 3],
+      ["قطع قاطع مستقيمين متوازيين، وكان قياسا زاويتين متبادلتين خارجيًا {e:(3س + 10)°} و {e:(5س − 30)°}، فإن قيمة س تساوي:", ["10", "20", "15", "25"], 1],
+      ["إذا قطع قاطع مستقيمين وكانت زاويتان متناظرتان متطابقتين، فإن المستقيمين:", ["متخالفان", "متقاطعان", "متوازيان", "متعامدان"], 2],
+      ["إذا كان مستقيم عموديًا على أحد مستقيمين متوازيين في المستوى نفسه، فإنه:", ["يوازي المستقيم الآخر", "عمودي على المستقيم الآخر", "ينطبق على المستقيم الآخر", "يقطع المستقيم الآخر بزاوية {d:45}"], 1],
+      ["ميل المستقيم المار بالنقطتين {p:2,1} و {p:4,7} يساوي:", ["{f:1/3}", "2", "3", "6"], 2],
+      ["ميل المستقيم الأفقي يساوي:", ["0", "1", "{e:−1}", "غير معرّف"], 0],
+      ["ميل المستقيم الرأسي:", ["0", "1", "{e:−1}", "غير معرّف"], 3],
+      ["ميل أي مستقيم يوازي المستقيم {e:ص = −2س + 5} يساوي:", ["2", "{e:−2}", "{f:1/2}", "5"], 1],
+      ["ميل المستقيم العمودي على مستقيم ميله 4 يساوي:", ["4", "{e:−4}", "{f:1/4}", "{f:-1/4}"], 3],
+      ["المستقيمان اللذان ميلاهما {f:3/2} و {f:-2/3} يكونان:", ["متوازيين", "متعامدين", "متقاطعين وغير متعامدين", "منطبقين"], 1],
+      ["معادلة المستقيم الذي ميله 3 ومقطعه الصادي {e:−2} هي:", ["{e:ص = −2س + 3}", "{e:ص = 2س − 3}", "{e:ص = 3س − 2}", "{e:ص = 3س + 2}"], 2],
+      ["معادلة المستقيم المار بالنقطة {p:1,5} وميله 2 بصيغة الميل ونقطة هي:", ["{e:ص − 1 = 2(س − 5)}", "{e:ص + 5 = 2(س + 1)}", "{e:ص − 5 = 2(س − 1)}", "{e:ص − 2 = 5(س − 1)}"], 2],
+      ["معادلة المستقيم المار بالنقطتين {p:0,3} و {p:2,7} هي:", ["{e:ص = 2س + 3}", "{e:ص = 3س + 2}", "{e:ص = 2س − 3}", "{e:ص = 4س + 3}"], 0],
+      ["المسافة بين نقطة ومستقيم لا تنتمي إليه هي طول:", ["أي قطعة مستقيمة تصل بين النقطة والمستقيم", "القطعة المستقيمة العمودية من النقطة إلى المستقيم", "أطول قطعة مستقيمة بين النقطة والمستقيم", "القطعة المستقيمة الموازية للمستقيم"], 1],
+      ["المسافة بين النقطة {p:3,4} والمستقيم {e:س = 7} تساوي:", ["3", "7", "11", "4"], 3],
+      ["المسافة بين المستقيمين المتوازيين {e:ص = 2} و {e:ص = −3} تساوي:", ["5", "1", "6", "2"], 0],
+    ] },
+    TF, MATCH,
+  ],
+}, {
+  // The model for students with learning difficulties (صعوبات التعلم): two choices per item and 45 minutes. The
+  // same link takes them here; it opens and closes with the main exam.
+  key: "parallel-perpendicular-2", parent: "parallel-perpendicular", ld: true, model: "نموذج صعوبات التعلم (بخيارين)",
+  title: "اختبار الباب الثاني: التوازي والتعامد",
+  subject: "الرياضيات 1", book: "رياضيات 1", grade: 1, semester: "الفصل الدراسي الأول",
+  minutes: 45, total: 20, owner: FAIZA,
+  sections: [
+    { key: "m", type: "mcq", title: "السؤال الأول: اختيار من متعدد", marks: 10, hint: "اختاري الإجابة الصحيحة لكل فقرة (لكل فقرة نصف درجة).", items: [
+      ["المستقيمان اللذان لا يتقاطعان ولا يقعان في مستوى واحد يسمّيان:", ["متخالفين", "متوازيين"], 0],
+      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متبادلتين داخليًا تكونان:", ["متكاملتين", "متطابقتين"], 1],
+      ["إذا قطع قاطع مستقيمين متوازيين، فإن كل زاويتين متناظرتين تكونان:", ["مجموعهما {d:180}", "متطابقتين"], 1],
+      ["مجموع قياسي زاويتين متحالفتين (داخليتين على جهة واحدة من القاطع) عند توازي المستقيمين يساوي:", ["{d:180}", "{d:90}"], 0],
+      ["إذا كانت الزاويتان 1 و 2 متحالفتين، وكان {e:ق∠1 = 65°}، والمستقيمان متوازيان، فإن ق∠2 يساوي:", ["{d:65}", "{d:115}"], 1],
+      ["قطع قاطع مستقيمين متوازيين، وكان قياسا زاويتين متبادلتين خارجيًا {e:(3س + 10)°} و {e:(5س − 30)°}، فإن قيمة س تساوي:", ["20", "10"], 0],
+      ["إذا قطع قاطع مستقيمين وكانت زاويتان متناظرتان متطابقتين، فإن المستقيمين:", ["متوازيان", "متقاطعان"], 0],
+      ["إذا كان مستقيم عموديًا على أحد مستقيمين متوازيين في المستوى نفسه، فإنه:", ["يوازي المستقيم الآخر", "عمودي على المستقيم الآخر"], 1],
+      ["ميل المستقيم المار بالنقطتين {p:2,1} و {p:4,7} يساوي:", ["2", "3"], 1],
+      ["ميل المستقيم الأفقي يساوي:", ["0", "غير معرّف"], 0],
+      ["ميل المستقيم الرأسي:", ["غير معرّف", "0"], 0],
+      ["ميل أي مستقيم يوازي المستقيم {e:ص = −2س + 5} يساوي:", ["2", "{e:−2}"], 1],
+      ["ميل المستقيم العمودي على مستقيم ميله 4 يساوي:", ["{f:-1/4}", "{e:−4}"], 0],
+      ["المستقيمان اللذان ميلاهما {f:3/2} و {f:-2/3} يكونان:", ["متوازيين", "متعامدين"], 1],
+      ["معادلة المستقيم الذي ميله 3 ومقطعه الصادي {e:−2} هي:", ["{e:ص = 3س − 2}", "{e:ص = 3س + 2}"], 0],
+      ["معادلة المستقيم المار بالنقطة {p:1,5} وميله 2 بصيغة الميل ونقطة هي:", ["{e:ص − 1 = 2(س − 5)}", "{e:ص − 5 = 2(س − 1)}"], 1],
+      ["معادلة المستقيم المار بالنقطتين {p:0,3} و {p:2,7} هي:", ["{e:ص = 3س + 2}", "{e:ص = 2س + 3}"], 1],
+      ["المسافة بين نقطة ومستقيم لا تنتمي إليه هي طول:", ["القطعة المستقيمة العمودية من النقطة إلى المستقيم", "أي قطعة مستقيمة تصل بين النقطة والمستقيم"], 0],
+      ["المسافة بين النقطة {p:3,4} والمستقيم {e:س = 7} تساوي:", ["7", "4"], 1],
+      ["المسافة بين المستقيمين المتوازيين {e:ص = 2} و {e:ص = −3} تساوي:", ["5", "1"], 0],
+    ] },
+    TF, MATCH,
   ],
 }];
 
 // Each item gets an id (m1…m20, t1…, p1…) and the same weight: the section's marks over its items.
 for (const ex of EXAMS) {
+  ex.sections = ex.sections.map(sec => ({ ...sec }));
   ex.items = [];
   for (const s of ex.sections) {
     s.weight = s.marks / s.items.length;
@@ -114,6 +151,11 @@ for (const ex of EXAMS) {
   ex.byId = Object.fromEntries(ex.items.map(i => [i.id, i]));
 }
 const BY_KEY = Object.fromEntries(EXAMS.map(e => [e.key, e]));
+// A main exam and its learning-difficulties model: a student is sent to the one that fits her.
+const modelFor = (ex, ld) => { const main = BY_KEY[ex.parent] || ex; return ld ? EXAMS.find(e => e.parent === main.key) || main : main; };
+// Practice IDs: anyone (the teacher, the principal, a visitor) can try the exam with them, open or closed. Their attempts
+// start over every time and never reach the panel, since they are on no teacher's list.
+const DEMO = { "0000000000": false, "0000000001": true };
 const SUBJECT = "رياضيات";
 const GRACE_MS = 2 * 60 * 1000;
 const round2 = n => Math.round(n * 100) / 100;
@@ -122,7 +164,7 @@ const round2 = n => Math.round(n * 100) / 100;
 const publicSections = ex => ex.sections.map(s => ({ key: s.key, type: s.type, title: s.title, marks: s.marks, hint: s.hint,
   choices: s.choices?.map(([sym, text]) => ({ sym, text })),
   items: s.items.map(({ id, q, options }) => ({ id, q, ...(options ? { options } : {}) })) }));
-const meta = ex => ({ key: ex.key, title: ex.title, subject: ex.subject, grade: ex.grade, gradeLabel: Report.GRADES[ex.grade - 1],
+const meta = ex => ({ key: ex.key, title: ex.title, model: ex.model || null, ld: !!ex.ld, parent: ex.parent || null, subject: ex.subject, grade: ex.grade, gradeLabel: Report.GRADES[ex.grade - 1],
   semester: ex.semester, minutes: ex.minutes, total: ex.total, count: ex.items.length,
   sections: ex.sections.map(s => ({ key: s.key, title: s.title, marks: s.marks, count: s.items.length })) });
 
@@ -166,13 +208,15 @@ const firstName = name => String(name || "").trim().split(/\s+/)[0] || "";
 async function studentOf(pool, ex, id) {
   const panels = ownerPanels(ex).map(t => t.id);
   if (!panels.length) return null;
-  const { rows } = await pool.query("SELECT name, class, email FROM students WHERE national_id = $1 AND teacher_id = ANY($2) ORDER BY teacher_id", [id, panels]);
+  const { rows } = await pool.query("SELECT name, class, email, learning_difficulty FROM students WHERE national_id = $1 AND teacher_id = ANY($2) ORDER BY teacher_id", [id, panels]);
   if (!rows.length) return null;
   const r = rows.find(x => Report.classParts(x.class)) || rows[0];
-  return { name: r.name, class: r.class, email: !!r.email, grade: Report.classParts(r.class)?.grade || null };
+  return { name: r.name, class: r.class, email: !!r.email, grade: Report.classParts(r.class)?.grade || null, ld: rows.some(x => x.learning_difficulty) };
 }
 
-const isOpen = async (pool, ex) => !!(await pool.query("SELECT open FROM exam_state WHERE exam = $1", [ex.key])).rows[0]?.open;
+// A model opens and closes with its main exam.
+const stateKey = ex => ex.parent || ex.key;
+const isOpen = async (pool, ex) => !!(await pool.query("SELECT open FROM exam_state WHERE exam = $1", [stateKey(ex)])).rows[0]?.open;
 
 // Attempts past their deadline (and its grace) close with the answers they saved.
 async function closeExpired(pool, ex, id) {
@@ -223,10 +267,18 @@ function mount(app, pool) {
   };
   // Who she is, and where her attempt stands. Her first name and class only: anyone can type an ID.
   const who = async (ex, id) => {
+    if (id in DEMO) {
+      const s = { name: "طالبة تجريبية", class: null, email: true, grade: ex.grade, ld: DEMO[id], demo: true };
+      const to = modelFor(ex, s.ld);
+      return to === ex ? { s } : { error: [409, "other_model"], to };
+    }
     if (id.length < 9 || id.length > 10) return { error: [400, "invalid_id"] };
     const s = await studentOf(pool, ex, id);
     if (!s) return { error: [404, "not_found"] };
     if (s.grade && s.grade !== ex.grade) return { error: [403, "wrong_grade"], s };
+    // A student with learning difficulties takes the two-choice model, the others the main one, from the same link.
+    const to = modelFor(ex, s.ld);
+    if (to !== ex) return { error: [409, "other_model"], to };
     return { s };
   };
 
@@ -234,20 +286,24 @@ function mount(app, pool) {
 
   app.post("/api/exams/:exam/student", json, guard(async (req, res, ex) => {
     const id = idOf(req.body?.id), w = await who(ex, id);
-    if (w.error) return res.status(w.error[0]).json({ error: w.error[1], gradeLabel: Report.GRADES[ex.grade - 1] });
+    if (w.error) return res.status(w.error[0]).json({ error: w.error[1], gradeLabel: Report.GRADES[ex.grade - 1], to: w.to?.key });
     await closeExpired(pool, ex, id);
-    res.json({ name: firstName(w.s.name), classLabel: Report.classLabel(w.s.class), email: w.s.email, open: await isOpen(pool, ex),
+    // A practice attempt that was handed in starts over.
+    if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, id]);
+    res.json({ name: w.s.demo ? w.s.name : firstName(w.s.name), classLabel: w.s.demo ? "تجربة" : Report.classLabel(w.s.class), email: w.s.email,
+      demo: !!w.s.demo, open: w.s.demo || await isOpen(pool, ex),
       now: new Date(), ...attemptView(ex, await attemptOf(pool, ex, id)) });
   }));
 
   // Starting (or coming back to) her attempt. The clock starts once, here, and runs on the server.
   app.post("/api/exams/:exam/start", json, guard(async (req, res, ex) => {
     const id = idOf(req.body?.id), w = await who(ex, id);
-    if (w.error) return res.status(w.error[0]).json({ error: w.error[1] });
+    if (w.error) return res.status(w.error[0]).json({ error: w.error[1], to: w.to?.key });
     await closeExpired(pool, ex, id);
+    if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, id]);
     let a = await attemptOf(pool, ex, id);
     if (!a) {
-      if (!(await isOpen(pool, ex))) return res.status(423).json({ error: "closed" });
+      if (!w.s.demo && !(await isOpen(pool, ex))) return res.status(423).json({ error: "closed" });
       await pool.query(`INSERT INTO exam_attempts (exam, national_id, deadline) VALUES ($1, $2, now() + interval '${ex.minutes} minutes') ON CONFLICT DO NOTHING`, [ex.key, id]);
       a = await attemptOf(pool, ex, id);
     }
@@ -300,12 +356,14 @@ function mountPanel(router, pool, { applyGrade }) {
     for (const ex of list) {
       await closeExpired(pool, ex);
       const { rows } = await pool.query(
-        `SELECT s.national_id, s.name, s.class, s.test1, s.test2, a.started_at, a.deadline, a.answers, a.submitted_at, a.auto_submitted,
+        `SELECT s.national_id, s.name, s.class, s.test1, s.test2, s.learning_difficulty, a.started_at, a.deadline, a.answers, a.submitted_at, a.auto_submitted,
            a.approved_at, a.approved_field, a.approved_value
          FROM students s LEFT JOIN exam_attempts a ON a.exam = $2 AND a.national_id = s.national_id
          WHERE s.teacher_id = $1 ORDER BY s.class NULLS LAST, s.name`, [req.tid, ex.key]);
       // Her students in the exam's grade, and anyone of hers who took it anyway.
-      const students = rows.filter(r => r.started_at || !Report.classParts(r.class) || Report.classParts(r.class).grade === ex.grade).map(r => {
+      // Each model lists the students it is for: صعوبات التعلم in the two-choice model, the others in the main one.
+      const students = rows.filter(r => r.started_at || (!!r.learning_difficulty === !!ex.ld
+        && (!Report.classParts(r.class) || Report.classParts(r.class).grade === ex.grade))).map(r => {
         const base = { id: r.national_id, name: r.name, class: r.class, test1: r.test1 == null ? null : Number(r.test1), test2: r.test2 == null ? null : Number(r.test2) };
         if (!r.started_at) return { ...base, status: "none" };
         const g = grade(ex, r.answers);
@@ -325,7 +383,7 @@ function mountPanel(router, pool, { applyGrade }) {
     const ex = pick(req, res);
     if (!ex) return;
     const open = !!req.body?.open;
-    await pool.query("INSERT INTO exam_state (exam, open, changed_at) VALUES ($1, $2, now()) ON CONFLICT (exam) DO UPDATE SET open = EXCLUDED.open, changed_at = now()", [ex.key, open]);
+    await pool.query("INSERT INTO exam_state (exam, open, changed_at) VALUES ($1, $2, now()) ON CONFLICT (exam) DO UPDATE SET open = EXCLUDED.open, changed_at = now()", [stateKey(ex), open]);
     res.json({ ok: true, open });
   });
 
@@ -374,4 +432,4 @@ function mountPanel(router, pool, { applyGrade }) {
   });
 }
 
-module.exports = { SCHEMA, EXAMS, panelExams, grade, mount, mountPanel };
+module.exports = { SCHEMA, EXAMS, DEMO, panelExams, grade, mount, mountPanel };
