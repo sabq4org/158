@@ -88,6 +88,8 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-blueprint .cover { background: #1f4f8f; }
 .t-sadu .cover { background: #f1e6d3; }
 .t-robot .cover { background: #e3ecec; }
+.t-puzzle .cover { background: #f4ead9; }
+.t-vault .cover { background: linear-gradient(160deg, #24394c, #1a2a39 55%, #142130); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -176,6 +178,11 @@ const COVERS = {
     <g transform="translate(92 80) rotate(-28)"><polygon points="-44,24 40,32 -8,-40" fill="#cfc8f7" stroke="#4c3fc4" stroke-width="3" stroke-linejoin="round"/>
       <circle cx="-26" cy="14" r="5" fill="#d9480f"/><circle cx="24" cy="20" r="5" fill="#2b8a3e"/><circle cx="-4" cy="-20" r="5" fill="#ae3ec9"/></g>
     <path d="M128 52 C 148 30, 170 34, 182 50" fill="none" stroke="#7a6650" stroke-width="2" stroke-dasharray="5 5"/></svg>`,
+  vault: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect x="150" y="16" width="124" height="118" rx="18" fill="#3d5a73"/><rect x="158" y="24" width="108" height="102" rx="12" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
+    <g transform="translate(212 75)"><circle r="30" fill="none" stroke="#fff" stroke-width="5"/><path d="M0 -36V36M-36 0H36M-25 -25L25 25M25 -25L-25 25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle r="9" fill="#e6b75e"/></g>
+    <g transform="translate(40 62) rotate(-18)"><circle cx="14" cy="14" r="12" fill="none" stroke="#e6b75e" stroke-width="6"/><path d="M26 14h62M74 14v12M84 14v10" fill="none" stroke="#e6b75e" stroke-width="6" stroke-linecap="round"/></g>
+    <text x="60" y="122" fill="#e6b75e" font-family="Times New Roman, serif" font-style="italic" font-size="20">x⁴ − 5x² + 4 = 0</text></svg>`,
 };
 
 const scoreOf = key => who?.results?.[key] || null;

@@ -34,6 +34,8 @@ const LESSONS = [
     quiz: "5 أسئلة من «تأكد» و«تدرّب»", about: "القسمة الطويلة والقسمة التركيبية في ورشة ورقية: مقص وصندوق مساحة وآلة قسمة.", theme: "paper", owner: FAIZA },
   { key: "polynomial-functions", name: "مرصد المنحنيات", title: "دوال كثيرات الحدود", ref: "3-5", book: "رياضيات 2", grade: 2, pages: "138–141", total: 15,
     quiz: "تحدي المحققة: 5 منحنيات × 3 أسئلة", about: "رحلة تحت سماء الليل: الدرجة وسلوك الطرفين والأصفار الحقيقية بمنحنيات حية.", theme: "night", owner: FAIZA },
+  { key: "polynomial-equations", name: "خزانة المفاتيح", title: "حل معادلات كثيرات الحدود", ref: "3-6", book: "رياضيات 2", grade: 2, pages: "145–152", total: 6,
+    quiz: "6 أسئلة من «تأكد»", about: "كل كثيرة حدود قفل وكل طريقة تحليل مفتاح: مكعب مقطوع من مكعب، وحلقة المفاتيح، والتجميع، والصورة التربيعية، وآلة حل بمنحنى حي، وخزنة تفتحينها بالحلول.", theme: "vault", owner: FAIZA },
   { key: "perpendicular-distance", name: "أقصر طريق", title: "الأعمدة والمسافة", ref: "2-6", book: "رياضيات 1", grade: 1, pages: "127–134", total: 6,
     quiz: "6 أسئلة من تمارين الكتاب", about: "البعد بين نقطة ومستقيم وبين مستقيمين متوازيين، بفرجار متحرك ومستوى إحداثي تسحبين فيه.", theme: "blueprint", owner: FAIZA },
   { key: "triangle-classification", name: "سدو المثلثات", title: "تصنيف المثلثات", ref: "3-1", book: "رياضيات 1-2", grade: 1, pages: "12–18", total: 6,
