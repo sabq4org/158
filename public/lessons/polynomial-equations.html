@@ -876,11 +876,11 @@ function solveBi(a, b, c, v = "x", note = "") {
   ];
   if (note) lines.push({ ar: note, why: "ملاحظة" });
   const roots = [];
-  R.forEach(x => {
-    const n = us.length === 1 ? 2 : 1;
-    for (let t = 0; t < n; t++) roots.push({ h: tex(radTex(x)), im: x.im, val: x.im ? null : x.val, zero: x.zero });
-  });
-  return { lines, roots, f: X => a * X ** 4 + b * X ** 2 + c, deg: 4, real: R.filter(x => !x.im).flatMap(x => x.zero ? [0] : [x.val, -x.val]) };
+  R.forEach(x => roots.push({ h: tex(radTex(x)), im: x.im, val: x.im ? null : x.val, zero: x.zero }));
+  // Counted with multiplicity: each u gives two values of x (twice over when u is a double root), and u = 0 gives 0 twice.
+  const mult = us.length === 1 ? 2 : 1, nReal = R.reduce((n, x) => n + (x.im ? 0 : 2 * mult), 0);
+  const repeated = mult === 2 || R.some(x => x.zero);
+  return { lines, roots, f: X => a * X ** 4 + b * X ** 2 + c, deg: 4, nReal, nIm: 4 - nReal, repeated, real: R.filter(x => !x.im).flatMap(x => x.zero ? [0] : [x.val, -x.val]) };
 }
 function solveCube(a, c, v = "x") {
   const m = Math.round(Math.cbrt(a)), k = Math.round(Math.cbrt(Math.abs(c))), plus = c > 0;
@@ -900,7 +900,7 @@ function solveCube(a, c, v = "x") {
     { m: `${v} = ${cx}`, why: "$@r{-1} = i$: حلّان تخيليان" },
   ];
   const roots = [{ h: tex(lin.tex()), im: false }, { h: tex(cx), im: true }, { h: "", im: true, hide: true }];
-  return { lines, roots, f: X => a * X ** 3 + c, deg: 3, real: [lin.val()] };
+  return { lines, roots, f: X => a * X ** 3 + c, deg: 3, nReal: 1, nIm: 2, repeated: false, real: [lin.val()] };
 }
 const BI = [
   { a: 18, b: -21, c: 3, ref: "مثال 6", note: "في الكتاب اختاروا $u = 3x^2$ فصارت $2u^2 - 7u + 3 = 0$، والنتيجة نفسها." },
@@ -919,8 +919,8 @@ function showSolution(S) {
   solSteps.load(S.lines);
   const shown = S.roots.filter(r => !r.hide);
   $("#solRoots").innerHTML = shown.map(r => `<span class="root ${r.im ? "im" : "re"}">${r.h}</span>`).join("");
-  const nReal = S.real.length, nIm = S.deg - nReal;
-  $("#solCountText").innerHTML = `الدرجة ${S.deg} ← ${S.deg} حلول: ${nReal ? `${nReal} حقيقي` : "ولا حل حقيقي"}${nIm ? ` و${nIm} تخيلي` : ""}${S.real.some(x => Math.abs(x) < 1e-9) && S.deg === 4 ? " (الصفر مكرر)" : ""}.`;
+  const { nReal, nIm } = S;
+  $("#solCountText").innerHTML = `الدرجة ${S.deg} ← ${S.deg} حلول: ${nReal ? `${nReal} حقيقي` : "ولا حل حقيقي"}${nIm ? ` و${nIm} تخيلي` : ""}${S.repeated ? " (بعضها مكرر)" : ""}.`;
   drawPlot();
 }
 function drawPlot() {
