@@ -42,13 +42,14 @@ const LessonQuiz = (() => {
     if (tag === "br") return " ";
     return kids();
   }
-  function plain(v) {
+  function plain(v, question) {
+    if (question) return plain(v).replace(/^\d+\s*[.)]\s+(?=\D)/, "");
     if (v == null) return "";
-    if (Array.isArray(v)) return v.map(plain).filter(Boolean).join(" ");
+    if (Array.isArray(v)) return v.map(x => plain(x)).filter(Boolean).join(" ");
     let el = v;
     if (typeof v === "string") { el = document.createElement("template"); el.innerHTML = v; el = el.content; }
     return [...(el.nodeType === 11 ? el.childNodes : [el])].map(flat).join("")
-      .replace(/[\u200b\u00ad]/g, "").replace(/\s+/g, " ").trim().replace(/^\d+\s*[.)]\s*/, "").slice(0, 400);
+      .replace(/[\u200b\u00ad]/g, "").replace(/\s+/g, " ").trim().slice(0, 400);
   }
 
   const css = `
@@ -170,7 +171,7 @@ const LessonQuiz = (() => {
   // the question, her pick and the right answer (HTML, elements, or a list of them). A later try overwrites the earlier.
   function answer(q, ok, text, pick, right) {
     if (mode !== "save") return;
-    picks.set(q, { q, ok: !!ok, t: plain(text), p: plain(pick), r: ok ? "" : plain(right) });
+    picks.set(q, { q, ok: !!ok, t: plain(text, true), p: plain(pick), r: ok ? "" : plain(right) });
   }
 
   // Called by the lesson when a quiz ends. In practice mode nothing leaves the page.

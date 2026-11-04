@@ -206,7 +206,9 @@ function mountPanel(router, pool) {
   router.get("/lessons/:key/export", async (req, res) => {
     const d = await lessonRows(req, res); if (!d) return;
     const { l } = d, cls = String(req.query.class || "");
-    const list = d.students.filter(s => !cls || s.class === cls);
+    // The lesson page's students: this lesson's grade (or a class name with no grade), then the class picked.
+    const fits = s => { const g = Report.classParts(s.class)?.grade; return !g || g === l.grade; };
+    const list = d.students.filter(s => fits(s) && (!cls || s.class === cls));
     const wb = new ExcelJS.Workbook();
     const head = ws => {
       const h = ws.getRow(1);
