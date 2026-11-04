@@ -1,9 +1,13 @@
 const express = require("express");
+const ExcelJS = require("exceljs");
 const { getTeacher } = require("./settings");
 const { Report } = require("./grades");
 
 // The interactive lessons, gathered in one library, and the score each student got in a lesson's quiz.
 // The first finished attempt is the one the teacher reads; later ones are practice and only raise "best".
+// With it the page sends each question's answer (answers: [{ q, ok, t, p, r }] = question number in the book's order,
+// right or wrong, and the question, her pick and the right answer as plain text), so the teacher sees what she chose.
+// Attempts saved before answers were kept (2026-11-04) have the score only.
 // These scores are for following up: they never reach the result card, its total, the early alerts or the principal's
 // reports. Only the teacher who owns a lesson sees them, in her own panel: not the principal, not another teacher.
 const SCHEMA = `
@@ -17,7 +21,8 @@ CREATE TABLE IF NOT EXISTS lesson_results (
   first_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (national_id, lesson)
-);`;
+);
+ALTER TABLE lesson_results ADD COLUMN IF NOT EXISTS answers JSONB;`;
 
 // The order here is the library's order. total is the number of points the lesson's quiz gives. owner is the id of the
 // teacher who gave the lesson (her sign-in account); only she sees it and its scores in her panel.
@@ -45,6 +50,20 @@ const panelLessons = (role, login, subject) =>
   role !== "teacher" ? [] : LESSONS.filter(l => l.owner === login && (!subject || String(subject).includes(SUBJECT)));
 
 const idOf = v => String(v ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\D/g, "");
+// The answers a quiz page sends: one per question, plain text only (the panel escapes it), numbered in the book's order.
+// They are kept only when they add up to the score and cover the whole quiz, so the sheet and the score always agree.
+const clip = v => String(v ?? "").replace(/[\u0000-\u0008\u000b-\u001f]/g, "").trim().slice(0, 400);
+function answersOf(raw, l, score) {
+  if (!Array.isArray(raw) || raw.length !== l.total) return null;
+  const out = [];
+  for (const a of raw) {
+    const q = Number(a?.q);
+    if (!Number.isInteger(q) || q < 0 || q >= l.total || out.some(x => x.q === q)) return null;
+    out.push({ q, ok: a.ok === true, t: clip(a.t), p: clip(a.p), r: clip(a.r) });
+  }
+  if (out.filter(a => a.ok).length !== score) return null;
+  return out.sort((a, b) => a.q - b.q);
+}
 const firstName = name => String(name || "").trim().split(/\s+/)[0] || "";
 
 // A whole class answers on one school network at once, so the limit is per address but generous.
@@ -109,7 +128,8 @@ function mount(app, pool) {
     res.json({ name: firstName(s.name), grade: g, gradeLabel: g ? Report.GRADES[g - 1] : null, ...fit, results: await resultsOf(pool, id) });
   }));
 
-  app.post("/api/lessons/:lesson/result", json, guard(async (req, res) => {
+  // A quiz of 15 questions with their texts is a few kilobytes.
+  app.post("/api/lessons/:lesson/result", express.json({ limit: "24kb" }), guard(async (req, res) => {
     const l = BY_KEY[req.params.lesson];
     if (!l) return res.status(404).json({ error: "not_found" });
     const id = idOf(req.body?.id), score = Number(req.body?.score);
@@ -117,33 +137,43 @@ function mount(app, pool) {
     const s = await studentOf(pool, id);
     if (!s) return res.status(404).json({ error: "not_found" });
     if (!forGrade(l, s.grade)) return res.status(403).json({ error: "wrong_grade" });
+    const a = answersOf(req.body?.answers, l, score), answers = a ? JSON.stringify(a) : null;
     const { rows } = await pool.query(
-      `INSERT INTO lesson_results (national_id, lesson, score, total, best) VALUES ($1, $2, $3, $4, $3)
+      `INSERT INTO lesson_results (national_id, lesson, score, total, best, answers) VALUES ($1, $2, $3, $4, $3, $5)
        ON CONFLICT (national_id, lesson) DO UPDATE SET attempts = lesson_results.attempts + 1,
          best = GREATEST(lesson_results.best, EXCLUDED.score), last_at = now()
-       RETURNING score, total, best, attempts`, [id, l.key, score, l.total]);
+       RETURNING score, total, best, attempts`, [id, l.key, score, l.total, answers]);
     const r = rows[0];
     res.json({ first: r.attempts === 1, score: r.score, total: r.total, best: r.best, attempts: r.attempts });
   }));
 }
 
 // The panel's "الدروس" tab: the owner's students and their scores, in the lessons she owns that fit the grades she teaches.
+// The overview carries each result's right/wrong marks; one lesson's page carries the full answers, for its question
+// analysis and each student's answer sheet.
 function mountPanel(router, pool) {
+  // Her lessons and students, or the reason she has none. The principal and other teachers get nothing.
+  async function mineOf(req, res) {
+    if (req.role !== "teacher") { res.status(403).json({ error: "forbidden", errors: ["الدروس التفاعلية تشوفها المعلمة صاحبتها فقط"] }); return null; }
+    const subject = String(getTeacher(req.tid)?.subject || "");
+    return { subject, mine: panelLessons(req.role, req.login, subject) };
+  }
+  const resultOf = (r, full) => ({ score: r.score, total: r.total, best: r.best, attempts: r.attempts, at: r.first_at,
+    marks: Array.isArray(r.answers) ? r.answers.map(a => (a.ok ? 1 : 0)).join("") : null, ...(full ? { answers: r.answers || null } : {}) });
+
   router.get("/lessons", async (req, res) => {
-    const t = getTeacher(req.tid);
-    const subject = String(t?.subject || "");
-    const mine = panelLessons(req.role, req.login, subject);
-    if (req.role !== "teacher") return res.status(403).json({ error: "forbidden", errors: ["الدروس التفاعلية تشوفها المعلمة صاحبتها فقط"] });
+    const m = await mineOf(req, res); if (!m) return;
+    const { subject, mine } = m;
     if (!mine.length) return res.json({ subject, lessons: [], students: [] });
     const keys = mine.map(l => l.key);
     const { rows } = await pool.query(
-      `SELECT s.national_id, s.name, s.class, r.lesson, r.score, r.total, r.best, r.attempts, r.first_at
+      `SELECT s.national_id, s.name, s.class, s.learning_difficulty, r.lesson, r.score, r.total, r.best, r.attempts, r.first_at, r.answers
        FROM students s LEFT JOIN lesson_results r ON r.national_id = s.national_id AND r.lesson = ANY($2)
        WHERE s.teacher_id = $1 ORDER BY s.class NULLS LAST, s.name`, [req.tid, keys]);
     const students = new Map();
     for (const r of rows) {
-      const s = students.get(r.national_id) || { id: r.national_id, name: r.name, class: r.class, results: {} };
-      if (r.lesson && BY_KEY[r.lesson]) s.results[r.lesson] = { score: r.score, total: r.total, best: r.best, attempts: r.attempts, at: r.first_at };
+      const s = students.get(r.national_id) || { id: r.national_id, name: r.name, class: r.class, ld: !!r.learning_difficulty, results: {} };
+      if (r.lesson && BY_KEY[r.lesson]) s.results[r.lesson] = resultOf(r, false);
       students.set(r.national_id, s);
     }
     const list = [...students.values()];
@@ -151,8 +181,66 @@ function mountPanel(router, pool) {
     const grades = new Set(list.map(s => Report.classParts(s.class)?.grade).filter(Boolean));
     const taken = new Set(list.flatMap(s => Object.keys(s.results)));
     const lessons = mine.filter(l => taken.has(l.key) || !grades.size || grades.has(l.grade))
-      .map(({ key, name, title, ref, grade, total }) => ({ key, name, title, ref, grade, total }));
+      .map(({ key, name, title, ref, grade, total }) => ({ key, name, title, ref, grade, gradeLabel: Report.GRADES[grade - 1], total }));
     res.json({ subject, lessons, students: lessons.length ? list : [] });
+  });
+
+  // One lesson: every student of hers with her first attempt's answers.
+  async function lessonRows(req, res) {
+    const m = await mineOf(req, res); if (!m) return null;
+    const l = m.mine.find(x => x.key === req.params.key);
+    if (!l) { res.status(404).json({ error: "not_found", errors: ["الدرس غير موجود"] }); return null; }
+    const { rows } = await pool.query(
+      `SELECT s.national_id, s.name, s.class, r.score, r.total, r.best, r.attempts, r.first_at, r.answers
+       FROM students s LEFT JOIN lesson_results r ON r.national_id = s.national_id AND r.lesson = $2
+       WHERE s.teacher_id = $1 ORDER BY s.class NULLS LAST, s.name`, [req.tid, l.key]);
+    return { l, students: rows.map(r => ({ id: r.national_id, name: r.name, class: r.class, result: r.score == null ? null : resultOf(r, true) })) };
+  }
+  router.get("/lessons/:key", async (req, res) => {
+    const d = await lessonRows(req, res); if (!d) return;
+    const { key, name, title, ref, grade, total } = d.l;
+    res.json({ lesson: { key, name, title, ref, grade, gradeLabel: Report.GRADES[grade - 1], total }, students: d.students });
+  });
+
+  // The lesson as a sheet: one row per student, a column per question (✓/✗), and a second sheet of each answer.
+  router.get("/lessons/:key/export", async (req, res) => {
+    const d = await lessonRows(req, res); if (!d) return;
+    const { l } = d, cls = String(req.query.class || "");
+    // The lesson page's students: this lesson's grade (or a class name with no grade), then the class picked.
+    const fits = s => { const g = Report.classParts(s.class)?.grade; return !g || g === l.grade; };
+    const list = d.students.filter(s => fits(s) && (!cls || s.class === cls));
+    const wb = new ExcelJS.Workbook();
+    const head = ws => {
+      const h = ws.getRow(1);
+      h.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      h.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2B2765" } };
+      h.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    };
+    const ws = wb.addWorksheet("الدرجات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
+    ws.columns = [["name", "الطالبة", 30], ["class", "الفصل", 20], ["score", "الدرجة", 9], ["pct", "النسبة", 9], ["attempts", "المحاولات", 10], ["best", "أفضل محاولة", 11],
+      ...Array.from({ length: l.total }, (_, k) => [`q${k}`, `س${k + 1}`, 6])].map(([key, header, width]) => ({ key, header, width }));
+    for (const s of list) {
+      const r = s.result, row = { name: s.name, class: Report.classLabel(s.class) };
+      if (!r) row.score = "لم تحل";
+      else {
+        Object.assign(row, { score: `${r.score} من ${r.total}`, pct: Math.round((100 * r.score) / r.total) + "%", attempts: r.attempts, best: r.best });
+        for (const a of r.answers || []) row[`q${a.q}`] = a.ok ? "✓" : "✗";
+      }
+      ws.addRow(row);
+    }
+    head(ws);
+    const wa = wb.addWorksheet("الإجابات", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
+    wa.columns = [["name", "الطالبة", 26], ["class", "الفصل", 18], ["n", "السؤال", 8], ["t", "نص السؤال", 60], ["p", "إجابتها", 30], ["r", "الإجابة الصحيحة", 30], ["ok", "", 6]]
+      .map(([key, header, width]) => ({ key, header, width }));
+    const plain = v => String(v || "").replace(/[⁦-⁩]/g, "");
+    for (const s of list) for (const a of s.result?.answers || [])
+      wa.addRow({ name: s.name, class: Report.classLabel(s.class), n: a.q + 1, t: plain(a.t), p: plain(a.p), r: plain(a.r), ok: a.ok ? "✓" : "✗" });
+    head(wa);
+    const fileName = `${l.name} ${cls ? Report.classLabel(cls) : "كل الفصول"}`.replace(/[\\/:*?"<>|]/g, "-");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="lesson-${l.key}.xlsx"; filename*=UTF-8''${encodeURIComponent(fileName + ".xlsx")}`);
+    await wb.xlsx.write(res);
+    res.end();
   });
 }
 

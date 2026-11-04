@@ -930,6 +930,7 @@ function drawQuiz() {
     const pick = opts[b.dataset.k];
     box.querySelectorAll(".opt").forEach((x, k) => { x.disabled = true; if (opts[k].ok) x.classList.add("ok"); });
     if (!pick.ok) b.classList.add("no"); else quiz.right++;
+    LessonQuiz.answer(quiz.order[quiz.k], pick.ok, [box.querySelector(".qtext"), box.querySelector(".expr")], b, box.querySelectorAll(".opt")[opts.findIndex(x => x.ok)]);
     $("#qfb").innerHTML = `<div class="fb ${pick.ok ? "ok" : "no"}"><b>${pick.ok ? "صح!" : "الإجابة الصحيحة باللون الأخضر."}</b>${why(it.w)}</div>
       <div class="row" style="justify-content:flex-end;margin-top:8px"><button type="button" class="btn" id="qNext">${quiz.k + 1 < QUIZ.length ? "السؤال التالي" : "النتيجة"}</button></div>`;
     $("#qNext").onclick = () => { quiz.k++; drawQuiz(); $("#quiz").scrollIntoView({ block: "start" }); };

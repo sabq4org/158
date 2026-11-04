@@ -971,6 +971,7 @@ $("#quiz").addEventListener("click", e => {
   const card = b.closest(".qcard"); if (card.dataset.done) return;
   card.dataset.done = 1; answered++;
   const ok = b.dataset.ok === "true"; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, card.querySelector(".qq"), b, card.querySelector('.opt[data-ok="true"]'));
   card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
   if (!ok) b.classList.add("wrong");
   const it = QUIZ[+card.dataset.k];

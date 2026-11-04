@@ -216,6 +216,49 @@ td.det details li, .glog li { margin: 3px 0; }
 .al-chips button { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 99px; padding: 3px 12px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
 .al-chips button[aria-pressed="true"], .al-chips button[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .al-chips button small { font-weight: 500; opacity: .8; margin-inline-start: 4px; }
+/* «الدروس»: grade and class chips, lesson cards, a lesson's question strip, students with a square per question, and an answer sheet. */
+.lr-bar { border-bottom: 1px solid var(--line); }
+.lr-gap { margin-inline-start: 10px; }
+.lr-note { padding: 12px 14px 0; }
+.lr-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; padding: 12px 14px 16px; }
+.lr-card { display: flex; flex-direction: column; gap: 4px; text-align: start; font: inherit; color: var(--ink); cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 12px 14px; }
+.lr-card:hover, .lr-card:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.lr-title { font-weight: 700; font-size: 16px; }
+.lr-prog { display: block; height: 7px; border-radius: 9px; background: var(--line); overflow: hidden; margin: 6px 0 2px; }
+.lr-prog b { display: block; height: 100%; background: var(--accent); }
+.lr-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; color: var(--muted); }
+.lr-row b { color: var(--ink); }
+.lr-hint { font-size: 13px; color: var(--muted); }
+.lr-hint.low { color: var(--low); }
+.lr-detail { padding: 12px 14px 16px; }
+.lr-detail.lr-busy { opacity: .6; }
+.lr-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lr-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.lr-qs { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin: 8px 0; }
+.lr-q { border-radius: 12px; padding: 6px 6px 8px; text-align: center; font-size: 12.5px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); }
+.lr-q b { display: block; font-size: 18px; color: var(--ink); }
+.lr-q span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lr-q.good { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+.lr-q.good b { color: var(--good); }
+.lr-q.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+.lr-q.warn b { color: var(--warn); }
+.lr-q.low { background: var(--low-soft); border-color: color-mix(in srgb, var(--low) 30%, transparent); }
+.lr-q.low b { color: var(--low); }
+.lr-tip { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; margin: 6px 0 10px; }
+.lr-split { display: grid; gap: 14px; align-items: start; }
+.lr-split.open { grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); }
+@media (max-width: 900px) { .lr-split.open { grid-template-columns: 1fr; } }
+.lr-split tr.sel td { background: var(--accent-soft); }
+.lr-dots { display: flex; flex-wrap: nowrap; gap: 3px; }
+.lr-dots span { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--line); }
+.lr-dots span.ok { background: #2f9a5b; }
+.lr-dots span.no { background: #d05050; }
+.lr-sheet { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+.lr-ans { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 13.5px; }
+.lr-ans.no { border-color: color-mix(in srgb, var(--low) 35%, var(--line)); }
+.lr-ans-h { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; font-weight: 600; margin-bottom: 2px; }
+.lr-ok { color: var(--good); }
+.lr-no { color: var(--low); }
 .al-list { border-top: 1px solid var(--line); }
 .al-sec { padding: 8px 16px; font-size: 13px; color: var(--muted); font-weight: 700; background: var(--surface-2); border-bottom: 1px solid var(--line); }
 .al-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 16px; border-bottom: 1px solid var(--line); }

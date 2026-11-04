@@ -1079,6 +1079,7 @@ const best = { score: null };
       wrap.querySelector(".opts").onclick = e => {
         const b = e.target.closest(".opt"); if (!b || b.disabled) return;
         const ok = b.dataset.v === q.a; if (ok) st.pts++;
+        LessonQuiz.answer(st.r * 3 + qi, ok, `القضية ${st.r + 1}: ${q.q.replace(/^[١٢٣]\)\s*/, "")}`, b, wrap.querySelector(`.opt[data-v="${q.a}"]`));
         wrap.querySelectorAll(".opt").forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add("ok"); });
         if (!ok) b.classList.add("no");
         wrap.insertAdjacentHTML("beforeend", `<div class="fb ${ok ? "ok" : "no"}"><b>${ok ? "صح!" : "لا،"}</b>${esc(q.w)}</div>`);
