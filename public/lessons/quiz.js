@@ -1,6 +1,7 @@
 // Saves a lesson's quiz score for the student's teacher. Before the quiz the student types her national ID (or picks
 // practice without saving); the quiz stays hidden until she does, so the first attempt the teacher reads is a real one.
-// Each lesson calls LessonQuiz.gate(key, quizElement, restart) once and LessonQuiz.done(right) when a quiz ends.
+// Each lesson calls LessonQuiz.gate(key, quizElement, restart) once, LessonQuiz.answer(...) as each question is answered,
+// and LessonQuiz.done(right) when a quiz ends. The answers go with the score, so the teacher sees what each student chose.
 // Styles follow the lesson's own text colour, so the box sits on light pages and on the dark observatory alike.
 const LessonQuiz = (() => {
   const KEY = "lessonStudent";
@@ -11,6 +12,44 @@ const LessonQuiz = (() => {
     set(v) { try { v ? sessionStorage.setItem(KEY, JSON.stringify(v)) : sessionStorage.removeItem(KEY); } catch {} },
   };
   let lesson = null, box = null, target = null, restart = null, mode = null, who = null;
+  let picks = new Map();
+
+  // The lessons write math as HTML (powers in <sup>, fractions in .fr, roots in .sq, LTR runs in .m). The teacher's panel
+  // gets it as plain text: powers as ², fractions as a/b, roots as √, and each math run wrapped in a left-to-right isolate.
+  const SUP = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹", "-": "⁻", "−": "⁻", "+": "⁺", "(": "⁽", ")": "⁾", n: "ⁿ" };
+  const SUB = { 0: "₀", 1: "₁", 2: "₂", 3: "₃", 4: "₄", 5: "₅", 6: "₆", 7: "₇", 8: "₈", 9: "₉" };
+  const simple = t => /^[\w.²³¹⁰⁴-⁹ⁿ⁻]+$/.test(t);
+  function flat(n) {
+    if (n.nodeType === 3) return n.nodeValue;
+    if (n.nodeType !== 1) return "";
+    const tag = n.tagName.toLowerCase(), kids = () => [...n.childNodes].map(flat).join("");
+    if (tag === "svg" || tag === "script" || tag === "style" || n.classList.contains("why")) return "";
+    // The option's letter (أ ب ج د) is its place on screen, not part of the answer.
+    if (tag === "b" && /^[أبجد]$/.test(n.textContent.trim()) && n.parentElement?.classList.contains("opt") && n === n.parentElement.firstElementChild) return "";
+    if (tag === "sup" || tag === "sub") {
+      const t = kids().trim(), map = tag === "sup" ? SUP : SUB;
+      return [...t].every(c => map[c]) ? [...t].map(c => map[c]).join("") : `${tag === "sup" ? "^" : "_"}(${t})`;
+    }
+    if (n.classList.contains("fr")) {
+      // A part of more than one term goes in brackets: 6x³/y³, but 4/(x + 2).
+      const [a = "", b = ""] = [...n.children].map(c => flat(c).trim()), w = t => (/[\s+−=-]/.test(t) ? `(${t})` : t);
+      // Followed straight by a factor (½x²), the whole fraction goes in brackets: (1/2)x².
+      const f = `${w(a)}/${w(b)}`, after = n.nextSibling?.textContent || "";
+      return after && !/^[\s)+−=-]/.test(after) ? `(${f})` : f;
+    }
+    if (n.classList.contains("sq")) { const t = [...n.children].map(flat).join("").trim(); return simple(t) ? `√${t}` : `√(${t})`; }
+    if (n.classList.contains("m")) return `\u2066${kids()}\u2069`;
+    if (tag === "br") return " ";
+    return kids();
+  }
+  function plain(v) {
+    if (v == null) return "";
+    if (Array.isArray(v)) return v.map(plain).filter(Boolean).join(" ");
+    let el = v;
+    if (typeof v === "string") { el = document.createElement("template"); el.innerHTML = v; el = el.content; }
+    return [...(el.nodeType === 11 ? el.childNodes : [el])].map(flat).join("")
+      .replace(/[\u200b\u00ad]/g, "").replace(/\s+/g, " ").trim().replace(/^\d+\s*[.)]\s*/, "").slice(0, 400);
+  }
 
   const css = `
 .lq { border: 1.5px dashed color-mix(in srgb, currentColor 35%, transparent); border-radius: 16px; padding: 16px 18px; margin: 0 0 14px;
@@ -127,12 +166,20 @@ const LessonQuiz = (() => {
       .catch(x => { if (x.status === 404) { who = null; store.set(null); drawAsk(); } });
   }
 
+  // Called by the lesson as each question is answered: its number in the book's order (from 0), whether she got it, and
+  // the question, her pick and the right answer (HTML, elements, or a list of them). A later try overwrites the earlier.
+  function answer(q, ok, text, pick, right) {
+    if (mode !== "save") return;
+    picks.set(q, { q, ok: !!ok, t: plain(text), p: plain(pick), r: ok ? "" : plain(right) });
+  }
+
   // Called by the lesson when a quiz ends. In practice mode nothing leaves the page.
   async function done(right) {
+    const answers = [...picks.values()]; picks = new Map();
     if (mode !== "save" || !who) return;
     const had = saved();
     try {
-      const d = await api(`/api/lessons/${lesson.key}/result`, { id: who.id, score: right });
+      const d = await api(`/api/lessons/${lesson.key}/result`, { id: who.id, score: right, answers });
       who.results[lesson.key] = { score: d.score, total: d.total, best: d.best, attempts: d.attempts }; store.set(who);
       box.innerHTML = `<div class="lq-row"><div><h3>${d.first ? "✅ انحفظت درجتك" : "محاولة تدريب"}</h3>
         <p>${d.first ? `درجتك <span class="lq-badge">${savedText(d)}</span> وصلت لمعلمتك. تقدرين تعيدين الاختبار للتدريب.`
@@ -147,5 +194,5 @@ const LessonQuiz = (() => {
     }
   }
 
-  return { gate, done };
+  return { gate, answer, done };
 })();

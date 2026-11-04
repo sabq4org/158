@@ -996,6 +996,7 @@ $("#quiz").addEventListener("click", e => {
   const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
   const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
   answered++; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, $(".qq", card), b, [...card.querySelectorAll(".opt")].find(o => +o.dataset.j === it.ok));
   $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
   if (!ok) b.classList.add("wrong");
   const why = $(".why", card); why.hidden = false;
