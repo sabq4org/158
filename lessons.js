@@ -22,10 +22,19 @@ CREATE TABLE IF NOT EXISTS lesson_results (
   last_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (national_id, lesson)
 );
-ALTER TABLE lesson_results ADD COLUMN IF NOT EXISTS answers JSONB;`;
+ALTER TABLE lesson_results ADD COLUMN IF NOT EXISTS answers JSONB;
+CREATE TABLE IF NOT EXISTS lesson_visibility (
+  lesson      TEXT PRIMARY KEY,
+  mode        TEXT NOT NULL,
+  opens_at    TIMESTAMPTZ,
+  closes_at   TIMESTAMPTZ,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);`;
 
 // The order here is the library's order. total is the number of points the lesson's quiz gives. owner is the id of the
 // teacher who gave the lesson (her sign-in account); only she sees it and its scores in her panel.
+// A new lesson gets startHidden: true (the user asked, 2026-11-05): it reaches no student until its teacher shows it or
+// schedules it in her panel. The lessons before that have no flag and stay shown until she hides them.
 const FAIZA = 1;
 const LESSONS = [
   { key: "polynomials", name: "العمليات على كثيرات الحدود", title: "العمليات على كثيرات الحدود", ref: "3-3", book: "رياضيات 2", grade: 2, pages: "125–130", total: 12,
@@ -104,7 +113,72 @@ async function resultsOf(pool, id) {
   return Object.fromEntries(rows.filter(r => BY_KEY[r.lesson]).map(r => [r.lesson, { score: r.score, total: r.total, best: r.best, attempts: r.attempts }]));
 }
 
+// Each lesson is shown to students, hidden, or scheduled: open from one time and closed from another (either may be left
+// out). The teacher picks the times in Riyadh time; they are kept as instants. A lesson with no row is shown, unless its
+// catalog entry has startHidden. Staff signed in to the panel always see and open every lesson, to check it or show it
+// in class. A hidden lesson is left out of the library, its page shows a locked notice and its quiz saves nothing.
+// One server runs the site, so the rows are read once and kept in memory; the panel's changes update both.
+let POOL = null, vis = null;
+async function visibility() {
+  if (!vis && POOL) {
+    const { rows } = await POOL.query("SELECT lesson, mode, opens_at, closes_at FROM lesson_visibility");
+    vis = new Map(rows.map(r => [r.lesson, { mode: r.mode, opens: r.opens_at?.toISOString() || null, closes: r.closes_at?.toISOString() || null }]));
+  }
+  return vis || new Map();
+}
+const MODES = ["shown", "hidden", "scheduled"];
+// Whether students can open the lesson now; a scheduled one also says whether its window is still to come or has passed.
+function stateOf(l, map, now = Date.now()) {
+  const v = map.get(l.key) || { mode: l.startHidden ? "hidden" : "shown", opens: null, closes: null };
+  if (v.mode !== "scheduled") return { ...v, open: v.mode === "shown" };
+  const o = v.opens ? Date.parse(v.opens) : -Infinity, c = v.closes ? Date.parse(v.closes) : Infinity;
+  return { ...v, open: now >= o && now < c, phase: now < o ? "before" : now >= c ? "after" : "during" };
+}
+// A time in another year names its year.
+const riyadh = iso => new Date(iso).toLocaleString("ar-SA-u-nu-latn-ca-gregory", { timeZone: "Asia/Riyadh", weekday: "long", day: "numeric", month: "long",
+  ...(new Date(iso).getUTCFullYear() !== new Date().getUTCFullYear() ? { year: "numeric" } : {}), hour: "numeric", minute: "2-digit" });
+// One line on a lesson's state, for staff in the library and on its locked page.
+function stateText(s) {
+  if (s.mode === "shown") return "ظاهر للطالبات";
+  if (s.mode === "hidden") return "مخفي عن الطالبات";
+  if (s.phase === "before") return `يفتح ${riyadh(s.opens)}`;
+  if (s.phase === "after") return `انقفل ${riyadh(s.closes)}`;
+  return s.closes ? `مفتوح، ويقفل ${riyadh(s.closes)}` : "مفتوح للطالبات";
+}
+const staffOf = (app, req) => !!(typeof app.locals.readSession === "function" && app.locals.readSession(req));
+
+function lockedPage(l, s) {
+  const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const [icon, head, line] = s.mode === "scheduled" && s.phase === "before"
+    ? ["⏳", "الدرس ما فتح للحين", `يفتح ${riyadh(s.opens)}.`]
+    : s.mode === "scheduled" && s.phase === "after"
+      ? ["🔒", "انتهى وقت هذا الدرس", `انقفل ${riyadh(s.closes)}. لو تحتاجينه اسألي معلمتك.`]
+      : ["🔒", "هذا الدرس مو متاح الحين", "معلمتك بتفتحه لكم في وقته."];
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(l.name)}</title><meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
+<style>:root{--bg:#f4f7f6;--card:#fff;--ink:#12302e;--muted:#5b6f6d;--line:#dbe5e3;--accent:#0f766e;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1716;--card:#16211f;--ink:#e6f0ee;--muted:#9db1ae;--line:#26332f;--accent:#2bb3a4}}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;box-sizing:border-box;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.8}
+.box{box-sizing:border-box;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 24px;max-width:420px;width:100%;text-align:center}
+.i{font-size:44px}h1{font-size:20px;margin:6px 0}p{color:var(--muted);margin:0 0 6px}small{color:var(--muted)}
+a{display:inline-block;margin-top:14px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;border-radius:10px;padding:8px 18px}</style></head>
+<body><main class="box"><div class="i">${icon}</div><small>الدرس <bdi dir="ltr">${esc(l.ref)}</bdi> · ${esc(l.title)}</small><h1>${head}</h1><p>${esc(line)}</p>
+<a href="/lessons">مكتبة الدروس ←</a></main></body></html>`;
+}
+
+// The lesson's page, for students only while it is open. Staff always get it.
+const gatePage = (app, key) => async (req, res, next) => {
+  const l = BY_KEY[key];
+  if (!l || staffOf(app, req)) return next();
+  let s;
+  try { s = stateOf(l, await visibility()); } catch (err) { console.error(err); return next(); }
+  if (s.open) return next();
+  res.status(403).set("Cache-Control", "no-cache").type("html").send(lockedPage(l, s));
+};
+
 function mount(app, pool) {
+  POOL = pool;
   const json = express.json({ limit: "1kb" });
   const guard = fn => async (req, res) => {
     if (limited(req.ip)) return res.status(429).json({ error: "rate_limited" });
@@ -113,11 +187,16 @@ function mount(app, pool) {
 
   // The library lists a student's own grade only, once she gives her ID. Staff signed in to the panel (a teacher, the
   // principal, the admin) see every grade, so a teacher can open any lesson in class.
-  app.get("/api/lessons", (req, res) => {
+  // Students get the open lessons only; staff get all of them, each with its state.
+  app.get("/api/lessons", async (req, res) => {
     res.set("Cache-Control", "no-cache");
-    const staff = !!(typeof app.locals.readSession === "function" && app.locals.readSession(req));
-    res.json({ staff, lessons: LESSONS.map(({ key, name, title, ref, book, grade, pages, total, quiz, about, theme }) =>
-      ({ key, name, title, ref, book, grade, gradeLabel: Report.GRADES[grade - 1], pages, total, quiz, about, theme })) });
+    const staff = staffOf(app, req);
+    let map;
+    try { map = await visibility(); } catch (err) { console.error(err); return res.status(500).json({ error: "server_error" }); }
+    const list = LESSONS.map(l => ({ l, s: stateOf(l, map) })).filter(x => staff || x.s.open);
+    res.json({ staff, lessons: list.map(({ l: { key, name, title, ref, book, grade, pages, total, quiz, about, theme }, s }) =>
+      ({ key, name, title, ref, book, grade, gradeLabel: Report.GRADES[grade - 1], pages, total, quiz, about, theme,
+        ...(staff ? { open: s.open, state: stateText(s) } : {}) })) });
   });
 
   // The student says who she is before the quiz; she gets her first name back and the scores she already has.
@@ -128,7 +207,9 @@ function mount(app, pool) {
     if (!s) return res.status(404).json({ error: "not_found" });
     const g = s.grade, l = BY_KEY[req.body?.lesson];
     // From a lesson's quiz: whether that lesson is for her grade (a link may have been passed on from another grade).
-    const fit = l ? { fits: forGrade(l, g), lessonGrade: Report.GRADES[l.grade - 1] } : {};
+    // And whether it is open now: a page left open past the lesson's closing time saves nothing.
+    const fit = l ? { fits: forGrade(l, g), lessonGrade: Report.GRADES[l.grade - 1],
+      open: staffOf(app, req) || stateOf(l, await visibility()).open } : {};
     res.json({ name: firstName(s.name), grade: g, gradeLabel: g ? Report.GRADES[g - 1] : null, ...fit, results: await resultsOf(pool, id) });
   }));
 
@@ -141,6 +222,7 @@ function mount(app, pool) {
     const s = await studentOf(pool, id);
     if (!s) return res.status(404).json({ error: "not_found" });
     if (!forGrade(l, s.grade)) return res.status(403).json({ error: "wrong_grade" });
+    if (!staffOf(app, req) && !stateOf(l, await visibility()).open) return res.status(403).json({ error: "closed" });
     const a = answersOf(req.body?.answers, l, score), answers = a ? JSON.stringify(a) : null;
     const { rows } = await pool.query(
       `INSERT INTO lesson_results (national_id, lesson, score, total, best, answers) VALUES ($1, $2, $3, $4, $3, $5)
@@ -162,6 +244,7 @@ function mountPanel(router, pool) {
     const subject = String(getTeacher(req.tid)?.subject || "");
     return { subject, mine: panelLessons(req.role, req.login, subject) };
   }
+  const visView = (l, map) => { const s = stateOf(l, map); return { mode: s.mode, opens: s.opens, closes: s.closes, open: s.open, text: stateText(s) }; };
   const resultOf = (r, full) => ({ score: r.score, total: r.total, best: r.best, attempts: r.attempts, at: r.first_at,
     marks: Array.isArray(r.answers) ? r.answers.map(a => (a.ok ? 1 : 0)).join("") : null, ...(full ? { answers: r.answers || null } : {}) });
 
@@ -184,8 +267,9 @@ function mountPanel(router, pool) {
     // Her lessons for the grades she teaches, and any of hers her students have already taken.
     const grades = new Set(list.map(s => Report.classParts(s.class)?.grade).filter(Boolean));
     const taken = new Set(list.flatMap(s => Object.keys(s.results)));
+    const map = await visibility();
     const lessons = mine.filter(l => taken.has(l.key) || !grades.size || grades.has(l.grade))
-      .map(({ key, name, title, ref, grade, total }) => ({ key, name, title, ref, grade, gradeLabel: Report.GRADES[grade - 1], total }));
+      .map(l => ({ key: l.key, name: l.name, title: l.title, ref: l.ref, grade: l.grade, gradeLabel: Report.GRADES[l.grade - 1], total: l.total, vis: visView(l, map) }));
     res.json({ subject, lessons, students: lessons.length ? list : [] });
   });
 
@@ -203,7 +287,31 @@ function mountPanel(router, pool) {
   router.get("/lessons/:key", async (req, res) => {
     const d = await lessonRows(req, res); if (!d) return;
     const { key, name, title, ref, grade, total } = d.l;
-    res.json({ lesson: { key, name, title, ref, grade, gradeLabel: Report.GRADES[grade - 1], total }, students: d.students });
+    res.json({ lesson: { key, name, title, ref, grade, gradeLabel: Report.GRADES[grade - 1], total, vis: visView(d.l, await visibility()) }, students: d.students });
+  });
+
+  // Show, hide or schedule one of her lessons. opens and closes are instants (ISO); a schedule needs at least one.
+  router.put("/lessons/:key/visibility", async (req, res) => {
+    const m = await mineOf(req, res); if (!m) return;
+    const l = m.mine.find(x => x.key === req.params.key);
+    if (!l) return res.status(404).json({ error: "not_found", errors: ["الدرس غير موجود"] });
+    const mode = req.body?.mode;
+    if (!MODES.includes(mode)) return res.status(400).json({ error: "invalid", errors: ["اختاري: ظاهر أو مخفي أو مجدول"] });
+    const at = v => { if (v == null || v === "") return null; const t = Date.parse(v); return Number.isFinite(t) ? new Date(t) : undefined; };
+    let opens = null, closes = null;
+    if (mode === "scheduled") {
+      opens = at(req.body.opens); closes = at(req.body.closes);
+      if (opens === undefined || closes === undefined) return res.status(400).json({ error: "invalid", errors: ["الوقت غير صحيح"] });
+      if (!opens && !closes) return res.status(400).json({ error: "invalid", errors: ["حددي وقت الفتح أو وقت القفل، أو الاثنين"] });
+      if (opens && closes && closes <= opens) return res.status(400).json({ error: "invalid", errors: ["وقت القفل لازم يكون بعد وقت الفتح"] });
+    }
+    await visibility();
+    await pool.query(
+      `INSERT INTO lesson_visibility (lesson, mode, opens_at, closes_at) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (lesson) DO UPDATE SET mode = EXCLUDED.mode, opens_at = EXCLUDED.opens_at, closes_at = EXCLUDED.closes_at, updated_at = now()`,
+      [l.key, mode, opens, closes]);
+    if (vis) vis.set(l.key, { mode, opens: opens?.toISOString() || null, closes: closes?.toISOString() || null });
+    res.json({ vis: visView(l, await visibility()) });
   });
 
   // The lesson as a sheet: one row per student, a column per question (✓/✗), and a second sheet of each answer.
@@ -248,4 +356,4 @@ function mountPanel(router, pool) {
   });
 }
 
-module.exports = { SCHEMA, LESSONS, panelLessons, forGrade, mount, mountPanel };
+module.exports = { SCHEMA, LESSONS, panelLessons, forGrade, gatePage, mount, mountPanel };
