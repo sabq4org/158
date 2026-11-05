@@ -76,7 +76,7 @@ const LessonQuiz = (() => {
 
   function api(path, body) {
     return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
-      .then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(d.error || "error"), { status: r.status }); return d; });
+      .then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(d.error || "error"), { status: r.status, code: d.error }); return d; });
   }
 
   const saved = () => who?.results?.[lesson.key];
@@ -111,7 +111,7 @@ const LessonQuiz = (() => {
       try {
         const d = await api("/api/lessons/student", { id, lesson: lesson.key });
         who = { id, name: d.name, grade: d.grade || null, gradeLabel: d.gradeLabel || "", results: d.results || {} }; store.set(who);
-        lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || "";
+        lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || ""; lesson.open = d.open !== false;
         drawReady();
       } catch (x) {
         drawAsk(x.status === 404 ? "ما لقينا هذا الرقم بين الطالبات. تأكدي منه أو اسألي معلمتك." : x.status === 429 ? "محاولات كثيرة، انتظري شوي وجربي." : "تعذّر الاتصال. تأكدي من الإنترنت وجربي مرة ثانية.");
@@ -132,8 +132,19 @@ const LessonQuiz = (() => {
     show(true);
   }
 
+  // The teacher hid the lesson or its time ended while the page was open: she can still practise, nothing is saved.
+  function drawClosed() {
+    mode = "practice"; box.classList.add("on");
+    box.innerHTML = `<div class="lq-row"><div><h3>🔒 الدرس انقفل</h3>
+      <p>معلمتك قفلت هذا الدرس، فدرجتك فيه ما تنحفظ. تقدرين تتدربين على الاختبار.</p></div>
+      <button type="button" class="lq-link" data-out>مو أنا؟</button></div>`;
+    box.querySelector("[data-out]").onclick = () => { who = null; store.set(null); drawAsk(); };
+    show(true, false);
+  }
+
   function drawReady(fresh = true) {
     if (lesson.fits === false) return drawOtherGrade();
+    if (lesson.open === false) return drawClosed();
     mode = "save"; box.classList.add("on");
     const r = saved();
     box.innerHTML = `<div class="lq-row"><div><h3>أهلًا يا ${esc(who.name)} 👋</h3>
@@ -161,7 +172,7 @@ const LessonQuiz = (() => {
     drawReady();
     api("/api/lessons/student", { id: who.id, lesson: key }).then(d => {
       who.results = d.results || {}; who.grade = d.grade || null; who.gradeLabel = d.gradeLabel || ""; store.set(who);
-      lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || "";
+      lesson.fits = d.fits !== false; lesson.gradeLabel = d.lessonGrade || ""; lesson.open = d.open !== false;
       if (mode === "save") drawReady(false);
     })
       .catch(x => { if (x.status === 404) { who = null; store.set(null); drawAsk(); } });
@@ -189,6 +200,7 @@ const LessonQuiz = (() => {
       box.querySelector("[data-out]").onclick = () => { who = null; store.set(null); drawAsk(); };
       toast(d.first ? `✅ انحفظت درجتك عند معلمتك: ${savedText(d)}` : `محاولة تدريب. درجتك المحفوظة تبقى ${savedText(had || d)}`);
     } catch (x) {
+      if (x.status === 403 && x.code === "closed") { lesson.open = false; return drawClosed(); }
       if (x.status === 403) { lesson.fits = false; return drawOtherGrade(); }
       box.insertAdjacentHTML("beforeend", `<p class="lq-err" role="alert">ما قدرنا نحفظ الدرجة. تأكدي من الإنترنت وأعيدي الاختبار.</p>`);
       toast("ما قدرنا نحفظ الدرجة. تأكدي من الإنترنت وأعيدي الاختبار.", true);

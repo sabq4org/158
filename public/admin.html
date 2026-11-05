@@ -231,6 +231,12 @@ td.det details li, .glog li { margin: 3px 0; }
 .lr-hint { font-size: 13px; color: var(--muted); }
 .lr-hint.low { color: var(--low); }
 .lr-detail { padding: 12px 14px 16px; }
+.lr-vis { align-self: flex-start; font-size: 12.5px; font-weight: 600; border-radius: 99px; padding: 1px 10px; background: var(--good-soft); color: var(--good); }
+.lr-vis.off { background: var(--low-soft); color: var(--low); }
+.lr-visbox { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin: 10px 0 4px; }
+.lr-visbox label { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; }
+.lr-visbox input { font: inherit; font-size: 13.5px; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+.lr-visbox .lr-when { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; flex-basis: 100%; }
 .lr-detail.lr-busy { opacity: .6; }
 .lr-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .lr-acts { display: flex; flex-wrap: wrap; gap: 6px; }

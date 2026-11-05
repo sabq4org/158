@@ -6,7 +6,7 @@
 // The first attempt counts; later ones are practice. For following up only, never part of the result card.
 // Runs inside admin.html and uses its helpers ($, esc, api, levelPill, Report, withT, toast).
 const LessonResults = (() => {
-  let data = null, grade = null, cls = "", key = null, sid = null, missing = false;
+  let data = null, grade = null, cls = "", key = null, sid = null, missing = false, sched = null;
   const detail = new Map();
   const host = () => $("#lessonsPanel");
   const pct = r => Math.round((100 * r.score) / r.total);
@@ -34,6 +34,30 @@ const LessonResults = (() => {
   // A tile shows the question's opening words (بسّطي:، أوجدي الناتج:); the whole question is in its tooltip.
   const tileText = t => { const head = String(t || "").split("\u2066")[0].trim(); return head.length >= 3 ? esc(cut(head, 26)) : rich(cut(t, 22)); };
   const tone = p => (p == null ? "none" : p >= 75 ? "good" : p >= 60 ? "warn" : "low");
+  // Whether students see the lesson: shown, hidden, or scheduled between two times. The times are Riyadh time (UTC+3,
+  // no daylight saving) whatever the device's own zone, as datetime-local values ("2026-11-08T07:00").
+  const RIYADH = 3 * 3600 * 1000;
+  const toLocal = iso => (iso ? new Date(Date.parse(iso) + RIYADH).toISOString().slice(0, 16) : "");
+  const fromLocal = v => (v ? `${v}:00+03:00` : null);
+  const visPill = v => (v ? `<span class="lr-vis ${v.open ? "" : "off"}">${v.open ? "👁" : "🔒"} ${esc(v.text)}</span>` : "");
+  function visBox(lesson) {
+    const v = lesson.vis || { mode: "shown" }, mode = sched ? "scheduled" : v.mode;
+    const chip = (m, label) => `<button type="button" data-lr-vis="${m}" aria-pressed="${mode === m}">${label}</button>`;
+    const when = mode === "scheduled" ? `<div class="lr-when">
+        <label>يفتح <input type="datetime-local" data-lr-from value="${esc(sched ? sched.opens : toLocal(v.opens))}"></label>
+        <label>ويقفل <input type="datetime-local" data-lr-to value="${esc(sched ? sched.closes : toLocal(v.closes))}"></label>
+        <button type="button" class="btn sm" data-lr-vis-save>حفظ الجدولة</button>
+        <span class="note">بتوقيت الرياض. تقدرين تتركين واحد منهم فاضي.</span></div>` : "";
+    return `<div class="lr-visbox"><b>ظهوره للطالبات</b><div class="al-chips">${chip("shown", "ظاهر")}${chip("hidden", "مخفي")}${chip("scheduled", "مجدول")}</div>
+      ${sched ? "" : visPill(v)}${when}</div>`;
+  }
+  async function saveVis(lesson, body) {
+    try {
+      const d = await api(`/lessons/${encodeURIComponent(lesson.key)}/visibility`, { method: "PUT", body });
+      lesson.vis = d.vis; const dl = detail.get(lesson.key)?.lesson; if (dl) dl.vis = d.vis;
+      sched = null; render(); toast(d.vis.open ? `الدرس الحين ${d.vis.text}` : `تم: ${d.vis.text}`);
+    } catch (x) { toast(x.data?.errors?.[0] || "ما قدرنا نحفظ. حاولي مرة ثانية."); }
+  }
 
   async function load() {
     if (!data) host().innerHTML = '<div class="card note" style="padding:20px">جاري التحميل…</div>';
@@ -118,7 +142,7 @@ const LessonResults = (() => {
           const avg = rs.length ? Math.round(rs.reduce((a, r) => a + pct(r), 0) / rs.length) : null;
           const h = hardest(l, list), share = list.length ? Math.round((100 * rs.length) / list.length) : 0;
           return `<button type="button" class="lr-card" data-lr-open="${esc(l.key)}">
-            <span class="lr-title">${esc(l.name)}</span>
+            <span class="lr-title">${esc(l.name)}</span>${visPill(l.vis)}
             <span class="note">الدرس <bdi dir="ltr">${esc(l.ref)}</bdi> · ${esc(l.title)} · ${l.total} ${l.total > 10 ? "سؤالًا" : "أسئلة"}</span>
             <span class="lr-prog"><b style="width:${share}%"></b></span>
             <span class="lr-row"><span>حلّت <b>${rs.length} من ${list.length}</b></span>${avg != null ? `<span>المتوسط ${levelPill(avg)}</span>` : ""}</span>
@@ -161,6 +185,7 @@ const LessonResults = (() => {
         <div class="lr-acts">${notDone.length ? `<button type="button" class="btn sm ${missing ? "" : "quiet"}" data-lr-missing aria-pressed="${missing}">اللي ما حلّت (${notDone.length})</button>` : ""}
           <a class="btn sm quiet" href="${withT(`/api/admin/lessons/${encodeURIComponent(lesson.key)}/export${cls ? `?class=${encodeURIComponent(cls)}` : ""}`)}">تنزيل إكسل</a>
           <button type="button" class="btn sm quiet" data-lr-print>طباعة / PDF</button></div></div>
+      ${visBox(lesson)}
       ${strip}
       <div class="lr-split${student ? " open" : ""}">
         <div class="table-wrap"><table>
@@ -220,11 +245,27 @@ const LessonResults = (() => {
     const h = host();
     h.querySelectorAll("[data-lr-grade]").forEach(b => b.onclick = () => { grade = +b.dataset.lrGrade; cls = ""; key = null; sid = null; render(); });
     h.querySelectorAll("[data-lr-cls]").forEach(b => b.onclick = () => { cls = b.dataset.lrCls; sid = null; render(); });
-    h.querySelectorAll("[data-lr-open]").forEach(b => b.onclick = () => { sid = null; missing = false; loadLesson(b.dataset.lrOpen); });
-    h.querySelector("[data-lr-back]")?.addEventListener("click", () => { key = null; sid = null; missing = false; render(); });
+    h.querySelectorAll("[data-lr-open]").forEach(b => b.onclick = () => { sid = null; missing = false; sched = null; loadLesson(b.dataset.lrOpen); });
+    h.querySelector("[data-lr-back]")?.addEventListener("click", () => { key = null; sid = null; missing = false; sched = null; render(); });
     h.querySelector("[data-lr-missing]")?.addEventListener("click", () => { missing = !missing; render(); });
     const lesson = key && data.lessons.find(l => l.key === key);
     h.querySelector("[data-lr-print]")?.addEventListener("click", () => printLesson(lesson));
+    h.querySelectorAll("[data-lr-vis]").forEach(b => b.onclick = () => {
+      const m = b.dataset.lrVis;
+      if (m === "scheduled") { sched = sched || { opens: toLocal(lesson.vis?.opens), closes: toLocal(lesson.vis?.closes) }; return render(); }
+      saveVis(lesson, { mode: m });
+    });
+    const keep = () => { if (sched) { sched.opens = h.querySelector("[data-lr-from]").value; sched.closes = h.querySelector("[data-lr-to]").value; } };
+    h.querySelectorAll("[data-lr-from], [data-lr-to]").forEach(i => i.oninput = () => {
+      if (!sched) sched = { opens: "", closes: "" };
+      keep();
+    });
+    h.querySelector("[data-lr-vis-save]")?.addEventListener("click", () => {
+      const from = h.querySelector("[data-lr-from]").value, to = h.querySelector("[data-lr-to]").value;
+      if (!from && !to) return toast("حددي وقت الفتح أو وقت القفل، أو الاثنين");
+      if (from && to && to <= from) return toast("وقت القفل لازم يكون بعد وقت الفتح");
+      saveVis(lesson, { mode: "scheduled", opens: fromLocal(from), closes: fromLocal(to) });
+    });
     h.querySelectorAll("[data-lr-sheet]").forEach(b => b.onclick = () => {
       sid = sid === b.dataset.lrSheet ? null : b.dataset.lrSheet; render();
       h.querySelector(".lr-sheet")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -234,6 +275,6 @@ const LessonResults = (() => {
   }
 
   // A different teacher's panel (the principal switching) starts from a fresh read.
-  const reset = () => { data = null; grade = null; cls = ""; key = null; sid = null; missing = false; detail.clear(); };
+  const reset = () => { data = null; grade = null; cls = ""; key = null; sid = null; missing = false; sched = null; detail.clear(); };
   return { load, reset };
 })();
