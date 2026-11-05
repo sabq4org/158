@@ -454,8 +454,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       <div class="score"><div class="big">${fmt(d.score)} <small>/ ${d.total}</small></div><div class="note">${esc(word)} يا ${esc(me?.name || "")} ${pct >= .75 ? "🌟" : "💪"}</div></div>
       <div class="parts">${(d.parts || []).map(p => `<div class="kv"><span>${esc(p.title.replace(/^.+?:\s*/, ""))}</span><b>${fmt(p.score)} من ${p.marks}</b></div>`).join("")}</div>
       <p class="note">${me?.demo ? "هذي تجربة، وما تنحفظ عند المعلمة." : "درجتك وصلت لمعلمتك، وتنتقل لبطاقة نتيجتك بعد ما تعتمدها."}</p>
-      <div class="nav"><button class="btn ghost" id="out">خروج</button>${me?.demo ? '<button class="btn" id="redo">جرّبي من جديد</button>' : ""}</div></div>`;
-    $("#redo")?.addEventListener("click", () => identify(me.id, true));
+      <div class="nav"><button class="btn ghost" id="out">خروج</button></div></div>`;
     $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
   }
 
