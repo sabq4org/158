@@ -92,6 +92,7 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-robot .cover { background: #e3ecec; }
 .t-puzzle .cover { background: #f4ead9; }
 .t-vault .cover { background: linear-gradient(160deg, #24394c, #1a2a39 55%, #142130); }
+.t-bridge .cover { background: linear-gradient(180deg, #f3efe8 0 70%, #cfe0f2 70%); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -180,6 +181,12 @@ const COVERS = {
     <g transform="translate(92 80) rotate(-28)"><polygon points="-44,24 40,32 -8,-40" fill="#cfc8f7" stroke="#4c3fc4" stroke-width="3" stroke-linejoin="round"/>
       <circle cx="-26" cy="14" r="5" fill="#d9480f"/><circle cx="24" cy="20" r="5" fill="#2b8a3e"/><circle cx="-4" cy="-20" r="5" fill="#ae3ec9"/></g>
     <path d="M128 52 C 148 30, 170 34, 182 50" fill="none" stroke="#7a6650" stroke-width="2" stroke-dasharray="5 5"/></svg>`,
+  bridge: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect x="0" y="96" width="300" height="8" fill="#56636f"/>
+    <path d="M10 96 L40 40 L70 96 L100 40 L130 96 L160 40 L190 96 L220 40 L250 96 L280 40 L290 96 M40 40 H280" fill="none" stroke="#b23a0e" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${[40, 100, 160, 220, 280].map(x => `<circle cx="${x}" cy="40" r="4.5" fill="#fbfaf7" stroke="#1d2125" stroke-width="2"/>`).join("")}
+    <rect x="0" y="0" width="300" height="9" fill="#f5b700"/><path d="M0 0 L9 9 M20 0 L29 9 M40 0 L49 9 M60 0 L69 9 M80 0 L89 9 M100 0 L109 9 M120 0 L129 9 M140 0 L149 9 M160 0 L169 9 M180 0 L189 9 M200 0 L209 9 M220 0 L229 9 M240 0 L249 9 M260 0 L269 9 M280 0 L289 9" stroke="#1d2125" stroke-width="7"/>
+    <text x="150" y="134" text-anchor="middle" fill="#1864ab" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20">SSS · SAS</text></svg>`,
   vault: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <rect x="150" y="16" width="124" height="118" rx="18" fill="#3d5a73"/><rect x="158" y="24" width="108" height="102" rx="12" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
     <g transform="translate(212 75)"><circle r="30" fill="none" stroke="#fff" stroke-width="5"/><path d="M0 -36V36M-36 0H36M-25 -25L25 25M25 -25L-25 25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle r="9" fill="#e6b75e"/></g>
