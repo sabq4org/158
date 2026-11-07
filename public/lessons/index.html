@@ -93,6 +93,7 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-puzzle .cover { background: #f4ead9; }
 .t-vault .cover { background: linear-gradient(160deg, #24394c, #1a2a39 55%, #142130); }
 .t-bridge .cover { background: linear-gradient(180deg, #f3efe8 0 70%, #cfe0f2 70%); }
+.t-river .cover { background: linear-gradient(180deg, #c9dca6 0 34%, #cfe8fb 34% 72%, #ead9a8 72%); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -187,6 +188,12 @@ const COVERS = {
     ${[40, 100, 160, 220, 280].map(x => `<circle cx="${x}" cy="40" r="4.5" fill="#fbfaf7" stroke="#1d2125" stroke-width="2"/>`).join("")}
     <rect x="0" y="0" width="300" height="9" fill="#f5b700"/><path d="M0 0 L9 9 M20 0 L29 9 M40 0 L49 9 M60 0 L69 9 M80 0 L89 9 M100 0 L109 9 M120 0 L129 9 M140 0 L149 9 M160 0 L169 9 M180 0 L189 9 M200 0 L209 9 M220 0 L229 9 M240 0 L249 9 M260 0 L269 9 M280 0 L289 9" stroke="#1d2125" stroke-width="7"/>
     <text x="150" y="134" text-anchor="middle" fill="#1864ab" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20">SSS · SAS</text></svg>`,
+  river: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M0 58 Q 75 50 150 58 T 300 56 M0 82 Q 75 74 150 82 T 300 80" fill="none" stroke="#4dabf7" stroke-width="2" opacity=".7"/>
+    <polygon points="70,122 230,122 150,30" fill="rgba(11,114,133,.16)" stroke="#0b7285" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M92 122 A 22 22 0 0 0 86 106" fill="none" stroke="#d97706" stroke-width="3"/><path d="M208 122 A 22 22 0 0 1 214 106 M203 122 A 27 27 0 0 1 210 102" fill="none" stroke="#c2255c" stroke-width="3"/>
+    <line x1="150" y1="30" x2="150" y2="2" stroke="#1f2328" stroke-width="3"/><path d="M150 2 l 22 7 l -22 7 z" fill="#e03131"/>
+    <text x="150" y="144" text-anchor="middle" fill="#1f2328" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15">ASA · AAS</text></svg>`,
   vault: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <rect x="150" y="16" width="124" height="118" rx="18" fill="#3d5a73"/><rect x="158" y="24" width="108" height="102" rx="12" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
     <g transform="translate(212 75)"><circle r="30" fill="none" stroke="#fff" stroke-width="5"/><path d="M0 -36V36M-36 0H36M-25 -25L25 25M25 -25L-25 25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle r="9" fill="#e6b75e"/></g>
