@@ -1077,7 +1077,12 @@ const FIG = {
     return { an, s: [base, base * sn(an[0]) / sn(an[2]), base * sn(an[1]) / sn(an[2])] };
   }
   function make(kind) {
-    const T = triangle(), c = { kind, T, k2: 1, show: { a: [0, 1], s: [0] }, show2: null, ans: "ASA", why: "" };
+    const T = triangle();
+    // A real SSA trap: the known angle (at vertex 0) is the smallest, so it is acute and the side opposite it (side 1) is
+    // shorter than the adjacent side 0. Those measurements fit two different triangles.
+    if (kind === "ssa") { const [lo, mid, hi] = [...T.an].sort((x, y) => x - y), base = T.s[0], sn = d => Math.sin(d * RAD);
+      T.an = [lo, hi, mid]; T.s = [base, base * sn(lo) / sn(mid), base * sn(hi) / sn(mid)]; }
+    const c = { kind, T, k2: 1, show: { a: [0, 1], s: [0] }, show2: null, ans: "ASA", why: "" };
     if (kind === "asa") c.why = "زاويتان والضلع <b>المحصور</b> بينهما (الضلع يصل بين رأسي الزاويتين) ← ASA.";
     if (kind === "aas") { c.show = { a: [0, 1], s: [ri(1, 2)] }; c.ans = "AAS"; c.why = "زاويتان وضلع <b>غير محصور</b> بينهما، ومناظر لنظيره ← AAS."; }
     if (kind === "sas") { c.show = { a: [1], s: [0, 1] }; c.ans = "SAS"; c.why = "ضلعان والزاوية <b>المحصورة</b> بينهما ← SAS."; }
@@ -1165,9 +1170,9 @@ const QUIZ = [
   { q: "«اكتشفي الخطأ» (تمرين 14): قالت هند: «إذا تطابقت الزوايا الثلاث في مثلثين فهما متطابقان، هذي حالة AAA». وقالت جود: «ما يكفي». من إجابتها صحيحة؟",
     opts: ["جود: AAA تحدد شكل المثلث لا حجمه", "هند: ثلاث زوايا أكثر من زاويتين", "هند: إذا كانت AAS تكفي فـ AAA تكفي", "الاثنتان صحيحتان"], ok: 0,
     why: "مثلث صغير ومثلث كبير لهما الزوايا نفسها وما يتطابقان. الفرق إن AAS فيها ضلع يحدد الحجم." },
-  { q: `${TCONG("RST", "JKL")}، و${M("<i>RS</i> = 7")}، ${M("<i>ST</i> = 5")}، ${M("<i>RT</i> = 9 + <i>x</i>")}، ${M("<i>JL</i> = 2<i>x</i> − 10")}، ${M("<i>JK</i> = 4<i>y</i> − 5")}. أوجدي ${M("<i>x</i>")} و${M("<i>y</i>")}. (تمرين 21)`,
-    opts: [M("<i>x</i> = 19 ، <i>y</i> = 3"), M("<i>x</i> = 1 ، <i>y</i> = 3"), M("<i>x</i> = 19 ، <i>y</i> = 0.5"), M("<i>x</i> = 5 ، <i>y</i> = 3")], ok: 0,
-    why: `${SG("RT")} يناظر ${SG("JL")} ← ${M("9 + <i>x</i> = 2<i>x</i> − 10")} ← ${M("<i>x</i> = 19")}. و${SG("RS")} يناظر ${SG("JK")} ← ${M("4<i>y</i> − 5 = 7")} ← ${M("<i>y</i> = 3")}.` },
+  { q: `${TCONG("RST", "JKL")}، و${M("<i>RS</i> = 7")}، ${M("<i>ST</i> = 5")}، ${M("<i>RT</i> = <i>x</i> + 2")}، ${M("<i>JL</i> = 2<i>x</i> − 4")}، ${M("<i>JK</i> = 4<i>y</i> − 5")}. أوجدي ${M("<i>x</i>")} و${M("<i>y</i>")}. (على نمط تمرين 21)`,
+    opts: [M("<i>x</i> = 6 ، <i>y</i> = 3"), M("<i>x</i> = 2 ، <i>y</i> = 3"), M("<i>x</i> = 6 ، <i>y</i> = 0.5"), M("<i>x</i> = 3 ، <i>y</i> = 3")], ok: 0,
+    why: `${SG("RT")} يناظر ${SG("JL")} ← ${M("<i>x</i> + 2 = 2<i>x</i> − 4")} ← ${M("<i>x</i> = 6")} (فـ ${M("<i>RT</i> = 8")}). و${SG("RS")} يناظر ${SG("JK")} ← ${M("4<i>y</i> − 5 = 7")} ← ${M("<i>y</i> = 3")}.` },
 ];
 let answered = 0, right = 0;
 function buildQuiz() {
