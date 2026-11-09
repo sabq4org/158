@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دائرة الباقي</title>
+<meta name="description" content="درس تفاعلي: نظريتا الباقي والعوامل، رياضيات 2، الدرس 3-7">
+<meta name="theme-color" content="#0f2a22">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* «دائرة الباقي»: lesson 3-7 told as an electronics bench. Synthetic substitution is a circuit: the signal comes down,
+   is multiplied by r and added at each column, and the last column is a lamp that shows the remainder. When the lamp
+   reads 0 it turns green: the binomial is a factor. Stations: the "why" race (long division against f(r)), the remainder
+   theorem identity, the circuit itself, real-life values, the factor detector, a repair-shop game, the quiz, the summary. */
+:root {
+  --bg: #eef1ea;
+  --panel: #fcfdfb;
+  --panel-2: #f2f5ef;
+  --ink: #17231d;
+  --muted: #56655c;
+  --line: #d3dbd2;
+  --copper: #b05a12;
+  --copper-soft: #f6e3cf;
+  --signal: #1f5fae;
+  --signal-soft: #dde9f7;
+  --led: #15803d;
+  --led-soft: #d7f2df;
+  --amber: #b7791f;
+  --amber-soft: #fbecc8;
+  --rose: #c0334c;
+  --rose-soft: #f8dde2;
+  --violet: #6a48c2;
+  --board: linear-gradient(160deg, #123a2e, #0f2f26 55%, #0b241d);
+  --shadow: 0 1px 1px rgba(20, 40, 30, .08), 0 14px 34px -16px rgba(20, 40, 30, .4);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1411; --panel: #14201b; --panel-2: #1a2a23; --ink: #e6efe9; --muted: #9db0a5; --line: #2b3c34;
+    --copper: #f0a35e; --copper-soft: #3b2715; --signal: #8db8ea; --signal-soft: #1a2b41; --led: #4ade80; --led-soft: #133524;
+    --amber: #f6c25c; --amber-soft: #3a2d12; --rose: #f2879c; --rose-soft: #431f29; --violet: #b9a3f6;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1411; --panel: #14201b; --panel-2: #1a2a23; --ink: #e6efe9; --muted: #9db0a5; --line: #2b3c34;
+  --copper: #f0a35e; --copper-soft: #3b2715; --signal: #8db8ea; --signal-soft: #1a2b41; --led: #4ade80; --led-soft: #133524;
+  --amber: #f6c25c; --amber-soft: #3a2d12; --rose: #f2879c; --rose-soft: #431f29; --violet: #b9a3f6;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-image: radial-gradient(color-mix(in srgb, var(--copper) 16%, transparent) 1.2px, transparent 1.4px); background-size: 26px 26px; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--copper); outline-offset: 2px; }
+p { margin: 0; }
+a { color: var(--signal); }
+.muted { color: var(--muted); }
+svg { direction: ltr; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.12em; white-space: nowrap; line-height: 1.45; }
+.m i { font-style: italic; }
+.m .m { font-size: 1em; }
+.m sup { font-size: .68em; vertical-align: .62em; line-height: 0; font-style: normal; }
+.m .ar { font-family: var(--font); font-size: .86em; font-style: normal; padding: 0 .3em; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.15; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 .2em .05em; }
+.fr > span:last-child { padding: .05em .2em 0; }
+.ca { color: var(--copper); font-weight: 600; } .cb { color: var(--signal); font-weight: 600; } .cg { color: var(--led); font-weight: 600; }
+.cv { color: var(--violet); font-weight: 600; } .cr { color: var(--rose); font-weight: 600; } .cy { color: var(--amber); font-weight: 600; }
+
+/* Layout */
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+.ribbon { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.ribbon-in { max-width: 980px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+.ribbon b { font-size: 14px; white-space: nowrap; }
+.stations { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+.stations::-webkit-scrollbar { display: none; }
+.stations a { flex: none; text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px 10px; transition: all .2s; white-space: nowrap; }
+.stations a.on { color: #fff; background: var(--copper); border-color: var(--copper); }
+:root[data-theme="dark"] .stations a.on { color: #0c1411; }
+.stations a.done { color: var(--led); border-color: var(--led); }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Board cards: a chip outline with solder pads in the corners */
+.card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 28px 28px 26px; margin: 34px 0 0; scroll-margin-top: 70px; }
+.card::before { content: ""; position: absolute; inset: 9px; border-radius: 14px; pointer-events: none;
+  background: radial-gradient(circle at 0 0, var(--copper) 0 3px, transparent 3.5px) top left / 14px 14px no-repeat,
+              radial-gradient(circle at 100% 0, var(--copper) 0 3px, transparent 3.5px) top right / 14px 14px no-repeat,
+              radial-gradient(circle at 0 100%, var(--copper) 0 3px, transparent 3.5px) bottom left / 14px 14px no-repeat,
+              radial-gradient(circle at 100% 100%, var(--copper) 0 3px, transparent 3.5px) bottom right / 14px 14px no-repeat; opacity: .55; }
+.card > * { position: relative; z-index: 1; }
+.head { display: flex; gap: 14px; align-items: center; }
+.chipno { flex: none; width: 52px; height: 52px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #fff; background: #1d3b30;
+  box-shadow: 0 0 0 2px var(--copper), inset 0 0 0 4px #1d3b30, inset 0 0 0 5px rgba(255, 255, 255, .25); position: relative; }
+.chipno::before, .chipno::after { content: ""; position: absolute; top: 9px; bottom: 9px; width: 6px; background: repeating-linear-gradient(180deg, var(--copper) 0 4px, transparent 4px 8px); }
+.chipno::before { left: -8px; } .chipno::after { right: -8px; }
+.kicker { font-size: 13px; font-weight: 700; color: var(--copper); }
+h2 { margin: 0; font-size: clamp(23px, 4.2vw, 31px); line-height: 1.35; }
+.lead { color: var(--muted); max-width: 68ch; margin-top: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.btn { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 7px 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: transform .1s, background .2s, border-color .2s; }
+.btn:hover:not(:disabled) { border-color: var(--signal); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.go { background: var(--signal); border-color: var(--signal); color: #fff; }
+.btn.cu { background: var(--copper); border-color: var(--copper); color: #fff; }
+:root[data-theme="dark"] .btn.go, :root[data-theme="dark"] .btn.cu { color: #0c1411; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.go, :root:not([data-theme="light"]) .btn.cu, :root:not([data-theme="light"]) .stations a.on { color: #0c1411; } }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 3px 12px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.chip[aria-pressed="true"] { border-color: var(--copper); background: var(--copper-soft); }
+.chip .m { font-size: 1.05em; }
+.chip small { color: var(--muted); font-size: 11.5px; margin-inline-start: 4px; }
+.narr { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 15.5px; min-height: 3.2em; }
+.note { background: var(--signal-soft); border-radius: 14px; padding: 12px 16px; border-inline-start: 5px solid var(--signal); }
+.note.cu { background: var(--copper-soft); border-color: var(--copper); }
+.note.ok { background: var(--led-soft); border-color: var(--led); }
+.slider { display: flex; align-items: center; gap: 10px; }
+.slider input { flex: 1; accent-color: var(--copper); }
+.slider label { font-weight: 600; font-size: 14.5px; min-width: 8ch; }
+.slider output { min-width: 4ch; font-weight: 700; color: var(--copper); }
+.custom { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 15px; }
+.custom input { font: 600 16px var(--font); text-align: center; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--ink); direction: ltr; }
+.err { color: var(--rose); font-size: 14px; font-weight: 600; min-height: 1.3em; }
+
+/* Hero: a dark circuit board */
+.hero { background: var(--board); color: #e9f3ee; border: 0; overflow: hidden; }
+.hero::before { opacity: .9; }
+.hero .trace { position: absolute; inset: 0; z-index: 0; opacity: .22; pointer-events: none; }
+.hero .logos { display: flex; gap: 10px; }
+.hero .logos img { height: 46px; background: #fff; border-radius: 10px; padding: 4px 8px; }
+.hero h1 { font-size: clamp(32px, 7vw, 54px); margin: 12px 0 0; line-height: 1.2; }
+.hero h1 span { color: #f0a35e; }
+.hero .sub { color: #b6cdc1; font-weight: 600; }
+.hero .lead { color: #cfe0d7; }
+.hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; margin-top: 18px; align-items: center; }
+.hero .slider label { color: #e9f3ee; }
+.hero .slider output { color: #f6c25c; }
+.hero .slider input { accent-color: #f0a35e; }
+.race { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lane { background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .15); border-radius: 14px; padding: 12px; }
+.lane h4 { margin: 0 0 6px; font-size: 13.5px; color: #f6c25c; }
+.lane .big { font-size: 26px; font-weight: 700; direction: ltr; text-align: center; }
+.lane .m { white-space: normal; }
+.lane .ldiv { font-size: 14px; direction: ltr; text-align: left; overflow-x: auto; }
+.match { text-align: center; border-radius: 12px; padding: 8px; font-weight: 700; background: rgba(74, 222, 128, .14); border: 1px solid rgba(74, 222, 128, .4); }
+.hero canvas.plot { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .14); }
+
+/* Plots */
+canvas.plot { width: 100%; height: 250px; display: block; border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel-2); }
+
+/* Identity */
+.ident { font-size: 22px; text-align: center; padding: 16px 10px; background: var(--panel-2); border-radius: 14px; border: 1.5px solid var(--line); overflow-x: auto; }
+.ident .m { white-space: nowrap; }
+.ident .part { display: inline-block; border-radius: 8px; padding: 0 4px; transition: opacity .5s, background .5s; }
+.ident .eq { direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+.ident .labels { direction: ltr; display: flex; justify-content: center; gap: 26px; font-size: 12.5px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+.ident.zero .vanish { opacity: .28; text-decoration: line-through; }
+.ident.zero .stay { background: var(--led-soft); }
+
+/* The circuit (synthetic substitution) */
+.circ-wrap { position: relative; overflow-x: auto; padding: 6px 2px 4px; margin-top: 14px; }
+.circ { position: relative; display: grid; direction: ltr; gap: 8px 10px; align-items: center; min-width: max-content; margin: 0 auto; width: max-content; }
+.circ .rbox { grid-row: 1 / span 4; align-self: stretch; display: grid; place-items: center; padding: 0 14px 0 4px; border-right: 3px solid var(--ink); font: 700 22px "Times New Roman", serif; color: var(--copper); }
+.circ .rbox small { display: block; font: 600 11px var(--font); color: var(--muted); text-align: center; }
+.cell { min-width: 58px; height: 44px; display: grid; place-items: center; border-radius: 10px; font: 600 18px "Times New Roman", serif; padding: 0 6px; transition: all .3s; }
+.cell.co { background: var(--panel-2); border: 1.5px solid var(--line); }
+.cell.co.zero { border-style: dashed; color: var(--muted); }
+.cell.pr { color: var(--signal); }
+.cell.su { background: var(--signal-soft); border: 1.5px solid transparent; }
+.cell.su.rem { border-radius: 50%; width: 64px; height: 64px; min-width: 64px; justify-self: center; background: var(--amber-soft); border: 3px solid var(--amber); box-shadow: 0 0 0 0 transparent; }
+.cell.su.rem.lit { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--amber) 60%, transparent); }
+.cell.su.rem.zero { background: var(--led-soft); border-color: var(--led); color: var(--led); }
+.cell.su.rem.zero.lit { box-shadow: 0 0 22px 4px color-mix(in srgb, var(--led) 60%, transparent); }
+.cell.off { opacity: 0; transform: scale(.7); }
+.cell.cur { outline: 3px solid var(--copper); outline-offset: 2px; }
+.circ .bar { height: 3px; background: var(--ink); border-radius: 2px; margin: -4px 0; }
+.circ svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.wires path { fill: none; stroke: var(--copper); stroke-width: 2.4; stroke-linecap: round; }
+.wires path.pulse { stroke-dasharray: 6 8; animation: flow 1s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -28; } }
+.ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.ctrl .count { margin-inline-start: auto; color: var(--muted); font-size: 13px; font-weight: 600; }
+
+/* Book-style working */
+.steps { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ln { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 210px); gap: 12px; align-items: center; padding: 6px 10px; border-radius: 10px; }
+.ln .lm { overflow-x: auto; overflow-y: hidden; padding: 2px 0; text-align: left; direction: ltr; scrollbar-width: thin; }
+.ln .lw { color: var(--signal); font-size: 13.5px; font-weight: 600; }
+.ln.cur { background: var(--copper-soft); animation: rise .4s both; }
+.ln.cur .lw { color: var(--copper); }
+@keyframes rise { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Factor detector */
+.probes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; direction: ltr; justify-content: center; }
+.probe { min-width: 54px; border: 2px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 4px 10px; cursor: pointer; font: 700 17px "Times New Roman", serif; transition: all .2s; position: relative; }
+.probe:hover:not(:disabled) { border-color: var(--signal); }
+.probe .v { display: block; font: 600 11.5px var(--font); color: var(--muted); }
+.probe.hit { border-color: var(--led); background: var(--led-soft); color: var(--led); }
+.probe.miss { border-color: var(--line); opacity: .55; }
+.tray { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; min-height: 46px; padding: 8px 12px; border: 1.5px dashed var(--led); border-radius: 12px; }
+.tray .fac { background: var(--led-soft); color: var(--led); border-radius: 10px; padding: 2px 10px; animation: pop .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes pop { from { transform: scale(1.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.verdict { font-weight: 700; }
+
+/* Repair shop */
+.leds { display: flex; gap: 6px; justify-content: center; margin: 4px 0 10px; }
+.leds i { width: 18px; height: 18px; border-radius: 50%; background: var(--line); transition: all .3s; }
+.leds i.on { background: var(--led); box-shadow: 0 0 10px var(--led); }
+.leds i.bad { background: var(--rose); }
+.bench { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; }
+.bench .q { font-size: 20px; margin: 6px 0 12px; }
+.pick { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 4px 16px; cursor: pointer; font-size: 17px; min-width: 70px; transition: all .15s; }
+.pick.right { border-color: var(--led); background: var(--led-soft); }
+.pick.wrong { border-color: var(--rose); background: var(--rose-soft); }
+.pick:disabled { cursor: default; }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.qcard { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel-2); }
+.qcard .qq { font-weight: 600; margin-bottom: 8px; }
+.qcard .qq .m { white-space: normal; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opt { text-align: start; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); padding: 8px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: all .15s; overflow-x: auto; }
+.opt b { color: var(--muted); flex: none; }
+.opt:hover:not(:disabled) { border-color: var(--signal); }
+.opt.right { border-color: var(--led); background: var(--led-soft); }
+.opt.wrong { border-color: var(--rose); background: var(--rose-soft); }
+.opt:disabled { cursor: default; }
+.why { margin-top: 8px; font-size: 14.5px; }
+.why .m { white-space: normal; }
+.tagok { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--led); color: #fff; }
+.tagno { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--rose); color: #fff; }
+.score { text-align: center; font-size: 20px; font-weight: 700; margin-top: 14px; }
+
+/* Summary */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.plate { background: var(--panel-2); border-radius: 14px; padding: 14px; border: 1.5px solid var(--line); border-top: 5px solid var(--copper); }
+.plate:nth-child(2) { border-top-color: var(--signal); } .plate:nth-child(3) { border-top-color: var(--led); }
+.plate h3 { margin: 0 0 6px; font-size: 17px; }
+.plate .m { white-space: normal; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 760px) {
+  .card { padding: 24px 16px 20px; border-radius: 18px; }
+  .grid2, .cards3, .hero-grid, .race { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: minmax(0, 1fr); }
+  .ln { grid-template-columns: 1fr; gap: 0; }
+  .ln .lw { font-size: 12.5px; }
+  .ribbon b { display: none; }
+  .cell { min-width: 46px; height: 40px; font-size: 16px; }
+  .cell.su.rem { width: 56px; height: 56px; min-width: 56px; }
+  .circ { gap: 6px 6px; }
+  .ident { font-size: 18px; }
+  canvas.plot { height: 220px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="ribbon" aria-label="محطات الدرس">
+  <div class="ribbon-in">
+    <b>دائرة الباقي</b>
+    <div class="stations" id="stations"></div>
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 0: why: two ways to the same number -->
+  <section class="card hero" id="s0" data-name="الغلاف">
+    <svg class="trace" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g fill="none" stroke="#f0a35e" stroke-width="2" opacity=".55"><path d="M0 80 H210 L250 120 H520 L560 80 H900"/><path d="M0 440 H160 L200 400 H420 L460 440 H900"/><path d="M700 0 V60 L740 100 V300 L700 340 V520"/></g>
+      <g fill="#f0a35e" opacity=".7"><circle cx="210" cy="80" r="5"/><circle cx="560" cy="80" r="5"/><circle cx="200" cy="400" r="5"/><circle cx="460" cy="440" r="5"/><circle cx="740" cy="100" r="5"/><circle cx="740" cy="300" r="5"/></g>
+    </svg>
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>دائرة <span>الباقي</span></h1>
+    <p class="sub">الدرس 3-7 · نظريتا الباقي والعوامل · رياضيات 2 · الفصل الأول</p>
+    <p class="lead">نقسم <span class="m">−3<i>x</i><sup>2</sup> + 5<i>x</i> + 4</span> على <span class="m"><i>x</i> − <i>r</i></span> قسمة طويلة… ونعوّض <span class="m"><i>r</i></span> في الدالة مباشرة. حرّكي <span class="m"><i>r</i></span> وراقبي: هل فيه علاقة بين الطريقتين؟</p>
+    <div class="hero-grid">
+      <div class="stack">
+        <div class="slider"><label for="hr">قيمة <span class="m"><i>r</i></span></label><input type="range" id="hr" min="-3" max="4" value="3"><output id="hrv"></output></div>
+        <div class="race">
+          <div class="lane"><h4>الطريقة 1: القسمة الطويلة</h4><div class="ldiv" id="hLong"></div></div>
+          <div class="lane"><h4>الطريقة 2: التعويض المباشر</h4><div class="ldiv" id="hSub"></div></div>
+        </div>
+        <div class="match" id="hMatch" aria-live="polite"></div>
+      </div>
+      <canvas class="plot" id="hPlot" aria-label="منحنى الدالة ونقطة r"></canvas>
+    </div>
+  </section>
+
+  <!-- 1: the remainder theorem -->
+  <section class="card" id="s1" data-name="نظرية الباقي">
+    <div class="head"><span class="chipno">1</span><div><span class="kicker">مفهوم أساسي</span><h2>نظرية الباقي</h2></div></div>
+    <p class="lead">إذا قسمنا كثيرة حدود <span class="m"><i>P</i>(<i>x</i>)</span> على <span class="m"><i>x</i> − <i>r</i></span>، فالباقي ثابت ويساوي <span class="m"><i>P</i>(<i>r</i>)</span>. ليش؟ اختاري <span class="m"><i>r</i></span>، ثم اضغطي «عوّضي <span class="m"><i>x</i> = <i>r</i></span>» وشوفي وش يصير لحاصل الضرب.</p>
+    <div class="row" style="margin-top:12px"><span class="muted" style="font-size:14px">كثيرة الحدود من مثال الكتاب: <span class="m"><i>P</i>(<i>x</i>) = <i>x</i><sup>2</sup> + 6<i>x</i> + 2</span></span></div>
+    <div class="chips" id="idPick" style="margin-top:10px"></div>
+    <div class="ident" id="ident" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px"><button class="btn cu" id="idZero" type="button">عوّضي x = r</button><button class="btn" id="idBack" type="button">رجّعي x</button></div>
+    <p class="narr" id="idNarr" style="margin-top:10px"></p>
+  </section>
+
+  <!-- 2: the circuit -->
+  <section class="card" id="s2" data-name="التعويض التركيبي">
+    <div class="head"><span class="chipno">2</span><div><span class="kicker">مثال 1 · وتحقق من فهمك 1</span><h2>دائرة التعويض التركيبي</h2></div></div>
+    <p class="lead">إيجاد <span class="m"><i>f</i>(<i>r</i>)</span> بالقسمة التركيبية اسمه <b>التعويض التركيبي</b>. الإشارة تنزل، تنضرب في <span class="m"><i>r</i></span>، وتنجمع مع العمود اللي بعده… وآخر عمود هو اللمبة: قراءتها هي الباقي، وهي نفسها <span class="m"><i>f</i>(<i>r</i>)</span>. انتبهي: الحد الناقص نكتب مكانه <b>0</b>.</p>
+    <div class="chips" id="ckPick" style="margin-top:12px"></div>
+    <div class="custom" id="ckCustom" style="margin-top:10px" hidden>
+      <label for="ckCo">المعاملات من الأكبر للأصغر:</label><input id="ckCo" value="1, -3, 0, 4" style="width:13em">
+      <label for="ckR"><span class="m"><i>r</i> =</span></label><input id="ckR" value="2" style="width:4em">
+      <button class="btn" id="ckGo" type="button">ركّبي الدائرة</button>
+      <p class="err" id="ckErr" style="width:100%"></p>
+    </div>
+    <p style="margin-top:10px;font-size:18px;text-align:center" id="ckTitle"></p>
+    <div class="circ-wrap"><div class="circ" id="ck"></div></div>
+    <p class="narr" id="ckNarr" style="margin-top:10px"></p>
+    <div class="ctrl"><button class="btn" id="ckReset" type="button">من جديد</button><button class="btn go" id="ckNext" type="button">الخطوة التالية</button><button class="btn" id="ckAll" type="button">كل الخطوات</button><span class="count" id="ckCount"></span></div>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">تحقّقي بالتعويض المباشر</summary><div class="steps" id="ckCheck"></div></details>
+  </section>
+
+  <!-- 3: real life -->
+  <section class="card" id="s3" data-name="من واقع الحياة">
+    <div class="head"><span class="chipno">3</span><div><span class="kicker">مثال 2 · وتحقق من فهمك 2</span><h2>عدّاد المستقبل</h2></div></div>
+    <p class="lead">لما تكون الأرقام عشرية والدرجة عالية، التعويض المباشر متعب. نخلي الدائرة تحسب عنا. اختاري الموقف وحرّكي السنة.</p>
+    <div class="chips" id="rlPick" style="margin-top:12px"></div>
+    <p class="muted" id="rlStory" style="margin-top:10px;font-size:15px"></p>
+    <div class="slider" style="margin-top:10px"><label for="rlY">السنة</label><input type="range" id="rlY"><output id="rlYv"></output></div>
+    <div class="circ-wrap"><div class="circ" id="rl"></div></div>
+    <div class="note ok" id="rlOut" style="margin-top:12px" aria-live="polite"></div>
+  </section>
+
+  <!-- 4: factor theorem -->
+  <section class="card" id="s4" data-name="نظرية العوامل">
+    <div class="head"><span class="chipno">4</span><div><span class="kicker">مفهوم أساسي · مثال 3</span><h2>كاشف العوامل</h2></div></div>
+    <p class="lead"><b>نظرية العوامل:</b> تكون <span class="m"><i>x</i> − <i>r</i></span> عاملًا من عوامل <span class="m"><i>P</i>(<i>x</i>)</span> إذا وفقط إذا كان <span class="m"><i>P</i>(<i>r</i>) = 0</span>، يعني اللمبة تقرأ صفرًا وتولّع أخضر. جرّبي قيم <span class="m"><i>r</i></span> من قواسم الحد الثابت، وكل لمبة خضراء تعطيك عاملًا.</p>
+    <div class="chips" id="fdPick" style="margin-top:12px"></div>
+    <p style="margin-top:12px;font-size:19px;text-align:center" id="fdTitle"></p>
+    <div class="probes" id="probes"></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="stack">
+        <div class="circ-wrap" style="margin-top:0"><div class="circ" id="fd"></div></div>
+        <p class="narr" id="fdNarr"></p>
+        <div><b style="font-size:14px">العوامل اللي لقيتيها:</b><div class="tray" id="tray" style="margin-top:6px"></div></div>
+        <div class="note ok" id="fdDone" hidden></div>
+      </div>
+      <canvas class="plot" id="fdPlot" aria-label="منحنى كثيرة الحدود ونقاط تقاطعها مع المحور x"></canvas>
+    </div>
+  </section>
+
+  <!-- 5: repair shop game -->
+  <section class="card" id="s5" data-name="ورشة الصيانة">
+    <div class="head"><span class="chipno">5</span><div><span class="kicker">تمارين ومسائل</span><h2>ورشة صيانة الدوائر</h2></div></div>
+    <p class="lead">ثماني دوائر من تمارين الكتاب تنتظر الفحص. احسبي قراءة اللمبة (الباقي) أو القيمة الناقصة. كل إجابة صحيحة تولّع لمبة.</p>
+    <div class="leds" id="leds"></div>
+    <div class="bench">
+      <span class="muted" style="font-size:13px" id="gNo"></span>
+      <p class="q" id="gQ"></p>
+      <div class="chips" id="gOpts" style="justify-content:center;direction:ltr"></div>
+      <p class="narr" id="gNarr" style="margin-top:12px">اختاري إجابة.</p>
+      <div class="row" style="margin-top:12px;justify-content:center"><button class="btn go" id="gNext" type="button" disabled>الدائرة التالية</button><button class="btn" id="gReset" type="button">من جديد</button></div>
+    </div>
+  </section>
+
+  <!-- 6: quiz -->
+  <section class="card" id="s6" data-name="الاختبار">
+    <div class="head"><span class="chipno">6</span><div><span class="kicker">من «تأكد» في الكتاب</span><h2>اختبري نفسك</h2></div></div>
+    <div class="quiz" id="quiz"></div>
+    <p class="score" id="score"></p>
+  </section>
+
+  <!-- 7: summary -->
+  <section class="card" id="s7" data-name="الخلاصة">
+    <div class="head"><span class="chipno">✓</span><div><span class="kicker">قبل ما تطفّين الدائرة</span><h2>الخلاصة</h2></div></div>
+    <div class="cards3">
+      <div class="plate"><h3>نظرية الباقي</h3><p>باقي قسمة <span class="m"><i>P</i>(<i>x</i>)</span> على <span class="m"><i>x</i> − <i>r</i></span> يساوي <span class="m"><i>P</i>(<i>r</i>)</span>:<br><span class="m"><i>P</i>(<i>x</i>) = <i>Q</i>(<i>x</i>)·(<i>x</i> − <i>r</i>) + <i>P</i>(<i>r</i>)</span></p></div>
+      <div class="plate"><h3>التعويض التركيبي</h3><p>نوجد <span class="m"><i>f</i>(<i>r</i>)</span> بالقسمة التركيبية: نزّلي، اضربي في <span class="m"><i>r</i></span>، اجمعي. الحد الناقص صفر، وللقسمة على <span class="m"><i>x</i> + <i>a</i></span> نستعمل <span class="m">−<i>a</i></span>.</p></div>
+      <div class="plate"><h3>نظرية العوامل</h3><p><span class="m"><i>x</i> − <i>r</i></span> عامل ⇔ <span class="m"><i>P</i>(<i>r</i>) = 0</span>. ناتج القسمة أقل درجة بواحد، ونكمل تحليله لنلقى بقية العوامل.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* ---------- A tiny math renderer ----------
+   ^x or ^{..} power, @f{a}{b} fraction, @a{..} @b{..} @g{..} @v{..} @c{..} @y{..} colours, @t{..} Arabic words.
+   Latin letters in italics, "-" as a real minus. */
+function tex(src) {
+  let i = 0;
+  const atom = ch => /[a-zA-Z]/.test(ch) ? `<i>${ch}</i>` : ch === "-" ? "−" : esc(ch);
+  function group() {
+    if (src[i] === "{") { i++; return parse("}"); }
+    const m = /^\d+/.exec(src.slice(i));
+    if (m) { i += m[0].length; return m[0]; }
+    return atom(src[i++] || "");
+  }
+  function parse(stop) {
+    let out = "";
+    while (i < src.length) {
+      const ch = src[i];
+      if (stop && ch === stop) { i++; return out; }
+      if (ch === "^") { i++; out += `<sup>${group()}</sup>`; }
+      else if (ch === "@") {
+        const k = src[i + 1]; i += 2;
+        if (k === "f") { const a = group(), b = group(); out += `<span class="fr"><span>${a}</span><span>${b}</span></span>`; }
+        else if (k === "t") { i++; let u = ""; while (i < src.length && src[i] !== "}") u += src[i++]; i++; out += `<span class="ar">${esc(u)}</span>`; }
+        else out += `<span class="c${k}">${group()}</span>`;
+      }
+      else if (ch === "{") { i++; out += parse("}"); }
+      else { out += atom(ch); i++; }
+    }
+    return out;
+  }
+  return `<span class="m">${parse()}</span>`;
+}
+const T = s => String(s ?? "").replace(/\$([^$]+)\$/g, (_, m) => tex(m));
+
+/* ---------- Polynomials: coefficient arrays from the highest power down ---------- */
+const round = v => Math.round(v * 1e6) / 1e6;
+const num = v => { v = round(v); return Number.isInteger(v) ? String(v) : String(+v.toFixed(4)); };
+const numM = v => num(v).replace("-", "−");
+const evalP = (c, x) => c.reduce((s, a) => round(s * x + a), 0);
+function synth(c, r) {
+  const sums = [c[0]], prods = [null];
+  for (let k = 1; k < c.length; k++) { prods.push(round(sums[k - 1] * r)); sums.push(round(c[k] + prods[k])); }
+  return { sums, prods, rem: sums[sums.length - 1], quot: sums.slice(0, -1) };
+}
+// "3x^4 - 2x^3 + 5x + 2" for tex(); v is the variable.
+function polyTex(c, v = "x") {
+  const n = c.length - 1; let out = "";
+  c.forEach((a, k) => {
+    a = round(a); if (!a) return;
+    const p = n - k, abs = Math.abs(a), sign = a < 0 ? "-" : "+";
+    const coef = abs === 1 && p ? "" : num(abs);
+    const term = coef + (p ? v + (p > 1 ? "^" + p : "") : "");
+    out += out ? ` ${sign} ${term}` : (a < 0 ? "-" : "") + term;
+  });
+  return out || "0";
+}
+// The binomial x − r as text: x − 3, x + 2.
+const binTex = (r, v = "x") => r === 0 ? v : `${v} ${r < 0 ? "+" : "-"} ${num(Math.abs(r))}`;
+const paren = r => r < 0 ? `(${num(r)})` : num(r);
+
+/* ---------- A plot of a polynomial ---------- */
+function plotPoly(cv, c, { xr = [-5, 5], yr = null, mark = null, roots = [], dark = false } = {}) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.direction = "ltr"; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  if (!yr) {
+    const ys = []; for (let k = 0; k <= 200; k++) ys.push(evalP(c, xr[0] + (xr[1] - xr[0]) * k / 200));
+    ys.sort((a, b) => a - b);
+    let lo = Math.min(ys[10], 0), hi = Math.max(ys[190], 0); const pad = (hi - lo) * .12 || 1; yr = [lo - pad, hi + pad];
+  }
+  const X = x => (x - xr[0]) / (xr[1] - xr[0]) * W, Y = y => H - (y - yr[0]) / (yr[1] - yr[0]) * H;
+  const ink = dark ? "rgba(233,243,238,.85)" : css("--ink"), grid = dark ? "rgba(255,255,255,.08)" : css("--line");
+  g.lineWidth = 1; g.strokeStyle = grid;
+  for (let x = Math.ceil(xr[0]); x <= xr[1]; x++) { g.beginPath(); g.moveTo(X(x), 0); g.lineTo(X(x), H); g.stroke(); }
+  g.strokeStyle = ink; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.stroke();
+  if (xr[0] < 0 && xr[1] > 0) { g.beginPath(); g.moveTo(X(0), 0); g.lineTo(X(0), H); g.stroke(); }
+  g.fillStyle = ink; g.font = "12px 'Times New Roman', serif"; g.textAlign = "center";
+  for (let x = Math.ceil(xr[0]); x <= xr[1]; x++) if (x && (xr[1] - xr[0] <= 12 || x % 2 === 0)) g.fillText(String(x).replace("-", "−"), X(x), Math.min(H - 4, Y(0) + 15));
+  g.strokeStyle = dark ? "#f0a35e" : css("--signal"); g.lineWidth = 3; g.beginPath();
+  for (let k = 0; k <= 400; k++) { const x = xr[0] + (xr[1] - xr[0]) * k / 400, y = Y(evalP(c, x)); const yy = Math.max(-50, Math.min(H + 50, y)); k ? g.lineTo(X(x), yy) : g.moveTo(X(x), yy); }
+  g.stroke();
+  roots.forEach(r => { g.fillStyle = css("--led") || "#16a34a"; g.beginPath(); g.arc(X(r), Y(0), 7, 0, 7); g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); });
+  if (mark) {
+    const [mx, my] = mark, py = Math.max(8, Math.min(H - 8, Y(my)));
+    g.setLineDash([5, 5]); g.strokeStyle = dark ? "#f6c25c" : css("--copper"); g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(X(mx), Y(0)); g.lineTo(X(mx), py); g.stroke(); g.setLineDash([]);
+    g.fillStyle = my === 0 ? (css("--led") || "#16a34a") : (dark ? "#f6c25c" : css("--copper"));
+    g.beginPath(); g.arc(X(mx), py, 7, 0, 7); g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke();
+    g.font = "bold 14px 'Times New Roman', serif"; g.fillStyle = dark ? "#fff" : css("--ink");
+    g.textAlign = X(mx) > W - 90 ? "right" : "left";
+    g.fillText(`(${String(num(mx)).replace("-", "−")}, ${String(num(my)).replace("-", "−")})`, X(mx) + (g.textAlign === "left" ? 10 : -10), py + (my >= 0 ? -10 : 18));
+  }
+}
+const redraws = [];
+addEventListener("resize", () => redraws.forEach(f => f()));
+
+/* ---------- The circuit: synthetic substitution, step by step ----------
+   Columns of coefficients; the first sum comes straight down, then each column gets (previous sum × r) and adds.
+   The wires are drawn over the grid from the cells' positions. */
+function Circuit(el, { narr, count, next, all, reset, onDone } = {}) {
+  let c = [], r = 0, S = null, step = 0, last = 0;
+  const ids = k => ({ co: el.querySelector(`[data-co="${k}"]`), pr: el.querySelector(`[data-pr="${k}"]`), su: el.querySelector(`[data-su="${k}"]`) });
+  function build() {
+    const n = c.length;
+    el.style.gridTemplateColumns = `auto repeat(${n}, auto)`;
+    el.innerHTML = `<div class="rbox" style="grid-column:1"><div>${numM(r)}<small>r</small></div></div>`
+      + c.map((a, k) => `<div class="cell co${a === 0 ? " zero" : ""}" data-co="${k}" style="grid-row:1;grid-column:${k + 2}">${numM(a)}</div>`).join("")
+      + c.map((a, k) => `<div class="cell pr off" data-pr="${k}" style="grid-row:2;grid-column:${k + 2}">${k ? numM(S.prods[k]) : ""}</div>`).join("")
+      + `<div class="bar" style="grid-row:3;grid-column:2 / ${n + 2}"></div>`
+      + c.map((a, k) => `<div class="cell su off${k === n - 1 ? " rem" + (S.rem === 0 ? " zero" : "") : ""}" data-su="${k}" style="grid-row:4;grid-column:${k + 2}">${numM(S.sums[k])}</div>`).join("")
+      + `<svg class="wires" aria-hidden="true"></svg>`;
+  }
+  // The steps: 0 = the board, 1 = bring down the first coefficient, then two per column (multiply, add).
+  last = 0;
+  function render() {
+    const n = c.length; last = 1 + 2 * (n - 1);
+    for (let k = 0; k < n; k++) {
+      const { pr, su, co } = ids(k);
+      const prOn = k > 0 && step >= 2 * k, suOn = k === 0 ? step >= 1 : step >= 2 * k + 1;
+      pr.classList.toggle("off", !prOn); su.classList.toggle("off", !suOn);
+      [pr, su, co].forEach(x => x.classList.remove("cur"));
+    }
+    su0lit();
+    let txt = "";
+    if (step === 0) txt = `ركّبنا المعاملات من الأكبر للأصغر، و $r = ${num(r)}$ على اليسار.${c.includes(0) ? " الحد الناقص مكانه 0." : ""} اضغطي «الخطوة التالية».`;
+    else if (step === 1) { ids(0).su.classList.add("cur"); txt = `نزّلي المعامل الأول كما هو: $${num(c[0])}$.`; }
+    else {
+      const k = Math.ceil((step - 1) / 2);
+      if (step % 2 === 0) { ids(k).pr.classList.add("cur"); txt = `اضربي: $${paren(S.sums[k - 1])} × ${paren(r)} = ${num(S.prods[k])}$، واكتبيها تحت $${num(c[k])}$.`; }
+      else {
+        ids(k).su.classList.add("cur");
+        txt = `اجمعي: $${paren(c[k])} + ${paren(S.prods[k])} = ${num(S.sums[k])}$.`;
+        if (k === n - 1) txt += S.rem === 0 ? ` 💡 اللمبة خضراء: الباقي $0$، إذن $f(${num(r)}) = 0$ و $${binTex(r)}$ عامل!` : ` 💡 اللمبة تقرأ $${num(S.rem)}$: الباقي $= f(${num(r)}) = ${num(S.rem)}$.`;
+      }
+    }
+    if (narr) narr.innerHTML = T(txt);
+    if (count) count.textContent = `${step} / ${last}`;
+    if (next) next.disabled = step >= last;
+    if (all) all.disabled = step >= last;
+    wires();
+    if (step >= last && onDone) onDone(S, r, c);
+  }
+  function su0lit() { const rem = ids(c.length - 1).su; rem.classList.toggle("lit", step >= last); }
+  function wires() {
+    const svg = el.querySelector("svg.wires"); if (!svg) return;
+    const box = el.getBoundingClientRect(), P = (e, sx, sy) => { const b = e.getBoundingClientRect(); return [b.left - box.left + b.width * sx, b.top - box.top + b.height * sy]; };
+    let d = "", dc = "";
+    for (let k = 0; k < c.length; k++) {
+      const { co, pr, su } = ids(k);
+      if (k === 0 && step >= 1) { const a = P(co, .5, 1), b = P(su, .5, 0); const s = `M${a[0]} ${a[1] + 3} L${b[0]} ${b[1] - 3} `; step === 1 ? dc += s : d += s; }
+      if (k > 0 && step >= 2 * k) { const a = P(ids(k - 1).su, .9, .15), b = P(pr, .2, .85); const s = `M${a[0]} ${a[1]} L${b[0]} ${b[1]} `; step === 2 * k ? dc += s : d += s; }
+    }
+    svg.innerHTML = `<path d="${d}"/><path class="pulse" d="${dc}" style="stroke:var(--signal);stroke-width:3"/>`;
+  }
+  const api = {
+    load(cs, rr, { show = 0 } = {}) { c = cs.map(round); r = round(rr); S = synth(c, r); build(); step = 0; render(); if (show === "all") { step = last; render(); } return api; },
+    next() { if (step < last) { step++; render(); } },
+    all() { step = last; render(); },
+    reset() { step = 0; render(); },
+    get S() { return S; },
+    redraw: () => wires(),
+  };
+  if (next) next.onclick = api.next;
+  if (all) all.onclick = api.all;
+  if (reset) reset.onclick = api.reset;
+  redraws.push(() => wires());
+  return api;
+}
+
+function pickChips(el, items, label, onPick) {
+  el.innerHTML = items.map((it, k) => `<button type="button" class="chip" aria-pressed="${k === 0}">${label(it)}</button>`).join("");
+  [...el.children].forEach((b, k) => b.onclick = () => { [...el.children].forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(items[k], k); });
+  onPick(items[0], 0);
+}
+
+/* ---------- Stations ribbon and theme ---------- */
+const sections = $$("main > section");
+$("#stations").innerHTML = sections.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const links = $$("#stations a");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const k = sections.indexOf(e.target);
+  links.forEach((a, j) => { a.classList.toggle("on", j === k); a.classList.toggle("done", j < k); });
+  links[k].scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sections.forEach(s => io.observe(s));
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+  redraws.forEach(f => f());
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => redraws.forEach(f => f()));
+
+/* ---------- 0. The race: long division against direct substitution ---------- */
+{
+  const F = [-3, 5, 4];
+  const draw = () => {
+    const r = +$("#hr").value, S = synth(F, r), v = evalP(F, r);
+    $("#hrv").textContent = numM(r);
+    $("#hLong").innerHTML = T(`$(${polyTex(F)}) ÷ (${binTex(r)})$<br>الناتج $${polyTex(S.quot)}$<br>الباقي <b style="color:#f6c25c;font-size:20px">${numM(S.rem)}</b>`);
+    $("#hSub").innerHTML = T(`$f(${num(r)}) = -3(${num(r)})^2 + 5(${num(r)}) + 4$<br>$= ${num(-3 * r * r)} + ${paren(5 * r)} + 4$<br>$f(${num(r)}) =$ <b style="color:#f6c25c;font-size:20px">${numM(v)}</b>`);
+    $("#hMatch").innerHTML = T(v === 0 ? `الطريقتان أعطتا 0! الباقي صفر، يعني $${binTex(r)}$ تقسم الدالة بدون باقي.` : `نفس العدد في الطريقتين: الباقي $= f(${num(r)}) = ${num(v)}$. صدفة؟ جرّبي قيمة ثانية.`);
+    plotPoly($("#hPlot"), F, { xr: [-3.5, 4.5], yr: [-40, 10], mark: [r, v], dark: true });
+  };
+  $("#hr").oninput = draw; draw(); redraws.push(draw);
+}
+
+/* ---------- 1. The remainder theorem identity ---------- */
+{
+  const P = [1, 6, 2];
+  let r = 4, zero = false;
+  const draw = () => {
+    const S = synth(P, r), q = polyTex(S.quot), R = S.rem;
+    const xr = zero ? paren(r) : "x";
+    const left = zero ? `${num(r * r)} + ${paren(6 * r)} + 2` : polyTex(P);
+    $("#ident").className = "ident" + (zero ? " zero" : "");
+    $("#ident").innerHTML = `<div class="eq">${tex(`${left} =`)} <span class="part vanish">${tex(`(${zero ? `${num(r)} - ${paren(r)}` : binTex(r)})(${zero ? polyTex(S.quot).replace(/x/g, paren(r)) : q})`)}</span> ${tex("+")} <span class="part stay">${tex(`@y{${num(R)}}`)}</span></div>
+      <div class="labels"><span>المقسوم</span><span>(المقسوم عليه) × (ناتج القسمة)</span><span>الباقي</span></div>`;
+    $("#idNarr").innerHTML = T(zero
+      ? `لما $x = ${num(r)}$ يصير القوس $(${num(r)} - ${paren(r)}) = 0$، فحاصل الضرب كله يختفي ويبقى الباقي وحده: $P(${num(r)}) = ${num(R)}$. هذي هي نظرية الباقي.`
+      : `قسمنا على $${binTex(r)}$ فطلع الناتج $${q}$ والباقي $${num(R)}$. ${xr === "x" ? "الآن عوّضي $x$ بالعدد $" + num(r) + "$." : ""}`);
+    $("#idZero").disabled = zero; $("#idBack").disabled = !zero;
+  };
+  pickChips($("#idPick"), [4, -1, 2, -3, 1], v => tex(`r = ${num(v)}`) + (v === 4 ? "<small>مثال الكتاب</small>" : ""), v => { r = v; zero = false; draw(); });
+  $("#idZero").onclick = () => { zero = true; draw(); };
+  $("#idBack").onclick = () => { zero = false; draw(); };
+}
+
+/* ---------- 2. The circuit with the book's examples ---------- */
+{
+  const ck = Circuit($("#ck"), { narr: $("#ckNarr"), count: $("#ckCount"), next: $("#ckNext"), all: $("#ckAll"), reset: $("#ckReset") });
+  const check = (c, r) => {
+    const n = c.length - 1, terms = [], vals = [];
+    c.forEach((a, k) => { if (!a) return; const p = n - k; terms.push(`${terms.length && a > 0 ? "+ " : ""}${a < 0 ? "- " : ""}${Math.abs(a) === 1 && p ? "" : num(Math.abs(a))}${p ? `(${num(r)})` + (p > 1 ? "^" + p : "") : ""}`); vals.push(round(a * r ** p)); });
+    $("#ckCheck").innerHTML = [
+      [polyTex(c).replace(/^/, "f(x) = "), "الدالة الأصلية"],
+      [`f(${num(r)}) = ${terms.join(" ")}`, `عوّضي العدد ${num(r)} بدلًا من x`],
+      [`= ${vals.map((v, k) => k ? (v < 0 ? `- ${num(-v)}` : `+ ${num(v)}`) : num(v)).join(" ")} = ${num(evalP(c, r))}`, "بسّطي"],
+    ].map(([m, w]) => `<div class="ln"><div class="lm">${tex(m)}</div><div class="lw">${esc(w)}</div></div>`).join("");
+  };
+  const show = (c, r, name) => { $("#ckTitle").innerHTML = T(`$f(x) = ${polyTex(c)}$ ، أوجدي $f(${num(r)})$${name ? ` <span class="muted" style="font-size:13px">(${name})</span>` : ""}`); ck.load(c, r); check(c, r); };
+  const items = [
+    { c: [3, -2, 0, 5, 2], r: 4, name: "مثال 1" },
+    { c: [3, -6, 1, -11], r: 3, name: "تحقق 1A" },
+    { c: [4, 0, 2, 0, 1, -1], r: -1, name: "تحقق 1B" },
+    { custom: true },
+  ];
+  pickChips($("#ckPick"), items, it => it.custom ? "دائرتك أنتِ ✎" : `${tex(`f(${num(it.r)})`)}<small>${it.name}</small>`, it => {
+    $("#ckCustom").hidden = !it.custom;
+    if (it.custom) $("#ckGo").click(); else show(it.c, it.r, it.name);
+  });
+  $("#ckGo").onclick = () => {
+    const toN = s => Number(String(s).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[−–]/g, "-").replace("٫", ".").trim());
+    const c = $("#ckCo").value.split(/[,،\s]+/).filter(Boolean).map(toN), r = toN($("#ckR").value);
+    if (c.length < 2 || c.length > 8 || c.some(v => !Number.isFinite(v)) || !Number.isFinite(r)) { $("#ckErr").textContent = "اكتبي من 2 إلى 8 معاملات أرقامًا تفصلها فواصل، وقيمة r رقمًا."; return; }
+    if (c[0] === 0) { $("#ckErr").textContent = "المعامل الأول ما يكون صفرًا."; return; }
+    if (Math.abs(r) > 50) { $("#ckErr").textContent = "خلّي r بين −50 و 50."; return; }
+    $("#ckErr").textContent = ""; show(c, r, "");
+  };
+}
+
+/* ---------- 3. Real-life values ---------- */
+{
+  const rl = Circuit($("#rl"));
+  const items = [
+    { name: "أرباح البقالة · مثال 2", c: [0.02, -0.52, 4.03, 0.09, 77.54], base: 1420, y: 1440, min: 1421, max: 1445,
+      story: "$S(x) = 0.02x^4 - 0.52x^3 + 4.03x^2 + 0.09x + 77.54$ تقدّر أرباح بقالة بمئات الريالات، و $x$ عدد السنوات منذ 1420 هـ.",
+      out: (v, x, y) => `في ${y} هـ: $x = ${x}$، واللمبة تقرأ $S(${x}) ≈ ${num(+v.toFixed(2))}$ مئة ريال، يعني الأرباح تقريبًا <b>${Math.round(v * 100).toLocaleString("ar-SA-u-nu-latn")} ريال</b>.` },
+    { name: "طالبات المدارس · تحقق 2", c: [2.4, -22.3, 53.8, 548.2], base: 1427, y: 1442, min: 1428, max: 1447,
+      story: "$C(x) = 2.4x^3 - 22.3x^2 + 53.8x + 548.2$ تقدّر عدد الطلاب في منطقة بالعشرات، و $x$ عدد السنوات منذ 1427 هـ.",
+      out: (v, x, y) => `في ${y} هـ: $x = ${x}$، و $C(${x}) ≈ ${num(+v.toFixed(1))}$ عشرة، يعني تقريبًا <b>${Math.round(v * 10).toLocaleString("ar-SA-u-nu-latn")} طالب</b>.` },
+    { name: "أزواج النسور · تأكد 3", c: [-0.16, 15.83, -154.15, 1147.97], base: 1390, y: 1443, min: 1395, max: 1450,
+      story: "$P(x) = -0.16x^3 + 15.83x^2 - 154.15x + 1147.97$ عدد أزواج النسور في محمية، و $x$ عدد السنوات منذ 1390 هـ.",
+      out: (v, x, y) => `في ${y} هـ: $x = ${x}$، و $P(${x}) ≈ ${num(+v.toFixed(2))}$، يعني تقريبًا <b>${Math.round(v).toLocaleString("ar-SA-u-nu-latn")} زوجًا</b>.` },
+  ];
+  let it = items[0];
+  const draw = () => {
+    const y = +$("#rlY").value, x = y - it.base; $("#rlYv").textContent = y;
+    rl.load(it.c, x, { show: "all" });
+    $("#rlOut").innerHTML = T(it.out(rl.S.rem, x, y));
+  };
+  pickChips($("#rlPick"), items, i => esc(i.name), i => {
+    it = i; const s = $("#rlY"); s.min = i.min; s.max = i.max; s.value = i.y;
+    $("#rlStory").innerHTML = T(i.story); draw();
+  });
+  $("#rlY").oninput = draw;
+}
+
+/* ---------- 4. The factor detector ---------- */
+{
+  const fd = Circuit($("#fd"), { narr: $("#fdNarr") });
+  const divisors = n => { n = Math.abs(n); const d = []; for (let k = 1; k <= n; k++) if (n % k === 0) d.push(k); return d.flatMap(k => [k, -k]); };
+  const items = [
+    { c: [1, -7, 7, 15], name: "مثال 3", full: "(x - 5)(x + 1)(x - 3)" },
+    { c: [1, -7, 4, 12], name: "تحقق 3", full: "(x - 2)(x - 6)(x + 1)" },
+    { c: [1, 1, -16, -16], name: "تأكد 5", full: "(x + 1)(x - 4)(x + 4)" },
+    { c: [1, -6, 11, -6], name: "تأكد 4", full: "(x - 1)(x - 2)(x - 3)" },
+    { c: [1, 0, -3, 2], name: "تمرين 17", full: "(x + 2)(x - 1)^2", note: "العامل $x - 1$ مكرر مرتين: المنحنى يلمس المحور عند 1 بدون ما يقطعه." },
+  ];
+  let P = null, found = [];
+  function draw() {
+    plotPoly($("#fdPlot"), P.c, { xr: [-6, 7], roots: found });
+  }
+  function probe(btn, r) {
+    fd.load(P.c, r, { show: "all" });
+    const v = fd.S.rem;
+    btn.querySelector(".v").textContent = v === 0 ? "صفر ✓" : numM(v);
+    btn.classList.add(v === 0 ? "hit" : "miss");
+    if (v === 0 && !found.includes(r)) {
+      found.push(r);
+      $("#tray").insertAdjacentHTML("beforeend", `<span class="fac">${tex(`(${binTex(r)})`)}</span>`);
+      // The quotient is one degree lower: once it is a quadratic, the rest is factored as in the book.
+      if (P.c.length === 4) {
+        const q = fd.S.quot;
+        $("#fdNarr").innerHTML += " " + T(`ناتج القسمة $${polyTex(q)}$ أقل درجة بواحد.`);
+      }
+    }
+    const allRoots = new Set(P.roots);
+    if ([...allRoots].every(x => found.includes(x))) {
+      $("#fdDone").hidden = false;
+      $("#fdDone").innerHTML = T(`🎉 لقيتي كل العوامل: $${polyTex(P.c)} = ${P.full}$${P.note ? "<br>" + P.note : ""}`);
+    }
+    draw();
+  }
+  pickChips($("#fdPick"), items, i => `${tex(polyTex(i.c))}<small>${i.name}</small>`, i => {
+    P = i; P.roots = [...new Set(divisors(i.c[3]).filter(r => evalP(i.c, r) === 0))]; found = [];
+    $("#fdTitle").innerHTML = T(`$P(x) = ${polyTex(i.c)}$ <span class="muted" style="font-size:13px">قواسم الحد الثابت $${num(i.c[3])}$:</span>`);
+    const cands = divisors(i.c[3]).sort((a, b) => Math.abs(a) - Math.abs(b) || b - a);
+    $("#probes").innerHTML = cands.map(r => `<button type="button" class="probe" data-r="${r}">${numM(r)}<span class="v">؟</span></button>`).join("");
+    $$("#probes .probe").forEach(b => b.onclick = () => probe(b, +b.dataset.r));
+    $("#tray").innerHTML = ""; $("#fdDone").hidden = true;
+    fd.load(i.c, cands[0]); $("#fdNarr").innerHTML = T("اضغطي قيمة من قيم $r$ فوق: الدائرة تحسب الباقي، والصفر يعني عاملًا.");
+    draw();
+  });
+  redraws.push(draw);
+}
+
+/* ---------- 5. Repair shop ---------- */
+{
+  // Book exercises: find the lamp reading f(r) for the binomial, or the missing k.
+  const ROUNDS = [
+    { q: "$f(x) = x^2 - 8x + 6$ ، أوجدي $f(2)$", ref: "تمرين 9", a: "-6", w: ["6", "-14", "26"], why: "$4 - 16 + 6 = -6$" },
+    { q: "$f(x) = x^3 + 2x^2 - 3x + 1$ ، أوجدي $f(-5)$", ref: "تمرين 8", a: "-59", w: ["171", "-49", "59"], why: "الدائرة: $1, -3, 12, -59$" },
+    { q: "$f(x) = x^4 - 6x - 8$ ، أوجدي $f(2)$", ref: "تمرين 15", a: "-4", w: ["4", "-20", "0"], why: "المعاملات $1, 0, 0, -6, -8$ (حدّان ناقصان): $1, 2, 4, 2, -4$" },
+    { q: "هل $x + 2$ عامل من عوامل $x^3 - x^2 - 10x - 8$؟ ما قراءة اللمبة؟", ref: "تمرين 19", a: "0", w: ["-16", "8", "-8"], why: "$r = -2$: $1, -3, -4, 0$، إذن عامل، والناتج $x^2 - 3x - 4 = (x - 4)(x + 1)$." },
+    { q: "هل $x - 3$ عامل من عوامل $x^3 - x^2 - 5x - 3$؟ ما قراءة اللمبة؟", ref: "تمرين 20", a: "0", w: ["-6", "6", "24"], why: "$r = 3$: $1, 2, 1, 0$، والناتج $x^2 + 2x + 1 = (x + 1)^2$." },
+    { q: "هل $x - 1$ عامل من عوامل $2x^3 + 17x^2 + 23x - 42$؟", ref: "تمرين 21", a: "0", w: ["84", "-42", "1"], why: "$2 + 17 + 23 - 42 = 0$، والناتج $2x^2 + 19x + 42 = (2x + 7)(x + 6)$." },
+    { q: "أوجدي $k$ اللي تخلي باقي $(x^2 - x + k) ÷ (x - 1)$ يساوي 3", ref: "تمرين 31", a: "3", w: ["1", "-3", "2"], why: "الباقي $= f(1) = 1 - 1 + k = k$، فـ $k = 3$." },
+    { q: "أوجدي $k$ اللي تخلي باقي $(x^2 + kx - 17) ÷ (x - 2)$ يساوي 3", ref: "تمرين 32", a: "8", w: ["10", "-8", "4"], why: "$f(2) = 4 + 2k - 17 = 3$ ← $2k = 16$ ← $k = 8$." },
+  ];
+  let i = 0, got = [];
+  $("#leds").innerHTML = ROUNDS.map(() => "<i></i>").join("");
+  function show() {
+    const R = ROUNDS[i];
+    $("#gNo").textContent = `الدائرة ${i + 1} من ${ROUNDS.length} · ${R.ref}`;
+    $("#gQ").innerHTML = T(R.q);
+    $("#gOpts").innerHTML = shuffle([R.a, ...R.w]).map(v => `<button type="button" class="pick" data-v="${v}">${tex(v)}</button>`).join("");
+    $("#gNarr").textContent = "اختاري إجابة."; $("#gNext").disabled = true;
+    $$("#gOpts .pick").forEach(b => b.onclick = () => {
+      const ok = b.dataset.v === R.a;
+      $$("#gOpts .pick").forEach(x => { x.disabled = true; if (x.dataset.v === R.a) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      got[i] = ok; $("#leds").children[i].className = ok ? "on" : "bad";
+      $("#gNarr").innerHTML = (ok ? "✔ صح. " : "✘ راجعيها: ") + T(R.why);
+      $("#gNext").disabled = false;
+      if (i === ROUNDS.length - 1) { $("#gNext").disabled = true; const s = got.filter(Boolean).length; $("#gNarr").innerHTML += `<br><b>صلّحتي ${s} من ${ROUNDS.length} دوائر${s === ROUNDS.length ? " 💡 كل اللمبات شغّالة!" : ""}</b>`; }
+    });
+  }
+  $("#gNext").onclick = () => { if (i < ROUNDS.length - 1) { i++; show(); } };
+  $("#gReset").onclick = () => { i = 0; got = []; [...$("#leds").children].forEach(x => x.className = ""); show(); };
+  show();
+}
+
+/* ---------- 6. Quiz from «تأكد» ----------
+   In the book's order; each card is numbered by its place here (q), which is what the teacher's sheet shows. */
+const QUIZ = [
+  { q: "إذا كان $f(x) = 2x^3 - 5x^2 - x + 14$ ، فأوجدي $f(4)$ باستعمال التعويض التركيبي.", ref: "تأكد 1", opts: ["58", "-20", "14", "62"],
+    why: "الدائرة بـ $r = 4$: $2, 3, 11, 58$، فالباقي $f(4) = 58$." },
+  { q: "إذا كان $f(x) = x^4 + 8x^3 + x^2 - 4x - 10$ ، فأوجدي $f(-2)$.", ref: "تأكد 2", opts: ["-46", "758", "-26", "46"],
+    why: "بـ $r = -2$: $1, 6, -11, 18, -46$، إذن $f(-2) = -46$." },
+  { q: "عدد أزواج النسور $P(x) = -0.16x^3 + 15.83x^2 - 154.15x + 1147.97$ حيث $x$ عدد السنوات منذ 1390 هـ. ما العدد التقريبي في 1443 هـ؟", ref: "تأكد 3", opts: ["13624", "1148", "53", "11364"],
+    why: "$x = 1443 - 1390 = 53$، والتعويض التركيبي يعطي $P(53) ≈ 13624.17$." },
+  { q: "$x - 1$ عامل من عوامل $x^3 - 6x^2 + 11x - 6$. ما العوامل الأخرى؟", ref: "تأكد 4", opts: ["(x - 2)(x - 3)", "(x + 2)(x + 3)", "(x - 1)(x - 6)", "(x + 1)(x - 6)"],
+    why: "الدائرة بـ $r = 1$: $1, -5, 6, 0$، والناتج $x^2 - 5x + 6 = (x - 2)(x - 3)$." },
+  { q: "$x - 1$ عامل من عوامل $3x^3 + 10x^2 - x - 12$. ما العوامل الأخرى؟", ref: "تأكد 6", opts: ["(3x + 4)(x + 3)", "(3x - 4)(x - 3)", "(3x + 2)(x + 6)", "(x + 4)(3x + 3)"],
+    why: "بـ $r = 1$: $3, 13, 12, 0$، والناتج $3x^2 + 13x + 12 = (3x + 4)(x + 3)$." },
+  { q: "هل $x + 3$ عامل من عوامل $2x^3 - 5x^2 - 28x + 15$؟ وما العوامل الأخرى؟", ref: "تأكد 7", opts: ["@t{نعم،} (2x - 1)(x - 5)", "@t{نعم،} (2x + 1)(x + 5)", "@t{لا، الباقي} 30", "@t{نعم،} (x - 1)(2x - 5)"],
+    why: "$r = -3$: $2, -11, 5, 0$، الباقي صفر فهو عامل، والناتج $2x^2 - 11x + 5 = (2x - 1)(x - 5)$." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => {
+    const opts = shuffle(it.opts.map((o, j) => ({ h: o.startsWith("@t{") ? T(o.replace(/@t\{([^}]*)\}\s*(.*)/, (_, a, b) => `${a} $${b}$`)) : tex(o), ok: j === 0 })));
+    return `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}) ${T(it.q)} <span class="muted" style="font-size:13px">(${it.ref})</span></p>
+      <div class="opts">${opts.map((o, j) => `<button type="button" class="opt" data-ok="${o.ok}"><b>${"أبجد"[j]}</b>${o.h}</button>`).join("")}</div><p class="why" hidden></p></div>`;
+  }).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return;
+  card.dataset.done = 1; answered++;
+  const ok = b.dataset.ok === "true"; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, card.querySelector(".qq"), b, card.querySelector('.opt[data-ok="true"]'));
+  card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = card.querySelector(".why"); why.hidden = false;
+  why.innerHTML = `${ok ? `<span class="tagok">صحيح</span>` : `<span class="tagno">راجعي</span>`} ${T(QUIZ[+card.dataset.k].why)}`;
+  $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "💡 كل اللمبات خضراء!" : ""} <button class="btn" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("remainder-factor", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>

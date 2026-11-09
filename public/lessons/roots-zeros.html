@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>غوص اللؤلؤ</title>
+<meta name="description" content="درس تفاعلي: الجذور والأصفار، رياضيات 2، الدرس 3-8">
+<meta name="theme-color" content="#0b3d55">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* «غوص اللؤلؤ»: lesson 3-8 told as a pearl dive in the Gulf. The x-axis is the sea surface: every place the curve
+   crosses it is a pearl you can see (a real zero), and the imaginary zeros are pearls hidden in a shell that always
+   come as twins (conjugates). Stations: the four equivalent statements, how many pearls (the fundamental theorem),
+   counting waves (Descartes' rule of signs), the twin pearls and building a polynomial from its zeros, a diving game,
+   the quiz and the summary. */
+:root {
+  --bg: #eef3f4;
+  --panel: #fcfdfd;
+  --panel-2: #f1f6f7;
+  --ink: #142630;
+  --muted: #546973;
+  --line: #d1dde1;
+  --sea: #0b6e99;
+  --sea-soft: #dbeef6;
+  --sand: #a8720f;
+  --sand-soft: #f6ead0;
+  --kelp: #0f7b6c;
+  --kelp-soft: #d4f0ea;
+  --coral: #d9480f;
+  --coral-soft: #fbe2d6;
+  --shell: #7048c4;
+  --shell-soft: #ebe3fa;
+  --rose: #c0334c;
+  --rose-soft: #f8dde2;
+  --deep: linear-gradient(180deg, #0f4c6b 0%, #0b3d55 45%, #072a3c 100%);
+  --shadow: 0 1px 1px rgba(15, 40, 55, .08), 0 14px 34px -16px rgba(15, 40, 55, .4);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1419; --panel: #12202a; --panel-2: #182a35; --ink: #e5f0f4; --muted: #9bb2bd; --line: #2a3d49;
+    --sea: #6cc4ea; --sea-soft: #13324a; --sand: #e8bd62; --sand-soft: #3a2e16; --kelp: #5fd0bd; --kelp-soft: #123a34;
+    --coral: #ff9a66; --coral-soft: #3e2116; --shell: #b9a3f6; --shell-soft: #2b2447; --rose: #f2879c; --rose-soft: #431f29;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1419; --panel: #12202a; --panel-2: #182a35; --ink: #e5f0f4; --muted: #9bb2bd; --line: #2a3d49;
+  --sea: #6cc4ea; --sea-soft: #13324a; --sand: #e8bd62; --sand-soft: #3a2e16; --kelp: #5fd0bd; --kelp-soft: #123a34;
+  --coral: #ff9a66; --coral-soft: #3e2116; --shell: #b9a3f6; --shell-soft: #2b2447; --rose: #f2879c; --rose-soft: #431f29;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; }
+p { margin: 0; }
+a { color: var(--sea); }
+.muted { color: var(--muted); }
+svg { direction: ltr; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.12em; white-space: nowrap; line-height: 1.45; }
+.m i { font-style: italic; }
+.m .m { font-size: 1em; }
+.m sup { font-size: .68em; vertical-align: .62em; line-height: 0; font-style: normal; }
+.m .ar { font-family: var(--font); font-size: .86em; font-style: normal; padding: 0 .3em; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.15; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 .2em .05em; }
+.fr > span:last-child { padding: .05em .2em 0; }
+.sq { white-space: nowrap; }
+.sq > span { border-top: 1.4px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.ca { color: var(--sand); font-weight: 600; } .cb { color: var(--sea); font-weight: 600; } .cg { color: var(--kelp); font-weight: 600; }
+.cv { color: var(--shell); font-weight: 600; } .cr { color: var(--rose); font-weight: 600; } .cc { color: var(--coral); font-weight: 600; }
+
+/* Layout */
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+.ribbon { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.ribbon-in { max-width: 980px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+.ribbon b { font-size: 14px; white-space: nowrap; }
+.stations { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+.stations::-webkit-scrollbar { display: none; }
+.stations a { flex: none; text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px 10px; transition: all .2s; white-space: nowrap; }
+.stations a.on { color: #fff; background: var(--sea); border-color: var(--sea); }
+:root[data-theme="dark"] .stations a.on { color: #0a1419; }
+.stations a.done { color: var(--kelp); border-color: var(--kelp); }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Cards with a wave along the top */
+.card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 30px 28px 26px; margin: 34px 0 0; scroll-margin-top: 70px; overflow: hidden; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 10px; opacity: .55;
+  background: radial-gradient(circle at 10px -4px, transparent 9px, var(--sea) 9.5px, var(--sea) 11px, transparent 11.5px) 0 0 / 20px 10px repeat-x; }
+.card > * { position: relative; z-index: 1; }
+.head { display: flex; gap: 14px; align-items: center; }
+.pearl { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #3b3326;
+  background: radial-gradient(circle at 35% 30%, #fff 0 12%, #f7f1e6 30%, #e6dccb 70%, #cbbfa9 100%); box-shadow: 0 4px 10px -3px rgba(0, 0, 0, .35), inset 0 -3px 6px rgba(0, 0, 0, .12); }
+.kicker { font-size: 13px; font-weight: 700; color: var(--sea); }
+h2 { margin: 0; font-size: clamp(23px, 4.2vw, 31px); line-height: 1.35; }
+.lead { color: var(--muted); max-width: 68ch; margin-top: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.btn { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 7px 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: transform .1s, background .2s, border-color .2s; }
+.btn:hover:not(:disabled) { border-color: var(--sea); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.go { background: var(--sea); border-color: var(--sea); color: #fff; }
+.btn.sa { background: var(--sand); border-color: var(--sand); color: #fff; }
+:root[data-theme="dark"] .btn.go, :root[data-theme="dark"] .btn.sa { color: #0a1419; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.go, :root:not([data-theme="light"]) .btn.sa, :root:not([data-theme="light"]) .stations a.on { color: #0a1419; } }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 3px 12px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.chip[aria-pressed="true"] { border-color: var(--sea); background: var(--sea-soft); }
+.chip .m { font-size: 1.05em; }
+.chip small { color: var(--muted); font-size: 11.5px; margin-inline-start: 4px; }
+.narr { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 15.5px; min-height: 3.2em; }
+.narr .m { white-space: normal; }
+.note { background: var(--sea-soft); border-radius: 14px; padding: 12px 16px; border-inline-start: 5px solid var(--sea); }
+.note.sa { background: var(--sand-soft); border-color: var(--sand); }
+.note.ok { background: var(--kelp-soft); border-color: var(--kelp); }
+.note .m { white-space: normal; }
+.custom { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 15px; }
+.custom input { font: 600 16px var(--font); text-align: center; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--ink); direction: ltr; }
+.err { color: var(--rose); font-size: 14px; font-weight: 600; min-height: 1.3em; }
+
+/* Hero: sky over the sea */
+.hero { background: var(--deep); color: #e6f3f8; border: 0; }
+.hero::before { display: none; }
+.hero .logos { display: flex; gap: 10px; }
+.hero .logos img { height: 46px; background: #fff; border-radius: 10px; padding: 4px 8px; }
+.hero h1 { font-size: clamp(32px, 7vw, 54px); margin: 12px 0 0; line-height: 1.2; }
+.hero h1 span { color: #f3e3c3; text-shadow: 0 0 18px rgba(255, 240, 210, .45); }
+.hero .sub { color: #a9cbd9; font-weight: 600; }
+.hero .lead { color: #cfe5ee; }
+.hero .bubbles { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.hero .bubbles i { position: absolute; bottom: -20px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .45); animation: up 9s linear infinite; }
+@keyframes up { to { transform: translateY(-640px) translateX(20px); opacity: 0; } }
+.hero-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; margin-top: 16px; align-items: start; }
+.pearlbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; direction: ltr; margin-top: 10px; }
+.pb { border: 0; cursor: pointer; border-radius: 999px; padding: 4px 14px 4px 6px; display: inline-flex; gap: 8px; align-items: center; background: rgba(255, 255, 255, .1); color: #fff; font: 700 16px "Times New Roman", serif; transition: all .2s; }
+.pb::before { content: ""; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 15%, #f1e8d8 45%, #c8baa1 100%); }
+.pb[aria-pressed="true"] { background: rgba(243, 227, 195, .3); box-shadow: 0 0 0 2px #f3e3c3; }
+.equiv { display: flex; flex-direction: column; gap: 8px; }
+.eq4 { background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .16); border-radius: 12px; padding: 8px 12px; font-size: 15px; transition: background .3s; }
+.eq4 b { color: #f3e3c3; }
+.eq4.on { animation: glow .9s both; }
+@keyframes glow { 0% { background: rgba(243, 227, 195, .35); } 100% { background: rgba(255, 255, 255, .07); } }
+.hero canvas.sea { border-color: rgba(255, 255, 255, .18); }
+
+/* Sea plot */
+canvas.sea { width: 100%; height: 260px; display: block; border-radius: 16px; border: 1.5px solid var(--line); }
+
+/* Pearl counter */
+.count-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; margin-top: 12px; }
+.tally { flex: 1; min-width: 200px; border-radius: 14px; padding: 10px 14px; border: 1.5px solid var(--line); background: var(--panel-2); }
+.tally h4 { margin: 0 0 6px; font-size: 13.5px; }
+.tally .pp { display: flex; gap: 8px; flex-wrap: wrap; direction: ltr; }
+.pp span { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px 2px 4px; font: 600 16px "Times New Roman", serif; animation: pop .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.pp span::before { content: ""; width: 18px; height: 18px; border-radius: 50%; flex: none; }
+.pp .real { background: var(--sea-soft); }
+.pp .real::before { background: radial-gradient(circle at 35% 30%, #fff 0 15%, #f1e8d8 45%, #c8baa1 100%); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.pp .imag { background: var(--shell-soft); color: var(--shell); }
+.pp .imag::before { background: radial-gradient(circle at 35% 30%, #fff 0 15%, #e5dcff 45%, #a58be6 100%); }
+@keyframes pop { from { transform: scale(1.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.degree { text-align: center; font-weight: 700; font-size: 17px; margin-top: 10px; }
+
+/* Book-style working */
+.steps { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ln { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 200px); gap: 12px; align-items: center; padding: 6px 10px; border-radius: 10px; }
+.ln .lm { overflow-x: auto; overflow-y: hidden; padding: 2px 0; text-align: left; direction: ltr; scrollbar-width: thin; }
+.ln .lw { color: var(--sea); font-size: 13.5px; font-weight: 600; }
+.ln.cur { background: var(--sand-soft); animation: rise .4s both; }
+.ln.cur .lw { color: var(--sand); }
+@keyframes rise { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.ctrl .count { margin-inline-start: auto; color: var(--muted); font-size: 13px; font-weight: 600; }
+
+/* Descartes: waves between signs */
+.wave-row { direction: ltr; display: flex; align-items: flex-end; flex-wrap: nowrap; overflow-x: auto; gap: 0; padding: 4px 4px 8px; margin-top: 10px; justify-content: center; }
+.term { display: flex; flex-direction: column; align-items: center; min-width: 54px; }
+.term .tt { font: 18px "Times New Roman", serif; padding: 0 4px; white-space: nowrap; }
+.term .tt i { font-style: italic; }
+.term .sg { font: 700 15px var(--font); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; margin-top: 4px; }
+.sg.p { background: var(--sea-soft); color: var(--sea); } .sg.n { background: var(--coral-soft); color: var(--coral); }
+.gap { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 36px; padding-bottom: 2px; }
+.gap svg { width: 40px; height: 22px; }
+.gap svg path { fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.gap .yes path { stroke: var(--coral); } .gap .no path { stroke: var(--line); }
+.gap small { font-size: 11px; font-weight: 700; }
+.gap .yes + small { color: var(--coral); } .gap .no + small { color: var(--muted); }
+.wave-sum { text-align: center; font-weight: 700; margin-top: 4px; }
+.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; text-align: center; }
+.tbl th, .tbl td { border: 1.5px solid var(--line); padding: 6px 8px; }
+.tbl th { background: var(--sea-soft); font-size: 13.5px; }
+.tbl td { font: 600 17px "Times New Roman", serif; }
+.tbl tr.hl td { background: var(--sand-soft); }
+.coefs { display: flex; gap: 6px; flex-wrap: wrap; direction: ltr; justify-content: center; align-items: center; margin-top: 10px; }
+.coefs input { width: 3.4em; font: 600 16px var(--font); text-align: center; padding: 3px 4px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--ink); }
+.coefs span { font: 16px "Times New Roman", serif; }
+
+/* Twin pearls builder */
+.twins { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: center; margin-top: 12px; }
+.argand { width: 100%; aspect-ratio: 1; border-radius: 16px; border: 1.5px solid var(--line); background: var(--panel-2); }
+.argand text { font-family: var(--font); fill: var(--muted); }
+.zchips { display: flex; gap: 6px; flex-wrap: wrap; direction: ltr; }
+.zchips span { border-radius: 999px; padding: 2px 6px 2px 12px; font: 600 16px "Times New Roman", serif; display: inline-flex; align-items: center; gap: 4px; background: var(--sea-soft); animation: pop .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.zchips span.cx { background: var(--shell-soft); color: var(--shell); }
+.zchips span.twin { animation-delay: .25s; }
+.zchips button { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 14px; padding: 0 4px; }
+.poly-out { font-size: 20px; text-align: center; padding: 12px; border-radius: 14px; background: var(--panel-2); border: 1.5px solid var(--line); overflow-x: auto; }
+
+/* Dive game */
+.necklace { display: flex; gap: 6px; justify-content: center; margin: 4px 0 10px; }
+.necklace i { width: 20px; height: 20px; border-radius: 50%; background: var(--line); transition: all .3s; }
+.necklace i.on { background: radial-gradient(circle at 35% 30%, #fff 0 15%, #f1e8d8 45%, #c8baa1 100%); box-shadow: 0 1px 6px rgba(168, 114, 15, .6); }
+.necklace i.bad { background: var(--rose-soft); border: 2px solid var(--rose); }
+.dive { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; }
+.trip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.trip button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 6px 10px; cursor: pointer; font-size: 14.5px; text-align: start; }
+.trip button b { font: 700 17px "Times New Roman", serif; }
+.trip button.right { border-color: var(--kelp); background: var(--kelp-soft); }
+.trip button.wrong { border-color: var(--rose); background: var(--rose-soft); }
+.trip button:disabled { cursor: default; }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.qcard { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel-2); }
+.qcard .qq { font-weight: 600; margin-bottom: 8px; }
+.qcard .qq .m { white-space: normal; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opt { text-align: start; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); padding: 8px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: all .15s; overflow-x: auto; }
+.opt b { color: var(--muted); flex: none; }
+.opt:hover:not(:disabled) { border-color: var(--sea); }
+.opt.right { border-color: var(--kelp); background: var(--kelp-soft); }
+.opt.wrong { border-color: var(--rose); background: var(--rose-soft); }
+.opt:disabled { cursor: default; }
+.why { margin-top: 8px; font-size: 14.5px; }
+.why .m { white-space: normal; }
+.tagok { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--kelp); color: #fff; }
+.tagno { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--rose); color: #fff; }
+.score { text-align: center; font-size: 20px; font-weight: 700; margin-top: 14px; }
+
+/* Summary */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.plate { background: var(--panel-2); border-radius: 14px; padding: 14px; border: 1.5px solid var(--line); border-top: 5px solid var(--sea); }
+.plate:nth-child(2) { border-top-color: var(--coral); } .plate:nth-child(3) { border-top-color: var(--shell); }
+.plate h3 { margin: 0 0 6px; font-size: 17px; }
+.plate .m { white-space: normal; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 760px) {
+  .card { padding: 26px 16px 20px; border-radius: 18px; }
+  .grid2, .cards3, .hero-grid, .twins { grid-template-columns: 1fr; }
+  .twins .argand { max-width: 240px; margin: 0 auto; }
+  .opts, .trip { grid-template-columns: minmax(0, 1fr); }
+  .ln { grid-template-columns: 1fr; gap: 0; }
+  .ln .lw { font-size: 12.5px; }
+  .ribbon b { display: none; }
+  canvas.sea { height: 230px; }
+  .term { min-width: 44px; } .term .tt { font-size: 16px; } .gap { min-width: 28px; } .gap svg { width: 30px; }
+  .poly-out { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="ribbon" aria-label="محطات الدرس">
+  <div class="ribbon-in">
+    <b>غوص اللؤلؤ</b>
+    <div class="stations" id="stations"></div>
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 0: four names for one number -->
+  <section class="card hero" id="s0" data-name="الغلاف">
+    <div class="bubbles" id="bubbles" aria-hidden="true"></div>
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>غوص <span>اللؤلؤ</span></h1>
+    <p class="sub">الدرس 3-8 · الجذور والأصفار · رياضيات 2 · الفصل الأول</p>
+    <p class="lead">المحور <span class="m"><i>x</i></span> هو سطح البحر، والمنحنى غوّاصة تنزل وتطلع. كل مكان تقطع فيه سطح البحر فيه <b>لؤلؤة</b>: صفر حقيقي للدالة. اضغطي على لؤلؤة وشوفي أربع أسماء لنفس العدد.</p>
+    <div class="hero-grid">
+      <div><canvas class="sea" id="hSea" aria-label="منحنى P(x) يقطع المحور x في أربع نقاط"></canvas>
+        <div class="pearlbar" id="hPearls"></div></div>
+      <div class="stack">
+        <p style="font-size:15px;color:#cfe5ee"><span class="m"><i>P</i>(<i>x</i>) = <i>x</i><sup>4</sup> + 2<i>x</i><sup>3</sup> − 7<i>x</i><sup>2</sup> − 8<i>x</i> + 12</span></p>
+        <div class="equiv" id="hEq" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1: how many pearls -->
+  <section class="card" id="s1" data-name="كم لؤلؤة؟">
+    <div class="head"><span class="pearl">1</span><div><span class="kicker">النظرية الأساسية في الجبر · مثال 1</span><h2>كم لؤلؤة في القاع؟</h2></div></div>
+    <p class="lead">كل معادلة كثيرة حدود درجتها أكبر من صفر لها جذر واحد على الأقل في الأعداد المركبة، والنتيجة: <b>معادلة الدرجة <span class="m"><i>n</i></span> لها <span class="m"><i>n</i></span> جذور بالضبط</b> مع المكررة. الحقيقية تشوفينها على سطح البحر، والتخيلية مخبّاة في الصدفة.</p>
+    <div class="chips" id="fPick" style="margin-top:12px"></div>
+    <div class="grid2" style="margin-top:6px">
+      <div><div class="steps" id="fSteps"></div>
+        <div class="ctrl"><button class="btn" id="fPrev" type="button">السابق</button><button class="btn go" id="fNext" type="button">الخطوة التالية</button><button class="btn" id="fAll" type="button">كل الخطوات</button><span class="count" id="fCount"></span></div></div>
+      <div><canvas class="sea" id="fSea" aria-label="منحنى المعادلة"></canvas></div>
+    </div>
+    <div class="count-row">
+      <div class="tally"><h4>🦪 لآلئ على السطح (جذور حقيقية)</h4><div class="pp" id="fReal"></div></div>
+      <div class="tally"><h4>🐚 لآلئ في الصدفة (جذور تخيلية)</h4><div class="pp" id="fImag"></div></div>
+    </div>
+    <p class="degree" id="fDeg"></p>
+  </section>
+
+  <!-- 2: Descartes -->
+  <section class="card" id="s2" data-name="قانون ديكارت">
+    <div class="head"><span class="pearl">2</span><div><span class="kicker">مفهوم أساسي · مثال 2</span><h2>عدّاد الأمواج: قانون ديكارت للإشارات</h2></div></div>
+    <p class="lead">رتّبي الحدود من الأكبر للأصغر وعدّي كم مرة <b>تتغير الإشارة</b> (موجة). عدد الأصفار الحقيقية <b>الموجبة</b> يساوي عدد التغيرات في <span class="m"><i>P</i>(<i>x</i>)</span> أو أقل منه بعدد زوجي، و<b>السالبة</b> نفس الشي مع <span class="m"><i>P</i>(−<i>x</i>)</span>. والباقي تخيلي.</p>
+    <div class="chips" id="dPick" style="margin-top:12px"></div>
+    <div class="coefs" id="dCoefs"></div>
+    <p class="err" id="dErr" style="text-align:center"></p>
+    <h4 style="margin:6px 0 0;font-size:15px"><span class="m"><i>P</i>(<i>x</i>)</span></h4>
+    <div class="wave-row" id="dPos"></div><p class="wave-sum" id="dPosSum"></p>
+    <h4 style="margin:10px 0 0;font-size:15px"><span class="m"><i>P</i>(−<i>x</i>)</span> <span class="muted" style="font-size:13px">(الأسس الفردية تقلب إشارتها)</span></h4>
+    <div class="wave-row" id="dNeg"></div><p class="wave-sum" id="dNegSum"></p>
+    <table class="tbl" id="dTbl"></table>
+    <p class="muted" style="font-size:13.5px;margin-top:8px">ملاحظة الكتاب: ما نناقش الحالة اللي يكون فيها الحد الثابت صفرًا في هذا الدرس.</p>
+  </section>
+
+  <!-- 3: twin pearls -->
+  <section class="card" id="s3" data-name="توأم اللؤلؤ">
+    <div class="head"><span class="pearl">3</span><div><span class="kicker">نظرية الأصفار المركبة المترافقة · مثال 3</span><h2>اللؤلؤ التوأم</h2></div></div>
+    <p class="lead">إذا كان <span class="m"><i>a</i> + <i>bi</i></span> صفرًا لدالة معاملاتها حقيقية، فمرافقه <span class="m"><i>a</i> − <i>bi</i></span> صفر أيضًا. يعني اللؤلؤة التخيلية ما تجي إلا مع توأمها! أضيفي أصفارًا وشوفي كثيرة الحدود اللي تُبنى منها.</p>
+    <div class="chips" id="tPick" style="margin-top:12px"></div>
+    <div class="custom" style="margin-top:10px">
+      <span>أضيفي صفرًا:</span>
+      <input id="tRe" value="2" style="width:4em" aria-label="الجزء الحقيقي"><span class="m">+</span><input id="tIm" value="0" style="width:4em" aria-label="الجزء التخيلي"><span class="m"><i>i</i></span>
+      <button class="btn sa" id="tAdd" type="button">أضيفي</button><button class="btn" id="tClear" type="button">امسحي الكل</button>
+      <p class="err" id="tErr" style="width:100%"></p>
+    </div>
+    <div class="twins">
+      <svg class="argand" id="tPlane" viewBox="-6 -6 12 12" role="img" aria-label="المستوى المركب وفيه الأصفار"></svg>
+      <div class="stack">
+        <div class="zchips" id="tZeros"></div>
+        <div class="poly-out" id="tFact"></div>
+        <div class="poly-out" id="tPoly"></div>
+        <p class="narr" id="tNarr"></p>
+      </div>
+    </div>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">حل مثال 3 خطوة بخطوة</summary>
+      <div class="steps" id="eSteps"></div>
+      <div class="ctrl"><button class="btn" id="ePrev" type="button">السابق</button><button class="btn go" id="eNext" type="button">الخطوة التالية</button><button class="btn" id="eAll" type="button">كل الخطوات</button><span class="count" id="eCount"></span></div>
+    </details>
+  </section>
+
+  <!-- 4: dive game -->
+  <section class="card" id="s4" data-name="رحلة الغوص">
+    <div class="head"><span class="pearl">4</span><div><span class="kicker">تدرب وحل المسائل</span><h2>رحلة الغوص</h2></div></div>
+    <p class="lead">في كل غطسة تشوفين منحنى ودرجته. كم صفرًا حقيقيًا موجبًا، وكم سالبًا، وكم تخيليًا؟ تذكري: المجموع = الدرجة، والتخيلية تجي أزواج. كل إجابة صحيحة لؤلؤة في عقدك.</p>
+    <div class="necklace" id="neck"></div>
+    <div class="dive">
+      <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px" id="gNo"></span><b id="gDeg"></b></div>
+      <canvas class="sea" id="gSea" style="margin-top:8px" aria-label="منحنى الغطسة"></canvas>
+      <div class="trip" id="gOpts"></div>
+      <p class="narr" id="gNarr" style="margin-top:12px">اختاري الإجابة.</p>
+      <div class="row" style="margin-top:12px;justify-content:center"><button class="btn go" id="gNext" type="button" disabled>الغطسة التالية</button><button class="btn" id="gReset" type="button">رحلة جديدة</button></div>
+    </div>
+  </section>
+
+  <!-- 5: quiz -->
+  <section class="card" id="s5" data-name="الاختبار">
+    <div class="head"><span class="pearl">5</span><div><span class="kicker">من «تأكد» في الكتاب</span><h2>اختبري نفسك</h2></div></div>
+    <div class="quiz" id="quiz"></div>
+    <p class="score" id="score"></p>
+  </section>
+
+  <!-- 6: summary -->
+  <section class="card" id="s6" data-name="الخلاصة">
+    <div class="head"><span class="pearl">✓</span><div><span class="kicker">قبل ما تطلعين من البحر</span><h2>الخلاصة</h2></div></div>
+    <div class="cards3">
+      <div class="plate"><h3>أربعة أسماء لعدد واحد</h3><p><span class="m"><i>c</i></span> صفر للدالة ⇔ جذر للمعادلة <span class="m"><i>P</i>(<i>x</i>) = 0</span> ⇔ <span class="m"><i>x</i> − <i>c</i></span> عامل ⇔ <span class="m">(<i>c</i>, 0)</span> مقطع <span class="m"><i>x</i></span> (إذا كان حقيقيًا). والدرجة <span class="m"><i>n</i></span> ← <span class="m"><i>n</i></span> جذور.</p></div>
+      <div class="plate"><h3>قانون ديكارت</h3><p>الموجبة = تغيرات إشارة <span class="m"><i>P</i>(<i>x</i>)</span> أو أقل بعدد زوجي، والسالبة = تغيرات <span class="m"><i>P</i>(−<i>x</i>)</span> أو أقل بعدد زوجي، والتخيلية = الباقي.</p></div>
+      <div class="plate"><h3>التوأم المترافق</h3><p><span class="m"><i>a</i> + <i>bi</i></span> صفر ⇒ <span class="m"><i>a</i> − <i>bi</i></span> صفر. لكتابة الدالة: حوّلي كل صفر إلى عامل واضربي العوامل.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+/* ---------- A tiny math renderer ----------
+   ^x or ^{..} power, @f{a}{b} fraction, @r{..} square root, @a @b @g @v @c @r colours, @t{..} Arabic words. */
+function tex(src) {
+  let i = 0;
+  const atom = ch => /[a-zA-Z]/.test(ch) ? `<i>${ch}</i>` : ch === "-" ? "−" : esc(ch);
+  function group() {
+    if (src[i] === "{") { i++; return parse("}"); }
+    const m = /^\d+/.exec(src.slice(i));
+    if (m) { i += m[0].length; return m[0]; }
+    return atom(src[i++] || "");
+  }
+  function parse(stop) {
+    let out = "";
+    while (i < src.length) {
+      const ch = src[i];
+      if (stop && ch === stop) { i++; return out; }
+      if (ch === "^") { i++; out += `<sup>${group()}</sup>`; }
+      else if (ch === "@") {
+        const k = src[i + 1]; i += 2;
+        if (k === "f") { const a = group(), b = group(); out += `<span class="fr"><span>${a}</span><span>${b}</span></span>`; }
+        else if (k === "r") out += `<span class="sq">√<span>${group()}</span></span>`;
+        else if (k === "t") { i++; let u = ""; while (i < src.length && src[i] !== "}") u += src[i++]; i++; out += `<span class="ar">${esc(u)}</span>`; }
+        else out += `<span class="c${k}">${group()}</span>`;
+      }
+      else if (ch === "{") { i++; out += parse("}"); }
+      else { out += atom(ch); i++; }
+    }
+    return out;
+  }
+  return `<span class="m">${parse()}</span>`;
+}
+const T = s => String(s ?? "").replace(/\$([^$]+)\$/g, (_, m) => tex(m));
+
+/* ---------- Numbers, polynomials (coefficients from the highest power down) and complex zeros ---------- */
+const round = v => Math.round(v * 1e6) / 1e6;
+const num = v => { v = round(v); return Number.isInteger(v) ? String(v) : String(+v.toFixed(3)); };
+const evalP = (c, x) => c.reduce((s, a) => s * x + a, 0);
+function polyTex(c, v = "x") {
+  const n = c.length - 1; let out = "";
+  c.forEach((a, k) => {
+    a = round(a); if (!a) return;
+    const p = n - k, abs = Math.abs(a), sign = a < 0 ? "-" : "+";
+    const term = (abs === 1 && p ? "" : num(abs)) + (p ? v + (p > 1 ? "^" + p : "") : "");
+    out += out ? ` ${sign} ${term}` : (a < 0 ? "-" : "") + term;
+  });
+  return out || "0";
+}
+// Multiply out (x − z) for complex zeros z = {re, im}; the result is real when every complex zero has its twin.
+function fromZeros(zs) {
+  let c = [{ re: 1, im: 0 }];
+  zs.forEach(z => {
+    const out = c.map(() => ({ re: 0, im: 0 })).concat([{ re: 0, im: 0 }]);
+    c.forEach((a, k) => { out[k].re += a.re; out[k].im += a.im; out[k + 1].re -= a.re * z.re - a.im * z.im; out[k + 1].im -= a.re * z.im + a.im * z.re; });
+    c = out;
+  });
+  return c.map(a => round(a.re));
+}
+// "5 - i", "-1 + 2i", "3i", "-2".
+function zTex(z) {
+  const re = round(z.re), im = round(z.im);
+  if (!im) return num(re);
+  const b = Math.abs(im) === 1 ? "i" : `${num(Math.abs(im))}i`;
+  if (!re) return (im < 0 ? "-" : "") + b;
+  return `${num(re)} ${im < 0 ? "-" : "+"} ${b}`;
+}
+const factorTex = z => { const t = zTex(z); return !round(z.im) ? (round(z.re) === 0 ? "x" : `(x ${z.re < 0 ? "+" : "-"} ${num(Math.abs(z.re))})`) : `[x - (${t})]`; };
+
+/* ---------- The sea plot: sky above the x-axis, water below, pearls at the real zeros ---------- */
+function seaPlot(cv, c, { xr = [-5, 5], yr = null, pearls = [], pick = null, hero = false } = {}) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return null;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.direction = "ltr"; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  if (!yr) {
+    const ys = []; for (let k = 0; k <= 240; k++) ys.push(evalP(c, xr[0] + (xr[1] - xr[0]) * k / 240));
+    ys.sort((a, b) => a - b);
+    const lo = Math.min(ys[12], 0), hi = Math.max(ys[228], 0), pad = (hi - lo) * .14 || 1; yr = [lo - pad, hi + pad];
+    if (-yr[0] < (yr[1] - yr[0]) * .2) yr[0] = -(yr[1] - yr[0]) * .25;
+    if (yr[1] < (yr[1] - yr[0]) * .2) yr[1] = (yr[1] - yr[0]) * .25;
+  }
+  const X = x => (x - xr[0]) / (xr[1] - xr[0]) * W, Y = y => H - (y - yr[0]) / (yr[1] - yr[0]) * H, y0 = Y(0);
+  const dark = hero || document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+  // sky and water
+  let gr = g.createLinearGradient(0, 0, 0, y0);
+  gr.addColorStop(0, dark ? "#0e3a52" : "#e8f5fb"); gr.addColorStop(1, dark ? "#164e6b" : "#f8fcfe");
+  g.fillStyle = gr; g.fillRect(0, 0, W, y0);
+  gr = g.createLinearGradient(0, y0, 0, H);
+  gr.addColorStop(0, dark ? "#0b5878" : "#9fd3ea"); gr.addColorStop(1, dark ? "#062436" : "#3c8db5");
+  g.fillStyle = gr; g.fillRect(0, y0, W, H - y0);
+  // little waves on the surface
+  g.strokeStyle = dark ? "rgba(255,255,255,.55)" : "rgba(255,255,255,.95)"; g.lineWidth = 2; g.beginPath();
+  for (let x = 0; x <= W; x += 2) { const yy = y0 + Math.sin(x / 9) * 2; x ? g.lineTo(x, yy) : g.moveTo(x, yy); }
+  g.stroke();
+  // grid labels
+  const ink = dark ? "rgba(230,243,248,.85)" : "#1d3a4a";
+  g.fillStyle = ink; g.font = "12px 'Times New Roman', serif"; g.textAlign = "center";
+  const step = xr[1] - xr[0] > 12 ? 2 : 1;
+  for (let x = Math.ceil(xr[0]); x <= xr[1]; x++) if (x && x % step === 0) { g.fillText(String(x).replace("-", "−"), X(x), Math.min(H - 4, y0 - 6)); g.fillRect(X(x) - .5, y0 - 3, 1, 6); }
+  if (xr[0] < 0 && xr[1] > 0) { g.strokeStyle = dark ? "rgba(255,255,255,.35)" : "rgba(29,58,74,.35)"; g.lineWidth = 1; g.beginPath(); g.moveTo(X(0), 0); g.lineTo(X(0), H); g.stroke(); }
+  // the curve
+  g.strokeStyle = dark ? "#ffd59a" : "#c2410c"; g.lineWidth = 3; g.beginPath();
+  for (let k = 0; k <= 500; k++) { const x = xr[0] + (xr[1] - xr[0]) * k / 500, yy = Math.max(-60, Math.min(H + 60, Y(evalP(c, x)))); k ? g.lineTo(X(x), yy) : g.moveTo(X(x), yy); }
+  g.stroke();
+  // pearls
+  pearls.forEach(p => {
+    const x = X(p.x), r = p.x === pick ? 11 : 8;
+    if (p.x === pick) { g.fillStyle = "rgba(255,240,200,.45)"; g.beginPath(); g.arc(x, y0, 20, 0, 7); g.fill(); }
+    const pg = g.createRadialGradient(x - r * .35, y0 - r * .4, 1, x, y0, r);
+    pg.addColorStop(0, "#fff"); pg.addColorStop(.45, "#f1e8d8"); pg.addColorStop(1, "#bfae92");
+    g.fillStyle = pg; g.beginPath(); g.arc(x, y0, r, 0, 7); g.fill();
+    g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 1; g.stroke();
+    if (p.mult > 1) { g.fillStyle = dark ? "#fff" : "#0b3d55"; g.font = "bold 13px 'Times New Roman', serif"; g.fillText(`×${p.mult}`, x, y0 + r + 15); }
+  });
+  return { X, Y, xr, yr };
+}
+const redraws = [];
+addEventListener("resize", () => redraws.forEach(f => f()));
+
+/* ---------- Book-style step player ---------- */
+function stepper({ box, prev, next, all, count }) {
+  let lines = [], i = 0;
+  function show() {
+    box.innerHTML = lines.slice(0, i + 1).map((l, k) => `<div class="ln${k === i ? " cur" : ""}"><div class="lm">${tex(l[0])}</div><div class="lw">${T(l[1] || "")}</div></div>`).join("");
+    prev.disabled = i === 0; next.disabled = all.disabled = i >= lines.length - 1;
+    count.textContent = `${i + 1} / ${lines.length}`;
+  }
+  prev.onclick = () => { if (i > 0) { i--; show(); } };
+  next.onclick = () => { if (i < lines.length - 1) { i++; show(); } };
+  all.onclick = () => { i = lines.length - 1; show(); };
+  return { load(ls) { lines = ls; i = 0; show(); } };
+}
+function pickChips(el, items, label, onPick) {
+  el.innerHTML = items.map((it, k) => `<button type="button" class="chip" aria-pressed="${k === 0}">${label(it)}</button>`).join("");
+  [...el.children].forEach((b, k) => b.onclick = () => { [...el.children].forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(items[k], k); });
+  onPick(items[0], 0);
+}
+
+/* ---------- Stations ribbon and theme ---------- */
+const sections = $$("main > section");
+$("#stations").innerHTML = sections.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const links = $$("#stations a");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const k = sections.indexOf(e.target);
+  links.forEach((a, j) => { a.classList.toggle("on", j === k); a.classList.toggle("done", j < k); });
+  links[k].scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sections.forEach(s => io.observe(s));
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+  redraws.forEach(f => f());
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => redraws.forEach(f => f()));
+
+/* ---------- 0. Four names for one number ---------- */
+{
+  if (!reduce) $("#bubbles").innerHTML = Array.from({ length: 14 }, (_, k) => `<i style="left:${(k * 73) % 100}%;animation-delay:${(k * 1.3) % 9}s;width:${6 + (k % 4) * 3}px;height:${6 + (k % 4) * 3}px"></i>`).join("");
+  const P = [1, 2, -7, -8, 12], Z = [-3, -2, 1, 2];
+  let pick = 1;
+  const draw = () => seaPlot($("#hSea"), P, { xr: [-4.5, 3.5], yr: [-26, 30], pearls: Z.map(x => ({ x })), pick, hero: true });
+  const show = () => {
+    const c = pick, fac = c < 0 ? `x + ${-c}` : `x - ${c}`;
+    $("#hEq").innerHTML = [
+      `<b>صفر للدالة:</b> ${tex(`P(${num(c)}) = 0`)}`,
+      `<b>جذر للمعادلة:</b> ${tex(`x = ${num(c)}`)} ${T("يحقق $P(x) = 0$")}`,
+      `<b>عامل:</b> ${tex(`(${fac})`)} ${T("من عوامل $P(x)$")}`,
+      `<b>مقطع x:</b> ${tex(`(${num(c)}, 0)`)} ${T("نقطة تقاطع المنحنى مع سطح البحر")}`,
+    ].map(h => `<div class="eq4 on">${h}</div>`).join("");
+    $$("#hPearls .pb").forEach(b => b.setAttribute("aria-pressed", +b.dataset.x === pick));
+    draw();
+  };
+  $("#hPearls").innerHTML = Z.map(x => `<button type="button" class="pb" data-x="${x}">${num(x).replace("-", "−")}</button>`).join("");
+  $$("#hPearls .pb").forEach(b => b.onclick = () => { pick = +b.dataset.x; show(); });
+  $("#hSea").addEventListener("click", e => {
+    const b = e.target.getBoundingClientRect(), x = -4.5 + (e.clientX - b.left) / b.width * 8;
+    const near = Z.reduce((a, z) => Math.abs(z - x) < Math.abs(a - x) ? z : a);
+    if (Math.abs(near - x) < .6) { pick = near; show(); }
+  });
+  show(); redraws.push(draw);
+}
+
+/* ---------- 1. How many pearls: the fundamental theorem ---------- */
+{
+  const st = stepper({ box: $("#fSteps"), prev: $("#fPrev"), next: $("#fNext"), all: $("#fAll"), count: $("#fCount") });
+  const items = [
+    { eq: "x^2 + 6x + 9 = 0", ref: "مثال 1a", c: [1, 6, 9], xr: [-8, 4],
+      steps: [["x^2 + 6x + 9 = 0", "المعادلة الأصلية"], ["(x + 3)^2 = 0", "حلّلي إلى العوامل"], ["x + 3 = 0", "خذي الجذر التربيعي لكلا الطرفين"], ["x = -3", "العامل مكرر مرتين ← جذر مكرر"]],
+      real: [["-3", 2]], imag: [], note: "المنحنى <b>يمسّ</b> سطح البحر عند $-3$ بدون ما يقطعه: هذا شكل الجذر المكرر مرتين." },
+    { eq: "x^3 + 25x = 0", ref: "مثال 1b", c: [1, 0, 25, 0], xr: [-6, 6], yr: [-500, 500],
+      steps: [["x^3 + 25x = 0", "المعادلة الأصلية"], ["x(x^2 + 25) = 0", "حلّلي إلى العوامل"], ["x = 0 @t{ أو } x^2 + 25 = 0", "خاصية الضرب الصفري"], ["x^2 = -25", "اطرحي 25 من الطرفين"], ["x = ±@r{-25} = ±5i", "الجذر التربيعي، ثم بسّطي"]],
+      real: [["0", 1]], imag: ["5i", "-5i"], note: "المنحنى يقطع السطح مرة وحدة عند $0$، والجذران $±5i$ ما يبانون." },
+    { eq: "x^3 + 2x = 0", ref: "تحقق 1A", c: [1, 0, 2, 0], xr: [-4, 4],
+      steps: [["x^3 + 2x = 0", "المعادلة الأصلية"], ["x(x^2 + 2) = 0", "حلّلي إلى العوامل"], ["x = 0 @t{ أو } x^2 = -2", "خاصية الضرب الصفري"], ["x = ±i@r{2}", "الجذر التربيعي لعدد سالب"]],
+      real: [["0", 1]], imag: ["i@r{2}", "-i@r{2}"] },
+    { eq: "x^4 - 16 = 0", ref: "تحقق 1B", c: [1, 0, 0, 0, -16], xr: [-4, 4],
+      steps: [["x^4 - 16 = 0", "المعادلة الأصلية"], ["(x^2 - 4)(x^2 + 4) = 0", "الفرق بين مربعين"], ["(x - 2)(x + 2)(x^2 + 4) = 0", "مرة ثانية فرق بين مربعين"], ["x = ±2 @t{ أو } x^2 = -4", "خاصية الضرب الصفري"], ["x = ±2 ,  x = ±2i", "أربعة جذور للدرجة الرابعة"]],
+      real: [["-2", 1], ["2", 1]], imag: ["2i", "-2i"] },
+    { eq: "3x^3 - x^2 + 9x - 3 = 0", ref: "تحقق 1C", c: [3, -1, 9, -3], xr: [-3, 3],
+      steps: [["3x^3 - x^2 + 9x - 3 = 0", "المعادلة الأصلية"], ["x^2(3x - 1) + 3(3x - 1) = 0", "التجميع"], ["(x^2 + 3)(3x - 1) = 0", "أخرجي العامل المشترك"], ["x = @f{1}{3} @t{ أو } x^2 = -3", "خاصية الضرب الصفري"], ["x = @f{1}{3} ,  x = ±i@r{3}", "جذر حقيقي وجذران تخيليان"]],
+      real: [["@f{1}{3}", 1, 1 / 3]], imag: ["i@r{3}", "-i@r{3}"] },
+  ];
+  let it = items[0];
+  const draw = () => seaPlot($("#fSea"), it.c, { xr: it.xr, yr: it.yr, pearls: it.real.map(([t, m, v]) => ({ x: v ?? +t, mult: m })) });
+  pickChips($("#fPick"), items, i => `${tex(i.eq)}<small>${i.ref}</small>`, i => {
+    it = i; st.load(i.steps); draw();
+    const n = i.c.length - 1, nr = i.real.reduce((s, r) => s + r[1], 0);
+    $("#fReal").innerHTML = i.real.flatMap(([t, m]) => Array.from({ length: m }, () => `<span class="real">${tex(t)}</span>`)).join("") || '<span class="muted" style="font-family:var(--font);font-size:14px">ولا وحدة</span>';
+    $("#fImag").innerHTML = i.imag.map(t => `<span class="imag">${tex(t)}</span>`).join("") || '<span class="muted" style="font-family:var(--font);font-size:14px">الصدفة فاضية</span>';
+    $("#fDeg").innerHTML = T(`الدرجة $${n}$ ← ${nr} حقيقي${nr !== i.real.length ? " (مع التكرار)" : ""} + ${i.imag.length} تخيلي = $${n}$ جذور ✓`) + (i.note ? `<br><span class="muted" style="font-weight:500;font-size:14.5px">${T(i.note)}</span>` : "");
+  });
+  redraws.push(draw);
+}
+
+/* ---------- 2. Descartes' rule of signs ---------- */
+{
+  const items = [
+    { c: [1, 3, -4, -6, 1, -8, 5], ref: "مثال 2" },
+    { c: [2, 1, 3, -4, -1, 9], ref: "تحقق 2" },
+    { c: [1, -2, 2, -6], ref: "تأكد 5" },
+    { c: [6, 4, -1, -5, -7], ref: "تأكد 6" },
+    { c: [3, 0, -8, 0, 2, -4], ref: "تأكد 7" },
+    { c: [-2, -3, 0, -2, -5], ref: "تأكد 8" },
+  ];
+  let c = items[0].c.slice();
+  const changes = cs => { const s = cs.filter(a => a).map(Math.sign); let k = 0; for (let j = 1; j < s.length; j++) if (s[j] !== s[j - 1]) k++; return k; };
+  const neg = cs => cs.map((a, k) => ((cs.length - 1 - k) % 2 ? -a : a));
+  function waves(el, cs) {
+    const n = cs.length - 1, terms = cs.map((a, k) => ({ a, p: n - k })).filter(t => t.a);
+    let h = "";
+    terms.forEach((t, j) => {
+      if (j) { const yes = Math.sign(t.a) !== Math.sign(terms[j - 1].a); h += `<div class="gap"><svg viewBox="0 0 40 22" class="${yes ? "yes" : "no"}"><path d="M3 18 Q 20 -4 37 18"/></svg><small>${yes ? "نعم" : "لا"}</small></div>`; }
+      const abs = Math.abs(t.a), coef = abs === 1 && t.p ? "" : num(abs);
+      h += `<div class="term"><span class="tt">${coef}${t.p ? `<i>x</i>${t.p > 1 ? `<sup>${t.p}</sup>` : ""}` : ""}</span><span class="sg ${t.a > 0 ? "p" : "n"}">${t.a > 0 ? "+" : "−"}</span></div>`;
+    });
+    el.innerHTML = h;
+  }
+  const opts = k => { const o = []; for (let v = k; v >= 0; v -= 2) o.push(v); return o; };
+  function draw() {
+    const n = c.length - 1, p = changes(c), q = changes(neg(c));
+    waves($("#dPos"), c); waves($("#dNeg"), neg(c));
+    $("#dPosSum").innerHTML = T(`${p} تغيّر ← الأصفار الحقيقية الموجبة: <span class="cb">${opts(p).join(" أو ")}</span>`);
+    $("#dNegSum").innerHTML = T(`${q} تغيّر ← الأصفار الحقيقية السالبة: <span class="cc">${opts(q).join(" أو ")}</span>`);
+    let rows = "";
+    opts(p).forEach(a => opts(q).forEach(b => { const im = n - a - b; if (im >= 0) rows += `<tr><td>${a}</td><td>${b}</td><td>${im}</td></tr>`; }));
+    $("#dTbl").innerHTML = `<tr><th>الحقيقية الموجبة</th><th>الحقيقية السالبة</th><th>التخيلية = ${n} − مجموع الحقيقية</th></tr>${rows}`;
+  }
+  function inputs() {
+    const n = c.length - 1;
+    $("#dCoefs").innerHTML = c.map((a, k) => { const p = n - k; return `<input value="${a}" data-k="${k}" inputmode="numeric" aria-label="معامل x أس ${p}"><span>${p ? `<i>x</i>${p > 1 ? `<sup>${p}</sup>` : ""}` : ""}${k < n ? " +" : ""}</span>`; }).join("");
+    $$("#dCoefs input").forEach(inp => inp.oninput = () => {
+      const v = Number(inp.value.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[−–]/g, "-"));
+      if (!Number.isFinite(v) || inp.value.trim() === "" || inp.value.trim() === "-") { $("#dErr").textContent = "اكتبي رقمًا في كل خانة."; return; }
+      const k = +inp.dataset.k;
+      if (k === 0 && v === 0) { $("#dErr").textContent = "المعامل الأول ما يكون صفرًا."; return; }
+      if (k === c.length - 1 && v === 0) { $("#dErr").textContent = "خلّي الحد الثابت غير صفري (الكتاب ما يناقش هذي الحالة)."; return; }
+      $("#dErr").textContent = ""; c[k] = v; draw();
+    });
+  }
+  pickChips($("#dPick"), items, i => `${tex(polyTex(i.c))}<small>${i.ref}</small>`, i => { c = i.c.slice(); inputs(); draw(); });
+}
+
+/* ---------- 3. Twin pearls: conjugates and building a polynomial ---------- */
+{
+  let zs = [];
+  const items = [
+    { ref: "مثال 3", z: [{ re: -1, im: 0 }, { re: 5, im: -1 }] },
+    { ref: "تحقق 3", z: [{ re: -1, im: 0 }, { re: 1, im: 2 }] },
+    { ref: "تأكد 9", z: [{ re: 4, im: 0 }, { re: -1, im: 0 }, { re: 6, im: 0 }] },
+    { ref: "تأكد 11", z: [{ re: -2, im: 0 }, { re: 5, im: 0 }, { re: 0, im: -3 }] },
+    { ref: "تأكد 12", z: [{ re: -4, im: 0 }, { re: 4, im: 1 }] },
+  ];
+  let fresh = 0;
+  function add(z, quiet) {
+    if (zs.length >= 6) { $("#tErr").textContent = "يكفي 6 أصفار في هذي التجربة."; return; }
+    zs.push({ ...z, isNew: !quiet });
+    if (round(z.im)) zs.push({ re: z.re, im: -z.im, twin: true, isNew: !quiet });
+  }
+  function draw() {
+    const twinNote = zs.some(z => z.twin && z.isNew);
+    $("#tZeros").innerHTML = zs.map((z, k) => `<span class="${round(z.im) ? "cx" : ""}${z.twin ? " twin" : ""}">${tex(zTex(z))}${z.twin ? "" : `<button type="button" data-k="${k}" aria-label="احذفي الصفر">✕</button>`}</span>`).join("") || '<span class="muted" style="font-family:var(--font);font-size:14px;background:none">ما فيه أصفار بعد</span>';
+    $$("#tZeros button").forEach(b => b.onclick = () => { const k = +b.dataset.k; zs.splice(k, zs[k + 1]?.twin ? 2 : 1); zs.forEach(z => z.isNew = false); draw(); });
+    const c = fromZeros(zs);
+    $("#tFact").innerHTML = zs.length ? tex(`P(x) = ${zs.map(factorTex).join("")}`) : "";
+    $("#tPoly").innerHTML = zs.length ? tex(`P(x) = ${polyTex(c)}`) : "";
+    const n = zs.length, nc = zs.filter(z => round(z.im)).length;
+    $("#tNarr").innerHTML = !n ? "أضيفي صفرًا أو اختاري مثالًا." :
+      T(`${twinNote ? "🐚 أضفتي صفرًا تخيليًا، فطلع معه توأمه المرافق تلقائيًا! " : ""}${n} أصفار ← كثيرة حدود من الدرجة $${n}$ أقل ما يمكن، ومعاملاتها كلها أعداد صحيحة${nc ? " لأن كل صفر تخيلي معه مرافقه" : ""}.`);
+    // the complex plane: real zeros on the axis, imaginary ones mirrored across it
+    const S = 5;
+    let svg = `<rect x="-6" y="-6" width="12" height="12" fill="none"/>`;
+    for (let k = -S; k <= S; k++) svg += `<path d="M${k} -${S + .5}V${S + .5}M-${S + .5} ${k}H${S + .5}" stroke="var(--line)" stroke-width=".04"/>`;
+    svg += `<path d="M-5.6 0H5.6M0 -5.6V5.6" stroke="var(--muted)" stroke-width=".07"/><text x="5.5" y="-.3" font-size=".55" text-anchor="end">حقيقي</text><text x=".2" y="-5.2" font-size=".55">تخيلي</text>`;
+    zs.forEach(z => {
+      const x = Math.max(-5.4, Math.min(5.4, z.re)), y = Math.max(-5.4, Math.min(5.4, -z.im));
+      if (z.twin) svg += `<path d="M${x} ${-y}V${y}" stroke="var(--shell)" stroke-width=".06" stroke-dasharray=".2 .15"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r=".38" fill="${round(z.im) ? "url(#pv)" : "url(#pw)"}" stroke="rgba(0,0,0,.3)" stroke-width=".04"/>`;
+    });
+    $("#tPlane").innerHTML = `<defs><radialGradient id="pw" cx=".35" cy=".3"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#f1e8d8"/><stop offset="1" stop-color="#bfae92"/></radialGradient>
+      <radialGradient id="pv" cx=".35" cy=".3"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#e5dcff"/><stop offset="1" stop-color="#9a7ee0"/></radialGradient></defs>${svg}`;
+    zs.forEach(z => z.isNew = false);
+  }
+  pickChips($("#tPick"), items, i => `${i.z.map(z => tex(zTex(z))).join("، ")}<small>${i.ref}</small>`, i => { zs = []; i.z.forEach(z => add(z, true)); $("#tErr").textContent = ""; draw(); });
+  $("#tAdd").onclick = () => {
+    const toN = s => Number(String(s).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[−–]/g, "-").trim() || 0);
+    const re = toN($("#tRe").value), im = toN($("#tIm").value);
+    if (![re, im].every(v => Number.isInteger(v) && Math.abs(v) <= 9)) { $("#tErr").textContent = "اكتبي أعدادًا صحيحة بين −9 و 9."; return; }
+    $("#tErr").textContent = ""; $$("#tPick .chip").forEach(x => x.setAttribute("aria-pressed", false)); add({ re, im }); draw();
+  };
+  $("#tClear").onclick = () => { zs = []; $("#tErr").textContent = ""; draw(); };
+
+  const st = stepper({ box: $("#eSteps"), prev: $("#ePrev"), next: $("#eNext"), all: $("#eAll"), count: $("#eCount") });
+  st.load([
+    ["@t{الأصفار: } -1 , 5 - i , 5 + i", "$5 - i$ صفر، فمرافقه $5 + i$ صفر أيضًا"],
+    ["P(x) = (x + 1)[x - (5 - i)][x - (5 + i)]", "اكتبي الدالة"],
+    ["= (x + 1)[(x - 5) + i][(x - 5) - i]", "أعيدي تجميع الحدود"],
+    ["= (x + 1)[(x - 5)^2 - i^2]", "الفرق بين مربعين"],
+    ["= (x + 1)[x^2 - 10x + 25 - (-1)]", "أوجدي مربع الحدين"],
+    ["= (x + 1)(x^2 - 10x + 26)", "بسّطي"],
+    ["= x^3 - 10x^2 + 26x + x^2 - 10x + 26", "اضربي"],
+    ["= x^3 - 9x^2 + 16x + 26", "اجمعي الحدود المتشابهة"],
+  ]);
+}
+
+/* ---------- 4. The dive game ---------- */
+{
+  const ROUNDS = 6;
+  let i = 0, got = [], cur = null;
+  $("#neck").innerHTML = Array.from({ length: ROUNDS }, () => "<i></i>").join("");
+  // A dive: distinct real zeros (never 0) and maybe a twin pair, degree 3 to 5.
+  function make() {
+    for (let tries = 0; tries < 50; tries++) {
+      const n = rnd(3, 5), pairs = rnd(0, Math.floor((n - 1) / 2)), nr = n - 2 * pairs;
+      const pool = shuffle([-4, -3, -2, -1, 1, 2, 3, 4]).slice(0, nr);
+      const zs = pool.map(x => ({ re: x, im: 0 }));
+      for (let k = 0; k < pairs; k++) { const re = rnd(-2, 2), im = rnd(1, 2); zs.push({ re, im }, { re, im: -im }); }
+      const sign = Math.random() < .3 ? -1 : 1, c = fromZeros(zs).map(a => a * sign);
+      const pos = pool.filter(x => x > 0).length, negN = pool.filter(x => x < 0).length;
+      const key = `${pos}-${negN}-${2 * pairs}`;
+      if (cur && cur.key === key && tries < 40) continue;
+      // The height shown is set by the part of the curve around the real zeros, so every crossing can be seen.
+      const lo = Math.min(-2, ...pool) - .8, hi = Math.max(2, ...pool) + .8; let mn = 0, mx = 0;
+      for (let k = 0; k <= 200; k++) { const y = evalP(c, lo + (hi - lo) * k / 200); mn = Math.min(mn, y); mx = Math.max(mx, y); }
+      const pad = (mx - mn) * .12 || 1, yr = [Math.min(mn - pad, -(mx - mn) * .2), Math.max(mx + pad, (mx - mn) * .2)];
+      return { yr, n, c, pool, pos, neg: negN, im: 2 * pairs, key };
+    }
+  }
+  function triples(R) {
+    const set = new Map([[R.key, R]]);
+    const all = [];
+    for (let a = 0; a <= R.n; a++) for (let b = 0; a + b <= R.n; b++) { const im = R.n - a - b; if (im % 2 === 0) all.push({ pos: a, neg: b, im, key: `${a}-${b}-${im}` }); }
+    shuffle(all).forEach(t => { if (set.size < 4 && !set.has(t.key)) set.set(t.key, t); });
+    return shuffle([...set.values()]);
+  }
+  const draw = () => cur && seaPlot($("#gSea"), cur.c, { xr: [-5, 5], yr: cur.yr, pearls: cur.shown ? cur.pool.map(x => ({ x })) : [] });
+  function show() {
+    cur = make(); cur.shown = false;
+    $("#gNo").textContent = `الغطسة ${i + 1} من ${ROUNDS}`;
+    $("#gDeg").innerHTML = T(`الدرجة: $${cur.n}$`);
+    $("#gOpts").innerHTML = triples(cur).map(t => `<button type="button" data-k="${t.key}">موجبة <b>${t.pos}</b> · سالبة <b>${t.neg}</b> · تخيلية <b>${t.im}</b></button>`).join("");
+    $("#gNarr").textContent = "عدّي مرات قطع المنحنى لسطح البحر يمين الصفر ويساره، والباقي تخيلي."; $("#gNext").disabled = true;
+    $$("#gOpts button").forEach(b => b.onclick = () => {
+      const ok = b.dataset.k === cur.key;
+      $$("#gOpts button").forEach(x => { x.disabled = true; if (x.dataset.k === cur.key) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      got[i] = ok; $("#neck").children[i].className = ok ? "on" : "bad";
+      cur.shown = true; draw();
+      $("#gNarr").innerHTML = (ok ? "🦪 صح! " : "راجعيها: ") + T(`الأصفار الحقيقية $${cur.pool.slice().sort((a, b) => a - b).join(" , ")}$، ${cur.im ? `و${cur.im} تخيلية تكمّل الدرجة $${cur.n}$` : "وما فيه تخيلية"}.`);
+      if (i < ROUNDS - 1) $("#gNext").disabled = false;
+      else { const s = got.filter(Boolean).length; $("#gNarr").innerHTML += `<br><b>جمعتي ${s} من ${ROUNDS} لآلئ${s === ROUNDS ? " 🦪 عقد كامل!" : ""}</b>`; }
+    });
+    draw();
+  }
+  $("#gNext").onclick = () => { if (i < ROUNDS - 1) { i++; show(); } };
+  $("#gReset").onclick = () => { i = 0; got = []; [...$("#neck").children].forEach(x => x.className = ""); show(); };
+  show(); redraws.push(draw);
+}
+
+/* ---------- 5. Quiz from «تأكد» ----------
+   In the book's order; each card is numbered by its place here (q), which is what the teacher's sheet shows. */
+const QUIZ = [
+  { q: "حلّي المعادلة واذكري عدد جذورها ونوعها: $x^2 - 3x - 10 = 0$", ref: "تأكد 1", opts: ["$5 , -2$ : جذران حقيقيان", "$-5 , 2$ : جذران حقيقيان", "$5$ : جذر مكرر مرتين", "$±@r{10}$ : جذران حقيقيان"],
+    why: "$(x - 5)(x + 2) = 0$، فالجذران $5$ و $-2$ حقيقيان، وعددهما = الدرجة 2." },
+  { q: "حلّي المعادلة: $16x^4 - 81 = 0$", ref: "تأكد 3", opts: ["$±@f{3}{2} , ±@f{3}{2}i$", "$±@f{3}{2}$ فقط", "$±@f{9}{4} , ±@f{9}{4}i$", "$±@f{2}{3} , ±@f{2}{3}i$"],
+    why: "$(4x^2 - 9)(4x^2 + 9) = 0$ ← $x^2 = @f{9}{4}$ أو $x^2 = -@f{9}{4}$: جذران حقيقيان وجذران تخيليان (الدرجة 4)." },
+  { q: "حلّي المعادلة: $0 = x^3 - 8$", ref: "تأكد 4", opts: ["$2 , -1 ± i@r{3}$", "$2 , 1 ± i@r{3}$", "$2$ فقط", "$±2 , 2i$"],
+    why: "$(x - 2)(x^2 + 2x + 4) = 0$، والقانون العام للثلاثية يعطي $-1 ± i@r{3}$." },
+  { q: "اذكري العدد الممكن للأصفار الموجبة والسالبة والتخيلية للدالة $f(x) = x^3 - 2x^2 + 2x - 6$", ref: "تأكد 5", opts: ["موجبة 3 أو 1، سالبة 0، تخيلية 0 أو 2", "موجبة 3، سالبة 0، تخيلية 0", "موجبة 1، سالبة 2، تخيلية 0", "موجبة 2 أو 0، سالبة 1، تخيلية 0 أو 2"],
+    why: "إشارات $f(x)$: $+ - + -$ ← 3 تغيرات. و $f(-x) = -x^3 - 2x^2 - 2x - 6$ ما فيها تغيّر ← 0 سالبة. والتخيلية = $3 - $ الحقيقية." },
+  { q: "اكتبي دالة كثيرة حدود درجتها أقل ما يمكن ومعاملاتها صحيحة، أصفارها: $4 , -1 , 6$", ref: "تأكد 9", opts: ["x^3 - 9x^2 + 14x + 24", "x^3 + 9x^2 + 14x - 24", "x^3 - 9x^2 - 14x + 24", "x^3 - 11x^2 + 34x - 24"],
+    why: "$(x - 4)(x + 1)(x - 6) = (x^2 - 3x - 4)(x - 6) = x^3 - 9x^2 + 14x + 24$." },
+  { q: "اكتبي دالة كثيرة حدود درجتها أقل ما يمكن ومعاملاتها صحيحة، أصفارها: $-4 , 4 + i$", ref: "تأكد 12", opts: ["x^3 - 4x^2 - 15x + 68", "x^3 - 12x^2 + 49x - 68", "x^3 + 4x^2 - 15x - 68", "x^2 - 8x + 17"],
+    why: "$4 + i$ صفر ← $4 - i$ صفر. $(x + 4)(x^2 - 8x + 17) = x^3 - 4x^2 - 15x + 68$، ودرجتها 3 لأن الأصفار ثلاثة." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => {
+    const opts = shuffle(it.opts.map((o, j) => ({ h: o.includes("$") ? T(o) : /^[a-z0-9]/i.test(o) && /[a-z]/.test(o) ? tex(o) : esc(o), ok: j === 0 })));
+    return `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}) ${T(it.q)} <span class="muted" style="font-size:13px">(${it.ref})</span></p>
+      <div class="opts">${opts.map((o, j) => `<button type="button" class="opt" data-ok="${o.ok}"><b>${"أبجد"[j]}</b><span>${o.h}</span></button>`).join("")}</div><p class="why" hidden></p></div>`;
+  }).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return;
+  card.dataset.done = 1; answered++;
+  const ok = b.dataset.ok === "true"; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, card.querySelector(".qq"), b, card.querySelector('.opt[data-ok="true"]'));
+  card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = card.querySelector(".why"); why.hidden = false;
+  why.innerHTML = `${ok ? `<span class="tagok">صحيح</span>` : `<span class="tagno">راجعي</span>`} ${T(QUIZ[+card.dataset.k].why)}`;
+  $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🦪 عقد لؤلؤ كامل!" : ""} <button class="btn" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("roots-zeros", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>
