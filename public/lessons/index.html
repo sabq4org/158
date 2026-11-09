@@ -93,6 +93,8 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-puzzle .cover { background: #f4ead9; }
 .t-vault .cover { background: linear-gradient(160deg, #24394c, #1a2a39 55%, #142130); }
 .t-bridge .cover { background: linear-gradient(180deg, #f3efe8 0 70%, #cfe0f2 70%); }
+.t-circuit .cover { background: linear-gradient(160deg, #123a2e, #0f2f26 55%, #0b241d); }
+.t-pearl .cover { background: linear-gradient(180deg, #cfe9f5 0 42%, #0f4c6b 42%, #072a3c); }
 .t-river .cover { background: linear-gradient(180deg, #c9dca6 0 34%, #cfe8fb 34% 72%, #ead9a8 72%); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
@@ -194,6 +196,15 @@ const COVERS = {
     <path d="M92 122 A 22 22 0 0 0 86 106" fill="none" stroke="#d97706" stroke-width="3"/><path d="M208 122 A 22 22 0 0 1 214 106 M203 122 A 27 27 0 0 1 210 102" fill="none" stroke="#c2255c" stroke-width="3"/>
     <line x1="150" y1="30" x2="150" y2="2" stroke="#1f2328" stroke-width="3"/><path d="M150 2 l 22 7 l -22 7 z" fill="#e03131"/>
     <text x="150" y="144" text-anchor="middle" fill="#1f2328" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15">ASA · AAS</text></svg>`,
+  circuit: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g fill="none" stroke="#f0a35e" stroke-width="2.5" opacity=".7"><path d="M0 30 H80 L100 50 H190 L210 30 H300"/><path d="M0 128 H70 L90 108 H300"/></g>
+    ${[40, 85, 130, 175].map((x, k) => `<rect x="${x}" y="62" width="38" height="34" rx="7" fill="#e6efe9" fill-opacity=".14" stroke="#e6efe9" stroke-width="1.5"/><text x="${x + 19}" y="85" text-anchor="middle" fill="#e6efe9" font-family="Times New Roman, serif" font-size="16">${[3, 10, 40, 165][k]}</text>`).join("")}
+    <circle cx="245" cy="79" r="22" fill="#4ade80" fill-opacity=".25" stroke="#4ade80" stroke-width="3"/><text x="245" y="85" text-anchor="middle" fill="#4ade80" font-family="Times New Roman, serif" font-weight="700" font-size="18">0</text></svg>`,
+  pearl: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M0 63 Q 15 59 30 63 T 60 63 T 90 63 T 120 63 T 150 63 T 180 63 T 210 63 T 240 63 T 270 63 T 300 63" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>
+    <path d="M20 0 C 50 150, 90 120, 120 63 S 175 -20, 200 63 S 260 140, 290 0" fill="none" stroke="#ffd59a" stroke-width="3.5"/>
+    <defs><radialGradient id="lpg" cx=".35" cy=".3"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#f1e8d8"/><stop offset="1" stop-color="#bfae92"/></radialGradient></defs>
+    ${[38, 120, 200, 268].map(x => `<circle cx="${x}" cy="63" r="8" fill="url(#lpg)"/>`).join("")}</svg>`,
   vault: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <rect x="150" y="16" width="124" height="118" rx="18" fill="#3d5a73"/><rect x="158" y="24" width="108" height="102" rx="12" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
     <g transform="translate(212 75)"><circle r="30" fill="none" stroke="#fff" stroke-width="5"/><path d="M0 -36V36M-36 0H36M-25 -25L25 25M25 -25L-25 25" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle r="9" fill="#e6b75e"/></g>
