@@ -341,6 +341,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       dirty = false; setSave("ok");
     } catch (x) {
       if (x.status === 409 && x.data?.status === "submitted") { finish(); return drawResult(x.data); }
+      if (x.status === 404) return backToStart();
       setSave("bad"); clearTimeout(saving); saving = setTimeout(save, 5000);
     }
   }
@@ -433,15 +434,23 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       try {
         const d = await call(`/api/exams/${encodeURIComponent(KEY)}/submit`, { id: me.id, answers });
         LS.del(localKey());
+        if (d.status !== "submitted") return backToStart("خلص الوقت وما جاوبتي على أي فقرة، فما انحسبت لك محاولة.");
         return drawResult(d);
       } catch (x) {
-        if (x.status === 404) break;
+        if (x.status === 404) return backToStart();
         await new Promise(r => setTimeout(r, 2000 * (i + 1)));
       }
     }
     screen.innerHTML = `<div class="body"><div class="err">ما قدرنا نوصل للسيرفر. إجاباتك محفوظة في جهازك؛ تأكدي من الإنترنت واضغطي «حاولي مرة ثانية».</div>
       <div class="nav"><button class="btn" id="retry">حاولي مرة ثانية</button></div></div>`;
     $("#retry").onclick = () => { finished = false; submit(auto); };
+  }
+
+  // Her attempt is no longer there (an empty one whose time ran out, or the teacher let her take it again).
+  async function backToStart(text) {
+    finish();
+    await identify(me.id, true);
+    if (text) toast(text);
   }
 
   function drawResult(d) {
