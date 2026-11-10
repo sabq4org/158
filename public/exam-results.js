@@ -49,6 +49,8 @@ const ExamResults = (() => {
         <div class="grow"><b style="font-size:17px">${esc(ex.title)}</b>${ex.model ? ` <span class="pill warn">${esc(ex.model)}</span>` : ""}<div class="note">${esc(ex.subject)} · ${esc(ex.gradeLabel)} · ${ex.total} درجة · ${ex.minutes} دقيقة · ${ex.count} فقرة</div></div>
         <span class="pill ${ex.open ? "good" : "none"}">${ex.open ? "مفتوح للطالبات" : "مقفل"}</span>
         ${ex.parent ? "" : `<button class="btn sm ${ex.open ? "quiet" : ""}" data-ex-open="${ex.open ? 0 : 1}">${ex.open ? "قفل الاختبار" : "فتح الاختبار"}</button>`}
+        <span class="pill ${ex.published ? "good" : "none"}" title="${ex.published ? "الطالبة تشوف درجتها وإجاباتها برقم هويتها" : "الطالبة تشوف «تم استلام اختبارك» بدون درجة"}">${ex.published ? "النتائج منشورة" : "النتائج مخفية"}</span>
+        ${ex.parent ? "" : `<button class="btn sm ${ex.published ? "quiet" : ""}" data-ex-publish="${ex.published ? 0 : 1}">${ex.published ? "إخفاء النتائج" : "نشر النتائج"}</button>`}
       </div>
       ${ex.parent ? `<div class="toolbar"><div class="grow note">طالبات «صعوبات التعلم» يفتح لهن هذا النموذج تلقائيًا من رابط الاختبار نفسه، ويفتح ويقفل معه.
         للتجربة: رقم الهوية <bdi dir="ltr"><b>0000000001</b></bdi>.</div></div>` : `<div class="toolbar">
@@ -149,6 +151,16 @@ const ExamResults = (() => {
       const open = e.target.dataset.exOpen === "1";
       if (!open && !(await confirmBox("قفل الاختبار؟", "ما تقدر طالبة جديدة تبدأ. اللي بدأت تكمل لين يخلص وقتها.", "قفل"))) return;
       try { await api(`/exams/${ex.key}/open`, { method: "PUT", body: { open } }); toast(open ? "فتحتي الاختبار للطالبات" : "قفلتي الاختبار"); }
+      catch (x) { toast((x.data?.errors || ["تعذّر الحفظ"])[0]); }
+      load();
+    };
+    if (q("[data-ex-publish]")) q("[data-ex-publish]").onclick = async e => {
+      const published = e.target.dataset.exPublish === "1";
+      const ok = published
+        ? await confirmBox("نشر النتائج؟", "كل طالبة سلّمت تشوف درجتها، وإجابتها في كل فقرة مع الإجابة الصحيحة، لما تدخل برقم هويتها. يشمل نموذج صعوبات التعلم.", "نشر")
+        : await confirmBox("إخفاء النتائج؟", "الطالبات يشوفن «تم استلام اختبارك» بدون الدرجة والإجابات.", "إخفاء");
+      if (!ok) return;
+      try { await api(`/exams/${ex.key}/publish`, { method: "PUT", body: { published } }); toast(published ? "نشرتي النتائج للطالبات" : "أخفيتي النتائج"); }
       catch (x) { toast((x.data?.errors || ["تعذّر الحفظ"])[0]); }
       load();
     };

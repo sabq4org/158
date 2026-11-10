@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS exam_state (
   exam        TEXT PRIMARY KEY,
   open        BOOLEAN NOT NULL DEFAULT false,
   changed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);`;
+);
+-- The teacher publishes the results: until then a student who handed in sees that it arrived, not her mark.
+ALTER TABLE exam_state ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT false;`;
 
 // Text marks the page renders: {p:2,1} a point, {f:-2/3} a fraction, {e:y = 3x + 1} an equation, {d:90} degrees.
 const FAIZA = 1;
@@ -223,6 +225,7 @@ async function studentOf(pool, ex, id) {
 // A model opens and closes with its main exam.
 const stateKey = ex => ex.parent || ex.key;
 const isOpen = async (pool, ex) => !!(await pool.query("SELECT open FROM exam_state WHERE exam = $1", [stateKey(ex)])).rows[0]?.open;
+const isPublished = async (pool, ex) => !!(await pool.query("SELECT published FROM exam_state WHERE exam = $1", [stateKey(ex)])).rows[0]?.published;
 
 // Attempts past their deadline (and its grace) close with the answers they saved. One with no answer at all is not
 // an attempt (she pressed «ابدئي» and left, days before the real sitting): it is removed, so she can start when she sits it.
@@ -238,13 +241,20 @@ async function closeExpired(pool, ex, id) {
 }
 
 const attemptOf = async (pool, ex, id) => (await pool.query("SELECT * FROM exam_attempts WHERE exam = $1 AND national_id = $2", [ex.key, id])).rows[0] || null;
-// What the student sees of her attempt. After she hands it in: her mark by section, not the answer key.
-function attemptView(ex, a) {
+// What the student sees of her attempt. After she hands it in: nothing of her mark until the teacher publishes the results
+// ("hidden"); then her mark by section and every item with her answer and the right one ("review"). A practice try sees
+// its mark at once, never the key ("score").
+function attemptView(ex, a, show = "hidden") {
   if (!a) return { status: "none" };
   if (a.submitted_at) {
+    const base = { status: "submitted", auto: a.auto_submitted, submittedAt: a.submitted_at, total: ex.total };
+    if (show === "hidden") return { ...base, hidden: true };
     const g = grade(ex, a.answers);
-    return { status: "submitted", score: g.score, total: g.total, parts: g.parts.map(({ title, marks, score }) => ({ title, marks, score })),
-      auto: a.auto_submitted, submittedAt: a.submitted_at };
+    const out = { ...base, score: g.score, parts: g.parts.map(({ title, marks, score }) => ({ title, marks, score })) };
+    if (show !== "review") return out;
+    out.review = ex.sections.map(s => ({ title: s.title, type: s.type, choices: s.choices?.map(([sym, text]) => ({ sym, text })),
+      items: s.items.map(({ id, q, options, answer }) => ({ q, ...(options ? { options } : {}), answer, mine: a.answers?.[id] ?? null, ok: g.right[id] })) }));
+    return out;
   }
   return { status: "in_progress", deadline: a.deadline, answers: a.answers };
 }
@@ -273,6 +283,8 @@ function mount(app, pool) {
     if (!ex) return res.status(404).json({ error: "no_exam" });
     try { await fn(req, res, ex); } catch (err) { console.error(err); res.status(500).json({ error: "server_error" }); }
   };
+  const showFor = async (ex, key) => String(key).includes(":") ? "score" : (await isPublished(pool, ex)) ? "review" : "hidden";
+  const viewOf = async (ex, a, key) => attemptView(ex, a, await showFor(ex, key));
   // Who she is, and where her attempt stands. Her first name and class only: anyone can type an ID.
   const who = async (ex, id) => {
     if (id in DEMO) {
@@ -301,7 +313,7 @@ function mount(app, pool) {
     if (w.s.demo) await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NOT NULL", [ex.key, key]);
     res.json({ name: w.s.demo ? w.s.name : firstName(w.s.name), classLabel: w.s.demo ? "تجربة" : Report.classLabel(w.s.class), email: w.s.email,
       demo: !!w.s.demo, open: w.s.demo || await isOpen(pool, ex),
-      now: new Date(), ...attemptView(ex, await attemptOf(pool, ex, key)) });
+      now: new Date(), ...(await viewOf(ex, await attemptOf(pool, ex, key), key)) });
   }));
 
   // Starting (or coming back to) her attempt. The clock starts once, here, and runs on the server.
@@ -320,7 +332,7 @@ function mount(app, pool) {
       await pool.query(`INSERT INTO exam_attempts (exam, national_id, deadline) VALUES ($1, $2, now() + interval '${ex.minutes} minutes') ON CONFLICT DO NOTHING`, [ex.key, key]);
       a = await attemptOf(pool, ex, key);
     }
-    res.json({ now: new Date(), sections: publicSections(ex), ...attemptView(ex, a) });
+    res.json({ now: new Date(), sections: publicSections(ex), ...(await viewOf(ex, a, key)) });
   }));
 
   // Saved as she goes; the last save before the deadline is what gets marked if time runs out.
@@ -334,7 +346,7 @@ function mount(app, pool) {
     if (!rowCount) {
       await closeExpired(pool, ex, key);
       const a = await attemptOf(pool, ex, key);
-      return res.status(a ? 409 : 404).json({ error: a ? "closed" : "not_started", ...attemptView(ex, a) });
+      return res.status(a ? 409 : 404).json({ error: a ? "closed" : "not_started", ...(await viewOf(ex, a, key)) });
     }
     res.json({ ok: true, saved: Object.keys(answers).length });
   }));
@@ -354,7 +366,7 @@ function mount(app, pool) {
     if (!rows.length) await closeExpired(pool, ex, key);
     const a = rows[0] || await attemptOf(pool, ex, key);
     if (!a) return res.status(404).json({ error: "not_started" });
-    res.json(attemptView(ex, a));
+    res.json(await viewOf(ex, a, key));
   }));
 }
 
@@ -394,7 +406,7 @@ function mountPanel(router, pool, { applyGrade }) {
       });
       const sections = ex.sections.map(s => ({ key: s.key, type: s.type, title: s.title, marks: s.marks, choices: s.choices?.map(([sym, text]) => ({ sym, text })),
         items: s.items.map(({ id, q, options, answer }) => ({ id, q, options, answer })) }));
-      out.push({ ...meta(ex), open: await isOpen(pool, ex), sections, students });
+      out.push({ ...meta(ex), open: await isOpen(pool, ex), published: await isPublished(pool, ex), sections, students });
     }
     res.json({ max: maxOf(getSettings(req.tid)).test, exams: out });
   });
@@ -405,6 +417,16 @@ function mountPanel(router, pool, { applyGrade }) {
     const open = !!req.body?.open;
     await pool.query("INSERT INTO exam_state (exam, open, changed_at) VALUES ($1, $2, now()) ON CONFLICT (exam) DO UPDATE SET open = EXCLUDED.open, changed_at = now()", [stateKey(ex), open]);
     res.json({ ok: true, open });
+  });
+
+  // Publishing the results: each student who handed in sees her mark and her answers against the key when she comes back
+  // with her ID. The two models share it with the main exam.
+  router.put("/exams/:exam/publish", async (req, res) => {
+    const ex = pick(req, res);
+    if (!ex) return;
+    const published = !!req.body?.published;
+    await pool.query("INSERT INTO exam_state (exam, published, changed_at) VALUES ($1, $2, now()) ON CONFLICT (exam) DO UPDATE SET published = EXCLUDED.published, changed_at = now()", [stateKey(ex), published]);
+    res.json({ ok: true, published });
   });
 
   // Lets a student take it again (a dropped connection, a mistake): her attempt is removed.

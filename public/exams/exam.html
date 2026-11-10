@@ -64,6 +64,15 @@ label.lbl { display: block; font-weight: 600; margin-bottom: 6px; }
 .card .kv span { color: var(--muted); }
 .rules { margin: 0 0 16px; padding-inline-start: 20px; font-size: 14.5px; }
 .rules li { margin-bottom: 3px; }
+.rv-h { font-size: 17px; margin: 22px 0 6px; }
+.rv-sec { margin: 12px 0 0; }
+.rv { border: 1px solid var(--line); border-inline-start: 4px solid var(--teal); border-radius: 12px; padding: 9px 12px; margin: 8px 0; background: var(--panel); }
+.rv.no { border-inline-start-color: var(--rose); }
+.rv-q { font-size: 15px; line-height: 1.7; }
+.rv-a { font-size: 14px; margin-top: 4px; color: var(--muted); }
+.rv.ok .rv-mark { color: var(--teal); font-weight: 700; }
+.rv.no .rv-mark { color: var(--rose); font-weight: 700; }
+.rv-right { color: var(--teal); font-weight: 600; }
 .banner { border-radius: 14px; padding: 10px 14px; margin: 12px 0; font-size: 15px; }
 .banner.info { background: var(--blue-soft); color: var(--blue); }
 .banner.wait { background: var(--amber-soft); color: var(--amber); }
@@ -455,16 +464,40 @@ bdi.eq, bdi.pt { white-space: nowrap; }
 
   function drawResult(d) {
     finish();
+    const done = `<div class="banner info">تم تسليم اختبارك${d.auto ? " تلقائيًا عند نهاية الوقت" : ""} ✓</div>`;
+    if (d.hidden) {
+      screen.innerHTML = `<div class="body">${done}
+        <div class="card"><p style="margin:6px 0">وصل اختبارك لمعلمتك يا ${esc(me?.name || "")} 🌷</p>
+        <p class="note" style="margin:6px 0">درجتك وإجاباتك تطلع لك هنا أول ما تنشر معلمتك النتائج. ادخلي وقتها برقم هويتك.</p></div>
+        <div class="nav"><button class="btn ghost" id="out">خروج</button><button class="btn" id="again">تحديث</button></div></div>`;
+      $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
+      $("#again").onclick = () => identify(me.id, true);
+      return;
+    }
     const pct = d.total ? d.score / d.total : 0;
     const word = pct >= .9 ? "ممتاز" : pct >= .75 ? "جيد جدًا" : pct >= .6 ? "جيد" : "تحتاجين مراجعة، وتقدرين";
     const fmt = n => String(Number(n)).replace(/\.0+$/, "");
-    screen.innerHTML = `<div class="body">
-      <div class="banner info">تم تسليم اختبارك${d.auto ? " تلقائيًا عند نهاية الوقت" : ""} ✓</div>
+    screen.innerHTML = `<div class="body">${done}
       <div class="score"><div class="big">${fmt(d.score)} <small>/ ${d.total}</small></div><div class="note">${esc(word)} يا ${esc(me?.name || "")} ${pct >= .75 ? "🌟" : "💪"}</div></div>
       <div class="parts">${(d.parts || []).map(p => `<div class="kv"><span>${esc(p.title.replace(/^.+?:\s*/, ""))}</span><b>${fmt(p.score)} من ${p.marks}</b></div>`).join("")}</div>
-      <p class="note">${me?.demo ? "هذي تجربة، وما تنحفظ عند المعلمة." : "درجتك وصلت لمعلمتك، وتنتقل لبطاقة نتيجتك بعد ما تعتمدها."}</p>
+      <p class="note">${me?.demo ? "هذي تجربة، وما تنحفظ عند المعلمة." : "درجتك تنتقل لبطاقة نتيجتك بعد ما تعتمدها معلمتك."}</p>
+      ${d.review ? reviewHtml(d.review) : ""}
       <div class="nav"><button class="btn ghost" id="out">خروج</button></div></div>`;
     $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
+  }
+
+  // Each item in the paper's order: her answer, and the right one where hers is wrong or missing.
+  function reviewHtml(review) {
+    const label = (s, it, v) => v == null ? "ما جاوبتي" : s.type === "mcq" ? rich(it.options[v]) : s.type === "tf" ? (v ? "صح" : "خطأ")
+      : `${esc(v)}: ${rich((s.choices.find(c => c.sym === v) || {}).text || "")}`;
+    const right = review.reduce((a, s) => a + s.items.filter(i => i.ok).length, 0), all = review.reduce((a, s) => a + s.items.length, 0);
+    return `<h3 class="rv-h">مراجعة إجاباتك <span class="note">(${right} صح من ${all})</span></h3>
+      ${review.map(s => `<div class="rv-sec"><span class="sec">${esc(s.title)}</span>
+        ${s.items.map((it, i) => `<div class="rv ${it.ok ? "ok" : "no"}">
+          <div class="rv-q"><b>${i + 1}.</b> ${rich(it.q)}</div>
+          <div class="rv-a"><span class="rv-mark">${it.ok ? "✓" : "✗"}</span> إجابتك: ${label(s, it, it.mine)}</div>
+          ${it.ok ? "" : `<div class="rv-a rv-right">الإجابة الصحيحة: ${label(s, it, it.answer)}</div>`}
+        </div>`).join("")}</div>`).join("")}`;
   }
 
   boot();
