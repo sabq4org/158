@@ -224,11 +224,13 @@ async function studentOf(pool, ex, id) {
 const stateKey = ex => ex.parent || ex.key;
 const isOpen = async (pool, ex) => !!(await pool.query("SELECT open FROM exam_state WHERE exam = $1", [stateKey(ex)])).rows[0]?.open;
 
-// Attempts past their deadline (and its grace) close with the answers they saved.
+// Attempts past their deadline (and its grace) close with the answers they saved. One with no answer at all is not
+// an attempt (she pressed «ابدئي» and left, days before the real sitting): it is removed, so she can start when she sits it.
 async function closeExpired(pool, ex, id) {
-  const { rows } = await pool.query(
-    `SELECT national_id, answers FROM exam_attempts WHERE exam = $1 AND submitted_at IS NULL AND deadline + interval '${GRACE_MS / 1000} seconds' < now()
-     ${id ? "AND national_id = $2" : ""}`, id ? [ex.key, id] : [ex.key]);
+  const late = `exam = $1 AND submitted_at IS NULL AND deadline + interval '${GRACE_MS / 1000} seconds' < now() ${id ? "AND national_id = $2" : ""}`;
+  const args = id ? [ex.key, id] : [ex.key];
+  await pool.query(`DELETE FROM exam_attempts WHERE ${late} AND answers = '{}'::jsonb`, args);
+  const { rows } = await pool.query(`SELECT national_id, answers FROM exam_attempts WHERE ${late}`, args);
   for (const r of rows) {
     await pool.query("UPDATE exam_attempts SET submitted_at = deadline, auto_submitted = true, score = $3 WHERE exam = $1 AND national_id = $2 AND submitted_at IS NULL",
       [ex.key, r.national_id, grade(ex, r.answers).score]);
@@ -341,6 +343,11 @@ function mount(app, pool) {
     const id = idOf(req.body?.id), key = keyOf(id, req.body?.token);
     if (!key) return res.status(400).json({ error: "no_token" });
     const answers = cleanAnswers(ex, req.body?.answers);
+    // Time ran out on a paper with nothing on it: it is removed, not handed in as a zero.
+    if (!Object.keys(answers).length) {
+      const gone = await pool.query("DELETE FROM exam_attempts WHERE exam = $1 AND national_id = $2 AND submitted_at IS NULL AND answers = '{}'::jsonb AND now() >= deadline", [ex.key, key]);
+      if (gone.rowCount) return res.json({ status: "none", empty: true });
+    }
     const { rows } = await pool.query(
       `UPDATE exam_attempts SET answers = $3, submitted_at = now(), score = $4 WHERE exam = $1 AND national_id = $2 AND submitted_at IS NULL
        AND now() < deadline + interval '${GRACE_MS / 1000} seconds' RETURNING *`, [ex.key, key, JSON.stringify(answers), grade(ex, answers).score]);
