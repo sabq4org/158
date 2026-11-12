@@ -66,13 +66,13 @@ label.lbl { display: block; font-weight: 600; margin-bottom: 6px; }
 .rules li { margin-bottom: 3px; }
 .rv-h { font-size: 17px; margin: 22px 0 6px; }
 .rv-sec { margin: 12px 0 0; }
-.rv { border: 1px solid var(--line); border-inline-start: 4px solid var(--teal); border-radius: 12px; padding: 9px 12px; margin: 8px 0; background: var(--panel); }
+.rv { border: 1px solid var(--line); border-inline-start: 4px solid var(--ok, var(--teal)); border-radius: 12px; padding: 9px 12px; margin: 8px 0; background: var(--panel); }
 .rv.no { border-inline-start-color: var(--rose); }
 .rv-q { font-size: 15px; line-height: 1.7; }
 .rv-a { font-size: 14px; margin-top: 4px; color: var(--muted); }
-.rv.ok .rv-mark { color: var(--teal); font-weight: 700; }
+.rv.ok .rv-mark { color: var(--ok, var(--teal)); font-weight: 700; }
 .rv.no .rv-mark { color: var(--rose); font-weight: 700; }
-.rv-right { color: var(--teal); font-weight: 600; }
+.rv-right { color: var(--ok, var(--teal)); font-weight: 600; }
 .banner { border-radius: 14px; padding: 10px 14px; margin: 12px 0; font-size: 15px; }
 .banner.info { background: var(--blue-soft); color: var(--blue); }
 .banner.wait { background: var(--amber-soft); color: var(--amber); }
@@ -134,6 +134,68 @@ bdi.eq, bdi.pt { white-space: nowrap; }
 .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.15; font-size: .88em; margin: 0 2px; }
 .fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
 .fw { white-space: nowrap; }
+/* Each exam can have its own look (exam.theme): the colours, the header's drawing, the progress marks, the celebration. */
+:root[data-look="curve"] { --bg: #e9e7f5; --sheet: #fcfbff; --ink: #1b1530; --muted: #625c80; --line: #d9d4ee; --teal: #5a3fc0; --teal-soft: #e8e2fb; --chip: #f0edf9; }
+:root[data-look] { --ok: #1f8a5b; }
+:root[data-look="sadu"] { --bg: #f1e8de; --sheet: #fffaf4; --ink: #2a1712; --muted: #7a6152; --line: #e6d6c3; --teal: #a8322b; --teal-soft: #f7dfd9; --chip: #f4ebe1; }
+@media (prefers-color-scheme: dark) {
+  :root[data-look]:not([data-theme="light"]) { --ok: #5fd39a; }
+  :root[data-look="curve"]:not([data-theme="light"]) { --bg: #0e0b1c; --sheet: #161229; --panel: #120f22; --ink: #ebe7ff; --muted: #a59fc6; --line: #2e2750; --teal: #b49cff; --teal-ink: #1a1036; --teal-soft: #2a2050; --chip: #221c40; }
+  :root[data-look="sadu"]:not([data-theme="light"]) { --bg: #160e0b; --sheet: #21150f; --panel: #1a110c; --ink: #f6e9df; --muted: #c2a593; --line: #3d2a20; --teal: #ff8d7c; --teal-ink: #2a0d08; --teal-soft: #3e1d17; --chip: #2d1d16; }
+}
+:root[data-look][data-theme="dark"] { --ok: #5fd39a; }
+:root[data-look="curve"][data-theme="dark"] { --bg: #0e0b1c; --sheet: #161229; --panel: #120f22; --ink: #ebe7ff; --muted: #a59fc6; --line: #2e2750; --teal: #b49cff; --teal-ink: #1a1036; --teal-soft: #2a2050; --chip: #221c40; }
+:root[data-look="sadu"][data-theme="dark"] { --bg: #160e0b; --sheet: #21150f; --panel: #1a110c; --ink: #f6e9df; --muted: #c2a593; --line: #3d2a20; --teal: #ff8d7c; --teal-ink: #2a0d08; --teal-soft: #3e1d17; --chip: #2d1d16; }
+.head { position: relative; overflow: hidden; }
+.head > img, .head > div:not(.art) { position: relative; z-index: 1; }
+.art { position: absolute; inset: 0; pointer-events: none; }
+.art svg { position: absolute; inset-inline-end: 0; top: 0; height: 100%; width: min(52%, 300px);
+  -webkit-mask-image: linear-gradient(to right, #000 40%, transparent); mask-image: linear-gradient(to right, #000 40%, transparent); }
+.head h1, .head small { text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+@media (max-width: 520px) { .art svg { opacity: .55; } }
+:root[data-look="curve"] .head { background: linear-gradient(120deg, #3a2391, #6b48d6 70%, #8d6cf0); color: #fff; }
+:root[data-look="curve"] .art .grid { stroke: rgba(255, 255, 255, .13); stroke-width: 1; }
+:root[data-look="curve"] .art .axis { stroke: rgba(255, 255, 255, .45); stroke-width: 1.3; }
+:root[data-look="curve"] .art .graph { fill: none; stroke: #ffd36b; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw 2.4s .3s ease-out forwards; }
+:root[data-look="curve"] .art .root { fill: #fff; opacity: 0; animation: pop .5s ease-out forwards, glow 2.4s 3s ease-in-out infinite alternate; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { from { opacity: 0; r: 0; } to { opacity: 1; } }
+@keyframes glow { to { opacity: .45; } }
+:root[data-look="sadu"] .head { background: #8f241e; color: #fff; padding-bottom: 30px; }
+:root[data-look="sadu"] .head::after { content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='18'%3E%3Crect width='36' height='18' fill='%231d1411'/%3E%3Cpath d='M0 18 L9 2 L18 18Z' fill='%23f3e6cf'/%3E%3Cpath d='M18 18 L27 2 L36 18Z' fill='%23d9a441'/%3E%3Cpath d='M5 18 L9 10 L13 18Z' fill='%23b3261e'/%3E%3Cpath d='M23 18 L27 10 L31 18Z' fill='%23b3261e'/%3E%3C/svg%3E") repeat-x;
+  animation: weave 30s linear infinite; }
+@keyframes weave { to { background-position: -360px 0; } }
+:root[data-look="sadu"] .art .t { fill: none; stroke: rgba(255, 255, 255, .5); stroke-width: 1.6; stroke-linejoin: round; }
+:root[data-look="sadu"] .art .t2 { animation: slide 3.2s ease-in-out infinite alternate; }
+:root[data-look="sadu"] .art .tick { stroke: #f3c96b; stroke-width: 2; }
+:root[data-look="sadu"] .art .eqs { fill: #f3c96b; font: 700 15px var(--font); }
+@keyframes slide { from { transform: translateX(-14px); } to { transform: translateX(0); } }
+:root[data-look="curve"] .dots button { border-radius: 50%; }
+:root[data-look="sadu"] .dots button { border-radius: 2px; transform: rotate(45deg) scale(.74); }
+:root[data-look="sadu"] .dots button.cur { transform: rotate(45deg) scale(.95); }
+:root[data-look] .sec { background: var(--teal-soft); color: var(--teal); }
+
+/* A drawing with the question: never to scale, and never the answer. */
+.fig { margin: -2px auto 14px; max-width: 320px; background: var(--panel); border: 1px dashed var(--line); border-radius: 16px; padding: 6px 8px 2px; }
+.fig svg { display: block; width: 100%; height: auto; direction: ltr; }
+.fig .sh { fill: var(--teal-soft); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.fig .ln { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.fig .mk { stroke: var(--teal); stroke-width: 2; fill: none; }
+.fig .nm { fill: var(--ink); font: italic 600 15px var(--font); }
+.fig .lb { fill: var(--teal); font: 700 14px var(--font); }
+.fig .lb.q { fill: var(--rose); font-size: 17px; }
+.fig figcaption { font-size: 11.5px; color: var(--muted); text-align: center; }
+.rv .fig { max-width: 240px; margin: 6px 0 2px; }
+
+/* The celebration for a good mark */
+.party { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
+.party i { position: absolute; top: -30px; display: block; font-style: normal; font-weight: 700; animation: fall var(--d) var(--w) cubic-bezier(.2, .6, .4, 1) forwards; }
+@keyframes fall { to { transform: translate(var(--x), 110vh) rotate(var(--r)); opacity: .2; } }
+@media (prefers-reduced-motion: reduce) {
+  .art *, .head::after { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; }
+  .party { display: none; }
+}
 [hidden] { display: none !important; }
 @media (max-width: 420px) {
   .body { padding: 16px 14px 20px; }
@@ -147,6 +209,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
 <main class="wrap">
   <div class="sheet">
     <header class="head">
+      <div class="art" aria-hidden="true"></div>
       <img src="/img/school-logo.png" alt="" onerror="this.remove()">
       <div><h1 id="title">اختبار تفاعلي</h1><small id="subtitle">جاري التحميل…</small></div>
     </header>
@@ -173,9 +236,130 @@ bdi.eq, bdi.pt { white-space: nowrap; }
   // {p:2,1} a point, {f:-2/3} a fraction, {e:…} an equation (read right to left), {d:90} degrees.
   const rich = s => esc(s)
     .replace(/\{p:(-?[\d.]+),(-?[\d.]+)\}/g, (_, x, y) => `<bdi dir="ltr" class="pt">(${x}, ${y})</bdi>`)
-    .replace(/\{f:(-?)(\d+)\/(\d+)\}/g, (_, n, a, b) => `<bdi dir="ltr" class="fw">${n ? "−" : ""}<span class="fr"><span>${a}</span><span>${b}</span></span></bdi>`)
+    .replace(/\{f:(-?)([^/}]+)\/([^}]+)\}/g, (_, n, a, b) => `<bdi dir="ltr" class="fw">${n ? "−" : ""}<span class="fr"><span>${a}</span><span>${b}</span></span></bdi>`)
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
     .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi dir="ltr" class="eq">${e}</bdi>`);
+
+
+  // ---- The look of an exam: the header's drawing ----
+  const ART = {
+    // A cubic over a grid: it draws itself, and its three real zeros light up where it crosses the axis.
+    curve() {
+      const W = 300, H = 100, X = x => 150 + x * 34, Y = y => 52 - y * 9;
+      const f = x => .45 * (x + 2.6) * (x - .4) * (x - 2.8);
+      const pts = []; for (let x = -3.4; x <= 3.5; x += .1) pts.push(`${X(x).toFixed(1)},${Y(f(x)).toFixed(1)}`);
+      let grid = ""; for (let gx = 0; gx <= W; gx += 25) grid += `<line class="grid" x1="${gx}" y1="0" x2="${gx}" y2="${H}"/>`;
+      for (let gy = 2; gy <= H; gy += 25) grid += `<line class="grid" x1="0" y1="${gy}" x2="${W}" y2="${gy}"/>`;
+      const roots = [-2.6, .4, 2.8].map((r, i) => `<circle class="root" cx="${X(r)}" cy="${Y(0)}" r="4.5" style="animation-delay:${1 + i * .45}s, ${3 + i * .3}s"/>`).join("");
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice">${grid}<line class="axis" x1="0" y1="${Y(0)}" x2="${W}" y2="${Y(0)}"/>
+        <line class="axis" x1="${X(0)}" y1="0" x2="${X(0)}" y2="${H}"/><polyline class="graph" points="${pts.join(" ")}"/>${roots}</svg>`;
+    },
+    // Two congruent triangles, one sliding onto its place, with their matching marks.
+    sadu() {
+      const t = (dx, cls) => `<g class="${cls}"><path class="t" d="M${20 + dx} 78 L${88 + dx} 78 L${44 + dx} 22 Z"/>
+        <line class="tick" x1="${51 + dx}" y1="74" x2="${57 + dx}" y2="82"/><line class="tick" x1="${28 + dx}" y1="47" x2="${36 + dx}" y2="52"/><line class="tick" x1="${31 + dx}" y1="45" x2="${39 + dx}" y2="50"/></g>`;
+      return `<svg viewBox="0 0 230 112" preserveAspectRatio="xMinYMin meet">${t(8, "t1")}<text class="eqs" x="106" y="58">≅</text>${t(116, "t2")}</svg>`;
+    },
+  };
+
+  // ---- Drawings with a question: { t: "tri" | "ext" | "iso" | "equi" | "pair", … } from the exam (exams.js) ----
+  const rad = d => d * Math.PI / 180;
+  // A triangle with angles A at the left end of its base and B at the right one, in maths coordinates (y up).
+  const tri = (A, B) => { const b = Math.sin(rad(B)) / Math.sin(Math.PI - rad(A) - rad(B)); return [[0, 0], [1, 0], [b * Math.cos(rad(A)), b * Math.sin(rad(A))]]; };
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
+  const unit = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+  const P = p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+  // Scales a set of shapes (y up) into the drawing (y down), keeping proportions.
+  function fit(shapes, W, H, pad) {
+    const all = shapes.flat(), xs = all.map(p => p[0]), ys = all.map(p => p[1]);
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    const k = Math.min((W - 2 * pad) / (x1 - x0 || 1), (H - 2 * pad) / (y1 - y0 || 1));
+    const ox = (W - (x1 - x0) * k) / 2, oy = (H - (y1 - y0) * k) / 2;
+    return shapes.map(s => s.map(p => [ox + (p[0] - x0) * k, H - oy - (p[1] - y0) * k]));
+  }
+  // An angle mark at V between the rays to P1 and P2 (n arcs), and where its label goes.
+  const arcs = (V, P1, P2, n = 1, r = 17) => {
+    const u1 = unit(sub(P1, V)), u2 = unit(sub(P2, V)), sweep = u1[0] * u2[1] - u1[1] * u2[0] > 0 ? 1 : 0;
+    let d = ""; for (let i = 0; i < n; i++) { const rr = r + i * 5; d += `M${P(add(V, mul(u1, rr)))} A${rr},${rr} 0 0 ${sweep} ${P(add(V, mul(u2, rr)))} `; }
+    return `<path class="mk" d="${d}"/>`;
+  };
+  // Where an angle's label sits: along its bisector, further out the narrower the angle, so it clears the sides.
+  const inward = (V, P1, P2, min) => {
+    const u1 = unit(sub(P1, V)), u2 = unit(sub(P2, V)), half = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1]))) / 2;
+    return add(V, mul(unit(add(u1, u2)), Math.min(64, Math.max(min, 18 / Math.sin(half)))));
+  };
+  const hatch = (A, B, n) => {
+    const m = mul(add(A, B), .5), u = unit(sub(B, A)), v = [-u[1], u[0]];
+    let out = "";
+    for (let i = 0; i < n; i++) {
+      const c = add(m, mul(u, (i - (n - 1) / 2) * 6)), p = add(c, mul(v, 7)), q = sub(c, mul(v, 7));
+      out += `<line class="mk" x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}"/>`;
+    }
+    return out;
+  };
+  const text = (p, s, cls) => `<text class="${cls}" x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle" dominant-baseline="central">${esc(s)}</text>`;
+  const lbl = (p, s) => text(p, s, s === "?" ? "lb q" : "lb");
+  const names = (pts, ns) => { const g = mul(pts.reduce(add, [0, 0]), 1 / pts.length); return pts.map((p, i) => text(add(p, mul(unit(sub(p, g)), 15)), ns[i], "nm")).join(""); };
+  const poly = pts => `<polygon class="sh" points="${pts.map(P).join(" ")}"/>`;
+  const W = 320, H = 180;
+  const FIGS = {
+    tri(f) {
+      const [t] = fit([tri(f.A, f.B)], W, H, 34), [A, B, C] = t;
+      return poly(t) + [[A, B, C], [B, C, A], [C, A, B]].map(([V, P1, P2], i) => arcs(V, P1, P2) + lbl(inward(V, P1, P2, 38), f.labels[i])).join("") + names(t, ["A", "B", "C"]);
+    },
+    // Base BC drawn on past C: the exterior angle at C, and the two remote interior angles at A and B.
+    ext(f) {
+      const base = tri(f.B, 180 - f.A - f.B), D = [1.55, 0];
+      const [t, line] = fit([base, [base[1], D]], W, H, 30), [B, C, A] = t, Dp = line[1];
+      return `<line class="ln" x1="${C[0]}" y1="${C[1]}" x2="${Dp[0]}" y2="${Dp[1]}"/>` + poly(t)
+        + arcs(A, B, C) + lbl(inward(A, B, C, 36), f.labels[0]) + arcs(B, C, A) + lbl(inward(B, C, A, 36), f.labels[1])
+        + arcs(C, Dp, A, 1, 20) + lbl(inward(C, Dp, A, 40), f.labels[2]) + names(t, ["B", "C", "A"]);
+    },
+    iso(f) {
+      const b = (180 - f.apex) / 2, [t] = fit([tri(b, b)], W, H, 30), [B, C, A] = t;
+      return poly(t) + hatch(A, B, 1) + hatch(A, C, 1) + arcs(A, B, C) + lbl(inward(A, B, C, 36), f.label)
+        + arcs(B, C, A, 2) + lbl(inward(B, C, A, 40), "?") + arcs(C, A, B, 2) + lbl(inward(C, A, B, 40), "?") + names(t, ["B", "C", "A"]);
+    },
+    equi(f) {
+      const [t] = fit([tri(60, 60)], W, H, 36), [B, C, A] = t, g = mul(add(add(A, B), C), 1 / 3);
+      const side = (P1, P2, s) => text(add(mul(add(P1, P2), .5), mul(unit(sub(mul(add(P1, P2), .5), g)), 26)), s, "lb");
+      return poly(t) + hatch(A, B, 1) + hatch(B, C, 1) + hatch(C, A, 1) + side(B, A, f.labels[0]) + side(A, C, f.labels[1]);
+    },
+    // Two congruent triangles, ABC and DEF, with the marks the question gives.
+    pair(f) {
+      const s = tri(52, 64), [t1, t2] = fit([s, s.map(p => [p[0] + 1.7, p[1]])], W, H - 10, 28);
+      const draw = (t, ns) => {
+        const at = Object.fromEntries(["A", "B", "C"].map((k, i) => [k, t[i]]));
+        let out = poly(t);
+        for (const [k, n] of Object.entries(f.sides || {})) out += hatch(at[k[0]], at[k[1]], n);
+        for (const [k, n] of Object.entries(f.angles || {})) { const o = ["A", "B", "C"].filter(x => x !== k); out += arcs(at[k], at[o[0]], at[o[1]], n, 15); }
+        return out + names(t, ns);
+      };
+      return draw(t1, ["A", "B", "C"]) + draw(t2, ["D", "E", "F"]);
+    },
+  };
+  function figure(f) {
+    if (!f || !FIGS[f.t]) return "";
+    try { return `<figure class="fig"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="شكل توضيحي">${FIGS[f.t](f)}</svg><figcaption>الشكل للتوضيح، وليس بالقياس الحقيقي</figcaption></figure>`; }
+    catch { return ""; }
+  }
+
+  // A shower of the exam's own shapes for a good mark.
+  function celebrate() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const look = document.documentElement.dataset.look;
+    const shapes = look === "sadu" ? ["▲", "◆", "▼", "△"] : look === "curve" ? ["x²", "i", "●", "∿", "x³"] : ["●", "◆", "★"];
+    const colors = look === "sadu" ? ["#b3261e", "#d9a441", "#1d1411", "#e9d3b0"] : look === "curve" ? ["#5a3fc0", "#ffb648", "#8d6cf0", "#2fb5a6"] : ["#0a7c78", "#ffb648", "#2257b5"];
+    const box = document.createElement("div"); box.className = "party"; box.setAttribute("aria-hidden", "true");
+    for (let i = 0; i < 46; i++) {
+      const el = document.createElement("i");
+      el.textContent = shapes[i % shapes.length];
+      el.style.cssText = `left:${Math.random() * 100}%;color:${colors[i % colors.length]};font-size:${14 + Math.random() * 16}px;--d:${2.4 + Math.random() * 1.6}s;--w:${Math.random() * .6}s;--x:${(Math.random() - .5) * 120}px;--r:${(Math.random() - .5) * 720}deg`;
+      box.appendChild(el);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 5000);
+  }
 
   // With a practice ID, the server keeps each visitor's try apart by this tab's own random token.
   const TOKEN = (() => {
@@ -212,6 +396,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     try { exam = await call(`/api/exams/${encodeURIComponent(KEY)}`); }
     catch { screen.innerHTML = `<div class="body"><div class="err">ما قدرنا نفتح الاختبار. تأكدي من الرابط والإنترنت.</div></div>`; $("#subtitle").textContent = ""; return; }
     document.title = exam.title;
+    if (exam.theme) { document.documentElement.dataset.look = exam.theme; $(".art").innerHTML = ART[exam.theme] ? ART[exam.theme]() : ""; }
     $("#title").textContent = exam.title;
     $("#subtitle").textContent = `${exam.subject} · ${exam.gradeLabel} · ${exam.semester}`;
     const saved = SS.get(`examStudent:${KEY}`);
@@ -391,6 +576,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
         <span class="sec">${esc(s.title)} · ${nInSec} من ${s.items.length}</span>
         <p class="note" style="margin:8px 0 0">${esc(s.hint)}</p>
         <div class="q">${rich(it.q)}</div>
+        ${figure(it.fig)}
         ${body}
         <div class="nav">
           <button type="button" class="btn ghost" id="prev" ${cur === 0 ? "disabled" : ""}>السابق</button>
@@ -484,6 +670,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       ${d.review ? reviewHtml(d.review) : ""}
       <div class="nav"><button class="btn ghost" id="out">خروج</button></div></div>`;
     $("#out").onclick = () => { SS.set(`examStudent:${KEY}`, null); me = null; drawId(); };
+    if (pct >= .75) celebrate();
   }
 
   // Each item in the paper's order: her answer, and the right one where hers is wrong or missing.
@@ -494,7 +681,7 @@ bdi.eq, bdi.pt { white-space: nowrap; }
     return `<h3 class="rv-h">مراجعة إجاباتك <span class="note">(${right} صح من ${all})</span></h3>
       ${review.map(s => `<div class="rv-sec"><span class="sec">${esc(s.title)}</span>
         ${s.items.map((it, i) => `<div class="rv ${it.ok ? "ok" : "no"}">
-          <div class="rv-q"><b>${i + 1}.</b> ${rich(it.q)}</div>
+          <div class="rv-q"><b>${i + 1}.</b> ${rich(it.q)}</div>${figure(it.fig)}
           <div class="rv-a"><span class="rv-mark">${it.ok ? "✓" : "✗"}</span> إجابتك: ${label(s, it, it.mine)}</div>
           ${it.ok ? "" : `<div class="rv-a rv-right">الإجابة الصحيحة: ${label(s, it, it.answer)}</div>`}
         </div>`).join("")}</div>`).join("")}`;

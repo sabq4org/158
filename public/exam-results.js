@@ -2,7 +2,7 @@
 // marks and the hardest items, prints a student's answer sheet, and approves marks into الاختبار الأول or الثاني.
 // Runs inside admin.html and uses its helpers ($, esc, api, toast, confirmBox, levelPill, Report, students).
 const ExamResults = (() => {
-  let data = null, cls = "", field = "test1", view = "students", timer = null;
+  let data = null, cls = "", field = "test1", view = "students", timer = null, pick = "";
   const host = () => $("#examsPanel");
   const fmt = n => (n == null ? "—" : String(Math.round(Number(n) * 100) / 100));
   const when = at => new Date(at).toLocaleString("ar-SA-u-nu-latn", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
@@ -12,7 +12,7 @@ const ExamResults = (() => {
   // The exam's maths marks, as the student's page shows them.
   const rich = s => esc(s)
     .replace(/\{p:(-?[\d.]+),(-?[\d.]+)\}/g, (_, x, y) => `<bdi dir="ltr">(${x}, ${y})</bdi>`)
-    .replace(/\{f:(-?)(\d+)\/(\d+)\}/g, (_, n, a, b) => `<bdi dir="ltr">${n ? "−" : ""}${a}/${b}</bdi>`)
+    .replace(/\{f:(-?)([^/}]+)\/([^}]+)\}/g, (_, n, a, b) => `<bdi dir="ltr">${n ? "−" : ""}${a}/${b}</bdi>`)
     .replace(/\{d:(\d+)\}/g, (_, d) => `<bdi dir="ltr">${d}°</bdi>`)
     .replace(/\{e:([^}]+)\}/g, (_, e) => `<bdi dir="ltr">${e}</bdi>`);
 
@@ -32,8 +32,17 @@ const ExamResults = (() => {
 
   function render() {
     if (!data.exams.length) { host().innerHTML = '<div class="card note" style="padding:20px">ما عندك اختبارات تفاعلية حاليًا.</div>'; return; }
-    host().innerHTML = data.exams.map(examCard).join("");
-    data.exams.forEach(bind);
+    // One exam at a time (with its صعوبات التعلم model): the teacher picks it from the row on top. It opens on the
+    // exam that is open now, or the newest.
+    const mains = data.exams.filter(e => !e.parent);
+    if (!mains.some(e => e.key === pick)) pick = (mains.find(e => e.open) || mains[0]).key;
+    const shown = data.exams.filter(e => e.key === pick || e.parent === pick);
+    const tabs = mains.length > 1 ? `<div class="toolbar" role="tablist" aria-label="الاختبار" style="flex-wrap:wrap;gap:8px;padding:0 0 12px">
+      ${mains.map(e => `<button class="btn sm ${e.key === pick ? "" : "quiet"}" role="tab" aria-selected="${e.key === pick}" data-ex-pick="${esc(e.key)}">
+        ${esc(e.title.replace(/^.+?:\s*/, ""))} <span style="opacity:.8;font-weight:400">· ${esc(e.gradeLabel)}</span>${e.open ? " 🟢" : ""}</button>`).join("")}</div>` : "";
+    host().innerHTML = tabs + shown.map(examCard).join("");
+    host().querySelectorAll("[data-ex-pick]").forEach(b => b.onclick = () => { pick = b.dataset.exPick; cls = ""; render(); });
+    shown.forEach(bind);
   }
 
   function examCard(ex) {
@@ -200,6 +209,6 @@ const ExamResults = (() => {
     });
   }
 
-  const reset = () => { data = null; cls = ""; clearTimeout(timer); };
+  const reset = () => { data = null; cls = ""; pick = ""; clearTimeout(timer); };
   return { load, reset };
 })();
