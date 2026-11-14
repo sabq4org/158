@@ -96,6 +96,8 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-circuit .cover { background: linear-gradient(160deg, #123a2e, #0f2f26 55%, #0b241d); }
 .t-pearl .cover { background: linear-gradient(180deg, #cfe9f5 0 42%, #0f4c6b 42%, #072a3c); }
 .t-river .cover { background: linear-gradient(180deg, #c9dca6 0 34%, #cfe8fb 34% 72%, #ead9a8 72%); }
+.t-tent .cover { background: linear-gradient(180deg, #f39a63 0, #f7c58a 70%, #e8c98e 70%); }
+.t-gps .cover { background: linear-gradient(160deg, #20242c, #2b3140); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -190,6 +192,19 @@ const COVERS = {
     ${[40, 100, 160, 220, 280].map(x => `<circle cx="${x}" cy="40" r="4.5" fill="#fbfaf7" stroke="#1d2125" stroke-width="2"/>`).join("")}
     <rect x="0" y="0" width="300" height="9" fill="#f5b700"/><path d="M0 0 L9 9 M20 0 L29 9 M40 0 L49 9 M60 0 L69 9 M80 0 L89 9 M100 0 L109 9 M120 0 L129 9 M140 0 L149 9 M160 0 L169 9 M180 0 L189 9 M200 0 L209 9 M220 0 L229 9 M240 0 L249 9 M260 0 L269 9 M280 0 L289 9" stroke="#1d2125" stroke-width="7"/>
     <text x="150" y="134" text-anchor="middle" fill="#1864ab" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20">SSS · SAS</text></svg>`,
+  tent: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <circle cx="250" cy="34" r="14" fill="#fff6d8"/><path d="M0 128 Q 80 116 150 126 T 300 122 V150 H0Z" fill="#d9ad6b"/>
+    <polygon points="90,126 210,126 150,22" fill="#f6ead2" stroke="#2a2118" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M100 112 L150 34 L200 112" fill="none" stroke="#a0441c" stroke-width="3" stroke-dasharray="10 6"/>
+    <path d="M136 126 L150 96 L164 126Z" fill="#2a2118"/>
+    <line x1="116" y1="70" x2="128" y2="78" stroke="#1864ab" stroke-width="3.5"/><line x1="184" y1="70" x2="172" y2="78" stroke="#1864ab" stroke-width="3.5"/>
+    <path d="M112 126 A 22 22 0 0 0 102 109" fill="none" stroke="#e67700" stroke-width="3"/><path d="M188 126 A 22 22 0 0 1 198 109" fill="none" stroke="#e67700" stroke-width="3"/></svg>`,
+  gps: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect x="40" y="12" width="220" height="126" rx="14" fill="#dfeee0"/>
+    <path d="M60 12V138M100 12V138M140 12V138M180 12V138M220 12V138M40 45H260M40 80H260M40 115H260" stroke="#1d2433" stroke-opacity=".12"/>
+    <polygon points="90,40 110,112 200,122" fill="rgba(91,60,196,.18)" stroke="#5b3cc4" stroke-width="3" stroke-linejoin="round"/>
+    <g fill="#e03131"><path d="M90 40c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/><path d="M110 112c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/><path d="M200 122c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/></g>
+    <text x="230" y="60" text-anchor="middle" fill="#5b3cc4" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15">(x, y)</text></svg>`,
   river: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path d="M0 58 Q 75 50 150 58 T 300 56 M0 82 Q 75 74 150 82 T 300 80" fill="none" stroke="#4dabf7" stroke-width="2" opacity=".7"/>
     <polygon points="70,122 230,122 150,30" fill="rgba(11,114,133,.16)" stroke="#0b7285" stroke-width="3" stroke-linejoin="round"/>
