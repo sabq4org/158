@@ -898,14 +898,14 @@ const U = 40; // pixels per unit length in the drawings
 
 /* ---------- 4. Algebra ---------- */
 {
-  // Example 3: AB = 3 in., m∠A = m∠B = (2x)°, BC = (4y − 5) in., AC ≅ BC.
+  // Example 3: AB = 3 in., m∠A = m∠B = (2x)°, BC = (4y − 5) in., AB ≅ AC (tick marks in the book).
   const A = [80, 100], B = [80 + 150 * Math.cos(30 * RAD), 25], C = [80 + 150 * Math.cos(30 * RAD), 175];
   const F3 = { pts: { A, B, C }, segs: ["AB", "BC", "CA"], tris: ["ABC"], fs: 19, r: 20 };
-  $("#ex3F").innerHTML = figure(F3, [["t", "AC", 1], ["t", "BC", 1], ["g", "BAC", 1], ["g", "ABC", 1]]) + sideLbl(A, B, C, "3 in.", { fs: 14, d: 12 })
+  $("#ex3F").innerHTML = figure(F3, [["t", "AB", 1], ["t", "AC", 1], ["g", "BAC", 1], ["g", "ABC", 1]]) + sideLbl(A, B, C, "3 in.", { fs: 14, d: 12 })
     + sideLbl(B, C, A, "(4y − 5) in.", { fs: 14, d: 14 }) + angLbl(A, B, C, "(2x)°", { fs: 13, d: 42 }) + angLbl(B, C, A, "(2x)°", { fs: 13, d: 42 });
   const W = [
-    [`${M("<i>m</i>∠<i>A</i> = <i>m</i>∠<i>B</i>")} ، فـ ${M(`${OV("AC")} ≅ ${OV("BC")}`)}`, "عكس نظرية المتطابق الضلعين (والشكل يؤكدها)"],
-    [`${ACONG("A", "B")} ≅ ${ANG("C")}`, "الضلعان المتطابقان ← الزاوية المقابلة لـ AB تطابقهما"],
+    [`${M("<i>m</i>∠<i>A</i> = <i>m</i>∠<i>B</i>")} ، فـ ${M(`${OV("AC")} ≅ ${OV("BC")}`)}`, "عكس نظرية المثلث المتطابق الضلعين"],
+    [`${M(`${OV("AB")} ≅ ${OV("AC")}`)} ، فـ ${ACONG("B", "C")}`, "من علامتي الشكل، ونظرية المثلث المتطابق الضلعين"],
     ["المثلث متطابق الزوايا، إذن متطابق الأضلاع", "نتيجة 3.3"],
     [M("2<i>x</i> = 60 ← <i>x</i> = 30"), "كل زاوية 60° (نتيجة 3.4)"],
     [M("<i>AB</i> = <i>BC</i> ← 3 = 4<i>y</i> − 5"), "الأضلاع متساوية"],
