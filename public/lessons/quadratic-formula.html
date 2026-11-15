@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نافورة جدة</title>
+<meta name="description" content="درس تفاعلي: القانون العام والمميز، رياضيات 2، الدرس 3-2">
+<meta name="theme-color" content="#1f2459">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* «نافورة جدة»: lesson 3-2 told through the jet of the fountain on the Jeddah corniche. Its water rises and falls
+   along a parabola, so «when is the water at this height?» is a quadratic equation, and the discriminant tells if the
+   water passes that height twice, touches it once at the top, or never reaches it. Stations: the fountain (hero),
+   deriving the formula by completing the square side by side with the book's example, the formula machine (any a, b, c
+   with exact working: rational, repeated, irrational and complex roots), the discriminant board (sliders + the book's
+   table + four challenges), which method to use, a fountain-colours game, the quiz from «تأكد» and the summary. */
+:root {
+  --bg: #f1f5f7;
+  --panel: #fdfeff;
+  --panel-2: #eef4f7;
+  --ink: #15222e;
+  --muted: #546474;
+  --line: #d3dee6;
+  --sea: #0e7490;
+  --sea-soft: #d5eef4;
+  --coral: #d9480f;
+  --coral-soft: #fde4d6;
+  --gold: #b7791f;
+  --gold-soft: #f8ecd2;
+  --mint: #12805c;
+  --mint-soft: #d6f2e6;
+  --violet: #7048c4;
+  --violet-soft: #ece4fb;
+  --red: #c92a2a;
+  --red-soft: #fde2e2;
+  --dusk: linear-gradient(180deg, #1f2459 0%, #3b2d6b 40%, #8e4372 74%, #d9785e 100%);
+  --shadow: 0 1px 1px rgba(15, 40, 55, .08), 0 14px 34px -16px rgba(15, 40, 55, .4);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b131a; --panel: #121e28; --panel-2: #182733; --ink: #e5eef4; --muted: #9db0bf; --line: #2a3b48;
+    --sea: #5cc8e4; --sea-soft: #11313e; --coral: #ff9a66; --coral-soft: #3e2116; --gold: #f1c062; --gold-soft: #3a2e14;
+    --mint: #5fd6a8; --mint-soft: #123a2e; --violet: #b9a3f6; --violet-soft: #2b2447; --red: #ff8787; --red-soft: #451d1d;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b131a; --panel: #121e28; --panel-2: #182733; --ink: #e5eef4; --muted: #9db0bf; --line: #2a3b48;
+  --sea: #5cc8e4; --sea-soft: #11313e; --coral: #ff9a66; --coral-soft: #3e2116; --gold: #f1c062; --gold-soft: #3a2e14;
+  --mint: #5fd6a8; --mint-soft: #123a2e; --violet: #b9a3f6; --violet-soft: #2b2447; --red: #ff8787; --red-soft: #451d1d;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+p { margin: 0; }
+a { color: var(--sea); }
+.muted { color: var(--muted); }
+svg { direction: ltr; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.12em; white-space: nowrap; line-height: 1.45; }
+.m i { font-style: italic; }
+.m .m { font-size: 1em; }
+.m sup { font-size: .68em; vertical-align: .62em; line-height: 0; font-style: normal; }
+.m .ar { font-family: var(--font); font-size: .86em; font-style: normal; padding: 0 .3em; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.15; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 .2em .05em; }
+.fr > span:last-child { padding: .05em .2em 0; }
+.sq { white-space: nowrap; }
+.sq > span { border-top: 1.4px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.ca { color: var(--coral); font-weight: 600; } .cb { color: var(--sea); font-weight: 600; } .cg { color: var(--mint); font-weight: 600; }
+.cv { color: var(--violet); font-weight: 600; } .cy { color: var(--gold); font-weight: 600; } .cx { color: var(--red); font-weight: 600; }
+
+/* Layout */
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+.ribbon { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.ribbon-in { max-width: 980px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+.ribbon b { font-size: 14px; white-space: nowrap; }
+.stations { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+.stations::-webkit-scrollbar { display: none; }
+.stations a { flex: none; text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px 10px; transition: all .2s; white-space: nowrap; }
+.stations a.on { color: #fff; background: var(--sea); border-color: var(--sea); }
+.stations a.done { color: var(--mint); border-color: var(--mint); }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Cards with a splash of water drops on top */
+.card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 30px 28px 26px; margin: 34px 0 0; scroll-margin-top: 70px; overflow: hidden; }
+.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 8px; opacity: .65;
+  background: linear-gradient(90deg, var(--sea), var(--mint), var(--sea), var(--coral)); }
+.card > * { position: relative; z-index: 1; }
+.head { display: flex; gap: 14px; align-items: center; }
+.drop { flex: none; width: 48px; height: 56px; display: grid; place-items: center; padding-top: 10px; font-weight: 700; font-size: 18px; color: #fff;
+  background: linear-gradient(160deg, #5cc8e4, #0e7490); border-radius: 50% 50% 50% 50% / 62% 62% 40% 40%; clip-path: path("M24 0 C 24 0 48 26 48 38 A 24 18 0 0 1 0 38 C 0 26 24 0 24 0 Z"); }
+.kicker { font-size: 13px; font-weight: 700; color: var(--sea); }
+h2 { margin: 0; font-size: clamp(23px, 4.2vw, 31px); line-height: 1.35; }
+h3 { margin: 0; }
+.lead { color: var(--muted); max-width: 68ch; margin-top: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.btn { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 7px 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: transform .1s, background .2s, border-color .2s; }
+.btn:hover:not(:disabled) { border-color: var(--sea); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.go { background: var(--sea); border-color: var(--sea); color: #fff; }
+.btn.co { background: var(--coral); border-color: var(--coral); color: #fff; }
+:root[data-theme="dark"] .btn.go, :root[data-theme="dark"] .btn.co, :root[data-theme="dark"] .stations a.on { color: #0b131a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.go, :root:not([data-theme="light"]) .btn.co, :root:not([data-theme="light"]) .stations a.on { color: #0b131a; } }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 3px 12px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.chip[aria-pressed="true"] { border-color: var(--sea); background: var(--sea-soft); }
+.chip .m { font-size: 1.05em; }
+.chip small { color: var(--muted); font-size: 11.5px; margin-inline-start: 4px; }
+.narr { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 15.5px; min-height: 3.2em; }
+.narr .m { white-space: normal; }
+.note { background: var(--sea-soft); border-radius: 14px; padding: 12px 16px; border-inline-start: 5px solid var(--sea); }
+.note.co { background: var(--coral-soft); border-color: var(--coral); }
+.note.ok { background: var(--mint-soft); border-color: var(--mint); }
+.note .m { white-space: normal; }
+.abc { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; direction: ltr; justify-content: center; font: 19px "Times New Roman", serif; }
+.abc i { font-style: italic; }
+.abc input { width: 3.6em; font: 600 17px var(--font); text-align: center; padding: 4px 6px; border: 2px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--ink); }
+.abc input.a { border-color: var(--coral); } .abc input.b { border-color: var(--sea); } .abc input.c { border-color: var(--mint); }
+.err { color: var(--red); font-size: 14px; font-weight: 600; min-height: 1.3em; text-align: center; }
+
+/* Hero: dusk on the corniche */
+.hero { background: var(--dusk); color: #eef2fb; border: 0; }
+.hero::before { display: none; }
+.hero .logos { display: flex; gap: 10px; }
+.hero .logos img { height: 46px; background: #fff; border-radius: 10px; padding: 4px 8px; }
+.hero h1 { font-size: clamp(32px, 7vw, 54px); margin: 12px 0 0; line-height: 1.2; }
+.hero h1 span { color: #9be7fb; text-shadow: 0 0 18px rgba(155, 231, 251, .55); }
+.hero .sub { color: #c9c5ec; font-weight: 600; }
+.hero .lead { color: #e6e4f7; }
+.hero-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; margin-top: 16px; align-items: start; }
+.hero canvas { width: 100%; height: 300px; display: block; border-radius: 16px; border: 1.5px solid rgba(255, 255, 255, .2); }
+.hero .narr { background: rgba(255, 255, 255, .09); border-color: rgba(255, 255, 255, .18); color: #eef2fb; }
+.hero .btn { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .3); color: #fff; }
+.hero input[type=range] { width: 100%; accent-color: #9be7fb; }
+.hero .eqn { text-align: center; font-size: 17px; background: rgba(0, 0, 0, .18); border-radius: 12px; padding: 8px; overflow-x: auto; }
+.badge { display: inline-block; border-radius: 99px; padding: 1px 12px; font-weight: 700; font-size: 14px; }
+.badge.p { background: #2f9e44; color: #fff; } .badge.z { background: #f59f00; color: #2a1d02; } .badge.n { background: #e03131; color: #fff; }
+
+/* Derivation, two columns */
+.der { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.der .dh, .der .dl { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(110px, 170px); gap: 10px; align-items: center; padding: 6px 10px; border-radius: 10px; }
+.der .dh { font-weight: 700; font-size: 13.5px; color: var(--muted); }
+.der .dl > div:not(.lw) { direction: ltr; text-align: left; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.der .lw { color: var(--sea); font-size: 13.5px; font-weight: 600; }
+.der .dl.cur { background: var(--gold-soft); animation: rise .4s both; }
+.der .dl.cur .lw { color: var(--gold); }
+.formula { text-align: center; font-size: 26px; margin-top: 14px; padding: 14px; border-radius: 16px; background: var(--sea-soft); border: 2px solid var(--sea); }
+.formula.glow { animation: glow 1.4s both; }
+@keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(14, 116, 144, .6); } 100% { box-shadow: 0 0 0 18px rgba(14, 116, 144, 0); } }
+
+/* Book-style working */
+.steps { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ln { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 220px); gap: 12px; align-items: center; padding: 6px 10px; border-radius: 10px; }
+.ln .lm { overflow-x: auto; overflow-y: hidden; padding: 2px 0; text-align: left; direction: ltr; scrollbar-width: thin; }
+.ln .lw { color: var(--sea); font-size: 13.5px; font-weight: 600; }
+.ln.cur { background: var(--gold-soft); animation: rise .4s both; }
+.ln.cur .lw { color: var(--gold); }
+@keyframes rise { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.ctrl .count { margin-inline-start: auto; color: var(--muted); font-size: 13px; font-weight: 600; }
+canvas.plot { width: 100%; height: 260px; display: block; border-radius: 16px; border: 1.5px solid var(--line); }
+.verdict { text-align: center; font-weight: 700; font-size: 17px; margin-top: 10px; padding: 8px; border-radius: 12px; }
+.verdict.k0 { background: var(--mint-soft); color: var(--mint); } .verdict.k1 { background: var(--sea-soft); color: var(--sea); }
+.verdict.k2 { background: var(--gold-soft); color: var(--gold); } .verdict.k3 { background: var(--violet-soft); color: var(--violet); }
+
+/* Discriminant board */
+.sliders { display: flex; flex-direction: column; gap: 6px; }
+.sl { display: grid; grid-template-columns: 34px 1fr 44px; gap: 10px; align-items: center; direction: ltr; }
+.sl b { font: italic 700 20px "Times New Roman", serif; text-align: center; }
+.sl input { width: 100%; }
+.sl output { font: 700 18px "Times New Roman", serif; text-align: center; }
+.sl.a b, .sl.a output { color: var(--coral); } .sl.a input { accent-color: var(--coral); }
+.sl.b b, .sl.b output { color: var(--sea); } .sl.b input { accent-color: var(--sea); }
+.sl.c b, .sl.c output { color: var(--mint); } .sl.c input { accent-color: var(--mint); }
+.gauge { text-align: center; font-size: 19px; padding: 10px; border-radius: 14px; background: var(--panel-2); border: 1.5px solid var(--line); overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14.5px; }
+.tbl th, .tbl td { border: 1.5px solid var(--line); padding: 6px 8px; text-align: center; vertical-align: middle; transition: background .3s; }
+.tbl th { background: var(--sea-soft); font-size: 13.5px; }
+.tbl tr.hl td { background: var(--gold-soft); font-weight: 700; }
+.tbl svg { width: 70px; height: 46px; display: block; margin: 0 auto; }
+.mission { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.mission div { border: 1.5px dashed var(--line); border-radius: 12px; padding: 6px 10px; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.mission div::before { content: "○"; font-weight: 700; color: var(--muted); }
+.mission div.ok { border-style: solid; border-color: var(--mint); background: var(--mint-soft); }
+.mission div.ok::before { content: "✓"; color: var(--mint); }
+
+/* Methods */
+.meth { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.meth button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 8px 6px; cursor: pointer; font-weight: 700; font-size: 14px; }
+.meth button small { display: block; font-weight: 600; color: var(--muted); font-size: 11.5px; }
+.meth button.right { border-color: var(--mint); background: var(--mint-soft); }
+.meth button.wrong { border-color: var(--red); background: var(--red-soft); }
+.meth button:disabled { cursor: default; }
+.mq { text-align: center; font-size: 22px; margin-top: 10px; }
+
+/* Game */
+.jets { display: flex; gap: 6px; justify-content: center; align-items: flex-end; height: 80px; margin: 4px 0 10px; }
+.jets i { width: 16px; height: 14px; border-radius: 8px 8px 3px 3px; background: var(--line); transition: height .6s cubic-bezier(.3, 1.4, .5, 1), background .3s; }
+.jets i.on { height: 76px; background: linear-gradient(0deg, var(--c), #fff); box-shadow: 0 0 12px 2px var(--c); }
+.jets i.bad { height: 18px; background: var(--red-soft); border: 2px solid var(--red); }
+.game { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; }
+.gq { text-align: center; font-size: 22px; margin: 6px 0 2px; }
+.trip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.trip button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 8px 10px; cursor: pointer; font-size: 15px; }
+.trip button.right { border-color: var(--mint); background: var(--mint-soft); }
+.trip button.wrong { border-color: var(--red); background: var(--red-soft); }
+.trip button:disabled { cursor: default; }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.qcard { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel-2); }
+.qcard .qq { font-weight: 600; margin-bottom: 8px; }
+.qcard .qq .m { white-space: normal; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opt { text-align: start; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); padding: 8px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: all .15s; overflow-x: auto; }
+.opt b { color: var(--muted); flex: none; }
+.opt:hover:not(:disabled) { border-color: var(--sea); }
+.opt.right { border-color: var(--mint); background: var(--mint-soft); }
+.opt.wrong { border-color: var(--red); background: var(--red-soft); }
+.opt:disabled { cursor: default; }
+.why { margin-top: 8px; font-size: 14.5px; }
+.why .m { white-space: normal; }
+.tagok { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--mint); color: #fff; }
+.tagno { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--red); color: #fff; }
+.score { text-align: center; font-size: 20px; font-weight: 700; margin-top: 14px; }
+
+/* Summary */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.plate { background: var(--panel-2); border-radius: 14px; padding: 14px; border: 1.5px solid var(--line); border-top: 5px solid var(--sea); }
+.plate:nth-child(2) { border-top-color: var(--coral); } .plate:nth-child(3) { border-top-color: var(--violet); }
+.plate h3 { margin: 0 0 6px; font-size: 17px; }
+.plate .m { white-space: normal; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 760px) {
+  .card { padding: 26px 16px 20px; border-radius: 18px; }
+  .grid2, .cards3, .hero-grid { grid-template-columns: 1fr; }
+  .opts, .trip, .mission { grid-template-columns: minmax(0, 1fr); }
+  .meth { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ln { grid-template-columns: 1fr; gap: 0; }
+  .ln .lw { font-size: 12.5px; }
+  .der .dh { display: none; }
+  .der .dl { grid-template-columns: 1fr; gap: 2px; }
+  .der .dl > div:nth-child(2) { color: var(--coral); }
+  .ribbon b { display: none; }
+  .hero canvas { height: 250px; }
+  .formula { font-size: 21px; }
+  .tbl { font-size: 13px; } .tbl svg { width: 54px; height: 38px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="ribbon" aria-label="محطات الدرس">
+  <div class="ribbon-in">
+    <b>نافورة جدة</b>
+    <div class="stations" id="stations"></div>
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 0: the fountain -->
+  <section class="card hero" id="s0" data-name="الغلاف">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>نافورة <span>جدة</span></h1>
+    <p class="sub">الدرس 3-2 · القانون العام والمميز · رياضيات 2 · الفصل الأول</p>
+    <p class="lead">على كورنيش جدة تنطلق النافورة لارتفاع يقارب 312 مترًا. لو كان ارتفاع الماء بعد <span class="m"><i>t</i></span> ثانية هو <span class="m"><i>h</i> = −4.9<i>t</i><sup>2</sup> + 78<i>t</i> + 2</span>، متى يكون الماء على ارتفاع معيّن؟ حرّكي الارتفاع وشوفي: مرتين؟ مرة؟ ولا أبد؟</p>
+    <div class="hero-grid">
+      <canvas id="fPlot" aria-label="مسار ماء النافورة والارتفاع المطلوب"></canvas>
+      <div class="stack">
+        <label style="font-weight:700">الارتفاع المطلوب: <span id="fH"></span> م
+          <input type="range" id="fSlide" min="0" max="340" step="1" value="250" aria-label="الارتفاع المطلوب بالمتر"></label>
+        <div class="row" style="justify-content:center"><button class="btn" id="fTop" type="button">⛲ القمة بالضبط</button></div>
+        <div class="eqn" id="fEq"></div>
+        <p class="narr" id="fNarr" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1: derive the formula -->
+  <section class="card" id="s1" data-name="اشتقاق القانون">
+    <div class="head"><span class="drop">1</span><div><span class="kicker">من إكمال المربع إلى القانون</span><h2>من وين جاء القانون العام؟</h2></div></div>
+    <p class="lead">حلّينا قبل بالتمثيل البياني والتحليل وخاصية الجذر التربيعي وإكمال المربع. الحين نكمل المربع للمعادلة <b>العامة</b> <span class="m"><i>ax</i><sup>2</sup> + <i>bx</i> + <i>c</i> = 0</span> جنب مثال الكتاب خطوة بخطوة، فيطلع لنا قانون يحل <b>أي</b> معادلة تربيعية.</p>
+    <div class="der" id="dRows"></div>
+    <div class="ctrl"><button class="btn" id="dPrev" type="button">السابق</button><button class="btn go" id="dNext" type="button">الخطوة التالية</button><button class="btn" id="dAll" type="button">كل الخطوات</button><span class="count" id="dCount"></span></div>
+    <div class="formula" id="dFormula" hidden></div>
+  </section>
+
+  <!-- 2: the formula machine -->
+  <section class="card" id="s2" data-name="آلة القانون">
+    <div class="head"><span class="drop">2</span><div><span class="kicker">مفهوم أساسي · الأمثلة 1، 2، 3، 4</span><h2>آلة القانون العام</h2></div></div>
+    <p class="lead">اكتبي المعادلة على الصورة القياسية، وحدّدي <span class="m"><span class="ca"><i>a</i></span> , <span class="cb"><i>b</i></span> , <span class="cg"><i>c</i></span></span>، وعوّضي. جرّبي أمثلة الكتاب أو اكتبي معادلتك:</p>
+    <div class="chips" id="qPick" style="margin-top:12px"></div>
+    <div class="abc" style="margin-top:12px"><input class="a" id="qa" inputmode="numeric" aria-label="a"><span><i>x</i><sup>2</sup> +</span><input class="b" id="qb" inputmode="numeric" aria-label="b"><span><i>x</i> +</span><input class="c" id="qc" inputmode="numeric" aria-label="c"><span>= 0</span><button class="btn co" id="qGo" type="button" style="font-family:var(--font)">حلّي</button></div>
+    <p class="err" id="qErr"></p>
+    <div class="grid2">
+      <div><div class="steps" id="qSteps"></div>
+        <div class="ctrl"><button class="btn" id="qPrev" type="button">السابق</button><button class="btn go" id="qNext" type="button">الخطوة التالية</button><button class="btn" id="qAll" type="button">كل الخطوات</button><span class="count" id="qCount"></span></div></div>
+      <div><canvas class="plot" id="qPlot" aria-label="منحنى الدالة المرتبطة بالمعادلة"></canvas><p class="verdict" id="qVerdict"></p><p class="narr" id="qCheck" style="margin-top:10px"></p></div>
+    </div>
+  </section>
+
+  <!-- 3: the discriminant -->
+  <section class="card" id="s3" data-name="المميز">
+    <div class="head"><span class="drop">3</span><div><span class="kicker">مفهوم أساسي · مثال 5</span><h2>المميز: كاشف الجذور</h2></div></div>
+    <p class="lead">العبارة اللي تحت الجذر في القانون <span class="m"><i>b</i><sup>2</sup> − 4<i>ac</i></span> اسمها <b>المميز</b>. من إشارتها بس تعرفين عدد الجذور ونوعها قبل ما تحلين! حرّكي المعاملات وأنجزي المهمات الأربع:</p>
+    <div class="grid2" style="margin-top:12px">
+      <div class="stack">
+        <div class="sliders">
+          <div class="sl a"><b>a</b><input type="range" id="sa" min="-5" max="5" step="1" value="1" aria-label="a"><output id="oa"></output></div>
+          <div class="sl b"><b>b</b><input type="range" id="sb" min="-10" max="10" step="1" value="-2" aria-label="b"><output id="ob"></output></div>
+          <div class="sl c"><b>c</b><input type="range" id="sc" min="-10" max="10" step="1" value="-3" aria-label="c"><output id="oc"></output></div>
+        </div>
+        <div class="gauge" id="sGauge"></div>
+        <div class="mission" id="sMission"></div>
+      </div>
+      <div><canvas class="plot" id="sPlot" aria-label="منحنى الدالة"></canvas></div>
+    </div>
+    <table class="tbl" id="sTbl"></table>
+    <h3 style="margin-top:22px;font-size:19px">وصف الجذور بالمميز</h3>
+    <div class="chips" id="xPick" style="margin-top:10px"></div>
+    <div class="steps" id="xSteps"></div>
+    <div class="ctrl"><button class="btn" id="xPrev" type="button">السابق</button><button class="btn go" id="xNext" type="button">الخطوة التالية</button><button class="btn" id="xAll" type="button">كل الخطوات</button><span class="count" id="xCount"></span></div>
+  </section>
+
+  <!-- 4: which method -->
+  <section class="card" id="s4" data-name="أي طريقة؟">
+    <div class="head"><span class="drop">4</span><div><span class="kicker">ملخص المفهوم</span><h2>أي طريقة أسهل؟</h2></div></div>
+    <p class="lead"><b>إكمال المربع</b> و<b>القانون العام</b> يشتغلان <b>دائمًا</b>، والتحليل وخاصية الجذر التربيعي والتمثيل البياني <b>أحيانًا</b>. بس الأذكى تختارين الأسرع للمعادلة اللي قدامك. اختاري الطريقة اللي يقترحها الكتاب:</p>
+    <p class="muted" style="text-align:center;font-size:13px;margin-top:10px" id="mNo"></p>
+    <p class="mq" id="mQ"></p>
+    <div class="meth" id="mOpts"></div>
+    <p class="narr" id="mNarr" style="margin-top:12px">اختاري الطريقة.</p>
+    <div class="row" style="margin-top:10px;justify-content:center"><button class="btn go" id="mNext" type="button" disabled>المعادلة التالية</button></div>
+  </section>
+
+  <!-- 5: game -->
+  <section class="card" id="s5" data-name="ألوان النافورة">
+    <div class="head"><span class="drop">5</span><div><span class="kicker">تدرب وحل المسائل</span><h2>شغّلي ألوان النافورة</h2></div></div>
+    <p class="lead">ثمان نوافير مطفية. احسبي المميز في ذهنك وحددي نوع الجذور، وكل إجابة صحيحة تطلق نافورة ملوّنة.</p>
+    <div class="jets" id="gJets" aria-hidden="true"></div>
+    <div class="game">
+      <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px" id="gNo"></span></div>
+      <p class="gq" id="gQ"></p>
+      <div class="trip" id="gOpts"></div>
+      <p class="narr" id="gNarr" style="margin-top:12px">اختاري نوع الجذور.</p>
+      <div class="row" style="margin-top:12px;justify-content:center"><button class="btn go" id="gNext" type="button" disabled>النافورة التالية</button><button class="btn" id="gReset" type="button">جولة جديدة</button></div>
+    </div>
+  </section>
+
+  <!-- 6: quiz -->
+  <section class="card" id="s6" data-name="الاختبار">
+    <div class="head"><span class="drop">6</span><div><span class="kicker">من «تأكد» في الكتاب</span><h2>اختبري نفسك</h2></div></div>
+    <div class="quiz" id="quiz"></div>
+    <p class="score" id="score"></p>
+  </section>
+
+  <!-- 7: summary -->
+  <section class="card" id="s7" data-name="الخلاصة">
+    <div class="head"><span class="drop">✓</span><div><span class="kicker">قبل ما تطفي النافورة</span><h2>الخلاصة</h2></div></div>
+    <div class="cards3">
+      <div class="plate"><h3>القانون العام</h3><p>للمعادلة <span class="m"><i>ax</i><sup>2</sup> + <i>bx</i> + <i>c</i> = 0 , <i>a</i> ≠ 0</span>: <span class="m"><i>x</i> = <span class="fr"><span>−<i>b</i> ± √<span style="border-top:1.4px solid currentColor"><i>b</i><sup>2</sup> − 4<i>ac</i></span></span><span>2<i>a</i></span></span></span>. رتّبي المعادلة على الصورة القياسية أولًا، وانتبهي للإشارات.</p></div>
+      <div class="plate"><h3>المميز <span class="m"><i>b</i><sup>2</sup> − 4<i>ac</i></span></h3><p>موجب ومربع كامل: جذران نسبيان. موجب ومو مربع كامل: جذران غير نسبيين. صفر: جذر حقيقي مكرر مرتين. سالب: جذران مركبان مترافقان.</p></div>
+      <div class="plate"><h3>اختاري الطريقة</h3><p>التحليل إذا كان سهلًا أو <span class="m"><i>c</i> = 0</span>، وخاصية الجذر مع المربع الكامل، والقانون العام لما تصعب البقية. والتمثيل البياني للتحقق من معقولية الحلول.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const isDark = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+
+/* ---------- A tiny math renderer ----------
+   ^x or ^{..} power, @f{a}{b} fraction, @r{..} square root, @a @b @g @v @y @x colours, @t{..} Arabic words. */
+function tex(src) {
+  let i = 0;
+  const atom = ch => /[a-zA-Z]/.test(ch) ? `<i>${ch}</i>` : ch === "-" ? "−" : esc(ch);
+  function group() {
+    if (src[i] === "{") { i++; return parse("}"); }
+    const m = /^\d+/.exec(src.slice(i));
+    if (m) { i += m[0].length; return m[0]; }
+    return atom(src[i++] || "");
+  }
+  function parse(stop) {
+    let out = "";
+    while (i < src.length) {
+      const ch = src[i];
+      if (stop && ch === stop) { i++; return out; }
+      if (ch === "^") { i++; out += `<sup>${group()}</sup>`; }
+      else if (ch === "@") {
+        const k = src[i + 1]; i += 2;
+        if (k === "f") { const a = group(), b = group(); out += `<span class="fr"><span>${a}</span><span>${b}</span></span>`; }
+        else if (k === "r") out += `<span class="sq">√<span>${group()}</span></span>`;
+        else if (k === "t") { i++; let u = ""; while (i < src.length && src[i] !== "}") u += src[i++]; i++; out += `<span class="ar">${esc(u)}</span>`; }
+        else out += `<span class="c${k}">${group()}</span>`;
+      }
+      else if (ch === "{") { i++; out += parse("}"); }
+      else { out += atom(ch); i++; }
+    }
+    return out;
+  }
+  return `<span class="m">${parse()}</span>`;
+}
+const T = s => String(s ?? "").replace(/\$([^$]+)\$/g, (_, m) => tex(m));
+
+/* ---------- Exact numbers ---------- */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const F = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return [n / g, d / g]; };
+const fT = ([n, d]) => d === 1 ? String(n) : `${n < 0 ? "-" : ""}@f{${Math.abs(n)}}{${d}}`;
+const isSq = n => n >= 0 && Math.round(Math.sqrt(n)) ** 2 === n;
+function rootSplit(n) { let k = 1; for (let f = 2; f * f <= n; f++) while (n % (f * f) === 0) { n /= f * f; k *= f; } return { k, m: n }; }
+const intOf = v => { const s = String(v ?? "").trim().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[−–]/g, "-"); return /^-?\d+$/.test(s) ? +s : NaN; };
+const pn = v => (v < 0 ? `(${v})` : String(v));   // a number inside a product: (−10)
+const dec = v => String(+v.toFixed(2)).replace("-", "−");
+// ax² + bx + c with signs: "2x^2 + 6x - 7".
+function poly(a, b, c, v = "x") {
+  let out = "";
+  [[a, `${v}^2`], [b, v], [c, ""]].forEach(([k, s]) => {
+    if (!k) return;
+    const t = (Math.abs(k) === 1 && s ? "" : String(Math.abs(k))) + s;
+    out += out ? ` ${k < 0 ? "-" : "+"} ${t}` : (k < 0 ? "-" : "") + t;
+  });
+  return out || "0";
+}
+// The kind of roots from the discriminant: 0 two rational, 1 two irrational, 2 one repeated, 3 two complex conjugates.
+const kindOf = D => (D > 0 ? (isSq(D) ? 0 : 1) : D === 0 ? 2 : 3);
+const KIND = ["جذران حقيقيان نسبيان", "جذران حقيقيان غير نسبيين", "جذر حقيقي واحد مكرر مرتين", "جذران مركبان مترافقان"];
+
+/* ---------- Step player, chips ---------- */
+function stepper({ box, prev, next, all, count, onStep }) {
+  let lines = [], i = 0;
+  function show() {
+    box.innerHTML = lines.slice(0, i + 1).map((l, k) => `<div class="ln${k === i ? " cur" : ""}"><div class="lm">${tex(l[0])}</div><div class="lw">${T(l[1] || "")}</div></div>`).join("");
+    prev.disabled = i === 0; next.disabled = all.disabled = i >= lines.length - 1;
+    count.textContent = `${i + 1} / ${lines.length}`;
+    onStep?.(i, lines.length);
+  }
+  prev.onclick = () => { if (i > 0) { i--; show(); } };
+  next.onclick = () => { if (i < lines.length - 1) { i++; show(); } };
+  all.onclick = () => { i = lines.length - 1; show(); };
+  return { load(ls, at = 0) { lines = ls; i = at === "all" ? ls.length - 1 : at; show(); } };
+}
+function pickChips(el, items, label, onPick) {
+  el.innerHTML = items.map((it, k) => `<button type="button" class="chip" aria-pressed="${k === 0}">${label(it)}</button>`).join("");
+  [...el.children].forEach((b, k) => b.onclick = () => { [...el.children].forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(items[k], k); });
+  onPick(items[0], 0);
+}
+const unpick = el => [...el.children].forEach(x => x.setAttribute("aria-pressed", "false"));
+const redraws = [];
+addEventListener("resize", () => redraws.forEach(f => f()));
+
+/* ---------- Stations ribbon and theme ---------- */
+const sections = $$("main > section");
+$("#stations").innerHTML = sections.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const links = $$("#stations a");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const k = sections.indexOf(e.target);
+  links.forEach((a, j) => { a.classList.toggle("on", j === k); a.classList.toggle("done", j < k); });
+  links[k].scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sections.forEach(s => io.observe(s));
+$("#theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+  redraws.forEach(f => f());
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => redraws.forEach(f => f()));
+
+/* ---------- A parabola plot with its real roots marked ---------- */
+function plotParabola(cv, a, b, c) {
+  const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext("2d"); g.direction = "ltr"; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const f = x => a * x * x + b * x + c, vx = -b / (2 * a), D = b * b - 4 * a * c;
+  const roots = D >= 0 ? [(-b - Math.sqrt(D)) / (2 * a), (-b + Math.sqrt(D)) / (2 * a)] : [];
+  // x range: around the vertex and the roots, at least 10 wide
+  let lo = Math.min(vx, ...roots) - 3, hi = Math.max(vx, ...roots) + 3;
+  if (hi - lo < 10) { const m = (lo + hi) / 2; lo = m - 5; hi = m + 5; }
+  if (lo > -1) lo = -1; if (hi < 1) hi = 1;
+  let mn = Math.min(0, f(vx)), mx = Math.max(0, f(vx));
+  [lo, hi].forEach(x => { mn = Math.min(mn, f(x)); mx = Math.max(mx, f(x)); });
+  const span = Math.max(4, Math.abs(f(vx)) * 2.4);
+  if (a > 0) { mn = Math.min(0, f(vx)) - span * .15; mx = Math.max(0, f(vx)) + span; } else { mx = Math.max(0, f(vx)) + span * .15; mn = Math.min(0, f(vx)) - span; }
+  const X = x => (x - lo) / (hi - lo) * W, Y = y => H - (y - mn) / (mx - mn) * H;
+  const dark = isDark(), ink = css("--ink"), mut = css("--muted");
+  g.fillStyle = dark ? "#10202b" : "#f7fbfd"; g.fillRect(0, 0, W, H);
+  g.strokeStyle = dark ? "rgba(255,255,255,.06)" : "rgba(14,116,144,.08)"; g.lineWidth = 1;
+  const st = (hi - lo) > 24 ? 5 : (hi - lo) > 12 ? 2 : 1;
+  for (let x = Math.ceil(lo); x <= hi; x++) if (x % st === 0) { g.beginPath(); g.moveTo(X(x), 0); g.lineTo(X(x), H); g.stroke(); }
+  g.strokeStyle = mut; g.lineWidth = 1.4; g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.moveTo(X(0), 0); g.lineTo(X(0), H); g.stroke();
+  g.fillStyle = mut; g.font = "12px 'Times New Roman', serif"; g.textAlign = "center";
+  for (let x = Math.ceil(lo); x <= hi; x++) if (x && x % st === 0) g.fillText(String(x).replace("-", "−"), X(x), Math.min(H - 4, Math.max(12, Y(0) + 15)));
+  g.strokeStyle = css("--coral"); g.lineWidth = 3; g.beginPath();
+  for (let k = 0; k <= 300; k++) { const x = lo + (hi - lo) * k / 300, y = Math.max(-50, Math.min(H + 50, Y(f(x)))); k ? g.lineTo(X(x), y) : g.moveTo(X(x), y); }
+  g.stroke();
+  const rs = D === 0 ? [vx] : roots;
+  rs.forEach(r => {
+    g.fillStyle = css("--sea"); g.beginPath(); g.arc(X(r), Y(0), 7, 0, 7); g.fill();
+    g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke();
+    g.fillStyle = ink; g.font = "bold 13px 'Times New Roman', serif";
+    g.fillText(dec(r), X(r), Y(0) + (a > 0 ? -12 : 22));
+  });
+  if (D < 0) { g.direction = "rtl"; g.fillStyle = css("--violet"); g.font = "600 13px 'IBM Plex Sans Arabic', sans-serif"; g.fillText("المنحنى ما يقطع المحور السيني: الجذران مركبان", W / 2, 20); }
+}
+
+/* ---------- 0. The fountain ---------- */
+{
+  const A = -4.9, B = 78, C0 = 2, PEAK = C0 - B * B / (4 * A);   // ≈ 312.4 m
+  let H = 250, tick = 0, raf = 0;
+  const disc = () => B * B - 4 * A * (C0 - H);
+  function draw() {
+    const cv = $("#fPlot"), dpr = devicePixelRatio || 1, W = cv.clientWidth, Hh = cv.clientHeight;
+    if (!W) return;
+    cv.width = W * dpr; cv.height = Hh * dpr;
+    const g = cv.getContext("2d"); g.direction = "ltr"; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const tr = [-.6, 17], hr = [-30, 350];
+    const X = t => (t - tr[0]) / (tr[1] - tr[0]) * W, Y = h => Hh - (h - hr[0]) / (hr[1] - hr[0]) * Hh;
+    const sky = g.createLinearGradient(0, 0, 0, Hh); sky.addColorStop(0, "#22275e"); sky.addColorStop(.75, "#7d4373"); sky.addColorStop(1, "#d9785e");
+    g.fillStyle = sky; g.fillRect(0, 0, W, Hh);
+    // the sea
+    g.fillStyle = "#123a5c"; g.fillRect(0, Y(0), W, Hh - Y(0));
+    g.strokeStyle = "rgba(255,255,255,.4)"; g.lineWidth = 1.5; g.beginPath();
+    for (let x = 0; x <= W; x += 2) { const y = Y(0) + Math.sin(x / 8 + tick / 10) * 1.6; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+    // grid labels
+    g.fillStyle = "rgba(255,255,255,.7)"; g.font = "11px 'Times New Roman', serif"; g.textAlign = "left";
+    [100, 200, 300].forEach(h => { g.fillRect(X(0) - 3, Y(h), 6, 1); g.fillText(String(h), X(0) + 5, Y(h) + 4); });
+    g.textAlign = "center"; [4, 8, 12, 16].forEach(t => g.fillText(`${t}s`, X(t), Y(0) + 14));
+    // the jet: a glowing curve and droplets moving along it
+    g.strokeStyle = "rgba(155,231,251,.9)"; g.lineWidth = 3.5; g.shadowColor = "#9be7fb"; g.shadowBlur = 12; g.beginPath();
+    const tEnd = (-B - Math.sqrt(B * B - 4 * A * C0)) / (2 * A);
+    for (let k = 0; k <= 200; k++) { const t = tEnd * k / 200, h = A * t * t + B * t + C0; k ? g.lineTo(X(t), Y(h)) : g.moveTo(X(t), Y(h)); }
+    g.stroke(); g.shadowBlur = 0;
+    g.fillStyle = "#fff";
+    for (let k = 0; k < 18; k++) { const t = ((k / 18 + tick / 600) % 1) * tEnd, h = A * t * t + B * t + C0; g.beginPath(); g.arc(X(t), Y(h), 2.2, 0, 7); g.fill(); }
+    // the target height and where the water crosses it
+    const D = disc(), zero = Math.abs(D) < 1e-6;
+    g.setLineDash([6, 5]); g.strokeStyle = zero ? "#ffd43b" : D > 0 ? "#69db7c" : "#ff8787"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(0, Y(H)); g.lineTo(W, Y(H)); g.stroke(); g.setLineDash([]);
+    const ts = zero ? [-B / (2 * A)] : D > 0 ? [(-B + Math.sqrt(D)) / (2 * A), (-B - Math.sqrt(D)) / (2 * A)] : [];
+    ts.forEach(t => {
+      g.fillStyle = zero ? "#ffd43b" : "#69db7c"; g.beginPath(); g.arc(X(t), Y(H), 7, 0, 7); g.fill();
+      g.fillStyle = "#fff"; g.font = "bold 12px 'Times New Roman', serif"; g.fillText(`t ≈ ${dec(t)}`, X(t), Y(H) - 11);
+    });
+  }
+  function update() {
+    const D = disc(), zero = Math.abs(D) < 1e-6, c = C0 - H;
+    $("#fH").textContent = dec(H);
+    $("#fEq").innerHTML = tex(`-4.9t^2 + 78t ${c < 0 ? "-" : "+"} ${dec(Math.abs(c)).replace("−", "")} = 0`) + "<br>" +
+      tex(`b^2 - 4ac = 78^2 - 4(-4.9)(${dec(c).replace("−", "-")}) ≈ ${zero ? "0" : dec(D).replace("−", "-")}`);
+    if (zero) $("#fNarr").innerHTML = `<span class="badge z">المميز = 0</span> الماء يلمس هذا الارتفاع <b>مرة وحدة</b> بس: عند القمة بعد <span class="m">≈ ${dec(-B / (2 * A))}</span> ثانية. جذر حقيقي مكرر.`;
+    else if (D > 0) { const t1 = (-B + Math.sqrt(D)) / (2 * A), t2 = (-B - Math.sqrt(D)) / (2 * A); $("#fNarr").innerHTML = `<span class="badge p">المميز موجب</span> الماء يمر بهذا الارتفاع <b>مرتين</b>: وهو طالع بعد <span class="m">≈ ${dec(t1)}</span> ثانية، وهو نازل بعد <span class="m">≈ ${dec(t2)}</span> ثانية. جذران حقيقيان.`; }
+    else $("#fNarr").innerHTML = `<span class="badge n">المميز سالب</span> الماء <b>ما يوصل أبد</b> لهذا الارتفاع: أعلى من القمة (<span class="m">≈ ${dec(PEAK)}</span> م). ما فيه جذور حقيقية، الجذران مركبان.`;
+    draw();
+  }
+  $("#fSlide").oninput = e => { H = +e.target.value; update(); };
+  $("#fTop").onclick = () => { H = PEAK; $("#fSlide").value = Math.round(PEAK); update(); };
+  function loop() { tick++; draw(); raf = requestAnimationFrame(loop); }
+  const seen = new IntersectionObserver(es => es.forEach(e => { cancelAnimationFrame(raf); if (e.isIntersecting && !reduce) loop(); }));
+  seen.observe($("#fPlot"));
+  redraws.push(draw); update();
+}
+
+/* ---------- 1. Deriving the formula ---------- */
+{
+  const ROWS = [
+    ["@a{a}x^2 + @b{b}x + @g{c} = 0", "@a{2}x^2 + @b{8}x + @g{1} = 0", "معادلة تربيعية على الصورة القياسية"],
+    ["x^2 + @f{b}{a}x + @f{c}{a} = 0", "x^2 + 4x + @f{1}{2} = 0", "اقسمي الطرفين على $a$"],
+    ["x^2 + @f{b}{a}x = -@f{c}{a}", "x^2 + 4x = -@f{1}{2}", "اطرحي $@f{c}{a}$ من الطرفين"],
+    ["x^2 + @f{b}{a}x + @y{(@f{b}{2a})^2} = -@f{c}{a} + @y{(@f{b}{2a})^2}", "x^2 + 4x + @y{(@f{4}{2})^2} = -@f{1}{2} + @y{(@f{4}{2})^2}", "أكملي المربع"],
+    ["(x + @f{b}{2a})^2 = -@f{c}{a} + @f{b^2}{4a^2}", "(x + 2)^2 = -@f{1}{2} + 4", "حلّلي الطرف الأيسر"],
+    ["(x + @f{b}{2a})^2 = @f{@v{b^2 - 4ac}}{4a^2}", "(x + 2)^2 = @f{7}{2}", "بسّطي الطرف الأيمن"],
+    ["x + @f{b}{2a} = ±@f{@r{@v{b^2 - 4ac}}}{2a}", "x + 2 = ±@r{@f{7}{2}}", "خاصية الجذر التربيعي"],
+    ["x = -@f{b}{2a} ± @f{@r{b^2 - 4ac}}{2a}", "x = -2 ± @r{@f{7}{2}}", "اطرحي $@f{b}{2a}$ من الطرفين"],
+    ["x = @f{-b ± @r{b^2 - 4ac}}{2a}", "x = @f{-4 ± @r{14}}{2}", "بسّطي"],
+  ];
+  let i = 0;
+  function show() {
+    $("#dRows").innerHTML = `<div class="dh"><span>الحالة العامة</span><span>مثال</span><span></span></div>` +
+      ROWS.slice(0, i + 1).map((r, k) => `<div class="dl${k === i ? " cur" : ""}"><div>${tex(r[0])}</div><div>${tex(r[1])}</div><div class="lw">${T(r[2])}</div></div>`).join("");
+    $("#dPrev").disabled = i === 0; $("#dNext").disabled = $("#dAll").disabled = i >= ROWS.length - 1;
+    $("#dCount").textContent = `${i + 1} / ${ROWS.length}`;
+    const done = i === ROWS.length - 1;
+    $("#dFormula").hidden = !done;
+    if (done) { $("#dFormula").innerHTML = `${tex("x = @f{-b ± @r{b^2 - 4ac}}{2a}")}<p style="font-size:15px;margin-top:6px">🎉 هذا هو <b>القانون العام</b> لحل المعادلة التربيعية <span class="m">(<i>a</i> ≠ 0)</span></p>`; $("#dFormula").classList.remove("glow"); void $("#dFormula").offsetWidth; $("#dFormula").classList.add("glow"); }
+  }
+  $("#dPrev").onclick = () => { if (i > 0) { i--; show(); } };
+  $("#dNext").onclick = () => { if (i < ROWS.length - 1) { i++; show(); } };
+  $("#dAll").onclick = () => { i = ROWS.length - 1; show(); };
+  show();
+}
+
+/* ---------- 2. The formula machine: exact working for any integer a, b, c ---------- */
+function solveLines(a0, b0, c0) {
+  const lines = [];
+  let a = a0, b = b0, c = c0;
+  lines.push([`${poly(a, b, c)} = 0`, "المعادلة على الصورة القياسية"]);
+  if (a < 0) { a = -a; b = -b; c = -c; lines.push([`${poly(a, b, c)} = 0`, "اضربي الطرفين في $-1$ عشان يصير $a$ موجبًا (اختياري)"]); }
+  lines.push([`@a{a} = ${a} , @b{b} = ${b} , @g{c} = ${c}`, "حدّدي المعاملات"]);
+  lines.push([`x = @f{-@b{b} ± @r{@b{b}^2 - 4@a{a}@g{c}}}{2@a{a}}`, "القانون العام"]);
+  lines.push([`x = @f{-@b{${pn(b)}} ± @r{@b{${pn(b)}}^2 - 4(@a{${a}})(@g{${c}})}}{2(@a{${a}})}`, "عوّضي"]);
+  const D = b * b - 4 * a * c, A2 = 2 * a, mB = -b;
+  lines.push([`x = @f{${mB} ± @r{${b * b} ${-4 * a * c < 0 ? "-" : "+"} ${Math.abs(4 * a * c)}}}{${A2}}`, "اضربي"]);
+  lines.push([`x = @f{${mB} ± @r{@v{${D}}}}{${A2}}`, `بسّطي: المميز $= ${D}$`]);
+  let roots, kind = kindOf(D);
+  if (kind === 0) {
+    const s = Math.sqrt(D);
+    lines.push([`x = @f{${mB} ± ${s}}{${A2}}`, `$@r{${D}} = ${s}$`]);
+    lines.push([`x = @f{${mB} + ${s}}{${A2}} @t{أو} x = @f{${mB} - ${s}}{${A2}}`, "اكتبي $x$ على صورة معادلتين"]);
+    const r1 = F(mB + s, A2), r2 = F(mB - s, A2);
+    roots = [fT(r1), fT(r2)];
+    lines.push([`x = @g{${roots[0]}} @t{أو} x = @g{${roots[1]}}`, "بسّطي"]);
+  } else if (kind === 2) {
+    const r = F(mB, A2); roots = [fT(r)];
+    lines.push([`x = @f{${mB} ± 0}{${A2}} = @g{${roots[0]}}`, "$@r{0} = 0$: جذر واحد مكرر مرتين"]);
+  } else {
+    const { k, m } = rootSplit(Math.abs(D)), cx = D < 0;
+    const rt = (kk, mm) => `${kk === 1 && (mm > 1 || cx) ? "" : kk}${cx ? "i" : ""}${mm > 1 ? `@r{${mm}}` : ""}`;
+    if (cx) lines.push([`x = @f{${mB} ± ${rt(k, m)}}{${A2}}`, `$@r{${D}} = @r{${-D}} · @r{-1} = ${rt(k, m)}$`]);
+    else if (k > 1) lines.push([`x = @f{${mB} ± ${rt(k, m)}}{${A2}}`, `$@r{${D}} = @r{${k * k} · ${m}} = ${k}@r{${m}}$`]);
+    const g = gcd(gcd(mB, k), A2), B2 = mB / g, K2 = k / g, D2 = A2 / g;
+    const lead = B2 ? `${B2} ` : "";
+    const core = `${lead}±${B2 ? " " : ""}${rt(K2, m)}`;
+    if (g > 1 || cx) {
+      if (cx) {
+        // complex: write as p ± qi
+        const re = F(mB, A2), im = F(k, A2);
+        const imT = m > 1 ? (im[1] === 1 ? `${im[0] === 1 ? "" : im[0]}i@r{${m}}` : `@f{${im[0] === 1 ? "" : im[0]}@r{${m}}}{${im[1]}}i`) : (im[1] === 1 ? `${im[0] === 1 ? "" : im[0]}i` : `@f{${im[0]}}{${im[1]}}i`);
+        roots = [`${re[0] ? fT(re) + " " : ""}±${re[0] ? " " : ""}${imT}`];
+        lines.push([`x = @g{${roots[0]}}`, "بسّطي، واكتبي الحلّين على الصورة $a ± bi$"]);
+      } else {
+        roots = [D2 === 1 ? core : `@f{${core}}{${D2}}`];
+        lines.push([`x = @g{${roots[0]}}`, `اقسمي البسط والمقام على $${g}$`]);
+      }
+    } else { roots = [`@f{${mB} ± ${rt(k, m)}}{${A2}}`]; lines[lines.length - 1][0] = `x = @g{${roots[0]}}`; }
+    if (!cx) lines.push([`x ≈ ${dec((mB + Math.sqrt(D)) / A2).replace("−", "-")} @t{أو} x ≈ ${dec((mB - Math.sqrt(D)) / A2).replace("−", "-")}`, "الحلّان التقريبيان"]);
+  }
+  return { lines, D, kind, roots, a: a0, b: b0, c: c0 };
+}
+{
+  const EX = [
+    { l: "مثال 1", v: [1, -10, -11], show: "x^2 - 10x = 11" }, { l: "مثال 2", v: [1, 8, 16], show: "x^2 + 8x + 16 = 0" },
+    { l: "مثال 3", v: [2, 6, -7], show: "2x^2 + 6x - 7 = 0" }, { l: "مثال 4", v: [1, -6, 10], show: "x^2 - 6x = -10" },
+    { l: "تحقق 1A", v: [1, 6, -16], show: "x^2 + 6x = 16" }, { l: "تحقق 3A", v: [3, 5, 1], show: "3x^2 + 5x + 1 = 0" }, { l: "تحقق 4B", v: [1, -4, 13], show: "x^2 - 4x = -13" },
+  ];
+  let cur = null;
+  const st = stepper({ box: $("#qSteps"), prev: $("#qPrev"), next: $("#qNext"), all: $("#qAll"), count: $("#qCount"),
+    onStep: (i, n) => { $("#qVerdict").hidden = $("#qCheck").hidden = i < n - 1; } });
+  function run(note) {
+    const [a, b, c] = ["qa", "qb", "qc"].map(id => intOf($("#" + id).value));
+    if ([a, b, c].some(v => !(Math.abs(v) <= 99))) { $("#qErr").textContent = "اكتبي أعدادًا صحيحة من −99 إلى 99."; return; }
+    if (!a) { $("#qErr").textContent = "إذا a = 0 ما تصير المعادلة تربيعية."; return; }
+    $("#qErr").textContent = "";
+    cur = solveLines(a, b, c);
+    if (note) cur.lines[0][1] = `اكتبي $${note}$ على الصورة القياسية`;
+    st.load(cur.lines);
+    $("#qVerdict").className = `verdict k${cur.kind}`;
+    $("#qVerdict").innerHTML = `${KIND[cur.kind]} · المميز ${tex(String(cur.D))}`;
+    const D = cur.D, r = D >= 0 ? [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)] : null;
+    $("#qCheck").innerHTML = cur.kind === 3
+      ? T("تحقق: المنحنى ما يقطع المحور $x$، فالتمثيل البياني يقول إن الجذرين مركبان لكن ما يساعدنا نوجدهما. نعوّض الحلّين في المعادلة الأصلية للتأكد.")
+      : cur.kind === 2 ? T(`تحقق: المنحنى يلمس المحور $x$ في نقطة واحدة عند $x = ${dec(r[0]).replace("−", "-")}$ (رأس القطع).`)
+      : T(`تحقق: أصفار الدالة المرتبطة في التمثيل البياني $≈ ${dec(Math.min(...r)).replace("−", "-")}$ و $${dec(Math.max(...r)).replace("−", "-")}$.`);
+    plotParabola($("#qPlot"), a, b, c);
+  }
+  $("#qGo").onclick = () => { unpick($("#qPick")); run(); };
+  ["qa", "qb", "qc"].forEach(id => $("#" + id).addEventListener("keydown", e => { if (e.key === "Enter") { unpick($("#qPick")); run(); } }));
+  pickChips($("#qPick"), EX, e => `${tex(e.show)}<small>${e.l}</small>`, e => { ["qa", "qb", "qc"].forEach((id, k) => $("#" + id).value = e.v[k]); run(e.show.endsWith("= 0") ? null : e.show); });
+  redraws.push(() => cur && plotParabola($("#qPlot"), cur.a, cur.b, cur.c));
+}
+
+/* ---------- 3. The discriminant board ---------- */
+{
+  const ROWS = [
+    { d: "$b^2 - 4ac > 0$ ومربع كامل", k: 0, pic: "M5 6 Q 35 78 65 6", hint: "يقطع المحور مرتين" },
+    { d: "$b^2 - 4ac > 0$ ومو مربع كامل", k: 1, pic: "M5 6 Q 35 78 65 6", hint: "يقطع المحور مرتين" },
+    { d: "$b^2 - 4ac = 0$", k: 2, pic: "M8 4 Q 35 68 62 4", hint: "يلمس المحور مرة" },
+    { d: "$b^2 - 4ac < 0$", k: 3, pic: "M10 2 Q 35 50 60 2", hint: "ما يقطع المحور" },
+  ];
+  const axisY = [30, 30, 36, 36];
+  $("#sTbl").innerHTML = `<tr><th>قيمة المميز</th><th>عدد الجذور وأنواعها</th><th>التمثيل البياني</th></tr>` + ROWS.map((r, k) =>
+    `<tr data-k="${r.k}"><td>${T(r.d)}</td><td>${KIND[r.k]}</td><td><svg viewBox="0 0 70 46"><line x1="0" y1="${axisY[k]}" x2="70" y2="${axisY[k]}" stroke="currentColor" stroke-width="1.2" opacity=".5"/><path d="${r.pic}" fill="none" stroke="var(--coral)" stroke-width="2.5"/></svg></td></tr>`).join("");
+  const MISS = [{ k: 2, t: "خلي المنحنى يلمس المحور بنقطة وحدة" }, { k: 3, t: "خلي الجذرين مركبين" }, { k: 0, t: "جذران نسبيان" }, { k: 1, t: "جذران غير نسبيين" }];
+  const done = new Set();
+  $("#sMission").innerHTML = MISS.map(m => `<div data-k="${m.k}">${m.t}</div>`).join("");
+  function upd(user) {
+    let a = +$("#sa").value; const b = +$("#sb").value, c = +$("#sc").value;
+    if (!a) { a = 1; $("#sa").value = 1; }
+    $("#oa").textContent = a; $("#ob").textContent = b; $("#oc").textContent = c;
+    const D = b * b - 4 * a * c, k = kindOf(D);
+    $("#sGauge").innerHTML = `${tex(`${poly(a, b, c)} = 0`)}<br>${tex(`b^2 - 4ac = ${pn(b)}^2 - 4(${a})(${c}) = @v{${D}}`)}<br><b style="font-size:16px">${KIND[k]}${k === 0 ? ` <span class="muted" style="font-size:13px">(${D} = ${Math.sqrt(D)}²)</span>` : ""}</b>`;
+    $$("#sTbl tr[data-k]").forEach(tr => tr.classList.toggle("hl", +tr.dataset.k === k));
+    if (user === true) done.add(k);
+    $$("#sMission div").forEach(d => d.classList.toggle("ok", done.has(+d.dataset.k)));
+    plotParabola($("#sPlot"), a, b, c);
+  }
+  ["sa", "sb", "sc"].forEach(id => $("#" + id).addEventListener("input", () => upd(true)));
+  upd(); redraws.push(upd);
+
+  const st = stepper({ box: $("#xSteps"), prev: $("#xPrev"), next: $("#xNext"), all: $("#xAll"), count: $("#xCount") });
+  const EX = [{ l: "مثال 5a", v: [7, -11, 5] }, { l: "مثال 5b", v: [1, 22, 121] }, { l: "تحقق 5A", v: [-5, 8, -1] }, { l: "تحقق 5B", v: [15, -7, -4], show: "-7x + 15x^2 - 4 = 0" }];
+  pickChips($("#xPick"), EX, e => `${tex(e.show || `${poly(...e.v)} = 0`)}<small>${e.l}</small>`, e => {
+    const [a, b, c] = e.v, D = b * b - 4 * a * c, k = kindOf(D);
+    const lines = [[`${poly(a, b, c)} = 0`, e.show ? "رتّبي على الصورة القياسية" : "المعادلة"], [`a = ${a} , b = ${b} , c = ${c}`, "حدّدي المعاملات"],
+      [`b^2 - 4ac = ${pn(b)}^2 - 4(${a})(${c})`, "عوّضي في المميز"], [`= ${b * b} ${-4 * a * c < 0 ? "-" : "+"} ${Math.abs(4 * a * c)}`, "اضربي"], [`= @v{${D}}`, "بسّطي"],
+      [`@t{${KIND[k]}}`, D > 0 ? (k === 0 ? `موجب و $${D} = ${Math.sqrt(D)}^2$ مربع كامل` : "موجب ومو مربع كامل") : D === 0 ? "المميز صفر" : "المميز سالب"]];
+    st.load(lines);
+  });
+}
+
+/* ---------- 4. Which method? ---------- */
+{
+  const M = [{ k: "graph", t: "التمثيل البياني", s: "أحيانًا" }, { k: "factor", t: "التحليل إلى العوامل", s: "أحيانًا" }, { k: "root", t: "خاصية الجذر التربيعي", s: "أحيانًا" }, { k: "square", t: "إكمال المربع", s: "دائمًا" }, { k: "formula", t: "القانون العام", s: "دائمًا" }];
+  const Q = [
+    { e: "x^2 - 7x = 0", k: "factor", why: "الحد الثابت صفر: $x(x - 7) = 0$ ← $x = 0$ أو $x = 7$." },
+    { e: "(x - 5)^2 = 18", k: "root", why: "مربع كامل يساوي ثابتًا: $x - 5 = ±@r{18} = ±3@r{2}$ ← $x = 5 ± 3@r{2}$." },
+    { e: "x^2 - 5x + 6 = 0", k: "factor", why: "تحليل سهل: $(x - 2)(x - 3) = 0$." },
+    { e: "x^2 + 6x - 14 = 0", k: "square", why: "$a = 1$ و $b$ زوجي، فإكمال المربع سريع: $(x + 3)^2 = 23$. (والقانون العام يشتغل بعد.)" },
+    { e: "2.3x^2 - 1.8x + 9.7 = 0", k: "formula", why: "معاملات عشرية يصعب تحليلها، فالقانون العام هو الأنسب. ($b^2 - 4ac < 0$، والجذران مركبان.)" },
+    { e: "@t{أريد أتأكد هل حلولي معقولة}", k: "graph", why: "التمثيل البياني أفضل للتحقق من معقولية الحلول، لما ما نحتاج الحل الدقيق." },
+  ];
+  let order = [], i = 0, score = 0;
+  function show() {
+    const q = order[i];
+    $("#mNo").textContent = `${i + 1} من ${order.length}`;
+    $("#mQ").innerHTML = tex(q.e);
+    $("#mOpts").innerHTML = M.map(m => `<button type="button" data-k="${m.k}">${m.t}<small>${m.s}</small></button>`).join("");
+    $("#mNarr").textContent = "اختاري الطريقة."; $("#mNext").disabled = true;
+    $$("#mOpts button").forEach(b => b.onclick = () => {
+      const ok = b.dataset.k === q.k; if (ok) score++;
+      $$("#mOpts button").forEach(x => { x.disabled = true; if (x.dataset.k === q.k) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      $("#mNarr").innerHTML = (ok ? "✅ " : "الكتاب يقترح غيرها: ") + T(q.why);
+      if (i < order.length - 1) $("#mNext").disabled = false;
+      else { $("#mNarr").innerHTML += `<br><b>اخترتي الأنسب في ${score} من ${order.length}.</b> <button class="btn" type="button" id="mAgain">من جديد</button>`; $("#mAgain").onclick = start; }
+    });
+  }
+  function start() { order = shuffle(Q.slice()); i = 0; score = 0; show(); }
+  $("#mNext").onclick = () => { if (i < order.length - 1) { i++; show(); } };
+  start();
+}
+
+/* ---------- 5. The fountain colours game ---------- */
+{
+  const ROUNDS = 8, COLS = ["#ff6b9a", "#ffd43b", "#69db7c", "#74c0fc", "#da77f2", "#ff922b", "#3bc9db", "#f783ac"];
+  let i = 0, got = [], cur = null;
+  $("#gJets").innerHTML = COLS.map(c => `<i style="--c:${c}"></i>`).join("");
+  function make() {
+    const want = rnd(0, 3);
+    for (let t = 0; t < 2000; t++) {
+      let a, b, c;
+      if (want === 2) { const k = rnd(1, 3) * (Math.random() < .3 ? -1 : 1), m = rnd(-6, 6) || 1; a = k; b = 2 * k * m; c = k * m * m; }
+      else if (want === 0) { const p = rnd(-6, 6), q = rnd(-6, 6), s = rnd(1, 3); if (p === q) continue; a = s; b = -s * (p + q); c = s * p * q; if (Math.random() < .3) { const r = rnd(1, 4) * (Math.random() < .5 ? 1 : -1), u = rnd(-5, 5); if (!u && !r) continue; /* (rx − u)(x − p) */ a = r; b = -(r * p + u); c = u * p; } }
+      else { a = rnd(1, 6) * (Math.random() < .3 ? -1 : 1); b = rnd(-12, 12); c = rnd(-12, 12); }
+      if (!a) continue;
+      const D = b * b - 4 * a * c;
+      if (kindOf(D) === want && Math.abs(b) <= 40 && Math.abs(c) <= 60) return { a, b, c, D, k: want };
+    }
+    return { a: 1, b: 2, c: 5, D: -16, k: 3 };
+  }
+  function show() {
+    cur = make();
+    $("#gNo").textContent = `النافورة ${i + 1} من ${ROUNDS}`;
+    $("#gQ").innerHTML = tex(`${poly(cur.a, cur.b, cur.c)} = 0`);
+    $("#gOpts").innerHTML = KIND.map((t, k) => `<button type="button" data-k="${k}">${t}</button>`).join("");
+    $("#gNarr").textContent = "احسبي المميز واختاري نوع الجذور."; $("#gNext").disabled = true;
+    $$("#gOpts button").forEach(b => b.onclick = () => {
+      const ok = +b.dataset.k === cur.k;
+      $$("#gOpts button").forEach(x => { x.disabled = true; if (+x.dataset.k === cur.k) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      got[i] = ok; $("#gJets").children[i].className = ok ? "on" : "bad";
+      const { a, b: bb, c, D } = cur;
+      $("#gNarr").innerHTML = (ok ? "⛲ انطلقت! " : "راجعيها: ") + T(`$b^2 - 4ac = ${pn(bb)}^2 - 4(${a})(${c}) = ${D}$` + (D > 0 ? (isSq(D) ? `، موجب ومربع كامل ($${Math.sqrt(D)}^2$).` : "، موجب ومو مربع كامل.") : D === 0 ? "، صفر." : "، سالب."));
+      if (i < ROUNDS - 1) $("#gNext").disabled = false;
+      else { const s = got.filter(Boolean).length; $("#gNarr").innerHTML += `<br><b>شغّلتي ${s} من ${ROUNDS} نوافير${s === ROUNDS ? " 🎆 عرض كامل على الكورنيش!" : ""}</b>`; }
+    });
+  }
+  $("#gNext").onclick = () => { if (i < ROUNDS - 1) { i++; show(); } };
+  $("#gReset").onclick = () => { i = 0; got = []; [...$("#gJets").children].forEach(x => x.className = ""); show(); };
+  show();
+}
+
+/* ---------- 6. Quiz from «تأكد» ----------
+   In the book's order; each card is numbered by its place here (q), which is what the teacher's sheet shows. */
+const QUIZ = [
+  { q: "حلّي باستعمال القانون العام: $x^2 + 12x - 9 = 0$", ref: "تأكد 1", opts: ["$-6 ± 3@r{5}$", "$6 ± 3@r{5}$", "$-6 ± 3i@r{5}$", "$-12 ± 6@r{5}$"],
+    why: "$x = @f{-12 ± @r{144 + 36}}{2} = @f{-12 ± @r{180}}{2} = @f{-12 ± 6@r{5}}{2} = -6 ± 3@r{5}$." },
+  { q: "حلّي باستعمال القانون العام: $4x^2 - 5x - 2 = 0$", ref: "تأكد 3", opts: ["$@f{5 ± @r{57}}{8}$", "$@f{-5 ± @r{57}}{8}$", "$@f{5 ± i@r{7}}{8}$", "$@f{5 ± @r{57}}{4}$"],
+    why: "$x = @f{-(-5) ± @r{25 - 4(4)(-2)}}{2(4)} = @f{5 ± @r{57}}{8}$." },
+  { q: "حلّي باستعمال القانون العام: $-3x^2 + 4x = -8$", ref: "تأكد 7", opts: ["$@f{2 ± 2@r{7}}{3}$", "$@f{-2 ± 2@r{7}}{3}$", "$@f{2 ± 2i@r{5}}{3}$", "$@f{2 ± @r{7}}{3}$"],
+    why: "الصورة القياسية: $3x^2 - 4x - 8 = 0$. $x = @f{4 ± @r{16 + 96}}{6} = @f{4 ± 4@r{7}}{6} = @f{2 ± 2@r{7}}{3}$." },
+  { q: "حلّي باستعمال القانون العام: $x^2 + 3 = -6x + 8$", ref: "تأكد 8", opts: ["$-3 ± @r{14}$", "$3 ± @r{14}$", "$-3 ± i@r{2}$", "$-6 ± 2@r{14}$"],
+    why: "الصورة القياسية: $x^2 + 6x - 5 = 0$. $x = @f{-6 ± @r{36 + 20}}{2} = @f{-6 ± 2@r{14}}{2} = -3 ± @r{14}$." },
+  { q: "أوجدي قيمة المميز، وعدد الجذور ونوعها: $3x^2 + 8x + 2 = 0$", ref: "تأكد 9", opts: ["المميز $40$: جذران حقيقيان غير نسبيين", "المميز $40$: جذران حقيقيان نسبيان", "المميز $88$: جذران حقيقيان غير نسبيين", "المميز $-40$: جذران مركبان مترافقان"],
+    why: "$b^2 - 4ac = 64 - 4(3)(2) = 40$: موجب ومو مربع كامل." },
+  { q: "أوجدي قيمة المميز، وعدد الجذور ونوعها: $5x^2 + 2x + 4 = 0$", ref: "تأكد 12", opts: ["المميز $-76$: جذران مركبان مترافقان", "المميز $84$: جذران حقيقيان غير نسبيين", "المميز $-76$: ما للمعادلة جذور", "المميز $76$: جذران حقيقيان غير نسبيين"],
+    why: "$b^2 - 4ac = 4 - 4(5)(4) = -76$: سالب، فللمعادلة جذران مركبان مترافقان (لها جذور، بس مو حقيقية)." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => {
+    const opts = shuffle(it.opts.map((o, j) => ({ h: T(o), ok: j === 0 })));
+    return `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}) ${T(it.q)} <span class="muted" style="font-size:13px">(${it.ref})</span></p>
+      <div class="opts">${opts.map((o, j) => `<button type="button" class="opt" data-ok="${o.ok}"><b>${"أبجد"[j]}</b><span>${o.h}</span></button>`).join("")}</div><p class="why" hidden></p></div>`;
+  }).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return;
+  card.dataset.done = 1; answered++;
+  const ok = b.dataset.ok === "true"; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, card.querySelector(".qq"), b, card.querySelector('.opt[data-ok="true"]'));
+  card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = card.querySelector(".why"); why.hidden = false;
+  why.innerHTML = `${ok ? `<span class="tagok">صحيح</span>` : `<span class="tagno">راجعي</span>`} ${T(QUIZ[+card.dataset.k].why)}`;
+  $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "⛲ النافورة كلها شغالة!" : ""} <button class="btn" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("quadratic-formula", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>
