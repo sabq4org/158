@@ -37,6 +37,10 @@ CREATE TABLE IF NOT EXISTS lesson_visibility (
 // schedules it in her panel. The lessons before that have no flag and stay shown until she hides them.
 const FAIZA = 1;
 const LESSONS = [
+  { key: "complex-numbers", name: "أنوار العيد", title: "الأعداد المركبة", ref: "3-1", book: "رياضيات 2", grade: 2, pages: "108–114", total: 6,
+    quiz: "6 أسئلة من «تأكد»", about: "زينة العيد في الشارع: فانوس i يلف ربع لفة كل ما ضربتي فيه، وجذور الأعداد السالبة، ولوحة عائلة الأعداد المركبة، والجمع بالأسهم على المستوى المركب، ودائرة الأنوار (الجهد = التيار × المعاوقة) في شبكة ضرب تتحول فيها i² إلى −1، ومرآة المرافق للقسمة، وسلسلة زينة تولّعينها.", theme: "eid", owner: FAIZA, startHidden: true },
+  { key: "quadratic-formula", name: "نافورة جدة", title: "القانون العام والمميز", ref: "3-2", book: "رياضيات 2", grade: 2, pages: "115–122", total: 6,
+    quiz: "6 أسئلة من «تأكد»", about: "نافورة كورنيش جدة: متى يكون الماء على ارتفاع معيّن؟ مرتين أو مرة أو أبد حسب المميز. اشتقاق القانون بإكمال المربع جنب مثال الكتاب، وآلة القانون العام لأي معادلة (نسبية، مكررة، غير نسبية، مركبة)، ولوحة المميز بمهماتها الأربع، وأي طريقة أسهل، ولعبة ألوان النافورة.", theme: "fountain", owner: FAIZA, startHidden: true },
   { key: "polynomials", name: "العمليات على كثيرات الحدود", title: "العمليات على كثيرات الحدود", ref: "3-3", book: "رياضيات 2", grade: 2, pages: "125–130", total: 12,
     quiz: "12 سؤال من «تأكد» و«تدريب على اختبار»", about: "تبسيط وحيدات الحد، وجمع كثيرات الحدود وطرحها وضربها، بمختبرات تفاعلية خطوة بخطوة.", theme: "lab", owner: FAIZA },
   { key: "polynomial-division", name: "ورشة القسمة", title: "قسمة كثيرات الحدود", ref: "3-4", book: "رياضيات 2", grade: 2, pages: "131–135", total: 5,

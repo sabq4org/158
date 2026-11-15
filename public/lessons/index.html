@@ -100,6 +100,8 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-gps .cover { background: linear-gradient(160deg, #20242c, #2b3140); }
 .t-mosaic .cover { background: linear-gradient(145deg, #2a183b, #4c265c 58%, #d97706); }
 .t-radar .cover { background: linear-gradient(160deg, #07131e, #0d2638 65%, #0f3a4a); }
+.t-eid .cover { background: linear-gradient(170deg, #1a1f4d, #14183a 55%, #0d1029); }
+.t-fountain .cover { background: linear-gradient(180deg, #22275e 0, #7d4373 62%, #d9785e 78%, #123a5c 78%); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -232,6 +234,18 @@ const COVERS = {
     <g fill="none" stroke="#f0a35e" stroke-width="2.5" opacity=".7"><path d="M0 30 H80 L100 50 H190 L210 30 H300"/><path d="M0 128 H70 L90 108 H300"/></g>
     ${[40, 85, 130, 175].map((x, k) => `<rect x="${x}" y="62" width="38" height="34" rx="7" fill="#e6efe9" fill-opacity=".14" stroke="#e6efe9" stroke-width="1.5"/><text x="${x + 19}" y="85" text-anchor="middle" fill="#e6efe9" font-family="Times New Roman, serif" font-size="16">${[3, 10, 40, 165][k]}</text>`).join("")}
     <circle cx="245" cy="79" r="22" fill="#4ade80" fill-opacity=".25" stroke="#4ade80" stroke-width="3"/><text x="245" y="85" text-anchor="middle" fill="#4ade80" font-family="Times New Roman, serif" font-weight="700" font-size="18">0</text></svg>`,
+  eid: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M0 14 Q 150 54 300 14" fill="none" stroke="#6b6f9a" stroke-width="1.5"/>
+    ${[20, 55, 90, 125, 160, 195, 230, 265].map((x, k) => { const y = 14 + 40 * (1 - ((x - 150) / 150) ** 2) * .98; return `<circle cx="${x}" cy="${y + 5}" r="5" fill="${["#ff6b9a", "#ffd43b", "#69db7c", "#74c0fc"][k % 4]}"/>`; }).join("")}
+    <circle cx="210" cy="96" r="36" fill="none" stroke="#6b6f9a" stroke-width="1.5" stroke-dasharray="4 5"/>
+    <line x1="210" y1="96" x2="210" y2="64" stroke="#ffd36b" stroke-width="4" stroke-linecap="round"/><circle cx="210" cy="60" r="7" fill="#fff6d8" stroke="#ffd36b" stroke-width="3"/>
+    <text x="90" y="112" text-anchor="middle" fill="#ffd36b" font-family="Times New Roman, serif" font-style="italic" font-size="26">a + bi</text>
+    <text x="252" y="102" fill="#e6e4f7" font-family="Times New Roman, serif" font-style="italic" font-size="15">i² = −1</text></svg>`,
+  fountain: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M110 117 Q 165 -70 220 117" fill="none" stroke="#9be7fb" stroke-width="4" opacity=".95"/>
+    <line x1="0" y1="62" x2="300" y2="62" stroke="#ffd43b" stroke-width="2" stroke-dasharray="6 5"/>
+    <circle cx="131" cy="62" r="5" fill="#69db7c"/><circle cx="199" cy="62" r="5" fill="#69db7c"/>
+    <text x="30" y="40" fill="#fff" font-family="Times New Roman, serif" font-style="italic" font-size="17">b² − 4ac</text></svg>`,
   pearl: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path d="M0 63 Q 15 59 30 63 T 60 63 T 90 63 T 120 63 T 150 63 T 180 63 T 210 63 T 240 63 T 270 63 T 300 63" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>
     <path d="M20 0 C 50 150, 90 120, 120 63 S 175 -20, 200 63 S 260 140, 290 0" fill="none" stroke="#ffd59a" stroke-width="3.5"/>

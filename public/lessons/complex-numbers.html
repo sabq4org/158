@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أنوار العيد</title>
+<meta name="description" content="درس تفاعلي: الأعداد المركبة، رياضيات 2، الدرس 3-1">
+<meta name="theme-color" content="#14183a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* «أنوار العيد»: lesson 3-1 told through the Eid lights on a Saudi street. A lantern that turns a quarter turn every
+   time it is multiplied by i (the powers of i), square roots of negative numbers, the family of complex numbers
+   (a Venn board you sort numbers into), adding on the complex plane (arrows), multiplying as the book's electricity
+   example (voltage = current × impedance) in a 2×2 grid where i² turns into −1, dividing with the conjugate (a mirror),
+   a light-string game, the quiz from «تأكد» and the summary. */
+:root {
+  --bg: #f6f3ec;
+  --panel: #fffdf8;
+  --panel-2: #f6f1e6;
+  --ink: #1d1b2e;
+  --muted: #5e5a70;
+  --line: #e0d8c6;
+  --gold: #b7791f;
+  --gold-soft: #f8ecd2;
+  --night: #2b3a8f;
+  --night-soft: #e2e6fa;
+  --mint: #12805c;
+  --mint-soft: #d6f2e6;
+  --rose: #c2255c;
+  --rose-soft: #fbe0ea;
+  --violet: #7048c4;
+  --violet-soft: #ece4fb;
+  --red: #c92a2a;
+  --red-soft: #fde2e2;
+  --sky: linear-gradient(170deg, #1a1f4d 0%, #14183a 55%, #0d1029 100%);
+  --shadow: 0 1px 1px rgba(40, 30, 10, .08), 0 14px 34px -16px rgba(40, 30, 10, .38);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1020; --panel: #181a30; --panel-2: #1f2240; --ink: #ecebf6; --muted: #a6a4c0; --line: #2f3256;
+    --gold: #f1c062; --gold-soft: #3a2e14; --night: #9fb0ff; --night-soft: #222a5a; --mint: #5fd6a8; --mint-soft: #123a2e;
+    --rose: #f783ac; --rose-soft: #47182c; --violet: #b9a3f6; --violet-soft: #2b2447; --red: #ff8787; --red-soft: #451d1d;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1020; --panel: #181a30; --panel-2: #1f2240; --ink: #ecebf6; --muted: #a6a4c0; --line: #2f3256;
+  --gold: #f1c062; --gold-soft: #3a2e14; --night: #9fb0ff; --night-soft: #222a5a; --mint: #5fd6a8; --mint-soft: #123a2e;
+  --rose: #f783ac; --rose-soft: #47182c; --violet: #b9a3f6; --violet-soft: #2b2447; --red: #ff8787; --red-soft: #451d1d;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -16px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+p { margin: 0; }
+a { color: var(--night); }
+.muted { color: var(--muted); }
+svg { direction: ltr; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.12em; white-space: nowrap; line-height: 1.45; }
+.m i { font-style: italic; }
+.m .m { font-size: 1em; }
+.m sup { font-size: .68em; vertical-align: .62em; line-height: 0; font-style: normal; }
+.m .ar { font-family: var(--font); font-size: .86em; font-style: normal; padding: 0 .3em; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.15; }
+.fr > span:first-child { border-bottom: 1.4px solid currentColor; padding: 0 .2em .05em; }
+.fr > span:last-child { padding: .05em .2em 0; }
+.sq { white-space: nowrap; }
+.sq > span { border-top: 1.4px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.ca { color: var(--gold); font-weight: 600; } .cb { color: var(--night); font-weight: 600; } .cg { color: var(--mint); font-weight: 600; }
+.cv { color: var(--violet); font-weight: 600; } .cr { color: var(--rose); font-weight: 600; } .cx { color: var(--red); font-weight: 600; }
+
+/* Layout */
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+.ribbon { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.ribbon-in { max-width: 980px; margin: 0 auto; padding: 8px 16px; display: flex; align-items: center; gap: 10px; }
+.ribbon b { font-size: 14px; white-space: nowrap; }
+.stations { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; justify-content: flex-end; }
+.stations::-webkit-scrollbar { display: none; }
+.stations a { flex: none; text-decoration: none; color: var(--muted); font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px 10px; transition: all .2s; white-space: nowrap; }
+.stations a.on { color: #fff; background: var(--night); border-color: var(--night); }
+.stations a.done { color: var(--mint); border-color: var(--mint); }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Cards with a string of little lights on top */
+.card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 34px 28px 26px; margin: 34px 0 0; scroll-margin-top: 70px; overflow: hidden; }
+.card::before { content: ""; position: absolute; inset: 6px 0 auto 0; height: 10px; opacity: .8;
+  background: radial-gradient(circle at 12px 5px, var(--gold) 0 3.5px, transparent 4px) 0 0 / 48px 10px repeat-x,
+              radial-gradient(circle at 36px 5px, var(--rose) 0 3.5px, transparent 4px) 0 0 / 48px 10px repeat-x; }
+.card > * { position: relative; z-index: 1; }
+.head { display: flex; gap: 14px; align-items: center; }
+.lamp { flex: none; width: 50px; height: 58px; display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #3a2a06; position: relative;
+  background: radial-gradient(circle at 50% 55%, #fff6d8 0 25%, #ffd36b 60%, #e0a028 100%); border-radius: 18px 18px 14px 14px; box-shadow: 0 0 18px -2px rgba(255, 196, 70, .7), inset 0 -4px 6px rgba(0, 0, 0, .15); }
+.lamp::before { content: ""; position: absolute; top: -8px; left: 50%; width: 18px; height: 8px; transform: translateX(-50%); border-radius: 6px 6px 0 0; background: #8a5a12; }
+.kicker { font-size: 13px; font-weight: 700; color: var(--gold); }
+h2 { margin: 0; font-size: clamp(23px, 4.2vw, 31px); line-height: 1.35; }
+h3 { margin: 0; }
+.lead { color: var(--muted); max-width: 68ch; margin-top: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.btn { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 7px 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: transform .1s, background .2s, border-color .2s; }
+.btn:hover:not(:disabled) { border-color: var(--night); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.go { background: var(--night); border-color: var(--night); color: #fff; }
+.btn.au { background: var(--gold); border-color: var(--gold); color: #fff; }
+:root[data-theme="dark"] .btn.go, :root[data-theme="dark"] .btn.au, :root[data-theme="dark"] .stations a.on { color: #0f1020; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.go, :root:not([data-theme="light"]) .btn.au, :root:not([data-theme="light"]) .stations a.on { color: #0f1020; } }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 3px 12px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.chip[aria-pressed="true"] { border-color: var(--night); background: var(--night-soft); }
+.chip .m { font-size: 1.05em; }
+.chip small { color: var(--muted); font-size: 11.5px; margin-inline-start: 4px; }
+.narr { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 15.5px; min-height: 3.2em; }
+.narr .m { white-space: normal; }
+.note { background: var(--night-soft); border-radius: 14px; padding: 12px 16px; border-inline-start: 5px solid var(--night); }
+.note.au { background: var(--gold-soft); border-color: var(--gold); }
+.note.ok { background: var(--mint-soft); border-color: var(--mint); }
+.note.bad { background: var(--red-soft); border-color: var(--red); }
+.note .m { white-space: normal; }
+.custom { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 15px; }
+.custom input, .cin { font: 600 16px var(--font); text-align: center; padding: 4px 6px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--ink); direction: ltr; width: 3.6em; }
+.err { color: var(--red); font-size: 14px; font-weight: 600; min-height: 1.3em; }
+.zin { display: inline-flex; gap: 4px; align-items: center; direction: ltr; font: 18px "Times New Roman", serif; }
+.zin i { font-style: italic; }
+
+/* Hero: an Eid night street */
+.hero { background: var(--sky); color: #ecebf6; border: 0; padding-top: 44px; }
+.hero::before { display: none; }
+.hero .string { position: absolute; inset: 0 0 auto 0; height: 70px; z-index: 0; pointer-events: none; }
+.hero .string svg { width: 100%; height: 100%; }
+.bulb { animation: tw 2.4s ease-in-out infinite; }
+@keyframes tw { 50% { opacity: .35; } }
+.hero .logos { display: flex; gap: 10px; }
+.hero .logos img { height: 46px; background: #fff; border-radius: 10px; padding: 4px 8px; }
+.hero h1 { font-size: clamp(32px, 7vw, 54px); margin: 12px 0 0; line-height: 1.2; }
+.hero h1 span { color: #ffd36b; text-shadow: 0 0 20px rgba(255, 211, 107, .55); }
+.hero .sub { color: #b4b8e6; font-weight: 600; }
+.hero .lead { color: #d6d8f2; }
+.hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 22px; margin-top: 16px; align-items: center; }
+.hero canvas { width: 100%; height: 250px; display: block; border-radius: 16px; border: 1.5px solid rgba(255, 255, 255, .18); }
+.hero .narr { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .16); color: #ecebf6; }
+.hero .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .25); color: #fff; }
+.hero .btn.au { background: #ffd36b; border-color: #ffd36b; color: #2a1d02; }
+
+/* The lantern wheel of i */
+.wheel-wrap { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: center; margin-top: 14px; }
+.wheel { width: 100%; aspect-ratio: 1; }
+.wheel text { font-family: "Times New Roman", serif; }
+#wArm { transition: transform .7s cubic-bezier(.3, 1.4, .5, 1); transform-origin: 0 0; }
+.big { font-size: 30px; text-align: center; font-weight: 700; }
+.pw { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center; direction: ltr; }
+.pw td { border: 1.5px solid var(--line); padding: 4px; font: 16px "Times New Roman", serif; transition: background .3s; }
+.pw td.on { background: var(--gold-soft); font-weight: 700; }
+
+/* Book-style working */
+.steps { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ln { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 220px); gap: 12px; align-items: center; padding: 6px 10px; border-radius: 10px; }
+.ln .lm { overflow-x: auto; overflow-y: hidden; padding: 2px 0; text-align: left; direction: ltr; scrollbar-width: thin; }
+.ln .lw { color: var(--night); font-size: 13.5px; font-weight: 600; }
+.ln.cur { background: var(--gold-soft); animation: rise .4s both; }
+.ln.cur .lw { color: var(--gold); }
+@keyframes rise { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ctrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.ctrl .count { margin-inline-start: auto; color: var(--muted); font-size: 13px; font-weight: 600; }
+
+/* Venn board */
+.venn { display: grid; grid-template-columns: 1fr 1.25fr; gap: 0; border: 2px solid var(--night); border-radius: 18px; overflow: hidden; margin-top: 12px; background: var(--night-soft); }
+.venn > .vh { grid-column: 1 / -1; text-align: center; font-weight: 700; padding: 6px; background: var(--night); color: #fff; }
+.zone { min-height: 150px; padding: 10px; cursor: pointer; border: 0; background: transparent; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background .2s; }
+.zone:hover { background: color-mix(in srgb, var(--panel) 50%, transparent); }
+.zone h4 { margin: 0; font-size: 14px; }
+.zone h4 small { display: block; color: var(--muted); font-weight: 600; }
+.zone.real { border-inline-end: 2px solid var(--night); background: color-mix(in srgb, var(--panel) 35%, transparent); }
+.zone .tok { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; direction: ltr; }
+.zone .tok > span { border-radius: 99px; padding: 0 10px; background: var(--panel); border: 1.5px solid var(--line); font: 16px "Times New Roman", serif; animation: pop .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.imag-side { display: flex; flex-direction: column; }
+.imag-side .zone { flex: 1; }
+.pure { margin: 0 12px 12px; border: 2px dashed var(--violet); border-radius: 50%; min-height: 120px; background: var(--violet-soft); }
+@keyframes pop { from { transform: scale(1.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.ask { text-align: center; margin-top: 14px; }
+.ask .now { display: inline-block; font: 700 26px "Times New Roman", serif; padding: 4px 22px; border-radius: 14px; background: var(--gold-soft); border: 2px solid var(--gold); direction: ltr; min-width: 120px; }
+.shake { animation: shake .4s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* Complex plane */
+.plane { width: 100%; aspect-ratio: 1; border-radius: 16px; border: 1.5px solid var(--line); background: var(--panel-2); display: block; }
+.plane text { font-family: "Times New Roman", serif; }
+.zctl { display: flex; flex-direction: column; gap: 10px; }
+.zrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.zrow .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg button { border: 0; background: var(--panel-2); padding: 5px 16px; cursor: pointer; font-weight: 700; }
+.seg button[aria-pressed="true"] { background: var(--night); color: #fff; }
+.result { font-size: 20px; text-align: center; padding: 10px; border-radius: 14px; background: var(--panel-2); border: 1.5px solid var(--line); overflow-x: auto; }
+
+/* Multiplication grid */
+.box { display: grid; grid-template-columns: 70px 1fr 1fr; gap: 6px; direction: ltr; margin-top: 12px; }
+.box > div { border-radius: 12px; padding: 10px 6px; text-align: center; font: 19px "Times New Roman", serif; min-height: 52px; display: grid; place-items: center; }
+.box .hd { background: var(--night-soft); font-weight: 700; }
+.box .hd.r { background: var(--gold-soft); }
+.box .cell { background: var(--panel-2); border: 1.5px dashed var(--line); color: transparent; transition: all .35s; }
+.box .cell.on { color: var(--ink); border-style: solid; border-color: var(--mint); background: var(--mint-soft); }
+.box .cell.flip { border-color: var(--red); background: var(--red-soft); animation: pop .5s both; }
+.lights { display: flex; gap: 14px; justify-content: center; margin: 14px 0 4px; }
+.lights i { width: 22px; height: 30px; border-radius: 50% 50% 45% 45%; background: var(--line); position: relative; transition: all .5s; }
+.lights i::before { content: ""; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); width: 10px; height: 7px; border-radius: 3px; background: #6b5a3a; }
+.lights.on i { background: var(--c); box-shadow: 0 0 18px 4px var(--c); }
+
+/* Mirror */
+.mirror { display: grid; grid-template-columns: 260px 1fr; gap: 18px; align-items: start; margin-top: 12px; }
+
+/* Game */
+.garland { display: flex; gap: 8px; justify-content: center; margin: 4px 0 12px; flex-wrap: wrap; }
+.garland i { width: 18px; height: 25px; border-radius: 50% 50% 45% 45%; background: var(--line); transition: all .4s; }
+.garland i.on { background: var(--c); box-shadow: 0 0 14px 3px var(--c); }
+.garland i.bad { background: var(--red-soft); border: 2px solid var(--red); }
+.game { background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; }
+.gq { text-align: center; font-size: 22px; margin: 6px 0 2px; }
+.trip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.trip button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 8px 10px; cursor: pointer; font-size: 15px; }
+.trip button.right { border-color: var(--mint); background: var(--mint-soft); }
+.trip button.wrong { border-color: var(--red); background: var(--red-soft); }
+.trip button:disabled { cursor: default; }
+
+/* Quiz */
+.quiz { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.qcard { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel-2); }
+.qcard .qq { font-weight: 600; margin-bottom: 8px; }
+.qcard .qq .m { white-space: normal; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opt { text-align: start; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); padding: 8px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: all .15s; overflow-x: auto; }
+.opt b { color: var(--muted); flex: none; }
+.opt:hover:not(:disabled) { border-color: var(--night); }
+.opt.right { border-color: var(--mint); background: var(--mint-soft); }
+.opt.wrong { border-color: var(--red); background: var(--red-soft); }
+.opt:disabled { cursor: default; }
+.why { margin-top: 8px; font-size: 14.5px; }
+.why .m { white-space: normal; }
+.tagok { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--mint); color: #fff; }
+.tagno { display: inline-block; border-radius: 6px; padding: 0 8px; font-weight: 700; font-size: 13px; background: var(--red); color: #fff; }
+.score { text-align: center; font-size: 20px; font-weight: 700; margin-top: 14px; }
+
+/* Summary */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+.plate { background: var(--panel-2); border-radius: 14px; padding: 14px; border: 1.5px solid var(--line); border-top: 5px solid var(--gold); }
+.plate:nth-child(2) { border-top-color: var(--night); } .plate:nth-child(3) { border-top-color: var(--rose); }
+.plate h3 { margin: 0 0 6px; font-size: 17px; }
+.plate .m { white-space: normal; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 760px) {
+  .card { padding: 30px 16px 20px; border-radius: 18px; }
+  .grid2, .cards3, .hero-grid, .wheel-wrap, .mirror { grid-template-columns: 1fr; }
+  .wheel { max-width: 260px; margin: 0 auto; }
+  .mirror .plane { max-width: 280px; margin: 0 auto; }
+  .opts, .trip { grid-template-columns: minmax(0, 1fr); }
+  .ln { grid-template-columns: 1fr; gap: 0; }
+  .ln .lw { font-size: 12.5px; }
+  .ribbon b { display: none; }
+  .hero canvas { height: 220px; }
+  .venn { grid-template-columns: 1fr; }
+  .zone.real { border-inline-end: 0; border-bottom: 2px solid var(--night); min-height: 100px; }
+  .box { grid-template-columns: 54px 1fr 1fr; } .box > div { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="ribbon" aria-label="محطات الدرس">
+  <div class="ribbon-in">
+    <b>أنوار العيد</b>
+    <div class="stations" id="stations"></div>
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- 0: why -->
+  <section class="card hero" id="s0" data-name="الغلاف">
+    <div class="string" id="string" aria-hidden="true"></div>
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>أنوار <span>العيد</span></h1>
+    <p class="sub">الدرس 3-1 · الأعداد المركبة · رياضيات 2 · الفصل الأول</p>
+    <p class="lead">ليلة العيد والشارع كله زينة. الدوائر الكهربائية اللي تشغّل هالأنوار يحسبها المهندسون بأعداد غريبة شوي: <b>الأعداد المركبة</b>. نبدأ بسؤال الكتاب: منحنى المعادلة ما يلمس المحور <span class="m"><i>x</i></span>، فهل معناه إن ما لها حلول؟</p>
+    <div class="hero-grid">
+      <canvas id="hPlot" aria-label="منحنى y = x² + 2x + 4 فوق المحور x"></canvas>
+      <div class="stack">
+        <p style="font-size:19px;text-align:center"><span class="m"><i>y</i> = <i>x</i><sup>2</sup> + 2<i>x</i> + 4</span></p>
+        <p class="narr" id="hNarr">المنحنى كله فوق المحور <span class="m"><i>x</i></span>: ما فيه ولا نقطة تقاطع، يعني <b>ما فيه حلول حقيقية</b>.</p>
+        <div class="row" style="justify-content:center"><button class="btn au" id="hGo" type="button">✨ وريني الحلول المخفية</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1: i and its powers -->
+  <section class="card" id="s1" data-name="فانوس i">
+    <div class="head"><span class="lamp">1</span><div><span class="kicker">الوحدة التخيلية · قوى i</span><h2>فانوس <span class="m"><i>i</i></span> اللي يلف</h2></div></div>
+    <p class="lead">عرّف الرياضيون <b>الوحدة التخيلية</b> <span class="m"><i>i</i></span> بأنها الجذر التربيعي الموجب للعدد <span class="m">−1</span>: <span class="m"><i>i</i> = √−1</span>، يعني <span class="m"><i>i</i><sup>2</sup> = −1</span>. وكل ما ضربتي في <span class="m"><i>i</i></span> يلف الفانوس ربع لفة، فترجع القيم كل أربع خطوات.</p>
+    <div class="wheel-wrap">
+      <svg class="wheel" id="wheel" viewBox="-150 -150 300 300" role="img" aria-label="دائرة قوى i"></svg>
+      <div class="stack">
+        <p class="big" id="wNow"></p>
+        <p class="narr" id="wNarr" aria-live="polite"></p>
+        <div class="row"><button class="btn au" id="wMul" type="button">اضربي في <span class="m"><i>i</i></span> ↺</button><button class="btn" id="wReset" type="button">من البداية</button></div>
+        <div class="custom"><span>أي قوة؟</span><span class="m"><i>i</i></span><input id="wN" value="31" inputmode="numeric" aria-label="الأس"><button class="btn go" id="wGo" type="button">احسبي</button></div>
+        <p class="err" id="wErr"></p>
+        <table class="pw" id="wTbl"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2: square roots of negatives -->
+  <section class="card" id="s2" data-name="جذور السالب">
+    <div class="head"><span class="lamp">2</span><div><span class="kicker">الأعداد التخيلية البحتة · الأمثلة 1، 2، 3</span><h2>الجذر التربيعي لعدد سالب</h2></div></div>
+    <p class="lead">لأي عدد حقيقي موجب <span class="m"><i>b</i></span>: <span class="m">√−<i>b</i><sup>2</sup> = √<i>b</i><sup>2</sup> · √−1 = <i>bi</i></span>. والأعداد مثل <span class="m">6<i>i</i> , −2<i>i</i> , <i>i</i>√3</span> نسميها <b>أعدادًا تخيلية بحتة</b>.</p>
+    <div class="chips" id="rPick" style="margin-top:12px"></div>
+    <div class="steps" id="rSteps"></div>
+    <div class="ctrl"><button class="btn" id="rPrev" type="button">السابق</button><button class="btn go" id="rNext" type="button">الخطوة التالية</button><button class="btn" id="rAll" type="button">كل الخطوات</button><span class="count" id="rCount"></span></div>
+    <p class="note bad" id="rWarn" style="margin-top:12px" hidden></p>
+    <div class="custom" style="margin-top:16px"><span>بسّطي أي جذر:</span><span class="m">√−</span><input id="rN" value="75" inputmode="numeric" aria-label="العدد تحت الجذر"><button class="btn au" id="rGo" type="button">بسّطي</button></div>
+    <p class="err" id="rErr"></p>
+  </section>
+
+  <!-- 3: the family -->
+  <section class="card" id="s3" data-name="عائلة المركبة">
+    <div class="head"><span class="lamp">3</span><div><span class="kicker">مفهوم أساسي · مثال 4</span><h2>عائلة الأعداد المركبة</h2></div></div>
+    <p class="lead"><b>العدد المركب</b> هو أي عدد على الصورة <span class="m"><i>a</i> + <i>bi</i></span>، حيث <span class="m"><i>a</i></span> <b>الجزء الحقيقي</b> و <span class="m"><i>b</i></span> <b>الجزء التخيلي</b>. إذا <span class="m"><i>b</i> = 0</span> صار حقيقيًا، وإذا <span class="m"><i>b</i> ≠ 0</span> صار تخيليًا، وإذا كمان <span class="m"><i>a</i> = 0</span> صار تخيليًا بحتًا. رتّبي الأنوار في مكانها الصح:</p>
+    <div class="ask"><span class="muted" style="font-size:14px" id="vNo"></span><br><span class="now" id="vNow"></span></div>
+    <div class="venn" id="venn">
+      <div class="vh">الأعداد المركبة <span class="m">(<i>a</i> + <i>bi</i>)</span></div>
+      <button class="zone real" type="button" data-z="real"><h4>الأعداد الحقيقية<small><span class="m"><i>b</i> = 0</span></small></h4><div class="tok"></div></button>
+      <div class="imag-side">
+        <button class="zone" type="button" data-z="imag"><h4>الأعداد التخيلية<small><span class="m"><i>b</i> ≠ 0</span></small></h4><div class="tok"></div></button>
+        <button class="zone pure" type="button" data-z="pure"><h4>التخيلية البحتة<small><span class="m"><i>a</i> = 0 , <i>b</i> ≠ 0</span></small></h4><div class="tok"></div></button>
+      </div>
+    </div>
+    <p class="narr" id="vNarr" style="margin-top:12px">اضغطي على المكان اللي ينتمي له العدد.</p>
+    <div class="row" style="margin-top:8px;justify-content:center"><button class="btn" id="vReset" type="button">رتّبي من جديد</button></div>
+
+    <h3 style="margin-top:26px;font-size:19px">تساوي عددين مركبين</h3>
+    <p class="lead" style="margin-top:4px"><span class="m"><i>a</i> + <i>bi</i> = <i>c</i> + <i>di</i></span> إذا وفقط إذا <span class="m"><i>a</i> = <i>c</i></span> و <span class="m"><i>b</i> = <i>d</i></span>: ساوي الحقيقي بالحقيقي، والتخيلي بالتخيلي.</p>
+    <div class="chips" id="ePick" style="margin-top:10px"></div>
+    <div class="steps" id="eSteps"></div>
+    <div class="ctrl"><button class="btn" id="ePrev" type="button">السابق</button><button class="btn go" id="eNext" type="button">الخطوة التالية</button><button class="btn" id="eAll" type="button">كل الخطوات</button><span class="count" id="eCount"></span></div>
+  </section>
+
+  <!-- 4: add and subtract -->
+  <section class="card" id="s4" data-name="الجمع والطرح">
+    <div class="head"><span class="lamp">4</span><div><span class="kicker">مثال 5</span><h2>الجمع والطرح بالأسهم</h2></div></div>
+    <p class="lead">اجمعي الأجزاء الحقيقية معًا والأجزاء التخيلية معًا. على <b>المستوى المركب</b> (أفقي حقيقي، رأسي تخيلي) يصير العدد سهمًا، والجمع سهم ورا سهم. غيّري الأعداد وشوفي:</p>
+    <div class="chips" id="aPick" style="margin-top:12px"></div>
+    <div class="grid2" style="margin-top:12px">
+      <svg class="plane" id="aPlane" viewBox="-10.5 -10.5 21 21" role="img" aria-label="المستوى المركب وعليه الجمع"></svg>
+      <div class="zctl">
+        <div class="seg" role="group" aria-label="العملية"><button type="button" id="aAdd" aria-pressed="true">جمع +</button><button type="button" id="aSub" aria-pressed="false">طرح −</button></div>
+        <div class="zrow"><span class="dot" style="background:var(--gold)"></span><b>العدد الأول</b><span class="zin"><input class="cin" id="a1" inputmode="numeric" aria-label="الجزء الحقيقي للأول"> + <input class="cin" id="b1" inputmode="numeric" aria-label="الجزء التخيلي للأول"> <i>i</i></span></div>
+        <div class="zrow"><span class="dot" style="background:var(--rose)"></span><b>العدد الثاني</b><span class="zin"><input class="cin" id="a2" inputmode="numeric" aria-label="الجزء الحقيقي للثاني"> + <input class="cin" id="b2" inputmode="numeric" aria-label="الجزء التخيلي للثاني"> <i>i</i></span></div>
+        <p class="err" id="aErr"></p>
+        <div class="steps" id="aSteps" style="margin-top:0"></div>
+        <div class="result" id="aOut"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5: multiply: the Eid lights circuit -->
+  <section class="card" id="s5" data-name="الضرب">
+    <div class="head"><span class="lamp">5</span><div><span class="kicker">مثال 6 · من واقع الحياة: كهرباء</span><h2>دائرة أنوار الشارع</h2></div></div>
+    <p class="lead">في دوائر التيار المتناوب يرتبط فرق الجهد <span class="m"><i>V</i></span> وشدة التيار <span class="m"><i>C</i></span> والمعاوقة <span class="m"><i>I</i></span> بالصيغة <span class="m"><i>V</i> = <i>C</i> · <i>I</i></span>. نضرب بطريقة التوزيع: كل جزء في كل جزء، وانتبهي للخلية اللي فيها <span class="m"><i>i</i><sup>2</sup></span>!</p>
+    <div class="chips" id="mPick" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px;gap:18px">
+      <div class="zrow"><b>شدة التيار <span class="m"><i>C</i></span></b><span class="zin"><input class="cin" id="mA" inputmode="numeric" aria-label="الجزء الحقيقي لشدة التيار"> + <input class="cin" id="mB" inputmode="numeric" aria-label="الجزء التخيلي لشدة التيار"> <i>i</i></span></div>
+      <div class="zrow"><b>المعاوقة <span class="m"><i>I</i></span></b><span class="zin"><input class="cin" id="mC" inputmode="numeric" aria-label="الجزء الحقيقي للمعاوقة"> + <input class="cin" id="mD" inputmode="numeric" aria-label="الجزء التخيلي للمعاوقة"> <i>i</i></span></div>
+    </div>
+    <p class="err" id="mErr"></p>
+    <div class="box" id="mBox"></div>
+    <div class="ctrl"><button class="btn go" id="mNext" type="button">الخلية التالية</button><button class="btn" id="mAll" type="button">كل الخلايا</button><span class="count" id="mCount"></span></div>
+    <div class="lights" id="mLights" aria-hidden="true"><i style="--c:#ff6b9a"></i><i style="--c:#69db7c"></i><i style="--c:#ffd43b"></i><i style="--c:#74c0fc"></i><i style="--c:#da77f2"></i><i style="--c:#ff922b"></i></div>
+    <p class="narr" id="mNarr" aria-live="polite"></p>
+  </section>
+
+  <!-- 6: conjugates and division -->
+  <section class="card" id="s6" data-name="القسمة">
+    <div class="head"><span class="lamp">6</span><div><span class="kicker">المترافقان · مثال 7</span><h2>مرآة المرافق</h2></div></div>
+    <p class="lead">العددان <span class="m"><i>a</i> + <i>bi</i></span> و <span class="m"><i>a</i> − <i>bi</i></span> <b>مترافقان</b>: كل واحد صورة الثاني في مرآة المحور الحقيقي، وحاصل ضربهما عدد حقيقي دائمًا <span class="m"><i>a</i><sup>2</sup> + <i>b</i><sup>2</sup></span>. عشان نقسم، نضرب البسط والمقام في <b>مرافق المقام</b> فيصير المقام حقيقيًا.</p>
+    <div class="chips" id="dPick" style="margin-top:12px"></div>
+    <div class="custom" style="margin-top:10px"><span>أو اكتبي قسمتك:</span>
+      <span class="zin">(<input class="cin" id="dA" inputmode="numeric" aria-label="الجزء الحقيقي للبسط"> + <input class="cin" id="dB" inputmode="numeric" aria-label="الجزء التخيلي للبسط"><i>i</i>) ÷ (<input class="cin" id="dC" inputmode="numeric" aria-label="الجزء الحقيقي للمقام"> + <input class="cin" id="dD" inputmode="numeric" aria-label="الجزء التخيلي للمقام"><i>i</i>)</span>
+      <button class="btn au" id="dGo" type="button">اقسمي</button></div>
+    <p class="err" id="dErr"></p>
+    <div class="mirror">
+      <svg class="plane" id="dPlane" viewBox="-8.5 -8.5 17 17" role="img" aria-label="المقام ومرافقه على المستوى المركب"></svg>
+      <div>
+        <div class="steps" id="dSteps" style="margin-top:0"></div>
+        <div class="ctrl"><button class="btn" id="dPrev" type="button">السابق</button><button class="btn go" id="dNext" type="button">الخطوة التالية</button><button class="btn" id="dAll" type="button">كل الخطوات</button><span class="count" id="dCount"></span></div>
+        <p class="note au" id="dTip" style="margin-top:10px" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7: game -->
+  <section class="card" id="s7" data-name="سلسلة الزينة">
+    <div class="head"><span class="lamp">7</span><div><span class="kicker">تدرب وحل المسائل</span><h2>علّقي سلسلة الزينة</h2></div></div>
+    <p class="lead">عشر لمبات تنتظر. كل إجابة صحيحة تولّع لمبة: قوى <span class="m"><i>i</i></span>، والجمع والطرح، والضرب، والمرافق، والجذور السالبة.</p>
+    <div class="garland" id="gLights"></div>
+    <div class="game">
+      <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:13px" id="gNo"></span><span class="muted" style="font-size:13px" id="gKind"></span></div>
+      <p class="gq" id="gQ"></p>
+      <div class="trip" id="gOpts"></div>
+      <p class="narr" id="gNarr" style="margin-top:12px">اختاري الإجابة.</p>
+      <div class="row" style="margin-top:12px;justify-content:center"><button class="btn go" id="gNext" type="button" disabled>اللمبة التالية</button><button class="btn" id="gReset" type="button">سلسلة جديدة</button></div>
+    </div>
+  </section>
+
+  <!-- 8: quiz -->
+  <section class="card" id="s8" data-name="الاختبار">
+    <div class="head"><span class="lamp">8</span><div><span class="kicker">من «تأكد» في الكتاب</span><h2>اختبري نفسك</h2></div></div>
+    <div class="quiz" id="quiz"></div>
+    <p class="score" id="score"></p>
+  </section>
+
+  <!-- 9: summary -->
+  <section class="card" id="s9" data-name="الخلاصة">
+    <div class="head"><span class="lamp">✓</span><div><span class="kicker">قبل ما تطفين الأنوار</span><h2>الخلاصة</h2></div></div>
+    <div class="cards3">
+      <div class="plate"><h3>الوحدة التخيلية</h3><p><span class="m"><i>i</i> = √−1</span> و <span class="m"><i>i</i><sup>2</sup> = −1</span>. القوى تدور كل أربع: <span class="m"><i>i</i> , −1 , −<i>i</i> , 1</span>، فاقسمي الأس على 4 وخذي الباقي. و <span class="m">√−<i>b</i><sup>2</sup> = <i>bi</i></span>، وحوّلي لـ <span class="m"><i>i</i></span> قبل ما تضربين جذرين سالبين.</p></div>
+      <div class="plate"><h3>العمليات</h3><p><span class="m"><i>a</i> + <i>bi</i></span>: الجمع والطرح جزء حقيقي مع حقيقي وتخيلي مع تخيلي. الضرب بالتوزيع ثم <span class="m"><i>i</i><sup>2</sup> = −1</span>. ويتساوى عددان مركبان إذا تساوى الجزآن الحقيقيان والجزآن التخيليان.</p></div>
+      <div class="plate"><h3>المرافق والقسمة</h3><p><span class="m">(<i>a</i> + <i>bi</i>)(<i>a</i> − <i>bi</i>) = <i>a</i><sup>2</sup> + <i>b</i><sup>2</sup></span>. للقسمة: اضربي البسط والمقام في مرافق المقام، واكتبي الناتج على الصورة <span class="m"><i>a</i> + <i>bi</i></span>.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">الثانوية الثامنة والخمسون بعد المائة · أ. فائزة جبوع · 1448 هـ</p>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const isDark = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+
+/* ---------- A tiny math renderer ----------
+   ^x or ^{..} power, @f{a}{b} fraction, @r{..} square root, @a @b @g @v @r @x colours, @t{..} Arabic words. */
+function tex(src) {
+  let i = 0;
+  const atom = ch => /[a-zA-Z]/.test(ch) ? `<i>${ch}</i>` : ch === "-" ? "−" : esc(ch);
+  function group() {
+    if (src[i] === "{") { i++; return parse("}"); }
+    const m = /^\d+/.exec(src.slice(i));
+    if (m) { i += m[0].length; return m[0]; }
+    return atom(src[i++] || "");
+  }
+  function parse(stop) {
+    let out = "";
+    while (i < src.length) {
+      const ch = src[i];
+      if (stop && ch === stop) { i++; return out; }
+      if (ch === "^") { i++; out += `<sup>${group()}</sup>`; }
+      else if (ch === "@") {
+        const k = src[i + 1]; i += 2;
+        if (k === "f") { const a = group(), b = group(); out += `<span class="fr"><span>${a}</span><span>${b}</span></span>`; }
+        else if (k === "r") out += `<span class="sq">√<span>${group()}</span></span>`;
+        else if (k === "t") { i++; let u = ""; while (i < src.length && src[i] !== "}") u += src[i++]; i++; out += `<span class="ar">${esc(u)}</span>`; }
+        else out += `<span class="c${k}">${group()}</span>`;
+      }
+      else if (ch === "{") { i++; out += parse("}"); }
+      else { out += atom(ch); i++; }
+    }
+    return out;
+  }
+  return `<span class="m">${parse()}</span>`;
+}
+const T = s => String(s ?? "").replace(/\$([^$]+)\$/g, (_, m) => tex(m));
+
+/* ---------- Exact numbers: fractions [n, d] and complex numbers with integer or fraction parts ---------- */
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const F = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return [n / g, d / g]; };
+const fT = ([n, d]) => d === 1 ? String(n) : `${n < 0 ? "-" : ""}@f{${Math.abs(n)}}{${d}}`;
+// a + bi with fraction parts: "7 - 3i", "-i", "@f{4}{15} + @f{2}{15}i", "12".
+function cT(re, im) {
+  if (typeof re === "number") re = [re, 1];
+  if (typeof im === "number") im = [im, 1];
+  const ab = [Math.abs(im[0]), im[1]], ip = ab[0] === 1 && ab[1] === 1 ? "i" : fT(ab) + "i";
+  if (!im[0]) return fT(re);
+  if (!re[0]) return (im[0] < 0 ? "-" : "") + ip;
+  return `${fT(re)} ${im[0] < 0 ? "-" : "+"} ${ip}`;
+}
+const par = (a, b) => (a && b ? `(${cT(a, b)})` : cT(a, b));
+// A run of terms [coefficient, suffix] with signs: [[6, ""], [-12, "i^2"]] → "6 - 12i^2".
+function terms(list) {
+  let out = "";
+  list.forEach(([c, s]) => {
+    if (!c) return;
+    const a = Math.abs(c), t = (a === 1 && s ? "" : String(a)) + s;
+    out += out ? ` ${c < 0 ? "-" : "+"} ${t}` : (c < 0 ? "-" : "") + t;
+  });
+  return out || "0";
+}
+// √n = k√m with m square-free.
+function rootSplit(n) { let k = 1; for (let f = 2; f * f <= n; f++) while (n % (f * f) === 0) { n /= f * f; k *= f; } return { k, m: n }; }
+const intOf = v => { const s = String(v ?? "").trim().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[−–]/g, "-"); return /^-?\d+$/.test(s) ? +s : NaN; };
+const setVals = (ids, vals) => ids.forEach((id, k) => { $("#" + id).value = vals[k]; });
+
+/* ---------- Book-style step player, chips ---------- */
+function stepper({ box, prev, next, all, count }) {
+  let lines = [], i = 0;
+  function show() {
+    box.innerHTML = lines.slice(0, i + 1).map((l, k) => `<div class="ln${k === i ? " cur" : ""}"><div class="lm">${tex(l[0])}</div><div class="lw">${T(l[1] || "")}</div></div>`).join("");
+    prev.disabled = i === 0; next.disabled = all.disabled = i >= lines.length - 1;
+    count.textContent = `${i + 1} / ${lines.length}`;
+  }
+  prev.onclick = () => { if (i > 0) { i--; show(); } };
+  next.onclick = () => { if (i < lines.length - 1) { i++; show(); } };
+  all.onclick = () => { i = lines.length - 1; show(); };
+  return { load(ls, at = 0) { lines = ls; i = at === "all" ? ls.length - 1 : at; show(); } };
+}
+function pickChips(el, items, label, onPick) {
+  el.innerHTML = items.map((it, k) => `<button type="button" class="chip" aria-pressed="${k === 0}">${label(it)}</button>`).join("");
+  [...el.children].forEach((b, k) => b.onclick = () => { [...el.children].forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(items[k], k); });
+  onPick(items[0], 0);
+}
+const unpick = el => [...el.children].forEach(x => x.setAttribute("aria-pressed", "false"));
+const redraws = [];
+addEventListener("resize", () => redraws.forEach(f => f()));
+
+/* ---------- Stations ribbon and theme ---------- */
+const sections = $$("main > section");
+$("#stations").innerHTML = sections.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const links = $$("#stations a");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const k = sections.indexOf(e.target);
+  links.forEach((a, j) => { a.classList.toggle("on", j === k); a.classList.toggle("done", j < k); });
+  links[k].scrollIntoView({ block: "nearest", inline: "center", behavior: reduce ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sections.forEach(s => io.observe(s));
+$("#theme").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+  redraws.forEach(f => f());
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => redraws.forEach(f => f()));
+
+/* ---------- The complex plane in SVG: grid, axes, arrows ---------- */
+function planeBase(R, step = 1) {
+  const line = css("--line"), mut = css("--muted");
+  let s = "";
+  for (let k = -Math.floor(R); k <= R; k += step) if (k) s += `<line x1="${k}" y1="${-R}" x2="${k}" y2="${R}" stroke="${line}" stroke-width=".05"/><line x1="${-R}" y1="${k}" x2="${R}" y2="${k}" stroke="${line}" stroke-width=".05"/>`;
+  s += `<line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="${mut}" stroke-width=".09"/><line x1="0" y1="${-R}" x2="0" y2="${R}" stroke="${mut}" stroke-width=".09"/>`;
+  const fs = R / 13;
+  s += `<text x="${R - .3}" y="${-.4}" font-size="${fs}" text-anchor="end" fill="${mut}">حقيقي</text><text x=".4" y="${-R + fs + .1}" font-size="${fs}" fill="${mut}">تخيلي</text>`;
+  return s;
+}
+function arrow(x1, y1, x2, y2, color, { w = .16, dash = "", label = "", lx = 0, ly = 0, fs = .75 } = {}) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy);
+  if (L < 1e-9) return `<circle cx="${x2}" cy="${-y2}" r=".22" fill="${color}"/>`;
+  const ux = dx / L, uy = dy / L, h = Math.min(.7, L * .4), bx = x2 - ux * h, by = y2 - uy * h, px = -uy * h * .45, py = ux * h * .45;
+  return `<line x1="${x1}" y1="${-y1}" x2="${bx}" y2="${-by}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" ${dash ? `stroke-dasharray="${dash}"` : ""}/>
+    <polygon points="${x2},${-y2} ${bx + px},${-(by + py)} ${bx - px},${-(by - py)}" fill="${color}"/>
+    ${label ? `<text x="${x2 + lx}" y="${-y2 + ly}" font-size="${fs}" fill="${color}" font-weight="700" text-anchor="middle">${label}</text>` : ""}`;
+}
+// Plain-text a + bi for SVG labels.
+const cP = (a, b) => cT(a, b).replace(/-/g, "−");
+
+/* ---------- 0. Why: the curve that never meets the x-axis ---------- */
+{
+  // the string of lights across the top of the hero
+  const cols = ["#ff6b9a", "#ffd43b", "#69db7c", "#74c0fc", "#da77f2", "#ff922b"];
+  let s = `<svg viewBox="0 0 600 70" preserveAspectRatio="none"><path d="M0 8 Q 150 50 300 18 T 600 12" fill="none" stroke="#6b6f9a" stroke-width="1.5"/>`;
+  for (let k = 0; k < 24; k++) {
+    const t = (k + .5) / 24, x = 600 * t;
+    const y = t < .5 ? (1 - 2 * t) ** 2 * 8 + 2 * (1 - 2 * t) * (2 * t) * 50 + (2 * t) ** 2 * 18 : (1 - (2 * t - 1)) ** 2 * 18 + 2 * (2 - 2 * t) * (2 * t - 1) * (-14) + (2 * t - 1) ** 2 * 12;
+    s += `<circle class="bulb" cx="${x}" cy="${y + 6}" r="5" fill="${cols[k % 6]}" style="animation-delay:${(k % 5) * .4}s;filter:drop-shadow(0 0 4px ${cols[k % 6]})"/>`;
+  }
+  $("#string").innerHTML = s + "</svg>";
+
+  let shown = false;
+  function draw() {
+    const cv = $("#hPlot"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (!W) return;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext("2d"); g.direction = "ltr"; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const xr = [-6, 4], yr = [-3.2, 12];
+    const X = x => (x - xr[0]) / (xr[1] - xr[0]) * W, Y = y => H - (y - yr[0]) / (yr[1] - yr[0]) * H;
+    g.fillStyle = "rgba(255,255,255,.04)"; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 1;
+    for (let x = xr[0]; x <= xr[1]; x++) { g.beginPath(); g.moveTo(X(x), 0); g.lineTo(X(x), H); g.stroke(); }
+    for (let y = -3; y <= 12; y++) { g.beginPath(); g.moveTo(0, Y(y)); g.lineTo(W, Y(y)); g.stroke(); }
+    g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.moveTo(X(0), 0); g.lineTo(X(0), H); g.stroke();
+    g.fillStyle = "rgba(255,255,255,.75)"; g.font = "12px 'Times New Roman', serif"; g.textAlign = "center";
+    for (let x = xr[0] + 1; x < xr[1]; x++) if (x) g.fillText(String(x).replace("-", "−"), X(x), Y(0) + 15);
+    g.strokeStyle = "#ffd36b"; g.lineWidth = 3; g.shadowColor = "#ffd36b"; g.shadowBlur = 10; g.beginPath();
+    for (let k = 0; k <= 300; k++) { const x = xr[0] + (xr[1] - xr[0]) * k / 300, y = x * x + 2 * x + 4; k ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y)); }
+    g.stroke(); g.shadowBlur = 0;
+    // the vertex hovers 3 above the axis
+    g.setLineDash([4, 4]); g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(X(-1), Y(3)); g.lineTo(X(-1), Y(0)); g.stroke(); g.setLineDash([]);
+    if (shown) {
+      // the two hidden solutions: same real part −1, imaginary parts ±√3, shown as twin lanterns off the line
+      [[-1, 1.732], [-1, -1.732]].forEach(([re, im], k) => {
+        const x = X(re) + (k ? 1 : -1) * 0, y = Y(0) - im * 18;
+        const gr = g.createRadialGradient(x, y, 1, x, y, 16); gr.addColorStop(0, "#fff7dc"); gr.addColorStop(.5, "#ff6b9a"); gr.addColorStop(1, "rgba(255,107,154,0)");
+        g.fillStyle = gr; g.beginPath(); g.arc(x, y, 16, 0, 7); g.fill();
+        g.fillStyle = "#fff"; g.font = "bold 14px 'Times New Roman', serif"; g.textAlign = "left";
+        g.fillText(k ? "−1 − i√3" : "−1 + i√3", x + 16, y + 5);
+      });
+    }
+  }
+  $("#hGo").onclick = () => {
+    shown = true; draw();
+    $("#hNarr").innerHTML = T("بالقانون العام (درسنا الجاي): $x = -1 ± @r{-3}$، وجذر العدد السالب ما هو حقيقي. نسميه <b>عددًا تخيليًا</b>: $x = -1 ± i@r{3}$. يعني للمعادلة حلّان، بس <b>تخيليان</b> 🏮 خلينا نتعرف عليهم.");
+    $("#hGo").disabled = true;
+  };
+  redraws.push(draw); draw();
+}
+
+/* ---------- 1. The lantern wheel of i ---------- */
+{
+  const VAL = ["1", "i", "-1", "-i"], POS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+  const COLS = ["#ffd43b", "#ff6b9a", "#74c0fc", "#69db7c"];
+  let n = 0, turn = 0;
+  function base() {
+    const line = css("--line"), mut = css("--muted"), ink = css("--ink");
+    let s = `<circle r="100" fill="none" stroke="${line}" stroke-width="3" stroke-dasharray="6 7"/>
+      <line x1="-140" y1="0" x2="140" y2="0" stroke="${mut}" stroke-width="1.2"/><line x1="0" y1="-140" x2="0" y2="140" stroke="${mut}" stroke-width="1.2"/>`;
+    POS.forEach(([x, y], k) => {
+      const cx = x * 100, cy = -y * 100;
+      s += `<g transform="translate(${cx} ${cy})"><rect x="-13" y="-20" width="26" height="36" rx="10" fill="${COLS[k]}" opacity=".9"/><rect x="-6" y="-26" width="12" height="7" rx="2" fill="#7a5a1c"/>
+        <text y="${y > 0 ? -34 : y < 0 ? 44 : 5}" x="${x > 0 ? 34 : x < 0 ? -34 : 0}" text-anchor="middle" font-size="22" font-style="italic" font-weight="700" fill="${ink}">${VAL[k].replace("-", "−")}</text></g>`;
+    });
+    s += `<g id="wArm"><line x1="0" y1="0" x2="72" y2="0" stroke="${css("--gold")}" stroke-width="6" stroke-linecap="round"/><circle cx="80" cy="0" r="12" fill="#fff6d8" stroke="${css("--gold")}" stroke-width="4"/></g><circle r="8" fill="${css("--gold")}"/>`;
+    $("#wheel").innerHTML = s; setArm(false);
+  }
+  function setArm(anim = true) { const a = $("#wArm"); if (!a) return; if (!anim) a.style.transition = "none"; a.style.transform = `rotate(${-90 * turn}deg)`; if (!anim) { a.getBoundingClientRect(); a.style.transition = ""; } }
+  function table(on) {
+    $("#wTbl").innerHTML = [0, 1].map(r => `<tr>${[1, 2, 3, 4].map(c => { const p = r * 4 + c; return `<td class="${p % 4 === on ? "on" : ""}">${tex(`i^${p} = ${VAL[p % 4]}`)}</td>`; }).join("")}</tr>`).join("");
+  }
+  function show(narr) {
+    $("#wNow").innerHTML = tex(`i^{${n}} = ${VAL[n % 4]}`);
+    $("#wNarr").innerHTML = narr; table(n % 4); setArm();
+  }
+  $("#wMul").onclick = () => {
+    n++; turn++;
+    const why = { 1: "$i^1 = i$", 2: "$i^2 = -1$: هذا تعريف $i$!", 3: "$i^3 = i^2 · i = -i$", 0: "$i^4 = (i^2)^2 = 1$: رجع الفانوس لمكانه 🏮" }[n % 4];
+    show(T(`ضربتي في $i$ ← ربع لفة عكس عقارب الساعة. ${why}`));
+  };
+  $("#wReset").onclick = () => { n = 0; turn = 0; show(T("$i^0 = 1$. اضغطي «اضربي في $i$» وشوفي الفانوس يلف.")); };
+  $("#wGo").onclick = () => {
+    const v = intOf($("#wN").value);
+    if (!(v >= 0 && v <= 9999)) { $("#wErr").textContent = "اكتبي أسًّا صحيحًا من 0 إلى 9999."; return; }
+    $("#wErr").textContent = "";
+    const q = Math.floor(v / 4), r = v % 4;
+    turn += ((r - n % 4) + 4) % 4 || (v !== n ? 4 : 0); n = v;
+    show(T(`اقسمي الأس على 4: $${v} = 4 × ${q} + ${r}$. كل 4 لفات ترجع 1، فـ $i^{${v}} = (i^4)^{${q}} · i^${r} = 1 · i^${r} = ${VAL[r]}$.`));
+  };
+  base(); show(T("$i^0 = 1$. اضغطي «اضربي في $i$» وشوفي الفانوس يلف."));
+  redraws.push(() => { base(); table(n % 4); });
+}
+
+/* ---------- 2. Square roots of negative numbers: examples 1, 2, 3 ---------- */
+{
+  const st = stepper({ box: $("#rSteps"), prev: $("#rPrev"), next: $("#rNext"), all: $("#rAll"), count: $("#rCount") });
+  const EX = [
+    { label: "مثال 1a", show: "@r{-27}", lines: [["@r{-27}", "بسّطي"], ["= @r{-1 · 3^2 · 3}", "حلّلي: $-27 = -1 · 3^2 · 3$"], ["= @r{-1} · @r{3^2} · @r{3}", "جذر الضرب = ضرب الجذور"], ["= @x{i} · 3 · @r{3}", "$@r{-1} = i$ و $@r{3^2} = 3$"], ["= @g{3i@r{3}}", "بسّطي"]] },
+    { label: "مثال 1b", show: "@r{-216}", lines: [["@r{-216}", "بسّطي"], ["= @r{-1 · 6^2 · 6}", "حلّلي: $216 = 36 · 6$"], ["= @r{-1} · @r{6^2} · @r{6}", "جذر الضرب = ضرب الجذور"], ["= @x{i} · 6 · @r{6}", "$@r{-1} = i$"], ["= @g{6i@r{6}}", "بسّطي"]] },
+    { label: "مثال 2a", show: "-5i · 3i", lines: [["-5i · 3i", "أوجدي الناتج"], ["= -15@x{i^2}", "اضربي المعاملات والـ $i$ مع بعض"], ["= -15(-1)", "$i^2 = -1$"], ["= @g{15}", "بسّطي: الناتج حقيقي!"]] },
+    { label: "مثال 2b", show: "@r{-6} · @r{-15}", warn: true, lines: [["@r{-6} · @r{-15}", "أوجدي الناتج"], ["= i@r{6} · i@r{15}", "حوّلي كل جذر لـ $i$ أولًا"], ["= @x{i^2}@r{90}", "اضربي"], ["= -1 · @r{9} · @r{10}", "$i^2 = -1$ و $90 = 9 · 10$"], ["= @g{-3@r{10}}", "اضربي"]] },
+    { label: "مثال 3", show: "4x^2 + 256 = 0", lines: [["4x^2 + 256 = 0", "المعادلة الأصلية"], ["4x^2 = -256", "اطرحي 256 من الطرفين"], ["x^2 = -64", "اقسمي الطرفين على 4"], ["x = ±@r{-64}", "خاصية الجذر التربيعي"], ["x = @g{±8i}", "$@r{-64} = @r{64} · @r{-1} = 8i$"]] },
+    { label: "تحقق 3A", show: "4x^2 + 100 = 0", lines: [["4x^2 + 100 = 0", "المعادلة"], ["4x^2 = -100", "اطرحي 100"], ["x^2 = -25", "اقسمي على 4"], ["x = ±@r{-25}", "خاصية الجذر التربيعي"], ["x = @g{±5i}", "$@r{-25} = 5i$"]] },
+    { label: "تحقق 3B", show: "x^2 + 4 = 0", lines: [["x^2 + 4 = 0", "المعادلة"], ["x^2 = -4", "اطرحي 4"], ["x = ±@r{-4}", "خاصية الجذر التربيعي"], ["x = @g{±2i}", "$@r{-4} = 2i$"]] },
+  ];
+  pickChips($("#rPick"), EX, e => `${tex(e.show)}<small>${e.label}</small>`, e => {
+    st.load(e.lines);
+    $("#rWarn").hidden = !e.warn;
+    if (e.warn) $("#rWarn").innerHTML = T("⚠️ انتبهي: لو ضربتي تحت الجذر مباشرة $@r{(-6)(-15)} = @r{90} = 3@r{10}$ تطلع الإشارة غلط! خاصية $@r{a} · @r{b} = @r{ab}$ ما تنفع إذا الاثنين سالبين، فحوّلي لـ $i$ قبل الضرب.");
+  });
+  $("#rGo").onclick = () => {
+    const v = intOf($("#rN").value);
+    if (!(v >= 1 && v <= 100000)) { $("#rErr").textContent = "اكتبي عددًا صحيحًا موجبًا (مثل 75)."; return; }
+    $("#rErr").textContent = ""; unpick($("#rPick")); $("#rWarn").hidden = true;
+    const { k, m } = rootSplit(v);
+    const res = m === 1 ? (k === 1 ? "i" : `${k}i`) : `${k === 1 ? "" : k}i@r{${m}}`;
+    const lines = [[`@r{-${v}}`, "بسّطي"]];
+    if (k > 1 && m > 1) lines.push([`= @r{-1 · ${k}^2 · ${m}}`, `أكبر مربع كامل يقسم $${v}$ هو $${k * k}$`], [`= @r{-1} · @r{${k}^2} · @r{${m}}`, "جذر الضرب = ضرب الجذور"]);
+    else if (k > 1) lines.push([`= @r{-1 · ${k}^2}`, `$${v}$ مربع كامل`], [`= @r{-1} · @r{${k}^2}`, "جذر الضرب = ضرب الجذور"]);
+    else lines.push([`= @r{-1} · @r{${m}}`, `$${v}$ ما فيه عامل مربع غير 1`]);
+    lines.push([`= @g{${res}}`, "$@r{-1} = i$"]);
+    st.load(lines, "all");
+  };
+}
+
+/* ---------- 3. The family of complex numbers ---------- */
+{
+  const NUMS = [
+    { t: "7", z: "real" }, { t: "-@r{2}", z: "real" }, { t: "0", z: "real", why: "$0 = 0 + 0i$: الجزء التخيلي صفر، فهو حقيقي." },
+    { t: "4i", z: "pure" }, { t: "-i", z: "pure" }, { t: "i@r{3}", z: "pure" },
+    { t: "2 + 3i", z: "imag" }, { t: "5 - i", z: "imag" }, { t: "-1 + i@r{2}", z: "imag" },
+    { t: "@r{-9}", z: "pure", why: "$@r{-9} = 3i$: جزؤه الحقيقي صفر، فهو تخيلي بحت." },
+    { t: "i^2", z: "real", why: "$i^2 = -1$: عدد حقيقي!" }, { t: "@f{1}{2}", z: "real" },
+  ];
+  const NAME = { real: "حقيقي", imag: "تخيلي (مو بحت)", pure: "تخيلي بحت" };
+  let order = [], k = 0, mist = 0;
+  function reset() {
+    order = shuffle(NUMS.slice()); k = 0; mist = 0;
+    $$("#venn .tok").forEach(t => t.innerHTML = "");
+    ask();
+    $("#vNarr").textContent = "اضغطي على المكان اللي ينتمي له العدد.";
+  }
+  function ask() {
+    $("#vNo").textContent = k < order.length ? `العدد ${k + 1} من ${order.length}` : "";
+    $("#vNow").innerHTML = k < order.length ? tex(order[k].t) : "🏮";
+  }
+  $$("#venn .zone").forEach(z => z.onclick = e => {
+    e.stopPropagation();
+    if (k >= order.length) return;
+    const it = order[k], zone = z.dataset.z;
+    if (zone === it.z) {
+      z.querySelector(".tok").insertAdjacentHTML("beforeend", `<span>${tex(it.t)}</span>`);
+      k++;
+      $("#vNarr").innerHTML = "صح ✅ " + (it.why ? T(it.why) : T(`$${it.t}$ ${NAME[it.z]}.`));
+      if (k === order.length) $("#vNarr").innerHTML += `<br><b>رتّبتي كل الأنوار${mist ? ` (بـ ${mist} محاولة خاطئة)` : " بدون ولا غلطة 🌟"}. لاحظي: الحقيقية والتخيلية كلها داخل مستطيل الأعداد المركبة.</b>`;
+      ask();
+    } else {
+      mist++;
+      $("#vNow").classList.remove("shake"); void $("#vNow").offsetWidth; $("#vNow").classList.add("shake");
+      $("#vNarr").innerHTML = T(`مو هنا 🙂 اكتبيه على الصورة $a + bi$ وشوفي: هل $b = 0$؟ وإذا $b ≠ 0$، هل $a = 0$؟`);
+    }
+  });
+  $("#vReset").onclick = reset; reset();
+
+  const st = stepper({ box: $("#eSteps"), prev: $("#ePrev"), next: $("#eNext"), all: $("#eAll"), count: $("#eCount") });
+  const EQ = [
+    { label: "مثال 4", show: "3x - 5 + (y - 3)i = 7 + 6i", lines: [
+      ["@a{3x - 5} + (@b{y - 3})i = @a{7} + @b{6}i", "المعادلة"],
+      ["@a{3x - 5 = 7}", "ساوي الجزأين الحقيقيين"], ["3x = 12", "اجمعي 5 للطرفين"], ["@g{x = 4}", "اقسمي على 3"],
+      ["@b{y - 3 = 6}", "ساوي الجزأين التخيليين"], ["@g{y = 9}", "اجمعي 3 للطرفين"]] },
+    { label: "تحقق 4", show: "5x + 1 + (3 + 2y)i = 2x - 2 + (y - 6)i", lines: [
+      ["@a{5x + 1} + (@b{3 + 2y})i = @a{2x - 2} + (@b{y - 6})i", "المعادلة"],
+      ["@a{5x + 1 = 2x - 2}", "ساوي الجزأين الحقيقيين"], ["3x = -3", "اطرحي $2x$ و 1"], ["@g{x = -1}", "اقسمي على 3"],
+      ["@b{3 + 2y = y - 6}", "ساوي الجزأين التخيليين"], ["@g{y = -9}", "اطرحي $y$ و 3"]] },
+    { label: "تأكد 10", show: "4b - 5 + (-a - 3)i = 7 - 8i", lines: [
+      ["@a{4b - 5} + (@b{-a - 3})i = @a{7} @b{- 8}i", "المعادلة"],
+      ["@a{4b - 5 = 7}", "ساوي الجزأين الحقيقيين"], ["4b = 12", "اجمعي 5"], ["@g{b = 3}", "اقسمي على 4"],
+      ["@b{-a - 3 = -8}", "ساوي الجزأين التخيليين"], ["-a = -5", "اجمعي 3"], ["@g{a = 5}", "اضربي في $-1$"]] },
+  ];
+  pickChips($("#ePick"), EQ, e => `<small style="margin:0">${e.label}</small>`, e => st.load(e.lines));
+}
+
+/* ---------- 4. Adding and subtracting with arrows ---------- */
+{
+  const EX = [{ l: "مثال 5a", v: [5, -7, 2, 4], op: "+" }, { l: "مثال 5b", v: [4, -8, 3, -6], op: "-" }, { l: "تحقق 5A", v: [-2, 5, 1, -7], op: "+" }, { l: "تحقق 5B", v: [4, 6, -1, 2], op: "-" }];
+  let op = "+";
+  const ids = ["a1", "b1", "a2", "b2"];
+  function setOp(o) { op = o; $("#aAdd").setAttribute("aria-pressed", o === "+"); $("#aSub").setAttribute("aria-pressed", o === "-"); }
+  function draw() {
+    const [a, b, c, d] = ids.map(id => intOf($("#" + id).value));
+    if ([a, b, c, d].some(v => !(Math.abs(v) <= 9))) { $("#aErr").textContent = "اكتبي أعدادًا صحيحة من −9 إلى 9."; return; }
+    $("#aErr").textContent = "";
+    const s = op === "+" ? 1 : -1, re = a + s * c, im = b + s * d;
+    const gold = css("--gold"), rose = css("--rose"), mint = css("--mint");
+    let svg = planeBase(10, 1);
+    if (s < 0) svg += arrow(0, 0, -c, -d, rose, { w: .1, dash: ".3 .3" });
+    svg += arrow(0, 0, a, b, gold, { label: cP(a, b), ly: b >= 0 ? -.5 : 1, fs: .8 });
+    svg += arrow(0, 0, c, d, rose, { w: s < 0 ? .1 : .16, label: s > 0 ? cP(c, d) : "", ly: d >= 0 ? -.5 : 1, fs: .8 });
+    svg += arrow(a, b, re, im, rose, { dash: ".35 .25" });
+    svg += arrow(0, 0, re, im, mint, { w: .22, label: cP(re, im), ly: im >= 0 ? -.6 : 1.1, fs: .9 });
+    $("#aPlane").innerHTML = svg;
+    const z1 = par(a, b), z2 = par(c, d);
+    $("#aSteps").innerHTML = [
+      [`${z1} ${op} ${z2}`, ""],
+      [`= (@a{${a}} ${s > 0 ? "+" : "-"} ${c < 0 ? `(${c})` : c}) + [@b{${b}} ${s > 0 ? "+" : "-"} ${d < 0 ? `(${d})` : d}]i`, "الحقيقي مع الحقيقي، والتخيلي مع التخيلي"],
+    ].map(l => `<div class="ln"><div class="lm">${tex(l[0])}</div><div class="lw">${T(l[1])}</div></div>`).join("");
+    $("#aOut").innerHTML = tex(`= @g{${cT(re, im)}}`);
+  }
+  ids.forEach(id => $("#" + id).addEventListener("input", () => { unpick($("#aPick")); draw(); }));
+  $("#aAdd").onclick = () => { setOp("+"); unpick($("#aPick")); draw(); };
+  $("#aSub").onclick = () => { setOp("-"); unpick($("#aPick")); draw(); };
+  pickChips($("#aPick"), EX, e => `${tex(`${par(e.v[0], e.v[1])} ${e.op} ${par(e.v[2], e.v[3])}`)}<small>${e.l}</small>`, e => { setVals(ids, e.v); setOp(e.op); draw(); });
+  redraws.push(draw);
+}
+
+/* ---------- 5. Multiplying: V = C · I in a 2×2 grid ---------- */
+{
+  const EX = [{ l: "مثال 6", v: [2, 4, 9, -3] }, { l: "تحقق 6", v: [2, -4, 3, -2] }, { l: "تأكد 13", v: [6, -8, 9, 2] }, { l: "تأكد 14", v: [3, 2, -2, 4] }];
+  const ids = ["mA", "mB", "mC", "mD"];
+  let k = 0, cur = null;
+  const pv = (c, s) => terms([[c, s]]);
+  function load() {
+    const [a, b, c, d] = ids.map(id => intOf($("#" + id).value));
+    if ([a, b, c, d].some(v => !(Math.abs(v) <= 20))) { $("#mErr").textContent = "اكتبي أعدادًا صحيحة من −20 إلى 20."; return; }
+    $("#mErr").textContent = "";
+    cur = { a, b, c, d }; k = 0;
+    const hd = (t, r) => `<div class="hd${r ? " r" : ""}">${tex(t)}</div>`;
+    $("#mBox").innerHTML = `<div class="hd" style="background:none">${tex("×")}</div>${hd(pv(c, ""))}${hd(pv(d, "i"))}
+      ${hd(pv(a, ""), 1)}<div class="cell" data-k="0">${tex(pv(a * c, ""))}</div><div class="cell" data-k="1">${tex(pv(a * d, "i"))}</div>
+      ${hd(pv(b, "i"), 1)}<div class="cell" data-k="2">${tex(pv(b * c, "i"))}</div><div class="cell" data-k="3">${tex(pv(b * d, "i^2"))}</div>`;
+    $("#mLights").classList.remove("on");
+    $("#mNarr").innerHTML = T(`$V = ${par(a, b)} · ${par(c, d)}$. اضغطي «الخلية التالية»: كل جزء من $C$ في كل جزء من $I$.`);
+    upd();
+  }
+  function upd() {
+    const { a, b, c, d } = cur;
+    $("#mCount").textContent = `${Math.min(k, 6)} / 6`;
+    $("#mNext").disabled = $("#mAll").disabled = k >= 6;
+    $$("#mBox .cell").forEach(x => x.classList.toggle("on", +x.dataset.k < k));
+    const flip = $('#mBox .cell[data-k="3"]');
+    if (k >= 5) { flip.classList.add("flip"); flip.innerHTML = tex(`${pv(b * d, "i^2")} = ${-b * d}`); }
+    else { flip.classList.remove("flip"); flip.innerHTML = tex(pv(b * d, "i^2")); }
+    const msg = [
+      null,
+      `الحقيقي في الحقيقي: $${a} · ${c < 0 ? `(${c})` : c} = ${a * c}$`,
+      `الحقيقي في التخيلي: $${a} · ${pv(d, "i")} = ${pv(a * d, "i")}$`,
+      `التخيلي في الحقيقي: $${pv(b, "i")} · ${c < 0 ? `(${c})` : c} = ${pv(b * c, "i")}$`,
+      `التخيلي في التخيلي: $${pv(b, "i")} · ${pv(d, "i")} = ${pv(b * d, "i^2")}$ … انتبهي للـ $i^2$!`,
+      `$i^2 = -1$، فالخلية الحمراء تصير عددًا حقيقيًا: $${pv(b * d, "i^2")} = ${-b * d}$`,
+      `اجمعي: الحقيقية $${a * c} ${-b * d < 0 ? "-" : "+"} ${Math.abs(b * d)} = ${a * c - b * d}$، والتخيلية $${terms([[a * d, "i"], [b * c, "i"]])} = ${pv(a * d + b * c, "i")}$.<br><b>فرق الجهد $V = ${cT(a * c - b * d, a * d + b * c)}$ فولت</b> 💡 ولّعت الزينة!`,
+    ][k];
+    if (msg) $("#mNarr").innerHTML = T(msg);
+    $("#mLights").classList.toggle("on", k >= 6);
+  }
+  $("#mNext").onclick = () => { if (cur && k < 6) { k++; upd(); } };
+  $("#mAll").onclick = () => { if (cur) { k = 6; upd(); } };
+  ids.forEach(id => $("#" + id).addEventListener("change", () => { unpick($("#mPick")); load(); }));
+  pickChips($("#mPick"), EX, e => `${tex(`${par(e.v[0], e.v[1])}${par(e.v[2], e.v[3])}`)}<small>${e.l}</small>`, e => { setVals(ids, e.v); load(); });
+}
+
+/* ---------- 6. The conjugate mirror and division ---------- */
+{
+  const EX = [{ l: "مثال 7a", v: [0, 2, 3, 6] }, { l: "مثال 7b", v: [4, 1, 0, 5], tip: true }, { l: "تحقق 7A", v: [0, -2, 3, 5] }, { l: "تحقق 7B", v: [2, 1, 1, -1] }, { l: "تأكد 16", v: [2, 1, 5, 6] }];
+  const ids = ["dA", "dB", "dC", "dD"];
+  const st = stepper({ box: $("#dSteps"), prev: $("#dPrev"), next: $("#dNext"), all: $("#dAll"), count: $("#dCount") });
+  let cur = null;
+  function plane() {
+    if (!cur) return;
+    const { c, d } = cur, R = 8, rose = css("--rose"), night = css("--night"), mint = css("--mint");
+    let svg = planeBase(R, 1);
+    svg += `<line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="${css("--violet")}" stroke-width=".18" opacity=".55"/>`;
+    svg += `<line x1="${c}" y1="${-d}" x2="${c}" y2="${d}" stroke="${css("--muted")}" stroke-width=".07" stroke-dasharray=".25 .2"/>`;
+    svg += arrow(0, 0, c, d, night, { label: cP(c, d), ly: d >= 0 ? -.5 : 1, fs: .75 });
+    svg += arrow(0, 0, c, -d, rose, { label: cP(c, -d), ly: -d >= 0 ? -.5 : 1, fs: .75 });
+    const n = c * c + d * d;
+    if (n <= R) svg += `<circle cx="${n}" cy="0" r=".32" fill="${mint}"/><text x="${n}" y="1.2" font-size=".75" text-anchor="middle" fill="${mint}" font-weight="700">${n}</text>`;
+    else svg += `<text x="${R - .3}" y="1.2" font-size=".7" text-anchor="end" fill="${mint}" font-weight="700">${c < 0 ? `(${c})` : c}² + ${d < 0 ? `(${d})` : d}² = ${n} →</text>`;
+    $("#dPlane").innerHTML = svg;
+  }
+  function load(tip) {
+    const [a, b, c, d] = ids.map(id => intOf($("#" + id).value));
+    if ([a, b, c, d].some(v => !(Math.abs(v) <= 20))) { $("#dErr").textContent = "اكتبي أعدادًا صحيحة من −20 إلى 20."; return; }
+    if (!c && !d) { $("#dErr").textContent = "المقام ما يصير صفرًا."; return; }
+    $("#dErr").textContent = "";
+    cur = { a, b, c, d };
+    const N = par(a, b), D = cT(c, d), Dc = cT(c, -d);
+    const num1 = terms([[a * c, ""], [-a * d, "i"], [b * c, "i"], [-b * d, "i^2"]]);
+    const den1 = terms([[c * c, ""], [-d * d, "i^2"]]);
+    const R = a * c + b * d, I = b * c - a * d, n = c * c + d * d;
+    const lines = [[`@f{${cT(a, b)}}{${D}}`, "القسمة"]];
+    if (d) lines.push([`= @f{${N}}{(${D})} · @f{@x{(${Dc})}}{@x{(${Dc})}}`, `اضربي البسط والمقام في المرافق $${Dc}$`]);
+    if (d) lines.push([`= @f{${num1}}{${den1}}`, "اضربي (توزيع)"], [`= @f{${terms([[a * c, ""], [b * d, ""], [-a * d, "i"], [b * c, "i"]])}}{${terms([[c * c, ""], [d * d, ""]])}}`, "$i^2 = -1$"]);
+    lines.push([`= @f{${cT(R, I)}}{${n}}`, d ? "بسّطي: صار المقام حقيقيًا" : "المقام حقيقي أصلًا"]);
+    lines.push([`= @g{${cT(F(R, n), F(I, n))}}`, "اكتبي الناتج على الصورة $a + bi$"]);
+    st.load(lines);
+    $("#dTip").hidden = !tip;
+    if (tip) $("#dTip").innerHTML = T("💡 اختصار الكتاب لمثال 7b: المقام $5i$ تخيلي بحت، فيكفي نضرب البسط والمقام في $i$ بدل المرافق $-5i$: $@f{4i + i^2}{5i^2} = @f{4i - 1}{-5} = @f{1}{5} - @f{4}{5}i$. نفس الجواب.");
+    plane();
+  }
+  $("#dGo").onclick = () => { unpick($("#dPick")); load(false); };
+  pickChips($("#dPick"), EX, e => `${tex(`@f{${cT(e.v[0], e.v[1])}}{${cT(e.v[2], e.v[3])}}`)}<small>${e.l}</small>`, e => { setVals(ids, e.v); load(e.tip); });
+  redraws.push(plane);
+}
+
+/* ---------- 7. The light-string game ---------- */
+{
+  const ROUNDS = 10, COLS = ["#ff6b9a", "#ffd43b", "#69db7c", "#74c0fc", "#da77f2", "#ff922b"];
+  let i = 0, got = [], cur = null;
+  $("#gLights").innerHTML = Array.from({ length: ROUNDS }, (_, k) => `<i style="--c:${COLS[k % 6]}"></i>`).join("");
+  const nz = (lo, hi) => { let v = 0; while (!v) v = rnd(lo, hi); return v; };
+  const MAKERS = [
+    () => { const n = rnd(5, 99), V = ["1", "i", "-1", "-i"]; return { kind: "قوى i", q: `i^{${n}}`, right: V[n % 4], opts: V, why: `$${n} = 4 × ${Math.floor(n / 4)} + ${n % 4}$، فالناتج $i^${n % 4} = ${V[n % 4]}$.` }; },
+    () => { const [a, b, c, d] = [rnd(-9, 9), nz(-9, 9), rnd(-9, 9), nz(-9, 9)], s = Math.random() < .5 ? 1 : -1;
+      const q = `${par(a, b)} ${s > 0 ? "+" : "-"} ${par(c, d)}`;
+      return { kind: s > 0 ? "جمع" : "طرح", q, right: cT(a + s * c, b + s * d), opts: [cT(a + s * c, b + s * d), cT(a - s * c, b - s * d), cT(a + s * c, b - s * d), cT(a - s * c, b + s * d), cT(a + s * c + 1, b + s * d)],
+        why: `الحقيقي: $${a} ${s > 0 ? "+" : "-"} ${c < 0 ? `(${c})` : c} = ${a + s * c}$، والتخيلي: $${b} ${s > 0 ? "+" : "-"} ${d < 0 ? `(${d})` : d} = ${b + s * d}$.` }; },
+    () => { const [a, b, c, d] = [nz(-6, 6), nz(-6, 6), nz(-6, 6), nz(-6, 6)];
+      return { kind: "ضرب", q: `${par(a, b)}${par(c, d)}`, right: cT(a * c - b * d, a * d + b * c), opts: [cT(a * c - b * d, a * d + b * c), cT(a * c + b * d, a * d + b * c), cT(a * c, b * d), cT(a * c - b * d, a * d - b * c)],
+        why: `$${terms([[a * c, ""], [a * d, "i"], [b * c, "i"], [b * d, "i^2"]])}$، و $i^2 = -1$ ← $${cT(a * c - b * d, a * d + b * c)}$.` }; },
+    () => { const a = nz(-7, 7), b = nz(-7, 7);
+      return { kind: "المرافق", q: `${par(a, b)}${par(a, -b)}`, right: String(a * a + b * b), opts: [String(a * a + b * b), String(a * a - b * b), cT(a * a, b * b), cT(a * a + b * b, -2 * a * b)],
+        why: `مترافقان: الناتج $a^2 + b^2 = ${a * a} + ${b * b} = ${a * a + b * b}$، عدد حقيقي.` }; },
+    () => { const k = rnd(2, 9), m = [2, 3, 5, 6, 7][rnd(0, 4)], v = k * k * m;
+      return { kind: "جذر سالب", q: `@r{-${v}}`, right: `${k}i@r{${m}}`, opts: [`${k}i@r{${m}}`, `-${k}@r{${m}}`, `${m}i@r{${k}}`, `${k * m}i`],
+        why: `$${v} = ${k * k} · ${m}$، فـ $@r{-${v}} = @r{-1} · @r{${k * k}} · @r{${m}} = ${k}i@r{${m}}$.` }; },
+  ];
+  function make() {
+    const it = MAKERS[(i + rnd(0, 4)) % MAKERS.length]();
+    const seen = new Set(), opts = [];
+    it.opts.forEach(o => { if (!seen.has(o) && opts.length < 4) { seen.add(o); opts.push(o); } });
+    while (opts.length < 4) { const o = cT(rnd(-20, 20), rnd(-20, 20)); if (!seen.has(o)) { seen.add(o); opts.push(o); } }
+    it.opts = shuffle(opts); return it;
+  }
+  function show() {
+    cur = make();
+    $("#gNo").textContent = `اللمبة ${i + 1} من ${ROUNDS}`; $("#gKind").textContent = cur.kind;
+    $("#gQ").innerHTML = tex(cur.q + " = ?");
+    $("#gOpts").innerHTML = cur.opts.map(o => `<button type="button" data-v="${esc(o)}">${tex(o)}</button>`).join("");
+    $("#gNarr").textContent = "اختاري الإجابة."; $("#gNext").disabled = true;
+    $$("#gOpts button").forEach(b => b.onclick = () => {
+      const ok = b.dataset.v === cur.right;
+      $$("#gOpts button").forEach(x => { x.disabled = true; if (x.dataset.v === cur.right) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      got[i] = ok; $("#gLights").children[i].className = ok ? "on" : "bad";
+      $("#gNarr").innerHTML = (ok ? "💡 ولّعت! " : "راجعيها: ") + T(cur.why);
+      if (i < ROUNDS - 1) $("#gNext").disabled = false;
+      else { const s = got.filter(Boolean).length; $("#gNarr").innerHTML += `<br><b>ولّعتي ${s} من ${ROUNDS}${s === ROUNDS ? " 🎉 السلسلة كاملة، عيدك مبارك!" : ""}</b>`; }
+    });
+  }
+  $("#gNext").onclick = () => { if (i < ROUNDS - 1) { i++; show(); } };
+  $("#gReset").onclick = () => { i = 0; got = []; [...$("#gLights").children].forEach(x => x.className = ""); show(); };
+  show();
+}
+
+/* ---------- 8. Quiz from «تأكد» ----------
+   In the book's order; each card is numbered by its place here (q), which is what the teacher's sheet shows. */
+const QUIZ = [
+  { q: "أوجدي ناتج: $@r{-81}$", ref: "تأكد 1", opts: ["$9i$", "$-9$", "$±9$", "$81i$"],
+    why: "$@r{-81} = @r{81} · @r{-1} = 9i$." },
+  { q: "أوجدي ناتج: $(4i)(-3i)$", ref: "تأكد 3", opts: ["$12$", "$-12$", "$12i$", "$-12i$"],
+    why: "$(4i)(-3i) = -12i^2 = -12(-1) = 12$." },
+  { q: "أوجدي ناتج: $i^{63}$", ref: "تأكد 6", opts: ["$-i$", "$i$", "$-1$", "$1$"],
+    why: "$63 = 4 × 15 + 3$، فـ $i^{63} = i^3 = -i$." },
+  { q: "حلّي المعادلة: $4x^2 + 32 = 0$", ref: "تأكد 7", opts: ["$±2i@r{2}$", "$±2@r{2}$", "$±8i$", "$±4i@r{2}$"],
+    why: "$x^2 = -8$ ← $x = ±@r{-8} = ±@r{-1} · @r{4} · @r{2} = ±2i@r{2}$." },
+  { q: "أوجدي قيمتي $a , b$ الحقيقيتين اللتين تجعلان المعادلة صحيحة: $3a + (4b + 2)i = 9 - 6i$", ref: "تأكد 9", opts: ["$a = 3 , b = -2$", "$a = 3 , b = -1$", "$a = 9 , b = -2$", "$a = 3 , b = 2$"],
+    why: "الحقيقي: $3a = 9$ ← $a = 3$. التخيلي: $4b + 2 = -6$ ← $b = -2$." },
+  { q: "بسّطي: $@f{3 - i}{4 + 2i}$", ref: "تأكد 15", opts: ["$@f{1}{2} - @f{1}{2}i$", "$@f{7}{10} + @f{1}{10}i$", "$@f{5}{6} - @f{5}{6}i$", "$@f{3}{4} - @f{1}{2}i$"],
+    why: "اضربي في المرافق $4 - 2i$: $@f{12 - 6i - 4i + 2i^2}{16 + 4} = @f{10 - 10i}{20} = @f{1}{2} - @f{1}{2}i$." },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => {
+    const opts = shuffle(it.opts.map((o, j) => ({ h: T(o), ok: j === 0 })));
+    return `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}) ${T(it.q)} <span class="muted" style="font-size:13px">(${it.ref})</span></p>
+      <div class="opts">${opts.map((o, j) => `<button type="button" class="opt" data-ok="${o.ok}"><b>${"أبجد"[j]}</b><span>${o.h}</span></button>`).join("")}</div><p class="why" hidden></p></div>`;
+  }).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return;
+  card.dataset.done = 1; answered++;
+  const ok = b.dataset.ok === "true"; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, card.querySelector(".qq"), b, card.querySelector('.opt[data-ok="true"]'));
+  card.querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.ok === "true") o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = card.querySelector(".why"); why.hidden = false;
+  why.innerHTML = `${ok ? `<span class="tagok">صحيح</span>` : `<span class="tagno">راجعي</span>`} ${T(QUIZ[+card.dataset.k].why)}`;
+  $("#score").innerHTML = answered === QUIZ.length ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "🏮 كل الأنوار ولّعت!" : ""} <button class="btn" id="again" type="button">أعيدي الاختبار</button>` : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("complex-numbers", $("#quiz"), restartQuiz);
+</script>
+</body>
+</html>
