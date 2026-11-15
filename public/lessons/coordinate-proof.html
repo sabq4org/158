@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المثلثات والبرهان الإحداثي</title>
+<meta name="description" content="درس تفاعلي: المثلثات والبرهان الإحداثي، رياضيات 1-2، الدرس 3-7.">
+<meta name="theme-color" content="#5b3cc4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* «ملّاحة الإحداثيات»: lesson 3-7 (triangles and coordinate proof) as a navigation screen. It opens with the book's GPS
+   story: three Saudi cities given by their coordinates, and the distance formula decides what kind of triangle they make
+   (Example 4). Then the student places a triangle on the plane so its coordinates are as simple as possible (the four
+   steps of the concept box), finds missing coordinates (why 2a beats a when midpoints are coming), completes the book's
+   coordinate proofs (Example 3 and «تحقق 3»), classifies triangles with a distance calculator, and drops a pin on a
+   route for every coordinate she gets right.
+   Colours stay fixed: the x-axis and horizontal sides blue, the y-axis green, the midpoints amber, pins red. */
+:root {
+  --bg: #e4ebef;
+  --sheet: #fbfdfd;
+  --panel: #ffffff;
+  --ink: #1d2433;
+  --muted: #5f6b7a;
+  --line: #d3dde4;
+  --grid: #e3eaef;
+  --main: #5b3cc4;
+  --main-soft: #e7e0fb;
+  --p1: #1864ab;
+  --p1s: #dbe9fb;
+  --p2: #2b8a3e;
+  --p2s: #d5f0db;
+  --p3: #8e3cbf;
+  --p3s: #f0def9;
+  --an: #e67700;
+  --ans: #fff0d4;
+  --pin: #e03131;
+  --bad: #c92a2a;
+  --bads: #fde2e2;
+  --map1: #dfeee0;
+  --map2: #cfe6f5;
+  --shadow: 0 1px 1px rgba(29, 36, 51, .06), 0 16px 36px -20px rgba(29, 36, 51, .5);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1218; --sheet: #161c25; --panel: #121821; --ink: #e9eef5; --muted: #a2adbb; --line: #2b3542; --grid: #1f2833;
+    --main: #a48bff; --main-soft: #261d47; --p1: #6cb4ff; --p1s: #12263c; --p2: #69db7c; --p2s: #14301b; --p3: #d39af3; --p3s: #2f1a3d;
+    --an: #fbbf24; --ans: #3a2a0c; --pin: #ff6b6b; --bad: #ff8787; --bads: #3d1717; --map1: #1a2a1f; --map2: #14283a;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1218; --sheet: #161c25; --panel: #121821; --ink: #e9eef5; --muted: #a2adbb; --line: #2b3542; --grid: #1f2833;
+  --main: #a48bff; --main-soft: #261d47; --p1: #6cb4ff; --p1s: #12263c; --p2: #69db7c; --p2s: #14301b; --p3: #d39af3; --p3s: #2f1a3d;
+  --an: #fbbf24; --ans: #3a2a0c; --pin: #ff6b6b; --bad: #ff8787; --bads: #3d1717; --map1: #1a2a1f; --map2: #14283a;
+  --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 38px -18px rgba(0, 0, 0, .85); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+/* Graph paper behind the sheets. */
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image: linear-gradient(color-mix(in srgb, var(--main) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--main) 8%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px; background-attachment: fixed;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--main); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m i { font-style: italic; }
+.ov { text-decoration: overline; text-decoration-thickness: 1.5px; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .86em; line-height: 1.15; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.2px solid currentColor; padding: 0 3px; }
+.sq { border-top: 1.2px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.c1 { color: var(--p1); } .c2 { color: var(--p2); } .ca { color: var(--an); } .cm { color: var(--main); } .cb { color: var(--bad); } .cp { color: var(--pin); }
+
+.ribbon { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--sheet) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 3px solid var(--main); }
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--main); display: flex; align-items: center; gap: 6px; }
+.ribbon .brand svg { width: 22px; height: 22px; }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 2px 12px; border: 1.5px solid var(--line); border-radius: 999px; font-weight: 600; }
+.ribbon nav a.done { color: var(--main); border-color: var(--main); }
+.ribbon nav a.on { color: #fff; background: var(--main); border-color: var(--main); }
+:root[data-theme="dark"] .ribbon nav a.on { color: #160d33; }
+.theme { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+
+/* Sheets: a navigation device's screen, a status bar along the top. */
+main { max-width: 1000px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet { position: relative; margin: 34px 0 0; padding: 48px 28px 44px; scroll-margin-top: 66px; background: var(--sheet);
+  border-radius: 18px; box-shadow: var(--shadow); border: 1.5px solid var(--line); overflow: hidden; }
+.sheet::before { content: ""; position: absolute; inset: 0 0 auto; height: 12px;
+  background: linear-gradient(90deg, var(--p1) 0 33%, var(--p2) 33% 66%, var(--pin) 66%); opacity: .85; }
+.pno { position: absolute; left: 26px; bottom: 12px; font: 600 11px var(--mono); color: var(--muted); direction: ltr; display: flex; gap: 6px; align-items: center; }
+.pno svg { width: 15px; height: 15px; color: var(--pin); }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--main); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: #fff; background: var(--main); padding: 1px 10px; border-radius: 999px; }
+:root[data-theme="dark"] .kicker .no { color: #160d33; }
+h2 { margin: 4px 0 6px; font-size: 27px; line-height: 1.4; }
+h3 { line-height: 1.5; margin: 0 0 6px; font-size: 18px; }
+.lead { color: var(--muted); max-width: 820px; }
+.note { margin-top: 14px; padding: 12px 16px; border-radius: 10px; border: 1.5px dashed var(--an); background: color-mix(in srgb, var(--ans) 70%, transparent); }
+.note.thm { border: 1.5px solid var(--main); background: color-mix(in srgb, var(--main-soft) 70%, transparent); }
+.note .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--an); padding: 0 8px; border-radius: 4px; margin-inline-end: 6px; }
+.note.thm .tag { background: var(--main); }
+:root[data-theme="dark"] .note .tag { color: #160d33; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 0; background: var(--main); color: #fff; font-weight: 700; padding: 8px 18px; border-radius: 999px; cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--main) 55%, #000); transition: transform .12s, box-shadow .12s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--main) 55%, #000); }
+.btn.soft { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); box-shadow: 0 3px 0 var(--line); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn svg { width: 18px; height: 18px; }
+:root[data-theme="dark"] .btn:not(.soft) { color: #160d33; }
+.stage { width: 100%; display: block; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; user-select: none; -webkit-user-select: none; }
+svg { direction: ltr; }
+svg text { font-family: var(--mono); font-weight: 600; }
+svg .lbl { font-family: var(--font); font-weight: 700; }
+svg .halo { paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+svg .nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 600; }
+[data-drag] { touch-action: none; }
+.narr { margin-top: 12px; padding: 12px 16px; background: var(--panel); border: 1.5px solid var(--line); border-inline-start: 5px solid var(--main); border-radius: 10px; min-height: 54px; }
+.narr.ok { border-inline-start-color: var(--p2); }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pop { animation: pop .35s both; }
+@keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.shake { animation: shake .3s; }
+@keyframes drop { from { transform: translateY(-26px); opacity: 0; } to { transform: none; opacity: 1; } }
+.drop { animation: drop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes pulse { 0% { r: 8; opacity: .7; } 100% { r: 26; opacity: 0; } }
+.pulse { animation: pulse 1.8s ease-out infinite; }
+.split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 12px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: var(--panel); padding: 7px 14px; cursor: pointer; font-weight: 600; }
+.seg button.on { background: var(--main); color: #fff; }
+:root[data-theme="dark"] .seg button.on { color: #160d33; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+.vocab { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.vocab span { border: 1.5px solid var(--line); background: var(--panel); border-radius: 6px; padding: 2px 14px; font-size: 14px; }
+.vocab span em { font-style: normal; color: var(--muted); font-size: 12.5px; margin-inline-start: 4px; direction: ltr; unicode-bidi: isolate; }
+
+/* Hero: the navigation screen */
+.hero { text-align: center; }
+.logos { display: inline-flex; gap: 14px; align-items: center; background: #fff; padding: 8px 16px; border-radius: 10px; box-shadow: var(--shadow); }
+.logos img { height: 44px; width: auto; }
+.hero h1 { margin: 16px 0 0; font-size: clamp(32px, 7vw, 58px); line-height: 1.25; }
+.hero h1 span { color: var(--main); }
+.hero .sub { color: var(--muted); font-weight: 600; }
+.hero .story { text-align: right; max-width: 780px; margin: 14px auto 0; }
+.hero .tools { justify-content: center; }
+.device { margin: 14px auto 0; max-width: 760px; padding: 12px; border-radius: 26px; background: #20242c; box-shadow: inset 0 0 0 2px #3a404b, var(--shadow); }
+.device .stage { border: 0; border-radius: 16px; }
+.calc { text-align: right; margin-top: 12px; display: grid; gap: 6px; }
+.calc .ln { background: var(--panel); border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 14px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.calc .ln b { color: var(--main); }
+.calc .ln.ok { border-color: var(--p2); }
+
+/* Placement checklist */
+.checks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.chk { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 6px 10px; font-size: 13.5px; transition: border-color .3s, background .3s; }
+.chk b { display: block; font-size: 12px; color: var(--muted); }
+.chk.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 60%, var(--panel)); }
+.chk.ok b::after { content: " ✓"; color: var(--p2); }
+.ros { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.ro { display: inline-flex; align-items: baseline; gap: 6px; border: 1.5px solid var(--line); background: var(--panel); padding: 3px 12px; border-radius: 6px; font-size: 14px; transition: border-color .3s, background .3s; }
+.ro b { font: 600 15.5px var(--mono); direction: ltr; unicode-bidi: isolate; }
+.ro.ok { border-color: var(--p2); background: var(--p2s); }
+
+/* Sliders */
+.sliders { display: grid; gap: 4px; margin-top: 10px; }
+.slider { display: grid; grid-template-columns: 8em 1fr 3em; gap: 12px; align-items: center; }
+.slider label { font-weight: 600; font-size: 14px; white-space: nowrap; }
+.slider output { font: 600 16px var(--mono); direction: ltr; text-align: center; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--k, var(--main)); border: 4px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--k, var(--main)); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--k, var(--main)); border: 4px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--k, var(--main)); cursor: pointer; }
+.k1 { --k: var(--p1); } .k2 { --k: var(--p2); } .ka { --k: var(--an); } .km { --k: var(--main); }
+
+/* Chips and steps */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { border: 1.5px solid var(--line); background: var(--sheet); border-radius: 999px; padding: 3px 14px; cursor: pointer; font-weight: 600; font-size: 14.5px; }
+.chips button.right { border-color: var(--p2); background: var(--p2s); }
+.chips button.wrong { border-color: var(--bad); background: var(--bads); }
+.chips button:disabled { cursor: default; }
+.fb { font-size: 14.5px; margin-top: 6px; }
+.fb.good { color: var(--p2); }
+.fb.bad { color: var(--bad); }
+.step { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 10px 14px; margin-top: 12px; }
+.step.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 55%, var(--panel)); }
+.step svg { width: 100%; max-width: 300px; display: block; margin: 4px auto; }
+.pz h3 { font-size: 15.5px; }
+
+/* Proof steps */
+.psteps { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+.psteps li { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; }
+.psteps li.now { border-color: var(--main); background: var(--main-soft); }
+.psteps li.done { border-color: var(--p2); }
+.psteps li.later { opacity: .35; }
+.psteps li .why { color: var(--muted); font-size: 13.5px; }
+.psteps li .chips { margin-top: 6px; }
+.blank { display: inline-block; min-width: 3em; border-bottom: 2px dashed var(--main); text-align: center; color: var(--main); }
+
+/* Pin game */
+.gamehead { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.score-big { font: 600 28px var(--mono); color: var(--main); }
+.counter { font: 600 14px var(--mono); }
+#route { width: 100%; display: block; margin-top: 8px; border-radius: 12px; }
+#route .pinR { opacity: 0; }
+#route .pinR.on { opacity: 1; animation: drop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+#route .dot.miss { fill: var(--bad); }
+.gq { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.gq button { border: 1.5px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 6px; cursor: pointer; font-weight: 700; font-size: 15px; }
+.gq button.right { border-color: var(--p2); background: var(--p2s); }
+.gq button.wrong { border-color: var(--bad); background: var(--bads); }
+
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px; }
+.card { border: 1.5px solid var(--line); background: var(--panel); border-radius: 12px; padding: 14px; border-top: 5px solid var(--p1); }
+.card:nth-child(2) { border-top-color: var(--an); }
+.card:nth-child(3) { border-top-color: var(--p2); }
+.card:nth-child(4) { border-top-color: var(--pin); }
+.card h3 { font-size: 16px; }
+.card ul { margin: 0; padding-inline-start: 18px; font-size: 14.5px; }
+.card svg { width: 100%; height: 120px; display: block; }
+
+.qcard { border: 1.5px solid var(--line); background: var(--panel); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+.qq { font-weight: 700; margin-bottom: 10px; }
+.qcard svg { width: 100%; max-width: 300px; display: block; margin: 0 auto 10px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt { text-align: right; border: 1.5px solid var(--line); background: var(--sheet); border-radius: 8px; padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.opt b { font: 600 13px var(--mono); color: var(--main); }
+.opt.right { border-color: var(--p2); background: var(--p2s); }
+.opt.wrong { border-color: var(--bad); background: var(--bads); }
+.qcard .why { margin-top: 10px; font-size: 14.5px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+
+@media (max-width: 760px) {
+  .sheet { padding: 42px 16px 44px; }
+  .split, .two, .three, .cards { grid-template-columns: 1fr; }
+  .checks { grid-template-columns: 1fr 1fr; }
+  .opts { grid-template-columns: 1fr; }
+  .gq { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  h2 { font-size: 23px; }
+  .ribbon .brand { display: none; }
+  .device { padding: 6px; border-radius: 16px; }
+  .slider { grid-template-columns: 6.5em 1fr 3em; gap: 8px; }
+  #map text, #place text, #iso text, #mid text, #dist text, #gFig text { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .pop, .shake, .drop, .pulse, #route .pinR.on { animation: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="pinI" viewBox="0 0 24 24"><path d="M12 22s7-7.2 7-12.5A7 7 0 0 0 5 9.5C5 14.8 12 22 12 22z" fill="currentColor"/><circle cx="12" cy="9.5" r="2.6" fill="#fff"/></symbol>
+  <symbol id="navI" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 21 3l-8 18-2-8z"/></g></symbol>
+</defs></svg>
+<div class="ribbon">
+  <span class="brand"><svg><use href="#navI"/></svg>ملّاحة الإحداثيات</span>
+  <nav id="stations" aria-label="محطات الدرس"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل الوضع الليلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div>
+<main>
+  <!-- 0: three cities on a navigation screen (Example 4, «تحقق 4») -->
+  <section class="sheet hero" id="s0" data-name="البداية">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <h1>المثلثات <span>والبرهان الإحداثي</span></h1>
+    <p class="sub">الدرس 3-7 · رياضيات 1-2 · الفصل 3</p>
+    <p class="story">جهاز الملاحة في السيارة (GPS) يحدد مكانك بالإحداثيات اللي تجيه من الأقمار الاصطناعية، ومنها يحسب المسافات. على الشاشة ثلاث مدن بإحداثياتها التقريبية. <b>اضغطي على مدينتين</b> وخلّي الجهاز يحسب المسافة بينهما بقانون المسافة، ثم احكمي: وش نوع المثلث اللي رؤوسه هالمدن؟</p>
+    <div class="tools"><span class="seg" role="group" aria-label="المدن"><button type="button" class="on" data-set="0">مثال 4: الرياض، ينبع، تبوك</button><button type="button" data-set="1">تحقق 4: تبوك، عرعر، حائل</button></span></div>
+    <div class="device"><svg class="stage" id="map" viewBox="0 0 640 360" aria-label="خريطة إحداثية عليها ثلاث مدن"></svg></div>
+    <div class="calc" id="mapCalc"></div>
+    <div class="step" id="mapQ" hidden style="text-align:right">
+      <p id="mapQq"></p>
+      <div class="chips" id="mapC" style="margin-top:8px"></div>
+      <p class="fb" id="mapFb"></p>
+    </div>
+    <span class="pno"><svg><use href="#pinI"/></svg>01/08</span>
+  </section>
+
+  <!-- 1: placing a triangle (concept box, Example 1) -->
+  <section class="sheet" id="s1" data-name="ضعي المثلث">
+    <div class="kicker"><span class="no">01</span> مفهوم أساسي · مثال 1</div>
+    <h2>ضعي المثلث في أسهل مكان</h2>
+    <p class="lead">المثلث نفسه ممكن نرسمه في أي مكان على المستوى، لكن بعض الأماكن تعطينا إحداثيات <b>أسهل بكثير</b> في الحساب. <b>اسحبي المثلث</b> القائم ولفّيه، وحققي الخطوات الأربع.</p>
+    <svg class="stage" id="place" data-drag viewBox="0 0 640 400" style="margin-top:12px" aria-label="مثلث قائم الزاوية تسحبينه على المستوى الإحداثي"></svg>
+    <div class="tools"><button class="btn" id="rot" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>لفّي 90°</button><button class="btn soft" id="placeReset" type="button">من البداية</button></div>
+    <div class="checks" id="checks">
+      <div class="chk" data-c="0"><b>الخطوة 1</b>رأس عند نقطة الأصل</div>
+      <div class="chk" data-c="1"><b>الخطوة 2</b>ضلع على أحد المحورين</div>
+      <div class="chk" data-c="2"><b>الخطوة 3</b>المثلث في الربع الأول</div>
+      <div class="chk" data-c="3"><b>الخطوة 4</b>إحداثيات أبسط ما يمكن</div>
+    </div>
+    <div class="ros" id="placeRo"></div>
+    <p class="narr" id="placeNarr"></p>
+    <div class="vocab"><span>البرهان الإحداثي <em>coordinate proof</em>: برهان يستعمل الأشكال في المستوى الإحداثي والجبر لإثبات صحة المفاهيم الهندسية. خطوته الأولى: تمثيل الشكل في المستوى الإحداثي.</span></div>
+    <span class="pno"><svg><use href="#pinI"/></svg>02/08</span>
+  </section>
+
+  <!-- 2: missing coordinates (Example 2, «تحقق 2», exercises 3–4) -->
+  <section class="sheet" id="s2" data-name="الإحداثيات المجهولة">
+    <div class="kicker"><span class="no">02</span> مثال 2 و«تحقق 2»</div>
+    <h2>إحداثيات بالحروف</h2>
+    <p class="lead">في البرهان ما نعرف الأطوال بالأرقام، فنكتب الإحداثيات بحروف مثل <span class="m"><i>a</i></span> و<span class="m"><i>b</i></span>، والبرهان يصير صحيحًا لكل المثلثات. حرّكي المؤشرين، ولاحظي ليش الرأس <span class="m"><i>Y</i></span> يقع دائمًا فوق منتصف القاعدة.</p>
+    <div class="tools"><span class="seg" role="group" aria-label="طول القاعدة"><button type="button" class="on" data-iso="a">القاعدة <span class="m"><i>a</i></span></button><button type="button" data-iso="2a">القاعدة <span class="m">2<i>a</i></span></button></span></div>
+    <svg class="stage" id="iso" viewBox="0 0 640 320" style="margin-top:12px" aria-label="مثلث متطابق الضلعين على المستوى الإحداثي"></svg>
+    <div class="sliders">
+      <div class="slider k1"><label for="ia">قيمة <span class="m"><i>a</i></span></label><input type="range" id="ia" min="2" max="8" step="1" value="6"><output id="iaO">6</output></div>
+      <div class="slider k2"><label for="ib">قيمة <span class="m"><i>b</i></span></label><input type="range" id="ib" min="1" max="6" step="1" value="4"><output id="ibO">4</output></div>
+    </div>
+    <p class="narr" id="isoNarr"></p>
+    <div class="three" id="pzs"></div>
+    <span class="pno"><svg><use href="#pinI"/></svg>03/08</span>
+  </section>
+
+  <!-- 3: coordinate proofs (Example 3, «تحقق 3») -->
+  <section class="sheet" id="s3" data-name="البرهان">
+    <div class="kicker"><span class="no">03</span> مثال 3 و«تحقق 3»</div>
+    <h2>اكتبي برهانًا إحداثيًّا</h2>
+    <p class="lead">بعد ما نضع المثلث ونسمّي رؤوسه بالحروف، نستعمل <b>قانون نقطة المنتصف</b> و<b>قانون الميل</b> و<b>قانون المسافة</b> لنثبت خصائص تصح لكل المثلثات. اسحبي الرأس <span class="m"><i>C</i></span> وشوفي الخاصية ما تتغير، ثم أكملي البرهان.</p>
+    <div class="tools"><span class="seg" role="group" aria-label="البرهان"><button type="button" class="on" data-pr="0">مثال 3: القطعة المنصِّفة</button><button type="button" data-pr="1">تحقق 3: مثلثان متطابقان</button></span></div>
+    <div class="split">
+      <div>
+        <svg class="stage" id="mid" data-drag viewBox="0 0 520 440" aria-label="مثلث على المستوى الإحداثي"></svg>
+        <div class="ros" id="midRo"></div>
+      </div>
+      <div>
+        <p class="narr" id="prGiven" style="margin-top:0;font-size:15px"></p>
+        <ol class="psteps" id="prSteps"></ol>
+        <p class="fb" id="prFb"></p>
+      </div>
+    </div>
+    <span class="pno"><svg><use href="#pinI"/></svg>04/08</span>
+  </section>
+
+  <!-- 4: distance calculator (exercises 15–17) -->
+  <section class="sheet" id="s4" data-name="حاسبة المسافات">
+    <div class="kicker"><span class="no">04</span> قانون المسافة يصنّف المثلث · تمارين 15–17</div>
+    <h2>حاسبة المسافات</h2>
+    <p class="lead">من إحداثيات الرؤوس نحسب أطوال الأضلاع الثلاثة، فنعرف نوع المثلث: <b>مختلف الأضلاع</b> أو <b>متطابق الضلعين</b> أو <b>متطابق الأضلاع</b>. وإذا تحققت نظرية فيثاغورس فهو <b>قائم الزاوية</b>.</p>
+    <div class="tools"><span class="seg" role="group" aria-label="المسألة" id="dSeg"></span></div>
+    <div class="split">
+      <div><svg class="stage" id="dist" viewBox="0 0 400 360" aria-label="مثلث ومسافاته"></svg></div>
+      <div>
+        <p class="narr" id="dStory" style="margin-top:0"></p>
+        <div class="calc" id="dCalc"></div>
+        <div class="tools"><button class="btn" id="dGo" type="button">احسبي ضلعًا</button></div>
+        <div class="step" id="dQ" hidden>
+          <p id="dQq"></p>
+          <div class="chips" id="dC" style="margin-top:8px"></div>
+          <p class="fb" id="dFb"></p>
+        </div>
+      </div>
+    </div>
+    <span class="pno"><svg><use href="#pinI"/></svg>05/08</span>
+  </section>
+
+  <!-- 5: the pin game -->
+  <section class="sheet" id="s5" data-name="ثبّتي الدبوس">
+    <div class="kicker"><span class="no">05</span> لعبة</div>
+    <h2>ثبّتي الدبوس</h2>
+    <p class="lead">ثمان محطات على الطريق. في كل محطة مثلث موضوع على المستوى الإحداثي، وإحداثيات رأس ناقصة. اختاري الإحداثيات الصحيحة، وكل إجابة صحيحة تثبّت دبوسًا على الطريق.</p>
+    <svg id="route" viewBox="0 0 640 110" aria-hidden="true"></svg>
+    <div class="gamehead" style="margin-top:6px"><span>المحطة <b class="counter" id="gRound">1</b> من 8</span><span>الدبابيس <b class="score-big" id="gScore">0</b></span></div>
+    <p id="gQ" style="margin-top:6px;font-weight:600"></p>
+    <svg class="stage" id="gFig" viewBox="0 0 640 290" style="margin-top:8px" aria-label="مثلث على المستوى الإحداثي"></svg>
+    <div class="gq" id="gOpts"></div>
+    <p class="fb" id="gFb"></p>
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="gNext" type="button" hidden>المحطة التالية</button></div>
+    <span class="pno"><svg><use href="#pinI"/></svg>06/08</span>
+  </section>
+
+  <!-- 6: quiz -->
+  <section class="sheet" id="s6" data-name="الاختبار">
+    <div class="kicker"><span class="no">06</span> من «تأكد» و«تدرب وحل المسائل»</div>
+    <h2>اختبري نفسك</h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700"></p>
+    <span class="pno"><svg><use href="#pinI"/></svg>07/08</span>
+  </section>
+
+  <!-- 7: summary -->
+  <section class="sheet" id="s7" data-name="الخلاصة">
+    <div class="kicker"><span class="no">07</span> ملخص الدرس</div>
+    <h2>خريطة الدرس</h2>
+    <div class="cards">
+      <div class="card"><svg id="sum1" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>رسم المثلث في المستوى الإحداثي</h3><ul><li>رأس عند نقطة الأصل.</li><li>ضلع على أحد المحورين.</li><li>المثلث في الربع الأول إن أمكن.</li><li>إحداثيات أبسط ما يمكن.</li></ul></div>
+      <div class="card"><svg id="sum2" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>لماذا <span class="m">2<i>a</i></span>؟</h3><ul><li>إذا بنستعمل نقطة المنتصف، نختار إحداثيات من مضاعفات 2، فما تطلع كسور.</li><li>المتطابق الضلعين: الرأس فوق منتصف القاعدة.</li></ul></div>
+      <div class="card"><svg id="sum3" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>أدوات البرهان الإحداثي</h3><ul><li>المنتصف <span class="m">(<span class="fr"><span><i>x</i>₁ + <i>x</i>₂</span><span>2</span></span> , <span class="fr"><span><i>y</i>₁ + <i>y</i>₂</span><span>2</span></span>)</span>: لإثبات تنصيف.</li><li>الميل <span class="m"><span class="fr"><span><i>y</i>₂ − <i>y</i>₁</span><span><i>x</i>₂ − <i>x</i>₁</span></span></span>: لإثبات التوازي أو التعامد.</li><li>المسافة: لإثبات تطابق القطع.</li></ul></div>
+      <div class="card"><svg id="sum4" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>من الإحداثيات إلى نوع المثلث</h3><ul><li>احسبي الأضلاع الثلاثة بقانون المسافة.</li><li>قارني الأطوال: مختلف الأضلاع، متطابق الضلعين، متطابق الأضلاع.</li><li>إذا <span class="m"><i>a</i>² + <i>b</i>² = <i>c</i>²</span> فالمثلث قائم.</li></ul></div>
+    </div>
+    <span class="pno"><svg><use href="#pinI"/></svg>08/08</span>
+  </section>
+  <footer>ثانوية 158 · رياضيات 1-2 · الفصل 3 · صفحات 62–66 · درس تفاعلي</footer>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RAD = Math.PI / 180;
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const M = h => `<span class="m">${h}</span>`;
+const I = s => s.split("").map(c => `<i>${c}</i>`).join("");
+const TRI = s => M(`△${I(s)}`);
+const f = P => `${P[0].toFixed(1)} ${P[1].toFixed(1)}`;
+const pol = (P, a, r) => [P[0] + r * Math.cos(a * RAD), P[1] + r * Math.sin(a * RAD)];
+const PC = ["var(--p1)", "var(--p2)", "var(--p3)"], PS = ["var(--p1s)", "var(--p2s)", "var(--p3s)"], SC = "var(--main)";
+const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,]/g, ".").replace(/[°\s]/g, "").replace(/−/g, "-");
+
+/* ---------- Theme + stations ribbon ---------- */
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+};
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Geometry ---------- */
+// The angle at P between rays PQ and PR: its start and end directions in SVG degrees (sweeping clockwise on screen) and its size.
+function span(P, Q, R) {
+  const t1 = Math.atan2(Q[1] - P[1], Q[0] - P[0]) / RAD, t2 = Math.atan2(R[1] - P[1], R[0] - P[0]) / RAD;
+  const d = ((t2 - t1) % 360 + 360) % 360;
+  return d <= 180 ? { a0: t1, a1: t1 + d, m: d } : { a0: t2, a1: t2 + 360 - d, m: 360 - d };
+}
+const angAt = (P, Q, R) => span(P, Q, R).m;
+const sector = (P, a0, a1, r) => `M${f(P)} L${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))} Z`;
+const arc = (P, a0, a1, r) => `M${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))}`;
+const NS = ' vector-effect="non-scaling-stroke"';
+// n concentric arcs at P between PQ and PR (the book's way of marking congruent angles).
+function arcs(P, Q, R, n, col, r = 20, o = {}) {
+  const { a0, a1, m } = span(P, Q, R);
+  if (o.right ?? Math.abs(m - 90) < .5) {
+    const u = unit(Q[0] - P[0], Q[1] - P[1]), v = unit(R[0] - P[0], R[1] - P[1]), q = r * .7;
+    return `<path d="M${P[0] + u[0] * q} ${P[1] + u[1] * q} L${P[0] + (u[0] + v[0]) * q} ${P[1] + (u[1] + v[1]) * q} L${P[0] + v[0] * q} ${P[1] + v[1] * q}" fill="${col}" fill-opacity=".15" stroke="${col}" stroke-width="2.2"${NS}/>`;
+  }
+  const g = o.gap || 5;
+  let s = `<path d="${sector(P, a0, a1, r + g * (n - 1))}" fill="${col}" fill-opacity="${o.op ?? .16}" stroke="none"/>`;
+  for (let i = 0; i < n; i++) s += `<path d="${arc(P, a0, a1, r + g * i)}" fill="none" stroke="${col}" stroke-width="2.2"${NS}/>`;
+  return s;
+}
+// n tick marks across the middle of PQ (the book's way of marking congruent sides).
+function ticks(P, Q, n, col = SC, len = 13, gap = 6) {
+  const m = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2], u = unit(Q[0] - P[0], Q[1] - P[1]), v = [-u[1], u[0]];
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const t = (i - (n - 1) / 2) * gap, c = [m[0] + u[0] * t, m[1] + u[1] * t];
+    s += `<line x1="${(c[0] - v[0] * len / 2).toFixed(1)}" y1="${(c[1] - v[1] * len / 2).toFixed(1)}" x2="${(c[0] + v[0] * len / 2).toFixed(1)}" y2="${(c[1] + v[1] * len / 2).toFixed(1)}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"${NS}/>`;
+  }
+  return s;
+}
+const txt = (P, t, o = {}) => `<text x="${P[0].toFixed(1)}" y="${P[1].toFixed(1)}" font-size="${o.fs || 16}" fill="${o.col || "var(--ink)"}" text-anchor="middle" dominant-baseline="central"${o.cls ? ` class="${o.cls}"` : ""}>${t}</text>`;
+// A label inside the angle at P, on its bisector; narrow angles push it further out.
+function angLbl(P, Q, R, t, o = {}) { const { a0, a1, m } = span(P, Q, R); const d = (o.d || 40) + Math.max(0, 60 - m) * .55 + (t.length > 4 ? t.length * 2.2 : 0); return txt(pol(P, (a0 + a1) / 2, d), t, o); }
+// A label beside side PQ, on the side away from G.
+function sideLbl(P, Q, G, t, o = {}) {
+  const m = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2], u = unit(Q[0] - P[0], Q[1] - P[1]);
+  let v = [-u[1], u[0]];
+  if ((m[0] - G[0]) * v[0] + (m[1] - G[1]) * v[1] < 0) v = [-v[0], -v[1]];
+  const fs = o.fs || 16, d = (o.d || 15) + t.length * fs * .27 * Math.abs(v[0]) + fs * .3 * Math.abs(v[1]);
+  return txt([m[0] + v[0] * d, m[1] + v[1] * d], t, o);
+}
+const poly = (V, o = {}) => `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"${o.cls ? ` class="${o.cls}"` : ""}${NS}/>`;
+const seg = (P, Q, o = {}) => `<line x1="${P[0].toFixed(1)}" y1="${P[1].toFixed(1)}" x2="${Q[0].toFixed(1)}" y2="${Q[1].toFixed(1)}" stroke="${o.col || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}${o.cls ? ` class="${o.cls}"` : ""}${NS}/>`;
+const cent = V => [V.reduce((s, p) => s + p[0], 0) / V.length, V.reduce((s, p) => s + p[1], 0) / V.length];
+// A vertex name pushed away from G.
+const vname = (P, G, t, o = {}) => { const w = unit(P[0] - G[0], P[1] - G[1]), d = o.d || 20; return `<text class="nm" x="${(P[0] + w[0] * d).toFixed(1)}" y="${(P[1] + w[1] * d).toFixed(1)}" font-size="${o.fs || 20}" fill="${o.col || "var(--ink)"}" text-anchor="middle" dominant-baseline="central">${t}</text>`; };
+// A triangle with angle a at vertex 0 and b at vertex 1, centred on its centroid, in screen coordinates (y down).
+function triLocal(a, b, base = 200) {
+  const c = 180 - a - b, t = Math.sin(b * RAD) / Math.sin(c * RAD);
+  const P = [[0, 0], [1, 0], [t * Math.cos(a * RAD), t * Math.sin(a * RAD)]], g = cent(P);
+  return P.map(([x, y]) => [(x - g[0]) * base, -(y - g[1]) * base]);
+}
+// Scale (s, or sx/sy), flip (fx = −1), turn by rot degrees, then move to T: the same order as CSS translate() rotate() scale().
+function tf(L, o = {}) {
+  const c = Math.cos((o.rot || 0) * RAD), s = Math.sin((o.rot || 0) * RAD), k = o.s || 1;
+  const sx = (o.fx || 1) * k * (o.sx || 1), sy = k * (o.sy || 1), T = o.T || [0, 0];
+  return L.map(([x, y]) => [T[0] + c * sx * x - s * sy * y, T[1] + s * sx * x + c * sy * y]);
+}
+const cssT = o => `translate(${o.T[0].toFixed(1)}px, ${o.T[1].toFixed(1)}px) rotate(${o.rot || 0}deg) scale(${((o.fx || 1) * (o.s || 1)).toFixed(3)}, ${(o.s || 1).toFixed(3)})`;
+// Places shapes in their boxes with ONE common scale, so congruent pieces stay the same size on screen. Returns {V, T, s} per item.
+function place(items, pad = 30) {
+  const raw = items.map(it => tf(it.L, { rot: it.rot, fx: it.fx }));
+  const ext = P => { const xs = P.map(p => p[0]), ys = P.map(p => p[1]); return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; };
+  const k = Math.min(...raw.map((P, i) => { const [x0, x1, y0, y1] = ext(P), b = items[i].box; return Math.min((b[2] - 2 * pad) / (x1 - x0), (b[3] - 2 * pad) / (y1 - y0)); }));
+  return raw.map((P, i) => {
+    const [x0, x1, y0, y1] = ext(P), b = items[i].box, T = [b[0] + b[2] / 2 - (x0 + x1) / 2 * k, b[1] + b[3] / 2 - (y0 + y1) / 2 * k];
+    return { V: P.map(p => [p[0] * k + T[0], p[1] * k + T[1]]), T, s: k };
+  });
+}
+// Integer angles for a scalene triangle: each in [lo, hi] and at least gap apart, so the vertices can be told apart by their angles.
+function scalene(lo = 30, hi = 100, gap = 12) {
+  for (;;) {
+    const a = ri(lo, hi), b = ri(lo, hi), c = 180 - a - b;
+    if (c >= lo && c <= hi && Math.abs(a - b) >= gap && Math.abs(b - c) >= gap && Math.abs(a - c) >= gap) return [a, b, c];
+  }
+}
+const sidesOf = V => [0, 1, 2].map(i => Math.hypot(V[(i + 1) % 3][0] - V[i][0], V[(i + 1) % 3][1] - V[i][1]));
+const anglesOf = V => [0, 1, 2].map(i => angAt(V[i], V[(i + 1) % 3], V[(i + 2) % 3]));
+function inTri(p, V) {
+  const s = (a, b, c) => (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1]);
+  const d1 = s(p, V[0], V[1]), d2 = s(p, V[1], V[2]), d3 = s(p, V[2], V[0]);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+}
+const svgPt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
+const fmt = v => (Math.round(v * 10) / 10).toString();
+const signed = (a, b, v = "x") => `${a}${v} ${b < 0 ? "−" : "+"} ${Math.abs(b)}`;
+
+/* ---------- Lesson helpers ---------- */
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (P, Q) => Math.hypot(P[0] - Q[0], P[1] - Q[1]);
+const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+const OV = s => `<span class="ov">${I(s)}</span>`;
+const SG = s => M(OV(s));
+const FR = (a, b) => `<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const SQ = s => `√<span class="sq">${s}</span>`;
+const n2 = v => (Math.round(v * 100) / 100).toString();
+const neg = v => (v < 0 ? `(−${n2(-v)})` : n2(v));
+function dragOn(svg, start, move, end) {
+  svg.addEventListener("pointerdown", e => {
+    const h = start(svgPt(svg, e), e); if (h == null) return;
+    e.preventDefault(); svg.setPointerCapture?.(e.pointerId);
+    const mv = ev => move(svgPt(svg, ev), h);
+    const up = () => { svg.removeEventListener("pointermove", mv); svg.removeEventListener("pointerup", up); svg.removeEventListener("pointercancel", up); end?.(h); };
+    svg.addEventListener("pointermove", mv); svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  });
+}
+// Plain Arabic text with Latin maths in it (e.g. «T انعكاس R»): each Latin run goes in its own left-to-right math span.
+const ar = t => (t && !t.includes("<") ? t.replace(/[A-Za-z0-9][A-Za-z0-9()+\-−=²√≈÷.,/ ]*[A-Za-z0-9)²]|[A-Za-z]/g, m => M(m.replace(/([A-Za-z])/g, "<i>$1</i>"))) : t);
+function chipQ(box, fbEl, opts, onDone) {
+  opts = opts.map(o => [ar(o[0]), o[1], ar(o[2])]);
+  box.innerHTML = shuffle(opts.map((o, i) => [o, i])).map(([o, i]) => `<button type="button" data-i="${i}">${o[0]}</button>`).join("");
+  box.dataset.lock = "";
+  box.onclick = e => {
+    const b = e.target.closest("button[data-i]"); if (!b || box.dataset.lock === "1") return;
+    const o = opts[+b.dataset.i];
+    if (o[1]) { box.dataset.lock = "1"; b.classList.add("right"); $$("button", box).forEach(x => x.disabled = true); fbEl.className = "fb good"; fbEl.innerHTML = `صحيح ✓ ${o[2] || ""}`; onDone?.(); }
+    else { b.classList.add("wrong"); fbEl.className = "fb bad"; fbEl.innerHTML = o[2] || "راجعيها."; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }
+  };
+}
+// A coordinate plane: units → svg pixels, with x from x0 to x1 and y from y0 to y1 inside box [left, top, width, height].
+function plane(x0, x1, y0, y1, box) {
+  const s = Math.min(box[2] / (x1 - x0), box[3] / (y1 - y0)), ox = box[0] + (box[2] - s * (x1 - x0)) / 2 - x0 * s, oy = box[1] + (box[3] - s * (y1 - y0)) / 2 + y1 * s;
+  const P = (x, y) => [ox + x * s, oy - y * s];
+  const grid = (o = {}) => {
+    let g = "";
+    const st = o.step || 1;
+    for (let x = Math.ceil(x0 / st) * st; x <= x1; x += st) g += `<line x1="${P(x, y0)[0]}" y1="${P(x, y0)[1]}" x2="${P(x, y1)[0]}" y2="${P(x, y1)[1]}" stroke="var(--grid)" stroke-width="1.2"/>`;
+    for (let y = Math.ceil(y0 / st) * st; y <= y1; y += st) g += `<line x1="${P(x0, y)[0]}" y1="${P(x0, y)[1]}" x2="${P(x1, y)[0]}" y2="${P(x1, y)[1]}" stroke="var(--grid)" stroke-width="1.2"/>`;
+    if (o.quad) g += `<rect x="${P(0, y1)[0]}" y="${P(0, y1)[1]}" width="${P(x1, 0)[0] - P(0, 0)[0]}" height="${P(0, 0)[1] - P(0, y1)[1]}" fill="color-mix(in srgb, var(--p2) 7%, transparent)"/>`;
+    g += `<line x1="${P(x0, 0)[0]}" y1="${P(0, 0)[1]}" x2="${P(x1, 0)[0]}" y2="${P(0, 0)[1]}" stroke="var(--p1)" stroke-width="2"/>`;
+    g += `<line x1="${P(0, 0)[0]}" y1="${P(0, y0)[1]}" x2="${P(0, 0)[0]}" y2="${P(0, y1)[1]}" stroke="var(--p2)" stroke-width="2"/>`;
+    g += `<path d="M${P(x1, 0)[0] - 1} ${P(0, 0)[1]} l-9 -5 v10z" fill="var(--p1)"/><path d="M${P(0, 0)[0]} ${P(0, y1)[1] + 1} l-5 9 h10z" fill="var(--p2)"/>`;
+    g += txt([P(x1, 0)[0] - 8, P(0, 0)[1] + 16], "x", { cls: "nm", fs: 18, col: "var(--p1)" }) + txt([P(0, 0)[0] + 14, P(0, y1)[1] + 10], "y", { cls: "nm", fs: 18, col: "var(--p2)" });
+    if (o.nums) {
+      for (let x = Math.ceil(x0 / o.nums) * o.nums; x <= x1 - .5; x += o.nums) if (x) g += txt([P(x, 0)[0], P(0, 0)[1] + 14], String(x).replace("-", "−"), { fs: 11, col: "var(--muted)" });
+      for (let y = Math.ceil(y0 / o.nums) * o.nums; y <= y1 - .5; y += o.nums) if (y) g += txt([P(0, 0)[0] - 14, P(0, y)[1]], String(y).replace("-", "−"), { fs: 11, col: "var(--muted)" });
+    }
+    if (o.O) g += txt([P(0, 0)[0] - 10, P(0, 0)[1] + 13], "O", { cls: "nm", fs: 15 });
+    return g;
+  };
+  return { P, s, grid, x0, x1, y0, y1 };
+}
+const dot = (P, col = "var(--ink)", r = 5) => `<circle cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="${r}" fill="${col}" stroke="var(--panel)" stroke-width="2"/>`;
+// A point's label: its name in italic then its coordinates, pushed away from G.
+function plab(P, G, name, coord, o = {}) {
+  const u = o.below ? [0, 1] : unit(P[0] - G[0] || .001, P[1] - G[1] || .001), d = o.d || 24;
+  const Q = [P[0] + u[0] * d + (o.dx || 0), P[1] + u[1] * d + (o.dy || 0)], fs = o.fs || 16;
+  const anchor = o.anchor || (Math.abs(u[0]) < .3 ? "middle" : u[0] > 0 ? "start" : "end");
+  return `<text class="halo" x="${Q[0].toFixed(1)}" y="${Q[1].toFixed(1)}" font-size="${fs}" text-anchor="${anchor}" dominant-baseline="central" fill="${o.col || "var(--ink)"}"><tspan class="nm" font-size="${fs + 2}">${name}</tspan><tspan font-family="Times New Roman, serif" font-style="italic">${coord ? `(${coord})` : ""}</tspan></text>`;
+}
+const pinAt = (P, col = "var(--pin)", sc = 1) => `<g transform="translate(${P[0].toFixed(1)} ${P[1].toFixed(1)}) scale(${sc})"><path d="M0 0 C -4 -8 -11 -13 -11 -21 A 11 11 0 0 1 11 -21 C 11 -13 4 -8 0 0Z" fill="${col}" stroke="var(--panel)" stroke-width="1.5"/><circle cx="0" cy="-21" r="4" fill="#fff"/></g>`;
+const polyP = (V, o = {}) => `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"/>`;
+
+/* ---------- 0. Cities on the navigation screen ---------- */
+{
+  const SETS = [
+    { cities: [["الرياض", "R", 24.15, 46.72], ["ينبع", "Y", 24.63, 38.07], ["تبوك", "T", 28.37, 36.6]], ans: 0 },
+    { cities: [["تبوك", "T", 28.37, 36.6], ["عرعر", "A", 30.9, 41.13], ["حائل", "H", 27.43, 41.68]], ans: 1 },
+  ];
+  const pl = { P: (x, y) => [70 + (x - 23) * 540 / 8.5, 336 - (y - 35) * 300 / 13] }; // a map: each axis has its own scale
+  let set = 0, sel = [], done = new Map();
+  const svg = $("#map");
+  function draw() {
+    const S = SETS[set], C = S.cities.map(c => pl.P(c[2], c[3]));
+    let s = `<rect width="640" height="360" fill="var(--map1)"/><path d="M0 0 H640 V70 Q 520 110 440 70 T 200 60 T 0 90Z" fill="var(--map2)" opacity=".8"/>`;
+    for (let x = 23; x <= 32; x++) s += `<line x1="${pl.P(x, 34)[0]}" y1="0" x2="${pl.P(x, 34)[0]}" y2="360" stroke="color-mix(in srgb, var(--ink) 9%, transparent)"/>` + (x % 2 ? "" : txt([pl.P(x, 34)[0], 350], `${x}°N`, { fs: 11, col: "var(--muted)" }));
+    for (let y = 35; y <= 49; y++) s += `<line x1="0" y1="${pl.P(22, y)[1]}" x2="640" y2="${pl.P(22, y)[1]}" stroke="color-mix(in srgb, var(--ink) 9%, transparent)"/>` + (y % 2 ? "" : txt([26, pl.P(22, y)[1]], `${y}°E`, { fs: 11, col: "var(--muted)" }));
+    // a road between every pair already measured
+    [[0, 1], [1, 2], [0, 2]].forEach(([i, j]) => { const k = `${i}${j}`; if (done.has(k)) s += seg(C[i], C[j], { col: "var(--main)", sw: 4 }) + txt(mid(C[i], C[j]), `≈ ${n2(done.get(k))}`, { fs: 15, col: "var(--main)", cls: "halo" }); });
+    if (done.size === 3) s = s.replace('<rect width="640" height="360" fill="var(--map1)"/>', `<rect width="640" height="360" fill="var(--map1)"/>${polyP(C, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", stroke: "none" })}`);
+    C.forEach((P, i) => {
+      const on = sel.includes(i);
+      if (on) s += `<circle class="pulse" cx="${P[0]}" cy="${P[1] - 21}" r="8" fill="var(--pin)"/>`;
+      s += `<g data-city="${i}" style="cursor:pointer">${pinAt(P, on ? "var(--main)" : "var(--pin)", on ? 1.25 : 1.1)}<circle cx="${P[0]}" cy="${P[1] - 14}" r="26" fill="transparent"/></g>`;
+      const c = S.cities[i], right = P[0] < 470;
+      s += `<text class="halo lbl" x="${P[0] + (right ? 18 : -18)}" y="${P[1] - 30}" font-size="16" text-anchor="${right ? "start" : "end"}" fill="var(--ink)">${c[0]}</text>`;
+      s += `<text class="halo" x="${P[0] + (right ? 18 : -18)}" y="${P[1] - 10}" font-size="13" text-anchor="${right ? "start" : "end"}" fill="var(--muted)">${c[1]}(${c[2]}, ${c[3]})</text>`;
+    });
+    svg.innerHTML = s;
+  }
+  function calcLine(i, j) {
+    const S = SETS[set], a = S.cities[i], b = S.cities[j], dx = a[2] - b[2], dy = a[3] - b[3], d = Math.hypot(dx, dy);
+    return { d, html: `<div class="ln ok pop"><b>${a[0]} ↔ ${b[0]}</b>${M(`<i>${a[1]}${b[1]}</i> = ${SQ(`(${n2(a[2])} − ${n2(b[2])})² + (${n2(a[3])} − ${n2(b[3])})²`)} = ${SQ(`${neg(dx)}² + ${neg(dy)}²`)} ≈ ${n2(d)}`)}</div>` };
+  }
+  function calc() {
+    const S = SETS[set];
+    $("#mapCalc").innerHTML = [...done.keys()].map(k => calcLine(+k[0], +k[1]).html).join("") || `<div class="ln">${M(`<i>d</i> = ${SQ("(<i>x</i>₂ − <i>x</i>₁)² + (<i>y</i>₂ − <i>y</i>₁)²")}`)} <span class="muted">قانون المسافة: اضغطي مدينتين.</span></div>`;
+    const qbox = $("#mapQ");
+    if (done.size === 3 && qbox.hidden) {
+      qbox.hidden = false;
+      $("#mapQq").innerHTML = set === 0 ? "أطوال الأضلاع الثلاثة مختلفة. إذن المثلث اللي رؤوسه الرياض وينبع وتبوك:" : "قارني الأطوال الثلاثة. المثلث اللي رؤوسه تبوك وعرعر وحائل تقريبًا:";
+      const T = ["مختلف الأضلاع", "متطابق الضلعين", "متطابق الأضلاع"];
+      const why = set === 0 ? "الأطوال 8.66 و10.96 و4.02 كلها مختلفة." : "المسافة من تبوك إلى عرعر ≈ 5.19 ومن تبوك إلى حائل ≈ 5.17: متساويتان تقريبًا، والضلع الثالث ≈ 3.51.";
+      chipQ($("#mapC"), $("#mapFb"), T.map((t, k) => [t, k === S.ans, k === S.ans ? why : "قارني الأطوال الثلاثة في الحاسبة."]), () => qbox.classList.add("ok"));
+    }
+  }
+  svg.addEventListener("click", e => {
+    const g = e.target.closest("[data-city]"); if (!g) return;
+    const i = +g.dataset.city;
+    if (sel.includes(i)) sel = sel.filter(x => x !== i); else sel.push(i);
+    if (sel.length === 2) { const [a, b] = [...sel].sort(), k = `${a}${b}`; done.set(k, calcLine(a, b).d); sel = []; }
+    draw(); calc();
+  });
+  $$("[data-set]").forEach(b => b.onclick = () => {
+    $$("[data-set]").forEach(x => x.classList.toggle("on", x === b)); set = +b.dataset.set; sel = []; done = new Map();
+    $("#mapQ").hidden = true; $("#mapQ").classList.remove("ok"); $("#mapFb").textContent = ""; draw(); calc();
+  });
+  draw(); calc();
+}
+
+/* ---------- 1. Place the triangle ---------- */
+{
+  const svg = $("#place"), pl = plane(-9, 12, -6, 8, [16, 14, 608, 372]);
+  const LOC = [[0, 0], [0, 5], [7, 0]], NAMES = ["N", "M", "P"]; // right angle at N, MN = 5 (a), NP = 7 (b)
+  let rot = 2, T = [6, 5];
+  const verts = () => LOC.map(([x, y]) => { let p = [x, y]; for (let k = 0; k < rot; k++) p = [-p[1], p[0]]; return [p[0] + T[0], p[1] + T[1]]; });
+  const fits = V => V.every(([x, y]) => x >= pl.x0 && x <= pl.x1 && y >= pl.y0 && y <= pl.y1);
+  function state(V) {
+    const origin = V.some(([x, y]) => x === 0 && y === 0);
+    const sides = [[0, 1], [1, 2], [2, 0]];
+    const onAxis = sides.some(([i, j]) => (V[i][1] === 0 && V[j][1] === 0) || (V[i][0] === 0 && V[j][0] === 0));
+    const quad = V.every(([x, y]) => x >= 0 && y >= 0);
+    const best = V[0][0] === 0 && V[0][1] === 0 && quad;
+    return [origin, onAxis, quad, origin && onAxis && quad, best];
+  }
+  function draw() {
+    const V = verts(), st = state(V), S = V.map(([x, y]) => pl.P(x, y));
+    let s = pl.grid({ quad: true, nums: 2 });
+    s += polyP(S, { fill: "color-mix(in srgb, var(--main) 16%, transparent)", stroke: "var(--main)", sw: 3 });
+    s += arcs(S[0], S[1], S[2], 1, "var(--ink)", 14, { right: true });
+    const G = cent(S);
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 6) + plab(P, G, NAMES[i], st[3] ? (st[4] ? ["0, 0", "0, a", "b, 0"][i] : `${V[i][0]}, ${V[i][1]}`) : `${V[i][0]}, ${V[i][1]}`.replace(/-/g, "−"), { fs: 15 }); });
+    svg.innerHTML = s;
+    st.slice(0, 4).forEach((ok, i) => $(`.chk[data-c="${i}"]`).classList.toggle("ok", ok));
+    $("#placeRo").innerHTML = V.map((v, i) => `<span class="ro${st[3] ? " ok" : ""}">${M(`<i>${NAMES[i]}</i>`)} <b>(${v[0]}, ${v[1]})</b></span>`.replace(/\(-/g, "(−").replace(/, -/g, ", −")).join("");
+    const n = $("#placeNarr"); n.classList.toggle("ok", st[3]);
+    n.innerHTML = st[4] ? `<b>أسهل مكان ✓</b> الزاوية القائمة عند نقطة الأصل والساقان على المحورين. لأن طول ${SG("MN")} يساوي <span class="m"><i>a</i></span> وطول ${SG("NP")} يساوي <span class="m"><i>b</i></span>، تصير الإحداثيات ${M("<i>N</i>(0, 0)")} و${M("<i>M</i>(0, <i>a</i>)")} و${M("<i>P</i>(<i>b</i>, 0)")}: نصف الإحداثيات أصفار، والحساب يصير سهلًا (مثال 1).`
+      : st[3] ? "الخطوات الأربع تحققت ✓ وهذا مكان مقبول. جرّبي تخلين الزاوية القائمة عند الأصل: كم صفر يصير في الإحداثيات؟"
+      : st[0] ? "فيه رأس عند الأصل. الحين خلّي ضلعًا على محور، والمثلث كله في الربع الأول (المنطقة الخضراء)."
+      : "إحداثيات الرؤوس الحين كلها أرقام مختلفة. اسحبي المثلث لين يصير رأس عند نقطة الأصل O، ولفّيه لين تصير الساقان على المحورين.";
+  }
+  let grab = null;
+  dragOn(svg, P => { const S = verts().map(([x, y]) => pl.P(x, y)); if (!inTri(P, S) && !S.some(q => dist(q, P) < 24)) return null; grab = { P0: P, T0: [...T] }; return 1; },
+    P => { const dx = Math.round((P[0] - grab.P0[0]) / pl.s), dy = Math.round(-(P[1] - grab.P0[1]) / pl.s), old = T; T = [grab.T0[0] + dx, grab.T0[1] + dy]; if (!fits(verts())) T = old; draw(); });
+  $("#rot").onclick = () => { const old = rot; rot = (rot + 1) % 4; if (!fits(verts())) { const V = verts(); const xs = V.map(v => v[0]), ys = V.map(v => v[1]); T = [T[0] - Math.min(0, Math.min(...xs) - pl.x0) - Math.max(0, Math.max(...xs) - pl.x1), T[1] - Math.min(0, Math.min(...ys) - pl.y0) - Math.max(0, Math.max(...ys) - pl.y1)]; if (!fits(verts())) rot = old; } draw(); };
+  $("#placeReset").onclick = () => { rot = 2; T = [6, 5]; draw(); };
+  draw();
+}
+
+/* ---------- 2. Missing coordinates ---------- */
+{
+  const svg = $("#iso");
+  let two = false;
+  function draw() {
+    const a = +$("#ia").value, b = +$("#ib").value, base = two ? 2 * a : a;
+    $("#iaO").textContent = a; $("#ibO").textContent = b;
+    const pl = plane(-2.2, Math.max(17, base + 1), -1.4, 7.5, [20, 14, 600, 292]);
+    const X = pl.P(0, 0), Z = pl.P(base, 0), Y = pl.P(base / 2, b), Mb = pl.P(base / 2, 0);
+    let s = pl.grid({ O: false });
+    s += polyP([X, Y, Z], { fill: "color-mix(in srgb, var(--main) 12%, transparent)", stroke: "var(--ink)", sw: 3 });
+    s += seg(Y, Mb, { col: "var(--an)", sw: 2, dash: "6 5" }) + dot(Mb, "var(--an)", 5);
+    s += ticks(X, Y, 1, "var(--main)", 14) + ticks(Z, Y, 1, "var(--main)", 14);
+    const yx = two ? "a" : `a/2`;
+    s += plab(X, Y, "X", "0, 0", { fs: 16, d: 14, dy: 14, anchor: "end" }) + plab(Z, Y, "Z", two ? "2a, 0" : "a, 0", { fs: 16, d: 14, dy: 14, anchor: "start" });
+    s += plab(Y, Mb, "Y", `${yx}, b`, { fs: 16, d: 20 });
+    
+    svg.innerHTML = s;
+    $("#isoNarr").innerHTML = two
+      ? `بالقاعدة <span class="m">2<i>a</i></span>: ${M(`<i>Y</i>(<i>a</i>, <i>b</i>)`)}. هنا ${M(`<i>a</i> = ${a}`)} فـ ${M(`<i>Y</i>(${a}, ${b})`)}. <b>ما فيه كسور!</b> ولو احتجنا منتصف ${SG("XY")} يطلع ${M(`(${FR("<i>a</i>", "2")}, ${FR("<i>b</i>", "2")})`)}، فإذا كان بنحسب منتصفات نختار إحداثيات زوجية مثل ${M("2<i>a</i>")} و${M("2<i>b</i>")}.`
+      : `${SG("XY")} ≅ ${SG("ZY")}، فالرأس ${M("<i>Y</i>")} على بُعد متساوٍ من ${M("<i>X</i>")} و${M("<i>Z</i>")}: يقع فوق منتصف القاعدة، فإحداثيه ${M("<i>x</i>")} هو ${M(FR("<i>a</i>", "2"))}، وارتفاعه ${M("<i>b</i>")}. الحين ${M(`<i>a</i> = ${a}`)} فـ ${M(`<i>Y</i>(${n2(a / 2)}, ${b})`)}${a % 2 ? "، طلع كسر! جرّبي القاعدة 2a." : "."}`;
+  }
+  ["ia", "ib"].forEach(id => $("#" + id).addEventListener("input", draw));
+  $$("[data-iso]").forEach(b => b.onclick = () => { $$("[data-iso]").forEach(x => x.classList.toggle("on", x === b)); two = b.dataset.iso === "2a"; draw(); });
+  draw();
+
+  // Three puzzles: «تحقق 2» and exercises 3 and 4.
+  const PZ = [
+    { h: "تحقق 2: المثلث القائم المتطابق الضلعين", pts: [["A", 0, 5, "?, ?"], ["B", 0, 0, "?, ?"], ["C", 5, 0, "a, ?"]], right: 1, ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>A</i>(0, <i>a</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 1, "الساقان متطابقان، فـ A على المحور y على بُعد a من الأصل."], [M("<i>A</i>(<i>a</i>, <i>a</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 0, "A على المحور y، فإحداثيه x صفر."], [M("<i>A</i>(0, <i>b</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 0, "الساقان متطابقان، فطولهما a كلاهما."]] },
+    { h: "تمرين 3: أوجدي T", pts: [["R", -4, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 4, 0, "?, ?"]], ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>T</i>(2<i>a</i>, 0)"), 1, "المثلث متماثل حول المحور y: T انعكاس R."], [M("<i>T</i>(−2<i>a</i>, 0)"), 0, "هذي إحداثيات R."], [M("<i>T</i>(<i>a</i>, 0)"), 0, "R على بُعد 2a من الأصل، فـ T كذلك."], [M("<i>T</i>(2<i>a</i>, <i>b</i>)"), 0, "T على المحور x."]] },
+    { h: "تمرين 4: أوجدي W وZ", pts: [["W", 0, 0, "?, ?"], ["Z", 3, 4, "?, b"], ["Y", 6, 0, "2a, 0"]], ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>W</i>(0, 0) ، <i>Z</i>(<i>a</i>, <i>b</i>)"), 1, "W عند الأصل، وZ فوق منتصف القاعدة (2a ÷ 2 = a)."], [M("<i>W</i>(0, 0) ، <i>Z</i>(2<i>a</i>, <i>b</i>)"), 0, "Z فوق المنتصف، مو فوق Y."], [M("<i>W</i>(0, 0) ، <i>Z</i>(<i>a</i>/2, <i>b</i>)"), 0, "منتصف القاعدة 2a هو a."]] },
+  ];
+  $("#pzs").innerHTML = PZ.map((p, k) => `<div class="step pz" data-p="${k}"><h3>${p.h}</h3><svg viewBox="0 0 300 220" aria-hidden="true"></svg><div class="chips"></div><p class="fb"></p></div>`).join("");
+  PZ.forEach((p, k) => {
+    const card = $(`.pz[data-p="${k}"]`), xs = p.pts.map(q => q[1]), pl = plane(Math.min(-1, ...xs) - .8, Math.max(...xs) + 1.4, -1.6, 6.4, [40, 6, 220, 208]);
+    const S = p.pts.map(q => pl.P(q[1], q[2])), G = cent(S);
+    let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 2.6 });
+    if (p.right != null) s += arcs(S[p.right], S[(p.right + 1) % 3], S[(p.right + 2) % 3], 1, "var(--ink)", 12, { right: true });
+    p.ticks.forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 12); });
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 4) + plab(P, G, p.pts[i][0], p.pts[i][3], { fs: 14, d: 16, below: p.pts[i][2] === 0 && p.pts[i][1] !== 0 }); });
+    $("svg", card).innerHTML = s;
+    chipQ($(".chips", card), $(".fb", card), p.o, () => card.classList.add("ok"));
+  });
+}
+
+/* ---------- 3. Coordinate proofs ---------- */
+{
+  const svg = $("#mid");
+  let pr = 0, at = 0, a = 3, b = 1, c = 3;
+  const PROOFS = [
+    { given: `<b>المعطيات:</b> ${M("△<i>ABC</i>")}، ${M("<i>S</i>")} منتصف ${SG("AC")}، ${M("<i>T</i>")} منتصف ${SG("BC")}.<br><b>المطلوب:</b> إثبات أن ${M(`${OV("ST")} ∥ ${OV("AB")}`)}.<br><span class="muted">الرؤوس: ${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(2<i>a</i>, 0)")}، ${M("<i>C</i>(2<i>b</i>, 2<i>c</i>)")}. اخترنا مضاعفات 2 لأننا بنحسب منتصفات.</span>`,
+      steps: [
+        { s: `قانون نقطة المنتصف: إحداثيات ${M("<i>S</i>")} = ${M(`(${FR("2<i>b</i> + 0", "2")}, ${FR("2<i>c</i> + 0", "2")})`)} =`, o: [M("(<i>b</i>, <i>c</i>)"), M("(2<i>b</i>, 2<i>c</i>)"), M("(<i>b</i>/2, <i>c</i>/2)")], ok: 0, why: "نقسم كل مجموع على 2." },
+        { s: `إحداثيات ${M("<i>T</i>")} = ${M(`(${FR("2<i>a</i> + 2<i>b</i>", "2")}, ${FR("0 + 2<i>c</i>", "2")})`)} =`, o: [M("(<i>a</i> + <i>b</i>, <i>c</i>)"), M("(<i>a</i> + 2<i>b</i>, <i>c</i>)"), M("(2<i>a</i> + 2<i>b</i>, 2<i>c</i>)")], ok: 0, why: "كل حد في البسط يتقسم على 2." },
+        { s: `قانون الميل: ميل ${SG("ST")} = ${M(FR("<i>c</i> − <i>c</i>", "<i>a</i> + <i>b</i> − <i>b</i>"))} =`, o: [M("0"), M("<i>c</i>/<i>a</i>"), M("غير معرّف")], ok: 0, why: "البسط صفر والمقام a ≠ 0." },
+        { s: `ميل ${SG("AB")} = ${M(FR("0 − 0", "2<i>a</i> − 0"))} =`, o: [M("0"), M("2<i>a</i>"), M("غير معرّف")], ok: 0, why: "القطعة على المحور x." },
+        { s: `ميلا ${SG("ST")} و${SG("AB")} متساويان، إذن:`, o: [M(`${OV("ST")} ∥ ${OV("AB")}`), M(`${OV("ST")} ⊥ ${OV("AB")}`), M(`${OV("ST")} ≅ ${OV("AB")}`)], ok: 0, why: "المستقيمان المتوازيان (غير الرأسيين) ميلاهما متساويان." },
+      ] },
+    { given: `<b>المعطيات:</b> ${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(<i>x</i>, <i>b</i>)")}، ${M("<i>C</i>(<i>a</i> + <i>x</i>, <i>b</i>)")}، ${M("<i>D</i>(<i>a</i>, 0)")}، و${SG("AC")} و${SG("BD")} يتقاطعان في ${M("<i>X</i>")}.<br><b>المطلوب:</b> إثبات أن ${M("△<i>ABX</i> ≅ △<i>CDX</i>")}.`,
+      steps: [
+        { s: `${M("<i>AB</i> = " + SQ("<i>x</i>² + <i>b</i>²"))} و${M("<i>CD</i> = " + SQ("(<i>a</i> + <i>x</i> − <i>a</i>)² + (<i>b</i> − 0)²"))} =`, o: [M(SQ("<i>x</i>² + <i>b</i>²")), M(SQ("<i>a</i>² + <i>b</i>²")), M("<i>x</i> + <i>b</i>")], ok: 0, why: "قانون المسافة: a تنحذف." },
+        { s: `منتصف ${SG("AC")} = ${M(`(${FR("<i>a</i> + <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`)}، ومنتصف ${SG("BD")} =`, o: [M(`(${FR("<i>a</i> + <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`), M(`(${FR("<i>a</i> − <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`), M(`(<i>a</i> + <i>x</i>, <i>b</i>)`)], ok: 0, why: "للقطرين المنتصف نفسه، وهي النقطة X." },
+        { s: `إذن ${M("<i>X</i>")} منتصف ${SG("AC")} ومنتصف ${SG("BD")}، فـ`, o: [M(`${OV("AX")} ≅ ${OV("CX")} ، ${OV("BX")} ≅ ${OV("DX")}`), M(`${OV("AX")} ≅ ${OV("BX")}`), M(`${OV("AC")} ≅ ${OV("BD")}`)], ok: 0, why: "نقطة المنتصف تقسم القطعة إلى قطعتين متطابقتين." },
+        { s: `${M(`${OV("AB")} ≅ ${OV("CD")}`)} و${M(`${OV("AX")} ≅ ${OV("CX")}`)} و${M(`${OV("BX")} ≅ ${OV("DX")}`)}، إذن ${M("△<i>ABX</i> ≅ △<i>CDX</i>")} بـ`, o: [M("SSS"), M("SAS"), M("ASA")], ok: 0, why: "ثلاثة أضلاع متطابقة مع نظائرها." },
+      ] },
+  ];
+  const pl = plane(-2.4, 12, -1, 9.5, [10, 10, 500, 420]);
+  function figure() {
+    let s = pl.grid({ nums: 2 });
+    if (pr === 0) {
+      const A = pl.P(0, 0), B = pl.P(2 * a, 0), C = pl.P(2 * b, 2 * c), S = mid(A, C), T = mid(B, C), G = cent([A, B, C]);
+      s += polyP([A, B, C], { fill: "color-mix(in srgb, var(--main) 10%, transparent)", sw: 3 });
+      s += seg(S, T, { col: "var(--an)", sw: 4 }) + seg(A, B, { col: "var(--p1)", sw: 4 });
+      s += ticks(A, S, 1, "var(--an)", 12) + ticks(S, C, 1, "var(--an)", 12) + ticks(B, T, 2, "var(--an)", 12) + ticks(T, C, 2, "var(--an)", 12);
+      s += plab(A, G, "A", "0, 0", { fs: 18, d: 20 }) + plab(B, G, "B", `${2 * a}, 0`, { fs: 18, d: 20 }) + plab(C, G, "C", `${2 * b}, ${2 * c}`, { fs: 18, d: 20 });
+      s += plab(S, mid(B, T), "S", `${b}, ${c}`, { fs: 17, d: 18, col: "var(--an)" }) + plab(T, mid(A, S), "T", `${a + b}, ${c}`, { fs: 17, d: 18, col: "var(--an)" });
+      s += dot(S, "var(--an)") + dot(T, "var(--an)") + `<circle cx="${C[0]}" cy="${C[1]}" r="13" fill="var(--main)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>` + `<circle cx="${B[0]}" cy="${B[1]}" r="11" fill="var(--p1)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>`;
+      $("#midRo").innerHTML = `<span class="ro ok">ميل ${M(OV("ST"))} <b>0</b></span><span class="ro ok">ميل ${M(OV("AB"))} <b>0</b></span><span class="ro">${M("<i>ST</i>")} <b>${a}</b></span><span class="ro">${M("<i>AB</i>")} <b>${2 * a}</b></span>`;
+    } else {
+      const xa = 2 * a, xx = 2 * b, yb = 2 * c, A = pl.P(0, 0), B = pl.P(xx, yb), C = pl.P(xa + xx, yb), D = pl.P(xa, 0), X = mid(A, C), G = cent([A, B, C, D]);
+      s += polyP([A, B, X], { fill: "color-mix(in srgb, var(--p1) 16%, transparent)", stroke: "none" }) + polyP([C, D, X], { fill: "color-mix(in srgb, var(--p3) 16%, transparent)", stroke: "none" });
+      s += seg(A, B, { sw: 3 }) + seg(B, C, { sw: 2, col: "var(--muted)" }) + seg(C, D, { sw: 3 }) + seg(D, A, { sw: 2, col: "var(--muted)" }) + seg(A, C, { sw: 2.6, col: "var(--an)" }) + seg(B, D, { sw: 2.6, col: "var(--an)" });
+      s += ticks(A, B, 1, "var(--p1)", 12) + ticks(C, D, 1, "var(--p1)", 12) + ticks(A, X, 2, "var(--an)", 12) + ticks(X, C, 2, "var(--an)", 12) + ticks(B, X, 3, "var(--an)", 12) + ticks(X, D, 3, "var(--an)", 12);
+      s += plab(A, G, "A", "0, 0", { fs: 18, d: 20 }) + plab(B, G, "B", "x, b", { fs: 18, d: 20 }) + plab(C, G, "C", "a+x, b", { fs: 18, d: 20 }) + plab(D, G, "D", "a, 0", { fs: 18, d: 20 }) + dot(X, "var(--an)") + plab(X, [X[0], X[1] - 10], "X", "", { fs: 18, d: 20 });
+      s += `<circle cx="${B[0]}" cy="${B[1]}" r="13" fill="var(--main)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>`;
+      const ab = Math.hypot(xx, yb);
+      $("#midRo").innerHTML = `<span class="ro ok">${M("<i>AB</i>")} <b>${n2(ab)}</b></span><span class="ro ok">${M("<i>CD</i>")} <b>${n2(ab)}</b></span><span class="ro">${M("<i>AX</i> = <i>CX</i>")} <b>${n2(Math.hypot(xa + xx, yb) / 2)}</b></span><span class="ro">${M("<i>BX</i> = <i>DX</i>")} <b>${n2(Math.hypot(xa - xx, yb) / 2)}</b></span>`;
+    }
+    svg.innerHTML = s;
+  }
+  function steps() {
+    const P = PROOFS[pr];
+    $("#prGiven").innerHTML = P.given;
+    $("#prSteps").innerHTML = P.steps.map((st, i) => `<li class="${i < at ? "done" : i === at ? "now" : "later"}"><span>${i + 1}) ${st.s} ${i < at ? `<b class="c2">${st.o[st.ok]}</b> <span class="why">${st.why}</span>` : `<span class="blank">؟</span>`}</span>${i === at ? `<div class="chips" id="prC"></div>` : ""}</li>`).join("");
+    if (at < P.steps.length) {
+      const st = P.steps[at];
+      chipQ($("#prC"), $("#prFb"), st.o.map((o, k) => [o, k === st.ok, k === st.ok ? "" : st.why]), () => setTimeout(() => { at++; $("#prFb").textContent = ""; steps(); }, 650));
+    } else { $("#prFb").className = "fb good"; $("#prFb").innerHTML = `اكتمل البرهان ✓ ${pr === 0 ? `ولاحظي: ${M("<i>ST</i> = <i>a</i>")} و${M("<i>AB</i> = 2<i>a</i>")}، فالقطعة الواصلة بين منتصفي ضلعين طولها نصف الضلع الثالث (تمرين 13). <button class="btn soft" type="button" id="prNext" style="padding:2px 12px">البرهان التالي</button>` : "أنهيتي البرهانين 📍"}`; $("#prNext")?.addEventListener("click", () => $$("[data-pr]")[1].click()); }
+  }
+  let drag = null;
+  dragOn(svg, P => {
+    const Cp = pr === 0 ? pl.P(2 * b, 2 * c) : pl.P(2 * b, 2 * c), Bp = pl.P(2 * a, 0);
+    if (dist(P, Cp) < 30) return (drag = "C");
+    if (pr === 0 && dist(P, Bp) < 30) return (drag = "B");
+    return null;
+  }, P => {
+    const x = Math.round((P[0] - pl.P(0, 0)[0]) / pl.s / 2), y = Math.round(-(P[1] - pl.P(0, 0)[1]) / pl.s / 2);
+    if (drag === "C") { b = clamp(x, pr === 0 ? -0 : 0, pr === 0 ? 5 : 2); c = clamp(y, 1, 4); }
+    else a = clamp(x, 1, 5);
+    if (pr === 1) a = Math.max(a, 2);
+    figure();
+  });
+  $$("[data-pr]").forEach(bt => bt.onclick = () => { $$("[data-pr]").forEach(x => x.classList.toggle("on", x === bt)); pr = +bt.dataset.pr; at = 0; $("#prFb").textContent = ""; if (pr === 1) { a = 3; b = 1; c = 2; } else { a = 3; b = 1; c = 3; } figure(); steps(); });
+  figure(); steps();
+}
+
+/* ---------- 4. Distance calculator ---------- */
+{
+  const PB = [
+    { tab: "تمرين 17: المخيّم", story: "خيمتان في متنزه عند <span class=\"m\">(12, 9)</span> و<span class=\"m\">(0, 25)</span>، ومكتب إدارة المتنزه عند الأصل. هل المثلث قائم الزاوية؟", pts: [["O", 0, 0], ["F", 12, 9], ["G", 0, 25]], range: [-2, 16, -2, 27],
+      q1: [["مختلف الأضلاع", 1, "الأطوال 15 و20 و25 مختلفة."], ["متطابق الضلعين", 0, "قارني الأطوال الثلاثة."], ["متطابق الأضلاع", 0, "الأطوال مختلفة."]],
+      q2: [["قائم الزاوية: 15² + 20² = 25²", 1, "225 + 400 = 625. الزاوية القائمة عند الخيمة F."], ["غير قائم", 0, "جربي: 15² + 20² = ؟"], ["قائم عند الأصل", 0, "الزاوية القائمة تقابل الضلع الأطول OG، فهي عند F."]] },
+    { tab: "تمرين 15", story: "في <span class=\"m\">△<i>XYZ</i></span>: <span class=\"m\"><i>X</i>(0, 0)</span>، <span class=\"m\"><i>Y</i>(2<i>h</i>, 2<i>h</i>)</span>، <span class=\"m\"><i>Z</i>(4<i>h</i>, 0)</span>. هنا نجرب <span class=\"m\"><i>h</i> = 2</span>.", pts: [["X", 0, 0], ["Y", 4, 4], ["Z", 8, 0]], range: [-1, 9.5, -1, 6],
+      q1: [["متطابق الضلعين", 1, "XY = YZ = 4√2 ≈ 5.66 و XZ = 8. وبالحروف: XY = YZ = 2h√2."], ["مختلف الأضلاع", 0, "قارني XY وYZ."], ["متطابق الأضلاع", 0, "XZ أطول."]],
+      q2: [["قائم الزاوية عند Y", 1, "(4√2)² + (4√2)² = 32 + 32 = 64 = 8². وبالحروف: 8h² + 8h² = 16h²."], ["غير قائم", 0, "جربي فيثاغورس على الأطوال."], ["قائم عند X", 0, "الضلع الأطول XZ يقابل Y."]] },
+    { tab: "تمرين 16", story: "في <span class=\"m\">△<i>XYZ</i></span>: <span class=\"m\"><i>X</i>(0, 0)</span>، <span class=\"m\"><i>Y</i>(1, <i>h</i>)</span>، <span class=\"m\"><i>Z</i>(2<i>h</i>, 0)</span>. هنا نجرب <span class=\"m\"><i>h</i> = 3</span>.", pts: [["X", 0, 0], ["Y", 1, 3], ["Z", 6, 0]], range: [-1, 7.5, -1, 5],
+      q1: [["مختلف الأضلاع", 1, "XY = √10 ≈ 3.16 و YZ = √34 ≈ 5.83 و XZ = 6."], ["متطابق الضلعين", 0, "الأطوال الثلاثة مختلفة."], ["متطابق الأضلاع", 0, "الأطوال مختلفة."]],
+      q2: [["غير قائم: 10 + 34 ≠ 36", 1, "مجموع مربعي الضلعين الأقصرين 44، ومربع الأطول 36."], ["قائم الزاوية عند Y", 0, "10 + 34 = 44، و6² = 36."], ["قائم الزاوية عند X", 0, "Y مو على المحور y، فالزاوية عند X مو قائمة."]] },
+  ];
+  let k = 0, n = 0;
+  $("#dSeg").innerHTML = PB.map((p, i) => `<button type="button" data-d="${i}"${i ? "" : ' class="on"'}>${p.tab}</button>`).join("");
+  const pairs = [[0, 1], [1, 2], [0, 2]];
+  function draw() {
+    const p = PB[k], pl = plane(p.range[0], p.range[1], p.range[2], p.range[3], [10, 10, 380, 340]);
+    const S = p.pts.map(q => pl.P(q[1], q[2])), G = cent(S);
+    let s = pl.grid({ nums: p.range[3] > 10 ? 5 : 1, step: p.range[3] > 10 ? 5 : 1 });
+    s += polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", stroke: "var(--ink)", sw: 2.4 });
+    pairs.slice(0, n).forEach(([i, j]) => { s += seg(S[i], S[j], { col: "var(--main)", sw: 4 }); });
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 5) + plab(P, G, p.pts[i][0], `${p.pts[i][1]}, ${p.pts[i][2]}`, { fs: 14, d: 16 }); });
+    $("#dist").innerHTML = s;
+    $("#dStory").innerHTML = p.story;
+    $("#dCalc").innerHTML = pairs.slice(0, n).map(([i, j]) => {
+      const A = p.pts[i], B = p.pts[j], d = Math.hypot(A[1] - B[1], A[2] - B[2]), sq = (A[1] - B[1]) ** 2 + (A[2] - B[2]) ** 2;
+      return `<div class="ln ok pop">${M(`<i>${A[0]}${B[0]}</i> = ${SQ(`(${B[1]} − ${A[1]})² + (${B[2]} − ${A[2]})²`.replace(/− -/g, "+ "))} = ${SQ(sq)}${Number.isInteger(d) ? ` = ${d}` : ` ≈ ${n2(d)}`}`)}</div>`;
+    }).join("");
+    $("#dGo").hidden = n >= 3;
+    const q = $("#dQ");
+    if (n >= 3 && q.hidden) {
+      q.hidden = false; $("#dQq").textContent = "حسب الأضلاع، المثلث:";
+      chipQ($("#dC"), $("#dFb"), p.q1, () => setTimeout(() => { $("#dQq").textContent = "وهل هو قائم الزاوية؟ (عكس نظرية فيثاغورس)"; $("#dFb").textContent = ""; chipQ($("#dC"), $("#dFb"), p.q2, () => q.classList.add("ok")); }, 1500));
+    }
+  }
+  $("#dGo").onclick = () => { n = Math.min(3, n + 1); draw(); };
+  $$("[data-d]").forEach(b => b.onclick = () => { $$("[data-d]").forEach(x => x.classList.toggle("on", x === b)); k = +b.dataset.d; n = 0; $("#dQ").hidden = true; $("#dQ").classList.remove("ok"); $("#dFb").textContent = ""; draw(); });
+  draw();
+}
+
+/* ---------- 5. Pin the coordinates (game) ---------- */
+{
+  const ROUNDS = 8;
+  let round = 0, score = 0, cur = null, plan = [];
+  const RX = i => 50 + i * 77, RY = i => 70 + (i % 2 ? -14 : 10);
+  function route() {
+    let s = `<rect width="640" height="110" rx="12" fill="var(--map1)"/><path d="M${RX(0)} ${RY(0)} ${Array.from({ length: ROUNDS - 1 }, (_, i) => `L${RX(i + 1)} ${RY(i + 1)}`).join(" ")}" fill="none" stroke="var(--muted)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/>`;
+    for (let i = 0; i < ROUNDS; i++) s += `<circle class="dot" data-i="${i}" cx="${RX(i)}" cy="${RY(i)}" r="5" fill="var(--muted)"/><g class="pinR" data-i="${i}">${pinAt([RX(i), RY(i)], "var(--pin)", 1.1)}</g>`;
+    $("#route").innerHTML = s;
+  }
+  // Each template: points [name, x, y, label] in a sample size, the asked point, its right label, and wrong labels.
+  const T = {
+    isoO: () => ({ pts: [["X", 0, 0, "0, 0"], ["Y", 3, 4, "?, ?"], ["Z", 6, 0, "2a, 0"]], ticks: [[0, 1], [1, 2]], ask: 1, ans: "a, b", wrong: ["2a, b", "a/2, b", "b, a"], note: "الرأس فوق منتصف القاعدة 2a.", hint: `الارتفاع ${M("<i>b</i>")}.` }),
+    isoY: () => ({ pts: [["K", -3, 0, "−a, 0"], ["B", 0, 4, "?, b"], ["P", 3, 0, "?, ?"]], ticks: [[0, 1], [1, 2]], ask: 2, ans: "a, 0", wrong: ["−a, 0", "0, a", "2a, 0"], note: "المثلث متماثل حول المحور y، فـ P انعكاس K." }),
+    right: () => ({ pts: [["M", 0, 4, "0, ?"], ["N", 0, 0, "0, 0"], ["P", 6, 0, "b, 0"]], right: 1, ask: 0, ans: "0, a", wrong: ["a, 0", "a, b", "b, a"], note: `${M("<i>M</i>")} على المحور y على بُعد ${M("<i>a</i> = <i>MN</i>")}.`, given: `${M("<i>MN</i> = <i>a</i>")} ، ${M("<i>NP</i> = <i>b</i>")}` }),
+    rightIso: () => ({ pts: [["Z", 0, 0, "0, 0"], ["Y", 5, 0, "a, ?"], ["C", 5, 5, "?, ?"]], right: 1, ticks: [[0, 1], [1, 2]], ask: 2, ans: "a, a", wrong: ["0, a", "a, 0", "2a, a"], note: "ZY = YC = a، وC فوق Y مباشرة (تمرين 9)." }),
+    iso4b: () => ({ pts: [["N", 0, 0, "0, 0"], ["H", 4, 4, "?, c"], ["D", 8, 0, "4b, ?"]], ticks: [[0, 1], [1, 2]], ask: 1, ans: "2b, c", wrong: ["4b, c", "b, c", "2b, 2c"], note: "منتصف القاعدة 4b هو 2b (تمرين 11)." }),
+    sym2a: () => ({ pts: [["R", -5, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 5, 0, "?, ?"]], ticks: [[0, 1], [1, 2]], ask: 2, ans: "2a, 0", wrong: ["−2a, 0", "a, 0", "2a, b"], note: "T انعكاس R حول المحور y (تمرين 3)." }),
+    midS: () => ({ pts: [["A", 0, 0, "0, 0"], ["B", 6, 0, "2a, 0"], ["C", 2, 4, "2b, 2c"]], ask: -1, mid: [0, 2, "S"], ans: "b, c", wrong: ["2b, 2c", "b/2, c/2", "a + b, c"], note: "منتصف AC: (2b + 0)/2 و(2c + 0)/2." }),
+    midT: () => ({ pts: [["A", 0, 0, "0, 0"], ["B", 6, 0, "2a, 0"], ["C", 2, 4, "2b, 2c"]], ask: -1, mid: [1, 2, "T"], ans: "a + b, c", wrong: ["b, c", "2a + 2b, 2c", "a, c"], note: "منتصف BC: (2a + 2b)/2 و(0 + 2c)/2." }),
+  };
+  const it = s => s.replace(/([a-z])/g, "<i>$1</i>").replace(/-/g, "−");
+  function draw() {
+    const c = cur, xs = c.pts.map(p => p[1]), pl = plane(Math.min(-1, ...xs) - 1.5, Math.max(...xs) + 2.5, -1.2, 5.6, [10, 8, 620, 274]);
+    const S = c.pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+    let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 3 });
+    if (c.right != null) s += arcs(S[c.right], S[(c.right + 1) % 3], S[(c.right + 2) % 3], 1, "var(--ink)", 14, { right: true });
+    (c.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 14); });
+    S.forEach((P, i) => { s += (i === c.ask ? pinAt(P, "var(--pin)", 1.2) : dot(P, "var(--main)", 6)) + plab(P, G, c.pts[i][0], c.pts[i][3], { fs: 17, d: 22, below: c.pts[i][2] === 0 && c.pts[i][1] !== 0, col: i === c.ask ? "var(--pin)" : "var(--ink)" }); });
+    if (c.mid) { const Q = mid(S[c.mid[0]], S[c.mid[1]]); s += ticks(S[c.mid[0]], Q, 1, "var(--an)", 13) + ticks(Q, S[c.mid[1]], 1, "var(--an)", 13) + pinAt(Q, "var(--pin)", 1.2) + plab(Q, G, c.mid[2], "?, ?", { fs: 17, d: 22, col: "var(--pin)" }); }
+    $("#gFig").innerHTML = s;
+  }
+  function next() {
+    if (round === 0) plan = shuffle(Object.keys(T)).slice(0, ROUNDS);
+    cur = T[plan[round]]();
+    const name = cur.ask >= 0 ? cur.pts[cur.ask][0] : cur.mid[2];
+    cur.q = cur.ask >= 0 ? `أوجدي إحداثيات ${M(`<i>${name}</i>`)}${cur.given ? ` (${cur.given})` : ""}.` : `${M(`<i>${name}</i>`)} منتصف ${SG(cur.pts[cur.mid[0]][0] + cur.pts[cur.mid[1]][0])}. أوجدي إحداثياتها.`;
+    cur.o = shuffle([cur.ans, ...cur.wrong]).map(t => ({ t, ok: t === cur.ans }));
+    draw();
+    $("#gRound").textContent = round + 1; $("#gQ").innerHTML = cur.q;
+    $("#gOpts").innerHTML = cur.o.map((o, i) => `<button type="button" data-g="${i}">${M(`<i>${name}</i>(${it(o.t)})`)}</button>`).join("");
+    $("#gFb").textContent = ""; $("#gFb").className = "fb"; $("#gNext").hidden = true; $("#gOpts").dataset.lock = "";
+  }
+  $("#gOpts").addEventListener("click", e => {
+    const b = e.target.closest("button[data-g]"); if (!b || $("#gOpts").dataset.lock === "1") return;
+    $("#gOpts").dataset.lock = "1";
+    const ok = cur.o[+b.dataset.g].ok;
+    $$("#gOpts button").forEach(x => { if (cur.o[+x.dataset.g].ok) x.classList.add("right"); });
+    if (!ok) { b.classList.add("wrong"); $(`#route .dot[data-i="${round}"]`).classList.add("miss"); } else { score++; $(`#route .pinR[data-i="${round}"]`).classList.add("on"); }
+    $("#gScore").textContent = score;
+    $("#gFb").className = `fb ${ok ? "good" : "bad"}`;
+    $("#gFb").innerHTML = `${ok ? "ثبّتي الدبوس ✓" : "الدبوس طار."} ${ar(cur.note)}`;
+    round++;
+    if (round >= ROUNDS) { $("#gFb").innerHTML += `<br><b>${score === ROUNDS ? "وصلتي لنهاية الطريق! 🏁" : `ثبّتي ${score} دبابيس من ${ROUNDS}`}</b>`; $("#gNext").textContent = "رحلة جديدة"; }
+    else $("#gNext").textContent = "المحطة التالية";
+    $("#gNext").hidden = false;
+  });
+  $("#gNext").onclick = () => { if (round >= ROUNDS) { round = score = 0; $("#gScore").textContent = 0; route(); } next(); };
+  route(); next();
+}
+
+/* ---------- 6. Quiz ---------- */
+// From the book (pp. 65–66); the number in brackets is the exercise.
+function qfig(pts, o = {}) {
+  const xs = pts.map(p => p[1]), pl = plane(Math.min(-1, ...xs) - 1.2, Math.max(...xs) + 2.2, -1.2, 5.8, [6, 6, 288, 168]);
+  const S = pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+  let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 10%, transparent)", sw: 2.4 });
+  (o.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 11); });
+  if (o.right != null) s += arcs(S[o.right], S[(o.right + 1) % 3], S[(o.right + 2) % 3], 1, "var(--ink)", 11, { right: true });
+  S.forEach((P, i) => { s += dot(P, "var(--main)", 4) + plab(P, G, pts[i][0], pts[i][3], { fs: 13, d: 15, below: pts[i][2] === 0 && pts[i][1] !== 0 }); });
+  return s;
+}
+const QUIZ = [
+  { q: `أوجدي الإحداثيات المجهولة للرأس ${M("<i>T</i>")} في المثلث المتطابق الضلعين. (تمرين 3)`,
+    fig: qfig([["R", -4, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 4, 0, "?, ?"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>T</i>(2<i>a</i>, 0)"), M("<i>T</i>(−2<i>a</i>, 0)"), M("<i>T</i>(<i>b</i>, 0)"), M("<i>T</i>(2<i>a</i>, <i>b</i>)")], ok: 0,
+    why: `${M("<i>S</i>")} على المحور y و${M("<i>SR</i> = <i>ST</i>")}، فـ ${M("<i>T</i>")} انعكاس ${M("<i>R</i>")} حول المحور y.` },
+  { q: `في الشكل، أوجدي إحداثيات ${M("<i>B</i>")} و${M("<i>P</i>")}. (تمرين 10)`,
+    fig: qfig([["K", -3, 0, "−a, 0"], ["B", 0, 4, "?, b"], ["P", 3, 0, "?, 0"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>B</i>(0, <i>b</i>) ، <i>P</i>(<i>a</i>, 0)"), M("<i>B</i>(<i>a</i>, <i>b</i>) ، <i>P</i>(<i>a</i>, 0)"), M("<i>B</i>(0, <i>b</i>) ، <i>P</i>(2<i>a</i>, 0)"), M("<i>B</i>(<i>b</i>, 0) ، <i>P</i>(<i>a</i>, 0)")], ok: 0,
+    why: `${M("<i>B</i>")} على المحور y، و${M("<i>P</i>")} انعكاس ${M("<i>K</i>(−<i>a</i>, 0)")}.` },
+  { q: `أوجدي إحداثيات ${M("<i>H</i>")}. (تمرين 11)`,
+    fig: qfig([["N", 0, 0, "0, 0"], ["H", 4, 4, "?, c"], ["D", 8, 0, "4b, ?"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>H</i>(2<i>b</i>, <i>c</i>)"), M("<i>H</i>(4<i>b</i>, <i>c</i>)"), M("<i>H</i>(<i>b</i>, <i>c</i>)"), M("<i>H</i>(2<i>b</i>, 2<i>c</i>)")], ok: 0,
+    why: `الرأس فوق منتصف القاعدة: ${M("4<i>b</i> ÷ 2 = 2<i>b</i>")}، وارتفاعه ${M("<i>c</i>")}.` },
+  { q: `${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(2<i>a</i>, 0)")}، ${M("<i>C</i>(2<i>b</i>, 2<i>c</i>)")}. ${M("<i>S</i>")} و${M("<i>T</i>")} منتصفا ${SG("AC")} و${SG("BC")}. ما العلاقة بين ${M("<i>ST</i>")} و${M("<i>AB</i>")}؟ (تمرين 13)`,
+    opts: [M("<i>ST</i> = ½ <i>AB</i>"), M("<i>ST</i> = <i>AB</i>"), M("<i>ST</i> = 2 <i>AB</i>"), "ما فيه علاقة ثابتة"], ok: 0,
+    why: `${M("<i>S</i>(<i>b</i>, <i>c</i>)")} و${M("<i>T</i>(<i>a</i> + <i>b</i>, <i>c</i>)")} فـ ${M("<i>ST</i> = <i>a</i>")}، و${M("<i>AB</i> = 2<i>a</i>")}.` },
+  { q: `في ${M("△<i>XYZ</i>")}: ${M("<i>X</i>(0, 0)")}، ${M("<i>Y</i>(2<i>h</i>, 2<i>h</i>)")}، ${M("<i>Z</i>(4<i>h</i>, 0)")}. صنّفي المثلث. (تمرين 15)`,
+    opts: ["قائم الزاوية ومتطابق الضلعين", "مختلف الأضلاع وغير قائم", "متطابق الأضلاع", "متطابق الضلعين وغير قائم"], ok: 0,
+    why: `${M("<i>XY</i> = <i>YZ</i> = 2<i>h</i>√2")} و${M("<i>XZ</i> = 4<i>h</i>")}، و${M("8<i>h</i>² + 8<i>h</i>² = 16<i>h</i>²")}.` },
+  { q: `مكتب إدارة متنزه عند ${M("(0, 0)")} وخيمتان عند ${M("(12, 9)")} و${M("(0, 25)")}. ما أطوال أضلاع المثلث؟ (تمرين 17)`,
+    opts: [M("15 ، 20 ، 25"), M("21 ، 16 ، 25"), M("15 ، 15 ، 25"), M("12 ، 9 ، 25")], ok: 0,
+    why: `${M(`${SQ("12² + 9²")} = 15`)}، ${M(`${SQ("12² + 16²")} = 20`)}، ${M("25")}. و${M("15² + 20² = 25²")}، فهو قائم.` },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.fig ? `<svg viewBox="0 0 300 180" aria-hidden="true">${it.fig}</svg>` : ""}
+    <div class="opts">${shuffle([...it.opts.keys()]).map((j, n) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[n]}</b><span>${it.opts[j]}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, $(".qq", card), b, [...card.querySelectorAll(".opt")].find(o => +o.dataset.j === it.ok));
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="c2">صحيح ✓</b>` : `<b class="cb">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "📍 ملّاحة محترفة!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("coordinate-proof", $("#quiz"), restartQuiz);
+
+/* ---------- Summary drawings ---------- */
+{
+  const small = (sel, pts, o = {}) => {
+    const pl = plane(-1, 8, -0.8, 4.6, [10, 6, 280, 108]), S = pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+    let s = pl.grid({ O: false }) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 2.4 });
+    if (o.right != null) s += arcs(S[o.right], S[(o.right + 1) % 3], S[(o.right + 2) % 3], 1, "var(--ink)", 10, { right: true });
+    (o.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 10); });
+    if (o.mid) { const A = mid(S[0], S[2]), B = mid(S[1], S[2]); s += seg(A, B, { col: "var(--an)", sw: 3 }) + dot(A, "var(--an)", 3.5) + dot(B, "var(--an)", 3.5); }
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 3.5) + (pts[i][3] ? plab(P, G, "", pts[i][3], { fs: 11, d: 12 }) : ""); });
+    $(sel).innerHTML = s;
+  };
+  small("#sum1", [["", 0, 0, "0, 0"], ["", 6, 0, "b, 0"], ["", 0, 3.6, "0, a"]], { right: 0 });
+  small("#sum2", [["", 0, 0, "0, 0"], ["", 7, 0, "2a, 0"], ["", 3.5, 3.6, "a, b"]], { ticks: [[0, 2], [1, 2]] });
+  small("#sum3", [["", 0, 0, ""], ["", 7, 0, ""], ["", 2.5, 3.8, ""]], { mid: true });
+  const pl = plane(-1, 8, -0.8, 4.6, [10, 6, 280, 108]);
+  $("#sum4").innerHTML = `<rect width="300" height="120" fill="var(--map1)" rx="8"/>` + seg(pl.P(1, 0.5), pl.P(6.5, 1), { col: "var(--main)", sw: 3 }) + seg(pl.P(6.5, 1), pl.P(3, 4), { col: "var(--main)", sw: 3 }) + seg(pl.P(3, 4), pl.P(1, 0.5), { col: "var(--main)", sw: 3 }) + pinAt(pl.P(1, 0.5)) + pinAt(pl.P(6.5, 1)) + pinAt(pl.P(3, 4));
+}
+</script>
+</body>
+</html>
