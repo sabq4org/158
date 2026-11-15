@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<script>try{document.querySelector('meta[name="color-scheme"]').content=localStorage.getItem("color-scheme")??"light dark";}catch{}</script>
+<title>مرسم الزجاج المعشّق | المثلثات المتطابقة الضلعين والمتطابقة الأضلاع</title>
+<meta name="description" content="درس تفاعلي إبداعي: المثلثات المتطابقة الضلعين والمثلثات المتطابقة الأضلاع، رياضيات 1-2، الدرس 3-6.">
+<meta name="theme-color" content="#9a3412">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg-l: #f2ede3; --bg-d: #0e1117;
+  --sheet-l: #fffdf8; --sheet-d: #171b24;
+  --panel-l: #f8f3e9; --panel-d: #11151d;
+  --ink-l: #1e1b18; --ink-d: #f3efe8;
+  --muted-l: #655d53; --muted-d: #a6a095;
+  --line-l: #dfd4c2; --line-d: #2e3442;
+  --main-l: #9a3412; --main-d: #fb923c;
+  --mains-l: #ffedd5; --mains-d: #3c1f0e;
+  --p1-l: #1d4ed8; --p1-d: #60a5fa;
+  --p1s-l: #dbeafe; --p1s-d: #142748;
+  --p2-l: #047857; --p2-d: #34d399;
+  --p2s-l: #d1fae5; --p2s-d: #0e3326;
+  --p3-l: #7e22ce; --p3-d: #c084fc;
+  --p3s-l: #f3e8ff; --p3s-d: #2d1845;
+  --an-l: #d97706; --an-d: #fbbf24;
+  --ans-l: #fef3c7; --ans-d: #3b280b;
+  --an2-l: #be185d; --an2-d: #f472b6;
+  --an2s-l: #fce7f3; --an2s-d: #3f1429;
+  --bad-l: #dc2626; --bad-d: #f87171;
+  --bads-l: #fee2e2; --bads-d: #3b1414;
+  --glass-l: #faf5ea; --glass-d: #1c222e;
+
+  --bg: var(--bg-l); --sheet: var(--sheet-l); --panel: var(--panel-l);
+  --ink: var(--ink-l); --muted: var(--muted-l); --line: var(--line-l);
+  --main: var(--main-l); --main-soft: var(--mains-l);
+  --p1: var(--p1-l); --p1s: var(--p1s-l); --p2: var(--p2-l); --p2s: var(--p2s-l);
+  --p3: var(--p3-l); --p3s: var(--p3s-l); --an: var(--an-l); --ans: var(--ans-l);
+  --an2: var(--an2-l); --an2s: var(--an2s-l); --bad: var(--bad-l); --bads: var(--bads-l);
+  --glass: var(--glass-l);
+  --shadow: 0 2px 4px rgba(30, 27, 24, .05), 0 18px 40px -22px rgba(30, 27, 24, .32);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
+:root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) {
+    --bg: var(--bg-d); --sheet: var(--sheet-d); --panel: var(--panel-d);
+    --ink: var(--ink-d); --muted: var(--muted-d); --line: var(--line-d);
+    --main: var(--main-d); --main-soft: var(--mains-d);
+    --p1: var(--p1-d); --p1s: var(--p1s-d); --p2: var(--p2-d); --p2s: var(--p2s-d);
+    --p3: var(--p3-d); --p3s: var(--p3s-d); --an: var(--an-d); --ans: var(--ans-d);
+    --an2: var(--an2-d); --an2s: var(--an2s-d); --bad: var(--bad-d); --bads: var(--bads-d);
+    --glass: var(--glass-d);
+    --shadow: 0 2px 6px rgba(0, 0, 0, .35), 0 20px 42px -20px rgba(0, 0, 0, .85);
+  }
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  --bg: var(--bg-d); --sheet: var(--sheet-d); --panel: var(--panel-d);
+  --ink: var(--ink-d); --muted: var(--muted-d); --line: var(--line-d);
+  --main: var(--main-d); --main-soft: var(--mains-d);
+  --p1: var(--p1-d); --p1s: var(--p1s-d); --p2: var(--p2-d); --p2s: var(--p2s-d);
+  --p3: var(--p3-d); --p3s: var(--p3s-d); --an: var(--an-d); --ans: var(--ans-d);
+  --an2: var(--an2-d); --an2s: var(--an2s-d); --bad: var(--bad-d); --bads: var(--bads-d);
+  --glass: var(--glass-d);
+  --shadow: 0 2px 6px rgba(0, 0, 0, .35), 0 20px 42px -20px rgba(0, 0, 0, .85);
+}
+@supports (color: light-dark(white, black)) {
+  :root {
+    --bg: light-dark(var(--bg-l), var(--bg-d));
+    --sheet: light-dark(var(--sheet-l), var(--sheet-d));
+    --panel: light-dark(var(--panel-l), var(--panel-d));
+    --ink: light-dark(var(--ink-l), var(--ink-d));
+    --muted: light-dark(var(--muted-l), var(--muted-d));
+    --line: light-dark(var(--line-l), var(--line-d));
+    --main: light-dark(var(--main-l), var(--main-d));
+    --main-soft: light-dark(var(--mains-l), var(--mains-d));
+    --p1: light-dark(var(--p1-l), var(--p1-d));
+    --p1s: light-dark(var(--p1s-l), var(--p1s-d));
+    --p2: light-dark(var(--p2-l), var(--p2-d));
+    --p2s: light-dark(var(--p2s-l), var(--p2s-d));
+    --p3: light-dark(var(--p3-l), var(--p3-d));
+    --p3s: light-dark(var(--p3s-l), var(--p3s-d));
+    --an: light-dark(var(--an-l), var(--an-d));
+    --ans: light-dark(var(--ans-l), var(--ans-d));
+    --an2: light-dark(var(--an2-l), var(--an2-d));
+    --an2s: light-dark(var(--an2s-l), var(--an2s-d));
+    --bad: light-dark(var(--bad-l), var(--bad-d));
+    --bads: light-dark(var(--bads-l), var(--bads-d));
+    --glass: light-dark(var(--glass-l), var(--glass-d));
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; accent-color: var(--main); }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(30deg, color-mix(in srgb, var(--main) 5%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--main) 5%, transparent) 87.5%, color-mix(in srgb, var(--main) 5%, transparent)),
+    linear-gradient(150deg, color-mix(in srgb, var(--p1) 4%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--p1) 4%, transparent) 87.5%, color-mix(in srgb, var(--p1) 4%, transparent));
+  background-size: 48px 84px;
+  background-attachment: fixed;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--main); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important; clip-path: inset(50%) !important; overflow: hidden !important;
+  width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; border: 0 !important; white-space: nowrap !important;
+}
+.skip-link:focus { position: fixed; top: 10px; inset-inline-start: 10px; z-index: 60; background: var(--main); color: #fff; padding: 8px 16px; border-radius: 999px; text-decoration: none; font-weight: 700; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m i { font-style: italic; }
+.ov { text-decoration: overline; text-decoration-thickness: 1.5px; }
+.c1 { color: var(--p1); } .c2 { color: var(--p2); } .c3 { color: var(--p3); } .ca { color: var(--an); } .ca2 { color: var(--an2); } .cm { color: var(--main); } .cb { color: var(--bad); }
+
+/* Header & Navigation */
+.ribbon {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  background: color-mix(in srgb, var(--sheet) 90%, transparent); backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--main);
+}
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--main); display: flex; align-items: center; gap: 7px; }
+.ribbon .brand svg { width: 22px; height: 22px; flex: none; }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 3px 12px; border: 1.5px solid var(--line); border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+.ribbon nav a.done { color: var(--main); border-color: var(--main); }
+.ribbon nav a.on { color: #fff; background: var(--main); border-color: var(--main); }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .ribbon nav a.on { color: #1d0e05; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .ribbon nav a.on { color: #1d0e05; } }
+
+.theme { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+.theme .ico-dark { display: none; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme .ico-light { display: none; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme .ico-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme .ico-light { display: none; }
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme .ico-dark { display: block; }
+}
+
+/* Sheets: leaded stained-glass frame */
+main { max-width: 1000px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet {
+  position: relative; margin: 32px 0 0; padding: 44px 28px 42px; scroll-margin-top: 66px;
+  background: var(--sheet); border-radius: 16px; box-shadow: var(--shadow); border: 2px solid var(--line); overflow: hidden;
+}
+.sheet::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 10px;
+  background: linear-gradient(90deg, var(--p1) 0 25%, var(--an) 25% 50%, var(--p2) 50% 75%, var(--p3) 75%);
+  opacity: .92;
+}
+.sheet::after {
+  content: ""; position: absolute; inset: 10px 0 auto; height: 3px; background: var(--ink); opacity: .22;
+}
+.pno { position: absolute; left: 24px; bottom: 12px; font: 600 11px var(--mono); color: var(--muted); direction: ltr; display: flex; gap: 6px; align-items: center; }
+.pno svg { width: 14px; height: 14px; color: var(--main); }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--main); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: #fff; background: var(--main); padding: 1px 10px; border-radius: 999px; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .kicker .no { color: #1d0e05; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .kicker .no { color: #1d0e05; } }
+h1 { margin: 8px 0 8px; font-size: clamp(27px, 4.4vw, 39px); line-height: 1.3; }
+h2 { margin: 4px 0 6px; font-size: 26px; line-height: 1.4; }
+h3 { line-height: 1.5; margin: 0 0 6px; font-size: 18px; }
+.lead { color: var(--muted); max-width: 820px; }
+
+.note { margin-top: 14px; padding: 12px 16px; border-radius: 12px; border: 1.5px dashed var(--an); background: color-mix(in srgb, var(--ans) 65%, transparent); }
+.note.thm { border: 1.5px solid var(--main); background: color-mix(in srgb, var(--main-soft) 55%, transparent); display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 14px; align-items: center; }
+.note.thm svg { width: 100%; display: block; }
+.note .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--an); padding: 0 8px; border-radius: 4px; margin-inline-end: 6px; }
+.note.thm .tag { background: var(--main); }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .note .tag { color: #1d0e05; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .note .tag { color: #1d0e05; } }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 0; background: var(--main); color: #fff; font-weight: 700; padding: 8px 18px; border-radius: 999px; cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--main) 55%, #000); transition: transform .12s, box-shadow .12s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--main) 55%, #000); }
+.btn.soft { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); box-shadow: 0 3px 0 var(--line); }
+.btn[aria-pressed="true"] { background: var(--p1); color: #fff; border-color: var(--p1); box-shadow: 0 3px 0 color-mix(in srgb, var(--p1) 55%, #000); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn svg { width: 18px; height: 18px; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .btn:not(.soft) { color: #1d0e05; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .btn:not(.soft) { color: #1d0e05; } }
+
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); gap: 2px; }
+.seg button { border: 0; background: none; padding: 4px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--muted); font-size: 14.5px; }
+.seg button.on { background: var(--main); color: #fff; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .seg button.on { color: #1d0e05; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .seg button.on { color: #1d0e05; } }
+
+.stage { margin-top: 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); padding: 14px; }
+.stage svg { width: 100%; display: block; touch-action: none; user-select: none; }
+.stage svg text { font-family: var(--font); font-weight: 700; }
+.stage svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.stage svg text.lbl { font-family: var(--font); font-weight: 700; }
+.stage svg .halo { paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin-top: 10px; }
+.readouts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ro { font-size: 13.5px; padding: 3px 11px; border-radius: 8px; background: var(--sheet); border: 1.5px solid var(--line); display: inline-flex; align-items: center; gap: 6px; }
+.ro b { font: 600 14px var(--mono); direction: ltr; }
+.ro.ok { border-color: var(--p2); background: var(--p2s); }
+.ro.warn { border-color: var(--an); background: var(--ans); }
+
+.narr { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); border-inline-start: 4px solid var(--main); font-size: 15.5px; }
+.narr.ok { border-inline-start-color: var(--p2); background: color-mix(in srgb, var(--p2s) 55%, var(--sheet)); }
+.fb { margin-top: 10px; font-weight: 600; min-height: 1.6em; }
+.fb.good { color: var(--p2); } .fb.bad { color: var(--bad); }
+
+/* Hero */
+.hero { background: radial-gradient(circle at 86% 10%, color-mix(in srgb, var(--an) 18%, transparent), transparent 44%), radial-gradient(circle at 12% 85%, color-mix(in srgb, var(--p1) 14%, transparent), transparent 45%), var(--sheet); }
+.hero .badge { display: inline-block; font-size: 13px; font-weight: 700; color: var(--main); background: var(--main-soft); padding: 2px 12px; border-radius: 999px; }
+.vocab { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.vocab span { padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--sheet); font-size: 14px; font-weight: 600; transition: transform .2s, background .2s, border-color .2s; }
+.vocab span i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 6px; vertical-align: middle; }
+.vocab span.lit { border-color: var(--p2); background: var(--p2s); transform: translateY(-2px); }
+
+/* Sliders */
+.sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 12px; }
+.sl { padding: 10px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); }
+.sl label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; }
+.sl output { font: 600 14px var(--mono); direction: ltr; color: var(--main); }
+.sl input[type=range] { width: 100%; margin-top: 6px; }
+
+/* Example & Practice */
+.ex { margin-top: 16px; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; background: var(--panel); display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: center; }
+.ex.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 36%, var(--panel)); }
+.ex svg { width: 100%; display: block; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.ex svg text { font-family: var(--font); font-weight: 700; }
+.ex svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chips button { border: 1.5px solid var(--line); background: var(--sheet); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: border-color .15s, background .15s; }
+.chips button:hover:not(:disabled) { border-color: var(--main); }
+.chips button.right { background: var(--p2s); border-color: var(--p2); }
+.chips button.wrong { background: var(--bads); border-color: var(--bad); }
+
+/* Proof */
+.proof-wrap { margin-top: 16px; display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 16px; align-items: start; }
+.proof-fig { border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px; position: sticky; top: 72px; }
+.proof-fig svg { width: 100%; display: block; }
+.proof-fig svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+table.two { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+table.two th { background: var(--panel); padding: 8px 12px; text-align: start; font-size: 14px; border-bottom: 1.5px solid var(--line); }
+table.two td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: 15px; }
+table.two tr.now { background: color-mix(in srgb, var(--ans) 60%, transparent); }
+table.two tr.later td { color: var(--muted); opacity: .55; }
+table.two .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--main-soft); color: var(--main); font: 600 12px var(--mono); margin-inline-end: 6px; }
+table.two .rs { display: inline-block; padding: 2px 10px; border-radius: 8px; border: 1.5px dashed var(--main); color: var(--main); font-size: 14px; font-weight: 600; }
+table.two .rs.got { border-style: solid; border-color: var(--p2); background: var(--p2s); color: var(--ink); }
+.bank { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.bank button { border: 1.5px solid var(--line); background: var(--sheet); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14.5px; }
+.bank button:hover { border-color: var(--main); }
+.bank button.wrong { background: var(--bads); border-color: var(--bad); }
+
+/* Algebra */
+.alg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 16px; }
+.alg-box { border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; background: var(--panel); }
+.alg-box.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 36%, var(--panel)); }
+.alg-box svg { width: 100%; max-width: 300px; display: block; margin: 10px auto; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.alg-box svg text { font-family: var(--font); font-weight: 700; }
+.alg-box svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.work { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.work li { padding: 8px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; align-items: center; font-size: 15px; }
+.work li .rs { font-size: 13px; color: var(--muted); }
+.inputs { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 10px; }
+.inputs .field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 14.5px; }
+.inputs input { width: 90px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--sheet); font: 600 16px var(--mono); text-align: center; direction: ltr; color: var(--ink); }
+.inputs input.right { border-color: var(--p2); background: var(--p2s); }
+.inputs input.wrong { border-color: var(--bad); background: var(--bads); }
+
+/* Mandala Mosaic Game */
+.game-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 12px; }
+.mandala-wrap { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 14px; padding: 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); }
+.mandala-svg { width: 100%; max-width: 200px; margin: 0 auto; display: block; }
+.mandala-svg .wedge { transition: opacity .35s, transform .35s; transform-origin: 100px 100px; }
+.mandala-svg .wedge.empty { opacity: .22; }
+.mandala-svg .wedge.miss { opacity: .15; filter: grayscale(1); }
+.gcard { margin-top: 14px; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; background: var(--panel); display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 16px; align-items: center; }
+.gcard svg { width: 100%; display: block; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.gcard svg text { font-family: var(--font); font-weight: 700; }
+.gopts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.gopts button { border: 1.5px solid var(--line); background: var(--sheet); padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 16px; }
+.gopts button:hover:not(:disabled) { border-color: var(--main); }
+.gopts button.right { background: var(--p2s); border-color: var(--p2); }
+.gopts button.wrong { background: var(--bads); border-color: var(--bad); }
+
+/* Quiz */
+.qcard { margin-top: 16px; padding: 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); }
+.qcard .qq { font-weight: 700; font-size: 17px; }
+.qcard svg { width: 100%; max-width: 340px; display: block; margin: 10px auto; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.qcard svg text { font-family: var(--font); font-weight: 700; }
+.qcard svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 8px; margin-top: 10px; }
+.opt { display: flex; align-items: center; gap: 10px; text-align: start; border: 1.5px solid var(--line); background: var(--sheet); padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.opt b { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--panel); border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.opt.right { background: var(--p2s); border-color: var(--p2); }
+.opt.right b { background: var(--p2); border-color: var(--p2); color: #fff; }
+.opt.wrong { background: var(--bads); border-color: var(--bad); }
+.opt.wrong b { background: var(--bad); border-color: var(--bad); color: #fff; }
+.why { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); font-size: 15px; }
+
+/* Summary cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+.card { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel); }
+.card svg { width: 100%; display: block; margin-bottom: 8px; background: var(--sheet); border-radius: 8px; border: 1px solid var(--line); }
+.card svg text { font-family: var(--font); font-weight: 700; }
+.card ul { margin: 6px 0 0; padding-inline-start: 18px; color: var(--muted); font-size: 14.5px; }
+.card ul li b { color: var(--ink); }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 32px; }
+
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.shake { animation: shake .28s; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+.pop { animation: pop .22s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 780px) {
+  .proof-wrap, .ex, .gcard, .note.thm, .mandala-wrap { grid-template-columns: 1fr; }
+  .proof-fig { position: static; }
+  .sheet { padding: 38px 18px 36px; }
+  .gopts { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link visually-hidden">انتقلي إلى المحتوى الرئيسي</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="prismI" viewBox="0 0 24 24">
+      <polygon points="12,3 21,19 3,19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="12" y1="3" x2="12" y2="19" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+    </symbol>
+    <pattern id="leadGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="var(--line)" stroke-width="0.9" stroke-opacity="0.55"/>
+    </pattern>
+    <radialGradient id="glassSun" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#fff8dc" stop-opacity="0.7"/>
+      <stop offset="55%" stop-color="#f59e0b" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.16"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<header class="ribbon">
+  <div class="brand"><svg aria-hidden="true"><use href="#prismI"/></svg>مرسم الزجاج المعشّق</div>
+  <nav aria-label="محطات الدرس" id="stations"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل المظهر الفاتح والداكن">
+    <svg class="ico-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
+    <svg class="ico-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
+<main id="main-content" tabindex="-1">
+  <!-- 0: Hero Atelier -->
+  <section class="sheet hero" id="s0" data-name="المرسم">
+    <span class="badge">الدرس 3-6 · رياضيات 1-2 · صفحات 54–60</span>
+    <h1>المثلثات المتطابقة الضلعين والمثلثات المتطابقة الأضلاع</h1>
+    <p class="lead">في ورشة الزجاج المعشّق، نصمّم ألواحًا هندسية متوازنة بالرصاص والنحاس. اسحبي رأس اللوح <span class="m"><i>A</i></span> على طاولة القص حتى يتساوى الضلعان، وراقبي كيف ينكسر الضوء وتتطابق زاويتا القاعدة تلقائيًّا.</p>
+
+    <div class="stage">
+      <svg id="atelier" viewBox="0 0 640 310" role="img" aria-label="طاولة قص تفاعلية لمثلث متطابق الضلعين"></svg>
+      <div class="bar">
+        <div class="readouts" id="atRo"></div>
+        <div class="row">
+          <button class="btn soft" id="atMirror" type="button" aria-pressed="false">مرآة التماثل</button>
+          <button class="btn soft" id="atSnapEq" type="button">قص متطابق الأضلاع</button>
+          <button class="btn soft" id="atRand" type="button">لوح عشوائي</button>
+        </div>
+      </div>
+      <p class="narr" id="atNarr" aria-live="polite"></p>
+      <div class="vocab" id="atVocab">
+        <span><i style="background:var(--p1)"></i>الساقان: الضلعان المتطابقان</span>
+        <span><i style="background:var(--p2)"></i>القاعدة: الضلع الثالث</span>
+        <span><i style="background:var(--p3)"></i>زاوية الرأس: بين الساقين</span>
+        <span><i style="background:var(--an)"></i>زاويتا القاعدة: عند طرفي القاعدة</span>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>01/09</span>
+  </section>
+
+  <!-- 1: Theorems 3.10 & 3.11 -->
+  <section class="sheet" id="s1" data-name="النظريتان">
+    <div class="kicker"><span class="no">01</span> نظرية 3.10 وعكسها 3.11</div>
+    <h2>آلة الانعكاس الثنائية: الأضلاع والزوايا</h2>
+    <p class="lead">هل يفرض تساوي الضلعين تساوي الزاويتين؟ وهل العكس صحيح؟ اختبري الاتجاهين بنفسك، واطوي لوح الزجاج بيدك لترَي الانطباق.</p>
+
+    <div class="row" style="margin-top:12px">
+      <div class="seg" role="tablist" aria-label="اتجاه النظرية">
+        <button type="button" class="on" data-tm="s" role="tab" aria-selected="true">من الضلعين ← للزاويتين (3.10)</button>
+        <button type="button" data-tm="a" role="tab" aria-selected="false">من الزاويتين ← للضلعين (عكس 3.11)</button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <svg id="thm" viewBox="0 0 640 290" role="img" aria-label="مختبر نظرية المثلث المتطابق الضلعين وعكسها"></svg>
+      <div class="sliders" id="thmS">
+        <div class="sl"><label for="tv">زاوية الرأس <span class="m">∠<i>A</i></span> <output id="tvO">64°</output></label><input id="tv" type="range" min="24" max="140" value="64"></div>
+        <div class="sl"><label for="tl">طول كل ساق <output id="tlO">5.5</output></label><input id="tl" type="range" min="3.5" max="6.5" step="0.5" value="5.5"></div>
+        <div class="sl"><label for="tfold">مفصل الطيّ على العمود <output id="tfoldO">0%</output></label><input id="tfold" type="range" min="0" max="100" value="0"></div>
+      </div>
+      <div class="sliders" id="thmA" hidden>
+        <div class="sl"><label for="tb">زاوية <span class="m">∠<i>B</i></span> <output id="tbO">55°</output></label><input id="tb" type="range" min="25" max="80" value="55"></div>
+        <div class="sl"><label for="tc">زاوية <span class="m">∠<i>C</i></span> <output id="tcO">70°</output></label><input id="tc" type="range" min="25" max="80" value="70"></div>
+      </div>
+      <p class="narr" id="thmNarr" aria-live="polite"></p>
+    </div>
+
+    <div class="note thm">
+      <div>
+        <span class="tag">خلاصة النظريتين</span>
+        <p><b>نظرية المثلث المتطابق الضلعين (3.10):</b> إذا تطابق ضلعان في مثلث، فإن الزاويتين المقابلتين لهما متطابقتان.</p>
+        <p style="margin-top:6px"><b>عكس النظرية (3.11):</b> إذا تطابقت زاويتان في مثلث، فإن الضلعين المقابلين لهما متطابقان.</p>
+      </div>
+      <svg viewBox="0 0 190 120" aria-hidden="true">
+        <polygon points="95,14 28,104 162,104" fill="var(--main-soft)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="56" y1="54" x2="68" y2="63" stroke="var(--p1)" stroke-width="3"/><line x1="134" y1="54" x2="122" y2="63" stroke="var(--p1)" stroke-width="3"/>
+        <path d="M52,104 A24,24 0 0 0 43,85" fill="none" stroke="var(--an)" stroke-width="3"/>
+        <path d="M138,104 A24,24 0 0 1 147,85" fill="none" stroke="var(--an)" stroke-width="3"/>
+      </svg>
+    </div>
+
+    <div class="ex" id="ex1">
+      <div>
+        <h3>مثال 1 من الكتاب: اقرئي العلامات</h3>
+        <p id="ex1Q"></p>
+        <div class="chips" id="ex1C"></div>
+        <p class="fb" id="ex1Fb" aria-live="polite"></p>
+      </div>
+      <svg id="ex1F" viewBox="0 0 360 205" aria-hidden="true"></svg>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>02/09</span>
+  </section>
+
+  <!-- 2: Two-column Proofs -->
+  <section class="sheet" id="s2" data-name="البرهان">
+    <div class="kicker"><span class="no">02</span> معمل اللحام والبرهان</div>
+    <h2>ابني البرهان خطوة بخطوة</h2>
+    <p class="lead">اختاري المبرر الصحيح من بنك المبررات بالأسفل، وشاهدي كل خطوة تُلحَم وتُضاء مباشرة على لوح الزجاج.</p>
+
+    <div class="row" style="margin-top:12px">
+      <div class="seg" role="tablist" aria-label="اختيار البرهان">
+        <button type="button" class="on" data-pf="0" role="tab" aria-selected="true">برهان نظرية 3.10</button>
+        <button type="button" data-pf="1" role="tab" aria-selected="false">برهان مثال 4 (المثلث الأوسط)</button>
+      </div>
+    </div>
+
+    <div class="proof-wrap">
+      <div class="proof-fig">
+        <svg id="pf" viewBox="0 0 360 230" aria-hidden="true"></svg>
+        <p id="pfGiven" style="font-size:14.5px;margin-top:8px"></p>
+      </div>
+      <div>
+        <table class="two">
+          <thead><tr><th scope="col">العبارات</th><th scope="col">المبررات</th></tr></thead>
+          <tbody id="pfBody"></tbody>
+        </table>
+        <div class="bank" id="pfBank"></div>
+        <p class="fb" id="pfFb" aria-live="polite"></p>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>03/09</span>
+  </section>
+
+  <!-- 3: Equilateral & Compass Construction -->
+  <section class="sheet" id="s3" data-name="متطابق الأضلاع">
+    <div class="kicker"><span class="no">03</span> النتيجتان 3.3 و3.4 · مثال 2</div>
+    <h2>تقاطع الفرجار: المثلث المتطابق الأضلاع</h2>
+    <p class="lead">عندنا قاعدة طولها <span class="m">6</span>. رسمنا دائرتين بالفرجار نصف قطر كل منهما <span class="m">6</span>. اسحبي الرأس <span class="m"><i>A</i></span> إلى نقطة تقاطعهما لتصنعي موشورًا متطابق الأضلاع.</p>
+
+    <div class="stage">
+      <svg id="eq" viewBox="0 0 640 310" role="img" aria-label="بناء المثلث المتطابق الأضلاع بتقاطع دائرتين"></svg>
+      <div class="bar">
+        <div class="readouts" id="eqRo"></div>
+        <button class="btn soft" id="eqSnap" type="button">وجّهي الرأس للتقاطع</button>
+      </div>
+      <p class="narr" id="eqNarr" aria-live="polite"></p>
+    </div>
+
+    <div class="note thm">
+      <div>
+        <span class="tag">نتيجتان مهمتان</span>
+        <p><b>نتيجة 3.3:</b> يكون المثلث متطابق الأضلاع إذا وفقط إذا كان متطابق الزوايا.</p>
+        <p style="margin-top:6px"><b>نتيجة 3.4:</b> قياس كل زاوية في المثلث المتطابق الأضلاع يساوي <span class="m">60°</span>.</p>
+      </div>
+      <svg viewBox="0 0 190 120" aria-hidden="true">
+        <polygon points="95,14 40,108 150,108" fill="var(--p2s)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="63" y1="56" x2="73" y2="62" stroke="var(--p1)" stroke-width="2.6"/><line x1="127" y1="56" x2="117" y2="62" stroke="var(--p1)" stroke-width="2.6"/><line x1="95" y1="102" x2="95" y2="114" stroke="var(--p1)" stroke-width="2.6"/>
+        <text x="95" y="45" font-size="13" fill="var(--an)" text-anchor="middle" font-weight="700">60°</text>
+        <text x="62" y="98" font-size="13" fill="var(--an)" text-anchor="middle" font-weight="700">60°</text>
+        <text x="128" y="98" font-size="13" fill="var(--an)" text-anchor="middle" font-weight="700">60°</text>
+      </svg>
+    </div>
+
+    <div class="ex" id="ex2">
+      <div>
+        <h3>مثال 2 من الكتاب</h3>
+        <p id="ex2Q"></p>
+        <div class="chips" id="ex2C"></div>
+        <p class="fb" id="ex2Fb" aria-live="polite"></p>
+      </div>
+      <svg id="ex2F" viewBox="0 0 360 205" aria-hidden="true"></svg>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>04/09</span>
+  </section>
+
+  <!-- 4: Algebra -->
+  <section class="sheet" id="s4" data-name="الجبر">
+    <div class="kicker"><span class="no">04</span> مثال 3 و«تحقق 3»</div>
+    <h2>ورشة الجبر الهندسي</h2>
+    <p class="lead">الشرطات والأقواس تترجم مباشرة إلى معادلات. راقبي خطوات مثال 3، ثم حلّي مسائل الجبر بنفسك.</p>
+
+    <div class="alg-grid">
+      <div class="alg-box">
+        <h3>مثال 3: أوجدي <span class="m"><i>x</i></span> و<span class="m"><i>y</i></span></h3>
+        <svg id="ex3F" viewBox="0 0 300 200" aria-hidden="true"></svg>
+        <ol class="work" id="ex3W"></ol>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="ex3N" type="button">الخطوة التالية</button>
+          <button class="btn soft" id="ex3R" type="button">إعادة</button>
+        </div>
+      </div>
+
+      <div class="alg-box" id="myTurn">
+        <h3 id="myH">تحقق 3: دورك</h3>
+        <svg id="myF" viewBox="0 0 360 200" aria-hidden="true"></svg>
+        <div class="inputs">
+          <div class="field"><label for="myX">قيمة <span class="m"><i>x</i></span></label><input id="myX" inputmode="decimal" placeholder="؟"></div>
+          <div class="field"><label for="myY">قيمة <span class="m"><i>y</i></span></label><input id="myY" inputmode="decimal" placeholder="؟"></div>
+          <button class="btn" id="myGo" type="button">تحقق</button>
+          <button class="btn soft" id="myNew" type="button">مسألة جديدة</button>
+        </div>
+        <p class="fb" id="myFb" aria-live="polite"></p>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>05/09</span>
+  </section>
+
+  <!-- 5: Fractal Glass Rose Window -->
+  <section class="sheet" id="s5" data-name="النافذة الكسورية">
+    <div class="kicker"><span class="no">05</span> من واقع الحياة · مثال 4</div>
+    <h2>نافذة الزجاج المعشّق: تقسيم المنتصفات</h2>
+    <p class="lead">بدأنا بلوح زجاجي متطابق الأضلاع طول ضلعه <span class="m">16 m</span>. في كل مرحلة نصل منتصفات الأضلاع، فينشأ في المنتصف لوح جديد مقلوب متطابق الأضلاع.</p>
+
+    <div class="stage">
+      <svg id="dome" viewBox="0 0 640 330" role="img" aria-label="نافذة زجاجية مثلثية تنقسم بالمنتصفات"></svg>
+      <div class="bar">
+        <div class="readouts">
+          <span class="ro ok">عدد الألواح: <b id="domeN">1</b></span>
+          <span class="ro">طول ضلع اللوح: <b id="domeS">16 m</b></span>
+        </div>
+        <div class="row">
+          <button class="btn" id="domeSplit" type="button">قسّمي بالمنتصفات</button>
+          <button class="btn soft" id="domeBack" type="button" disabled>تراجع</button>
+        </div>
+      </div>
+      <p class="narr" id="domeNarr" aria-live="polite"></p>
+      <div class="ex" id="domeQ" hidden style="grid-template-columns:1fr;margin-top:12px">
+        <div>
+          <p id="domeQq" style="font-weight:700"></p>
+          <div class="chips" id="domeC"></div>
+          <p class="fb" id="domeFb" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>06/09</span>
+  </section>
+
+  <!-- 6: Mosaic Mandala Challenge -->
+  <section class="sheet" id="s6" data-name="تحدي الفسيفساء">
+    <div class="kicker"><span class="no">06</span> لعبة التحدي</div>
+    <h2>لوحة الفسيفساء الثمانية</h2>
+    <p class="lead">أمامك 8 قطع زجاجية لإتمام الماندالا الهندسية. كل إجابة صحيحة ترصّع قطعة متوهجة في اللوحة.</p>
+
+    <div class="game-head">
+      <div class="readouts">
+        <span class="ro">القطعة <b id="gRound">1</b> / 8</span>
+        <span class="ro ok">المرصّعة <b id="gScore">0</b></span>
+      </div>
+    </div>
+
+    <div class="mandala-wrap">
+      <svg id="mandala" class="mandala-svg" viewBox="0 0 200 200" aria-hidden="true"></svg>
+      <div>
+        <p style="font-weight:700;margin-bottom:4px">اكتمال اللوحة المعشّقة</p>
+        <p class="muted" style="font-size:14.5px">اختاري القياس أو القيمة الصحيحة في البطاقة بالأسفل لإضاءة القطعة المقابلة داخل الإطار النحاسي.</p>
+      </div>
+    </div>
+
+    <div class="gcard">
+      <div>
+        <p id="gQ" style="font-weight:700;font-size:17.5px"></p>
+        <div class="gopts" id="gOpts"></div>
+      </div>
+      <svg id="gFig" viewBox="0 0 640 245" aria-hidden="true"></svg>
+    </div>
+    <p class="fb" id="gFb" aria-live="polite"></p>
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="gNext" type="button" hidden>القطعة التالية</button></div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>07/09</span>
+  </section>
+
+  <!-- 7: Book Quiz -->
+  <section class="sheet" id="s7" data-name="الاختبار">
+    <div class="kicker"><span class="no">07</span> من «تدرب وحل المسائل» و«مهارات التفكير العليا»</div>
+    <h2>اختبري نفسك</h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700" aria-live="polite"></p>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>08/09</span>
+  </section>
+
+  <!-- 8: Summary -->
+  <section class="sheet" id="s8" data-name="الخلاصة">
+    <div class="kicker"><span class="no">08</span> بطاقة المرسم</div>
+    <h2>ملخص الدرس في أربع لوحات</h2>
+    <div class="cards">
+      <div class="card"><svg id="sum1" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>أجزاء المتطابق الضلعين</h3><ul><li><b>الساقان</b>: الضلعان المتطابقان.</li><li><b>القاعدة</b>: الضلع الثالث.</li><li><b>زاوية الرأس</b> بين الساقين، و<b>زاويتا القاعدة</b> على القاعدة.</li></ul></div>
+      <div class="card"><svg id="sum2" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>نظرية 3.10 وعكسها 3.11</h3><ul><li>ساقان متطابقان ← زاويتا القاعدة متطابقتان.</li><li>زاويتان متطابقتان ← الضلعان المقابلان متطابقان.</li><li>زاوية القاعدة <span class="m">= (180° − <i>p</i>) ÷ 2</span>.</li></ul></div>
+      <div class="card"><svg id="sum3" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>المثلث المتطابق الأضلاع</h3><ul><li>متطابق الأضلاع ⟺ متطابق الزوايا (نتيجة 3.3).</li><li>قياس كل زاوية <span class="m">60°</span> (نتيجة 3.4).</li></ul></div>
+      <div class="card"><svg id="sum4" viewBox="0 0 300 110" aria-hidden="true"></svg><h3>مفاتيح الحل السريع</h3><ul><li>متطابق ضلعين + زاوية <span class="m">60°</span> ← متطابق الأضلاع.</li><li>ابحثي عن الشرطات وأقواس التطابق قبل كتابة المعادلة.</li></ul></div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#prismI"/></svg>09/09</span>
+  </section>
+
+  <footer>ثانوية 158 · رياضيات 1-2 · الفصل 3 · صفحات 54–60 · مرسم الزجاج المعشّق</footer>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RAD = Math.PI / 180;
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const M = h => `<span class="m">${h}</span>`;
+const I = s => s.split("").map(c => `<i>${c}</i>`).join("");
+const TRI = s => M(`△${I(s)}`);
+const OV = s => `<span class="ov">${I(s)}</span>`;
+const SG = s => M(OV(s));
+const CONG = (a, b) => M(`${OV(a)} ≅ ${OV(b)}`);
+const ACONG = (a, b) => M(`∠${I(a)} ≅ ∠${I(b)}`);
+const TCONG = (a, b) => M(`△${I(a)} ≅ △${I(b)}`);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (P, Q) => Math.hypot(P[0] - Q[0], P[1] - Q[1]);
+const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+const f = P => `${P[0].toFixed(1)} ${P[1].toFixed(1)}`;
+const pol = (P, a, r) => [P[0] + r * Math.cos(a * RAD), P[1] + r * Math.sin(a * RAD)];
+const fmt = v => (Math.round(v * 10) / 10).toString();
+const toLatin = s => String(s ?? "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,]/g, ".").replace(/[°\s]/g, "").replace(/−/g, "-");
+const PC = ["var(--p1)", "var(--p2)", "var(--p3)"], AN = ["var(--an)", "var(--an2)", "var(--p3)"];
+const LEG = "var(--p1)", BASE = "var(--p2)", VA = "var(--p3)", BA = "var(--an)";
+const NS = ' vector-effect="non-scaling-stroke"';
+
+/* ---------- Theme toggle (modern color-scheme meta sync) ---------- */
+(() => {
+  const meta = $('meta[name="color-scheme"]');
+  const mm = matchMedia("(prefers-color-scheme: dark)");
+  $("#theme").addEventListener("click", () => {
+    const sys = mm.matches ? "dark" : "light";
+    const cur = meta.content === "dark" || meta.content === "light" ? meta.content : sys;
+    const next = cur === "dark" ? "light" : "dark";
+    try {
+      if (next === sys) localStorage.removeItem("color-scheme");
+      else localStorage.setItem("color-scheme", next);
+    } catch {}
+    meta.content = next === sys ? "light dark" : next;
+  });
+  window.addEventListener("storage", e => {
+    if (e.key === "color-scheme") meta.content = e.newValue ?? "light dark";
+  });
+})();
+
+/* ---------- Navigation ribbon ---------- */
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Geometry helpers ---------- */
+function span(P, Q, R) {
+  const t1 = Math.atan2(Q[1] - P[1], Q[0] - P[0]) / RAD, t2 = Math.atan2(R[1] - P[1], R[0] - P[0]) / RAD;
+  const d = ((t2 - t1) % 360 + 360) % 360;
+  return d <= 180 ? { a0: t1, a1: t1 + d, m: d } : { a0: t2, a1: t2 + 360 - d, m: 360 - d };
+}
+const angAt = (P, Q, R) => span(P, Q, R).m;
+const anglesOf = V => [0, 1, 2].map(i => angAt(V[i], V[(i + 1) % 3], V[(i + 2) % 3]));
+const sector = (P, a0, a1, r) => `M${f(P)} L${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))} Z`;
+const arc = (P, a0, a1, r) => `M${f(pol(P, a0, r))} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f(pol(P, a1, r))}`;
+function arcs(P, Q, R, n, col, r = 20, o = {}) {
+  const { a0, a1, m } = span(P, Q, R);
+  if (o.right ?? Math.abs(m - 90) < .5) {
+    const u = unit(Q[0] - P[0], Q[1] - P[1]), v = unit(R[0] - P[0], R[1] - P[1]), q = r * .7;
+    return `<path d="M${P[0] + u[0] * q} ${P[1] + u[1] * q} L${P[0] + (u[0] + v[0]) * q} ${P[1] + (u[1] + v[1]) * q} L${P[0] + v[0] * q} ${P[1] + v[1] * q}" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="2.2"${NS}/>`;
+  }
+  const g = o.gap || 5;
+  let s = `<path d="${sector(P, a0, a1, r + g * (n - 1))}" fill="${col}" fill-opacity="${o.op ?? .18}" stroke="none"/>`;
+  for (let i = 0; i < n; i++) s += `<path d="${arc(P, a0, a1, r + g * i)}" fill="none" stroke="${col}" stroke-width="2.2"${NS}/>`;
+  return s;
+}
+function ticks(P, Q, n, col = "var(--main)", len = 13, gap = 6) {
+  const m = mid(P, Q), u = unit(Q[0] - P[0], Q[1] - P[1]), v = [-u[1], u[0]];
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const t = (i - (n - 1) / 2) * gap, c = [m[0] + u[0] * t, m[1] + u[1] * t];
+    s += `<line x1="${(c[0] - v[0] * len / 2).toFixed(1)}" y1="${(c[1] - v[1] * len / 2).toFixed(1)}" x2="${(c[0] + v[0] * len / 2).toFixed(1)}" y2="${(c[1] + v[1] * len / 2).toFixed(1)}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"${NS}/>`;
+  }
+  return s;
+}
+const txt = (P, t, o = {}) => `<text x="${P[0].toFixed(1)}" y="${P[1].toFixed(1)}" font-size="${o.fs || 16}" fill="${o.col || "var(--ink)"}" text-anchor="middle" dominant-baseline="central"${o.cls ? ` class="${o.cls}"` : ""}>${t}</text>`;
+function angLbl(P, Q, R, t, o = {}) { const { a0, a1, m } = span(P, Q, R); const d = (o.d || 40) + Math.max(0, 60 - m) * .55 + (t.length > 4 ? t.length * 2.2 : 0); return txt(pol(P, (a0 + a1) / 2, d), t, o); }
+function sideLbl(P, Q, G, t, o = {}) {
+  const m = mid(P, Q), u = unit(Q[0] - P[0], Q[1] - P[1]);
+  let v = [-u[1], u[0]];
+  if ((m[0] - G[0]) * v[0] + (m[1] - G[1]) * v[1] < 0) v = [-v[0], -v[1]];
+  const fs = o.fs || 16, d = (o.d || 15) + t.length * fs * .27 * Math.abs(v[0]) + fs * .3 * Math.abs(v[1]);
+  return txt([m[0] + v[0] * d, m[1] + v[1] * d], t, o);
+}
+const poly = (V, o = {}) => `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"${NS}/>`;
+const seg = (P, Q, o = {}) => `<line x1="${P[0].toFixed(1)}" y1="${P[1].toFixed(1)}" x2="${Q[0].toFixed(1)}" y2="${Q[1].toFixed(1)}" stroke="${o.col || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}${NS}/>`;
+const cent = V => [V.reduce((s, p) => s + p[0], 0) / V.length, V.reduce((s, p) => s + p[1], 0) / V.length];
+const vname = (P, G, t, o = {}) => { const w = unit(P[0] - G[0], P[1] - G[1]), d = o.d || 20; return `<text class="nm" x="${(P[0] + w[0] * d).toFixed(1)}" y="${(P[1] + w[1] * d).toFixed(1)}" font-size="${o.fs || 20}" fill="${o.col || "var(--ink)"}" text-anchor="middle" dominant-baseline="central">${t}</text>`; };
+const svgPt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
+const knob = (P, r = 13) => `<circle cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="${r}" fill="var(--main)" stroke="var(--sheet)" stroke-width="3" style="cursor:grab"/>`;
+function dragOn(svg, start, move, end) {
+  svg.addEventListener("pointerdown", e => {
+    const h = start(svgPt(svg, e), e); if (h == null) return;
+    e.preventDefault(); svg.setPointerCapture?.(e.pointerId);
+    const mv = ev => move(svgPt(svg, ev), h);
+    const up = () => { svg.removeEventListener("pointermove", mv); svg.removeEventListener("pointerup", up); svg.removeEventListener("pointercancel", up); end?.(h); };
+    svg.addEventListener("pointermove", mv); svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  });
+}
+function isoTri(cx, by, p, maxW = 150, maxH = 190) {
+  let w = maxW, h = w / Math.tan(p / 2 * RAD);
+  if (h > maxH) { h = maxH; w = h * Math.tan(p / 2 * RAD); }
+  return [[cx, by - h], [cx - w, by], [cx + w, by]];
+}
+function markTri(V, sides = [0, 0, 0], angs = [0, 0, 0], o = {}) {
+  let s = poly(V, { fill: o.fill || "none", stroke: o.stroke || "var(--ink)", sw: 2.4 });
+  angs.forEach((n, i) => { if (n) s += arcs(V[i], V[(i + 1) % 3], V[(i + 2) % 3], n, o.ac?.[i] || AN[n - 1], o.r || 15, { gap: 4, right: false }); });
+  sides.forEach((n, i) => { if (n) s += ticks(V[i], V[(i + 1) % 3], n, o.tc || PC[n - 1], 11, 5); });
+  return s;
+}
+function mark(F, m, col) {
+  const pt = k => F.pts[k];
+  if (m[0] === "t") return ticks(pt(m[1][0]), pt(m[1][1]), m[2], col || PC[m[2] - 1], 12, 5);
+  if (m[0] === "f") return poly([...m[1]].map(pt), { fill: `color-mix(in srgb, ${["var(--p1)", "var(--p3)", "var(--an)", "var(--p2)"][m[2] || 0]} 22%, transparent)`, stroke: "none" });
+  const [q, v, r] = [...m[1]].map(pt);
+  if (m[0] === "r") return arcs(v, q, r, 1, col || "var(--ink)", 16, { right: true });
+  return arcs(v, q, r, m[2], col || AN[m[2] - 1], F.r || 18, { gap: 4, right: false });
+}
+function figure(F, marks = []) {
+  const fills = marks.filter(m => m[0] === "f"), rest = marks.filter(m => m[0] !== "f");
+  let s = fills.map(m => mark(F, m)).join("");
+  F.segs.forEach(sg => { s += seg(F.pts[sg[0]], F.pts[sg[1]], { sw: 2.4, dash: F.dash?.includes(sg) ? "7 6" : "" }); });
+  s += rest.map(m => mark(F, m)).join("");
+  const all = Object.values(F.pts), G0 = cent(all);
+  Object.entries(F.pts).forEach(([k, q]) => {
+    if (F.nm?.[k]) { s += txt(F.nm[k], k, { cls: "nm", fs: F.fs || 18 }); return; }
+    const tri = (F.tris || []).find(t => t.includes(k)), G = tri ? cent([...tri].map(c => F.pts[c])) : G0;
+    s += vname(q, G, k, { fs: F.fs || 18, d: 15 });
+  });
+  return s;
+}
+function chipQ(box, fbEl, opts, onDone) {
+  box.innerHTML = shuffle(opts.map((o, i) => [o, i])).map(([o, i]) => `<button type="button" data-i="${i}">${o[0]}</button>`).join("");
+  box.dataset.lock = "";
+  box.onclick = e => {
+    const b = e.target.closest("button[data-i]"); if (!b || box.dataset.lock === "1") return;
+    const o = opts[+b.dataset.i];
+    if (o[1]) { box.dataset.lock = "1"; b.classList.add("right"); $$("button", box).forEach(x => x.disabled = true); fbEl.className = "fb good"; fbEl.innerHTML = `صحيح ✓ ${o[2] || ""}`; onDone?.(); }
+    else { b.classList.add("wrong"); fbEl.className = "fb bad"; fbEl.innerHTML = o[2] || "راجعي العلامات في الشكل."; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }
+  };
+}
+const U = 40;
+
+/* ---------- 0. Stained-Glass Cutting Atelier ---------- */
+{
+  const svg = $("#atelier"), B = [200, 266], C = [440, 266], EQ = [320, 266 - 240 * Math.sqrt(3) / 2];
+  let A = [245, 118], mirror = false;
+  function draw() {
+    const ab = dist(A, B) / U, ac = dist(A, C) / U, bc = dist(B, C) / U;
+    const iso = Math.abs(ab - ac) < .03, eq = iso && Math.abs(ab - bc) < .03;
+    const [aA, aB, aC] = anglesOf([A, B, C]);
+    const D = mid(B, C);
+    let s = `<rect width="640" height="310" rx="10" fill="var(--glass)"/><rect width="640" height="310" rx="10" fill="url(#leadGrid)"/>`;
+    // Laser symmetry axis
+    s += `<line x1="320" y1="16" x2="320" y2="294" stroke="${iso ? "var(--p2)" : "var(--muted)"}" stroke-width="${iso ? 2.2 : 1.4}" stroke-dasharray="6 5" opacity="${iso ? .9 : .45}"/>`;
+    // Stained-glass panes (split down median AD)
+    s += `<polygon points="${f(A)},${f(B)},${f(D)}" fill="${eq ? "url(#glassSun)" : iso ? "color-mix(in srgb, var(--p1) 24%, transparent)" : "color-mix(in srgb, var(--muted) 10%, transparent)"}" stroke="none"/>`;
+    s += `<polygon points="${f(A)},${f(D)},${f(C)}" fill="${eq ? "url(#glassSun)" : iso ? "color-mix(in srgb, var(--an) 24%, transparent)" : "color-mix(in srgb, var(--muted) 16%, transparent)"}" stroke="none"/>`;
+    // Mirror reflection ghost of left half across x=320
+    if (mirror) {
+      const Am = [640 - A[0], A[1]];
+      s += `<polygon points="${f(Am)},${f(C)},${f(D)}" fill="color-mix(in srgb, var(--p1) 20%, transparent)" stroke="var(--p1)" stroke-width="2.2" stroke-dasharray="5 4"/>`;
+      s += `<circle cx="${Am[0].toFixed(1)}" cy="${Am[1].toFixed(1)}" r="5" fill="var(--p1)"/>`;
+    }
+    // Internal decorative lead lines inside glass
+    const G = cent([A, B, C]);
+    s += seg(A, D, { col: "color-mix(in srgb, var(--ink) 45%, transparent)", sw: 2, dash: "4 4" });
+    s += seg(G, B, { col: "color-mix(in srgb, var(--ink) 18%, transparent)", sw: 1.4 }) + seg(G, C, { col: "color-mix(in srgb, var(--ink) 18%, transparent)", sw: 1.4 });
+    // Main leaded frame
+    s += seg(B, C, { col: BASE, sw: 5 });
+    s += seg(A, B, { col: iso ? LEG : "var(--ink)", sw: 5 }) + seg(A, C, { col: iso ? LEG : "var(--ink)", sw: 5 });
+    if (iso) s += ticks(A, B, 1, LEG, 14) + ticks(A, C, 1, LEG, 14) + (eq ? ticks(B, C, 1, LEG, 14) : "");
+    s += arcs(B, C, A, 1, BA, 24, { right: false }) + arcs(C, A, B, iso ? 1 : 2, iso ? BA : "var(--an2)", 24, { right: false }) + arcs(A, B, C, 1, VA, 22, { right: false });
+    s += angLbl(B, C, A, `${Math.round(aB)}°`, { col: BA, fs: 16, d: 46, cls: "halo" }) + angLbl(C, A, B, `${Math.round(aC)}°`, { col: iso ? BA : "var(--an2)", fs: 16, d: 46, cls: "halo" });
+    s += angLbl(A, B, C, `${Math.round(aA)}°`, { col: VA, fs: 15, d: 44, cls: "halo" });
+    if (iso) {
+      s += sideLbl(A, B, C, "ساق", { col: LEG, fs: 15, cls: "lbl halo", d: 18 }) + sideLbl(A, C, B, "ساق", { col: LEG, fs: 15, cls: "lbl halo", d: 18 });
+      s += txt([320, 294], "القاعدة = 6", { col: BASE, fs: 14, cls: "lbl halo" });
+    }
+    // Solder joints at vertices
+    s += `<circle cx="${B[0]}" cy="${B[1]}" r="6" fill="var(--main)" stroke="var(--sheet)" stroke-width="2"/><circle cx="${C[0]}" cy="${C[1]}" r="6" fill="var(--main)" stroke="var(--sheet)" stroke-width="2"/>`;
+    s += txt([B[0] - 18, B[1] + 18], "B", { cls: "nm", fs: 20 }) + txt([C[0] + 18, C[1] + 18], "C", { cls: "nm", fs: 20 });
+    s += knob(A, 13) + txt([A[0] + 24, A[1] - 14], "A", { cls: "nm", fs: 22 });
+    svg.innerHTML = s;
+    $("#atRo").innerHTML = `<span class="ro${iso ? " ok" : ""}">${M("<i>AB</i>")} <b>${ab.toFixed(1)}</b></span><span class="ro${iso ? " ok" : ""}">${M("<i>AC</i>")} <b>${ac.toFixed(1)}</b></span><span class="ro${iso ? " ok" : ""}">${M("∠<i>B</i>")} <b>${Math.round(aB)}°</b></span><span class="ro${iso ? " ok" : ""}">${M("∠<i>C</i>")} <b>${Math.round(aC)}°</b></span><span class="ro">${M("∠<i>A</i>")} <b>${Math.round(aA)}°</b></span>`;
+    $$("#atVocab span").forEach(x => x.classList.toggle("lit", iso));
+    const n = $("#atNarr"); n.classList.toggle("ok", iso);
+    n.innerHTML = eq
+      ? `<b>موشور متطابق الأضلاع!</b> الأضلاع الثلاثة <span class="m">6.0</span>، والزوايا الثلاث <span class="m">60°</span>. انطبقت كل الأضلاع وكل الزوايا.`
+      : iso
+      ? `الضلعان متطابقان (<span class="m">${ab.toFixed(1)}</span>)، ف<b>زاويتا القاعدة تطابقتا فورًا</b> (<span class="m">${Math.round(aB)}°</span>). هذا هو المثلث المتطابق الضلعين!`
+      : `الأضلاع غير متساوية الآن: <span class="m"><i>AB</i> = ${ab.toFixed(1)}</span> و<span class="m"><i>AC</i> = ${ac.toFixed(1)}</span>. اسحبي الرأس <span class="m"><i>A</i></span> نحو خط التماثل حتى يتطابق الضلعان.`;
+  }
+  dragOn(svg, P => (dist(P, A) < 40 ? 1 : null), P => {
+    A = [clamp(P[0], 110, 530), clamp(P[1], 44, 224)];
+    if (Math.abs(A[0] - 320) < 10) A[0] = 320;
+    if (dist(A, EQ) < 14) A = [...EQ];
+    draw();
+  });
+  $("#atMirror").addEventListener("click", () => {
+    mirror = !mirror;
+    $("#atMirror").setAttribute("aria-pressed", String(mirror));
+    draw();
+  });
+  $("#atSnapEq").addEventListener("click", () => { A = [...EQ]; draw(); });
+  $("#atRand").addEventListener("click", () => { A = [ri(0, 1) ? ri(160, 275) : ri(365, 480), ri(75, 190)]; draw(); });
+  draw();
+}
+
+/* ---------- 1. Dual Reflection Machine (3.10 & 3.11) + Example 1 ---------- */
+{
+  const svg = $("#thm"), BY = 256;
+  let mode = "s";
+  function drawS() {
+    const p = +$("#tv").value, L = +$("#tl").value * 34, foldPct = +$("#tfold").value;
+    $("#tvO").textContent = `${p}°`; $("#tlO").textContent = $("#tl").value; $("#tfoldO").textContent = `${foldPct}%`;
+    const folding = foldPct / 100;
+    const w = L * Math.sin(p / 2 * RAD), h = L * Math.cos(p / 2 * RAD);
+    const A = [320, BY - h], B = [320 - w, BY], C = [320 + w, BY], N = [320, BY], q = (180 - p) / 2;
+    const k = Math.cos(folding * Math.PI);
+    const Bf = [320 + (B[0] - 320) * k, BY];
+    let s = `<rect width="640" height="290" rx="10" fill="var(--glass)"/>`;
+    s += poly([A, N, C], { fill: "color-mix(in srgb, var(--p1) 14%, transparent)", stroke: "none" });
+    s += poly([A, N, Bf], { fill: `color-mix(in srgb, var(--an) ${folding > 0 ? 28 : 14}%, transparent)`, stroke: "none" });
+    s += seg(A, N, { col: "var(--muted)", sw: 2, dash: "6 6" });
+    s += seg(A, C, { col: LEG, sw: 3.8 }) + seg(A, Bf, { col: LEG, sw: 3.8 }) + seg(Bf, C, { col: BASE, sw: 3.8 });
+    s += ticks(A, C, 1, LEG, 14) + ticks(A, Bf, 1, LEG, 14);
+    if (folding < .03) {
+      s += arcs(B, C, A, 1, BA, 26, { right: false }) + arcs(C, A, B, 1, BA, 26, { right: false }) + arcs(A, B, C, 1, VA, 24, { right: false });
+      s += angLbl(B, C, A, `${fmt(q)}°`, { col: BA, fs: 16, d: 52, cls: "halo" }) + angLbl(C, A, B, `${fmt(q)}°`, { col: BA, fs: 16, d: 52, cls: "halo" }) + angLbl(A, B, C, `${p}°`, { col: VA, fs: 16, d: 44, cls: "halo" });
+      s += txt([B[0] - 14, BY + 20], "B", { cls: "nm", fs: 20 }) + txt([C[0] + 14, BY + 20], "C", { cls: "nm", fs: 20 });
+    } else {
+      s += arcs(C, A, N, 1, BA, 26, { right: false });
+      if (folding > .96) s += txt([C[0] - 66, BY - 24], "انطباق تام ✓", { col: "var(--p2)", fs: 17, cls: "lbl halo" });
+    }
+    s += txt([A[0], A[1] - 18], "A", { cls: "nm", fs: 21 }) + txt([320, BY + 20], "N", { cls: "nm", fs: 18, col: "var(--muted)" });
+    s += sideLbl(A, C, B, $("#tl").value, { col: LEG, fs: 16, d: 16, cls: "halo" });
+    svg.innerHTML = s;
+    $("#thmNarr").className = "narr ok";
+    $("#thmNarr").innerHTML = folding > .96
+      ? `القطعة اليسرى <span class="m">△<i>ABN</i></span> انطبقت تمامًا على <span class="m">△<i>ACN</i></span>، فتطابقت <span class="m">∠<i>B</i></span> و<span class="m">∠<i>C</i></span>.`
+      : `كل ساق يساوي ${$("#tl").value}، فتطابقت زاويتا القاعدة: <span class="m">(180° − ${p}°) ÷ 2 = ${fmt(q)}°</span>. اسحبي مفصل الطيّ لرؤية الانطباق!`;
+  }
+  function drawA() {
+    const b = +$("#tb").value, c = +$("#tc").value, a = 180 - b - c;
+    $("#tbO").textContent = `${b}°`; $("#tcO").textContent = `${c}°`;
+    const base = 6, AB = base * Math.sin(c * RAD) / Math.sin(a * RAD), AC = base * Math.sin(b * RAD) / Math.sin(a * RAD);
+    const k = Math.min(240 / base, 210 / Math.max(AB * Math.sin(b * RAD), .1));
+    const B = [320 - base * k / 2, BY], C = [320 + base * k / 2, BY], A = [B[0] + AB * k * Math.cos(b * RAD), BY - AB * k * Math.sin(b * RAD)];
+    const eq = b === c;
+    let s = `<rect width="640" height="290" rx="10" fill="var(--glass)"/>`;
+    s += poly([A, B, C], { fill: eq ? "color-mix(in srgb, var(--p1) 14%, transparent)" : "color-mix(in srgb, var(--muted) 8%, transparent)", stroke: "none" });
+    s += seg(B, C, { col: BASE, sw: 3.8 }) + seg(A, B, { col: eq ? LEG : "var(--ink)", sw: 3.8 }) + seg(A, C, { col: eq ? LEG : "var(--ink)", sw: 3.8 });
+    if (eq) s += ticks(A, B, 1, LEG, 14) + ticks(A, C, 1, LEG, 14);
+    s += arcs(B, C, A, 1, BA, 26, { right: false }) + arcs(C, A, B, eq ? 1 : 2, eq ? BA : "var(--an2)", 26, { right: false });
+    s += angLbl(B, C, A, `${b}°`, { col: BA, fs: 16, d: 52, cls: "halo" }) + angLbl(C, A, B, `${c}°`, { col: eq ? BA : "var(--an2)", fs: 16, d: 52, cls: "halo" });
+    s += sideLbl(A, B, C, fmt(AB), { col: eq ? LEG : "var(--ink)", fs: 16, d: 18, cls: "halo" }) + sideLbl(A, C, B, fmt(AC), { col: eq ? LEG : "var(--ink)", fs: 16, d: 18, cls: "halo" });
+    s += txt([A[0], A[1] - 18], "A", { cls: "nm", fs: 21 }) + txt([B[0] - 14, BY + 18], "B", { cls: "nm", fs: 20 }) + txt([C[0] + 14, BY + 18], "C", { cls: "nm", fs: 20 });
+    svg.innerHTML = s;
+    $("#thmNarr").className = `narr${eq ? " ok" : ""}`;
+    $("#thmNarr").innerHTML = eq
+      ? `<span class="m">∠<i>B</i> ≅ ∠<i>C</i></span>، إذن <b>الضلعان المقابلان لهما متطابقان</b>: <span class="m"><i>AC</i> = <i>AB</i> = ${fmt(AB)}</span>.`
+      : `الزاويتان مختلفتان، فالضلعان المقابلان لهما مختلفان (<span class="m">${fmt(AC)}</span> مقابل ${b}° و<span class="m">${fmt(AB)}</span> مقابل ${c}°). ساوي بين الزاويتين!`;
+  }
+  const draw = () => (mode === "s" ? drawS() : drawA());
+  ["tv", "tl", "tfold"].forEach(id => $("#" + id).addEventListener("input", drawS));
+  ["tb", "tc"].forEach(id => $("#" + id).addEventListener("input", drawA));
+  $$("[data-tm]").forEach(b => b.addEventListener("click", () => {
+    $$("[data-tm]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    mode = b.dataset.tm;
+    $("#thmS").hidden = mode !== "s"; $("#thmA").hidden = mode !== "a";
+    draw();
+  }));
+  draw();
+
+  // Example 1
+  const A = [170, 22], C = [250, 176], D = [90, 176], r = dist(A, C), Bp = [A[0] + r * Math.cos(28 * RAD), A[1] + r * Math.sin(28 * RAD)];
+  const F1 = { pts: { A, B: Bp, C, D }, segs: ["AD", "DC", "CB", "AB", "AC"], tris: ["ADC", "ACB"], fs: 19, r: 20 };
+  $("#ex1F").innerHTML = figure(F1, [["t", "AB", 1], ["t", "AC", 1], ["g", "ADC", 1], ["g", "ACD", 1]]);
+  const qs = [
+    { q: `(a) سمّي زاويتين متطابقتين <b>غير مؤشر</b> إلى تطابقهما في الشكل.`, o: [[ACONG("ABC", "ACB"), 1, `لأن ${CONG("AB", "AC")}: الزاويتان المقابلتان لهما متطابقتان (نظرية 3.10).`], [ACONG("ADC", "ACD"), 0, "هذي مؤشر عليها بالأقواس في الشكل."], [ACONG("DAC", "CAB"), 0, "لا توجد علامة تدل على تطابق زاويتي الرأس."]] },
+    { q: `(b) سمّي قطعتين مستقيمتين متطابقتين <b>غير مؤشر</b> إلى تطابقهما.`, o: [[CONG("AD", "AC"), 1, `لأن ${ACONG("D", "ACD")}: الضلعان المقابلان لهما متطابقان (عكس 3.11).`], [CONG("AB", "AC"), 0, "هذي مؤشر عليها بشرطات التطابق."], [CONG("DC", "CB"), 0, "ليست مقابلة لزاويتين متطابقتين."]] },
+  ];
+  let qi = 0;
+  const ask = () => { $("#ex1Q").innerHTML = qs[qi].q; chipQ($("#ex1C"), $("#ex1Fb"), qs[qi].o, () => { if (qi < qs.length - 1) setTimeout(() => { qi++; ask(); $("#ex1Fb").textContent = ""; }, 1600); else $("#ex1").classList.add("ok"); }); };
+  ask();
+}
+
+/* ---------- 2. Proofs ---------- */
+{
+  const REASONS = ["معطى", "لكل قطعة مستقيمة نقطة منتصف واحدة", "لكل نقطتين مستقيم واحد يمر بهما", "تعريف نقطة المنتصف", "خاصية الانعكاس في التطابق", "مسلّمة SSS", "مسلّمة SAS", "العناصر المتناظرة في مثلثين متطابقين متطابقة", "المثلث المتطابق الأضلاع متطابق الزوايا", "بالتعويض (أنصاف أضلاع متساوية)", "تعريف المثلث المتطابق الأضلاع"];
+  const DA = [180, 12], DE = [70, 202.5], DC = [290, 202.5];
+  const dome = { pts: { A: DA, E: DE, C: DC, F: mid(DA, DE), B: mid(DA, DC), D: mid(DE, DC) }, segs: ["AE", "EC", "CA", "FB", "BD", "DF"], tris: ["AFB", "FED", "BDC"], fs: 19, r: 18,
+    nm: { A: [198, 14], F: [mid(DA, DE)[0] - 16, mid(DA, DE)[1]], B: [mid(DA, DC)[0] + 16, mid(DA, DC)[1]], D: [180, 220] } };
+  const PROOFS = [
+    { given: `<b>المعطيات:</b> في ${TRI("LMP")}، ${CONG("LM", "LP")}.<br><b>المطلوب:</b> إثبات أن ${ACONG("M", "P")}.`,
+      F: { pts: { L: [40, 115], M: [320, 26], P: [320, 204], N: [320, 115] }, segs: ["LM", "LP", "MP", "LN"], dash: ["LN"], tris: ["LMN", "LPN"], fs: 20, r: 22, nm: { N: [338, 115] } },
+      steps: [
+        { s: `افرضي أن ${M("<i>N</i>")} نقطة منتصف ${SG("MP")}`, r: 1, mk: [], hint: "كل قطعة مستقيمة لها نقطة منتصف واحدة." },
+        { s: `ارسمي القطعة المساعدة ${SG("LN")}`, r: 2, mk: [], hint: "نصل بين النقطتين L و N." },
+        { s: CONG("PN", "NM"), r: 3, mk: [["t", "PN", 2], ["t", "NM", 2]], hint: "N تقسم القطعة نصفين متطابقين." },
+        { s: CONG("LN", "LN"), r: 4, mk: [["t", "LN", 3]], hint: "ضلع مشترك يطابق نفسه." },
+        { s: CONG("LM", "LP"), r: 0, mk: [["t", "LM", 1], ["t", "LP", 1]], hint: "موجودة في المعطيات." },
+        { s: TCONG("LMN", "LPN"), r: 5, mk: [["f", "LMN", 0], ["f", "LPN", 1]], hint: "ثلاثة أضلاع متطابقة في كل مثلث." },
+        { s: ACONG("M", "P"), r: 7, mk: [["g", "LMN", 1], ["g", "LPN", 1]], hint: "الزوايا المتناظرة في المثلثين المتطابقين متطابقة." },
+      ] },
+    { given: `<b>المعطيات:</b> ${TRI("ACE")} متطابق الأضلاع، و${M("<i>F</i>, <i>B</i>, <i>D</i>")} منتصفات أضلاعه.<br><b>المطلوب:</b> إثبات أن ${TRI("FBD")} متطابق الأضلاع.`,
+      F: dome,
+      steps: [
+        { s: `${TRI("ACE")} متطابق الأضلاع، و${M("<i>F</i>, <i>D</i>, <i>B</i>")} منتصفات`, r: 0, mk: [], hint: "بداية البرهان من المعطيات." },
+        { s: M("∠<i>A</i> ≅ ∠<i>C</i> ≅ ∠<i>E</i>"), r: 8, mk: [["g", "FAB", 1], ["g", "BCD", 1], ["g", "DEF", 1]], hint: "نتيجة 3.3." },
+        { s: M("<i>AF</i> = <i>FE</i> ، <i>ED</i> = <i>DC</i> ، <i>CB</i> = <i>BA</i>"), r: 3, mk: [], hint: "تعريف نقطة المنتصف." },
+        { s: M("<i>AF</i> = <i>FE</i> = <i>ED</i> = <i>DC</i> = <i>CB</i> = <i>BA</i>"), r: 9, mk: [["t", "AF", 1], ["t", "FE", 1], ["t", "ED", 1], ["t", "DC", 1], ["t", "CB", 1], ["t", "BA", 1]], hint: "الكل متساوٍ، فأنصافها متساوية بالتعويض." },
+        { s: M("△<i>AFB</i> ≅ △<i>EDF</i> ≅ △<i>CBD</i>"), r: 6, mk: [["f", "AFB", 0], ["f", "EDF", 1], ["f", "CBD", 2]], hint: "ضلعان والزاوية المحصورة بينهما (60°)." },
+        { s: M(`${OV("DF")} ≅ ${OV("FB")} ≅ ${OV("BD")}`), r: 7, mk: [["t", "DF", 2], ["t", "FB", 2], ["t", "BD", 2]], hint: "أضلاع متناظرة في مثلثات متطابقة." },
+        { s: `${TRI("FBD")} متطابق الأضلاع`, r: 10, mk: [["f", "FBD", 3]], hint: "أضلاعه الثلاثة متطابقة." },
+      ] },
+  ];
+  let p = 0, at = 0;
+  const bank = shuffle([...REASONS.keys()]);
+  function draw() {
+    const P = PROOFS[p];
+    $("#pf").innerHTML = figure(P.F, P.steps.slice(0, at).flatMap(x => x.mk));
+    $("#pfGiven").innerHTML = P.given;
+    $("#pfBody").innerHTML = P.steps.map((x, i) => `<tr class="${i === at ? "now" : i > at ? "later" : ""}"><td><span class="n">${i + 1}</span>${i <= at ? x.s : "…"}</td><td><span class="rs${i < at ? " got" : ""}">${i < at ? REASONS[x.r] : i === at ? "اختاري المبرر ↓" : ""}</span></td></tr>`).join("");
+    $("#pfBank").innerHTML = at < P.steps.length ? bank.map(k => `<button type="button" data-r="${k}">${REASONS[k]}</button>`).join("") : "";
+    if (at >= P.steps.length) {
+      $("#pfFb").className = "fb good";
+      $("#pfFb").innerHTML = `اكتمل البرهان ✓ ${p < PROOFS.length - 1 ? `<button class="btn soft" type="button" id="pfNext" style="padding:2px 12px">البرهان التالي</button>` : "أتممتي البرهانين بنجاح!"}`;
+      $("#pfNext")?.addEventListener("click", () => $$("[data-pf]")[p + 1].click());
+    }
+  }
+  $("#pfBank").addEventListener("click", e => {
+    const b = e.target.closest("button[data-r]"); if (!b) return;
+    const st = PROOFS[p].steps[at];
+    if (+b.dataset.r === st.r) { at++; $("#pfFb").className = "fb good"; $("#pfFb").textContent = "صحيح ✓"; draw(); }
+    else { b.classList.add("wrong"); $("#pfFb").className = "fb bad"; $("#pfFb").innerHTML = `مو هذا المبرر. ${st.hint}`; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }
+  });
+  $$("[data-pf]").forEach(b => b.addEventListener("click", () => {
+    $$("[data-pf]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    p = +b.dataset.pf; at = 0; $("#pfFb").textContent = ""; draw();
+  }));
+  draw();
+}
+
+/* ---------- 3. Dual-Compass Equilateral Construction ---------- */
+{
+  const svg = $("#eq"), B = [200, 276], C = [440, 276], EQ = [320, 276 - 240 * Math.sqrt(3) / 2];
+  let A = [392, 118];
+  function draw() {
+    const sd = [dist(A, B), dist(B, C), dist(C, A)].map(v => v / U), [aA, aB, aC] = anglesOf([A, B, C]);
+    const eAB = Math.abs(sd[0] - 6) < .03, eAC = Math.abs(sd[2] - 6) < .03, iso = Math.abs(sd[0] - sd[2]) < .03, eq = eAB && eAC;
+    let s = `<rect width="640" height="310" rx="10" fill="var(--glass)"/>`;
+    s += poly([A, B, C], { fill: eq ? "url(#glassSun)" : "color-mix(in srgb, var(--p1) 10%, transparent)", stroke: "none" });
+    // Dual compass arcs (r=240=6 units)
+    s += `<circle cx="${B[0]}" cy="${B[1]}" r="240" fill="none" stroke="${eAB ? "var(--p2)" : "var(--line)"}" stroke-width="${eAB ? 2.2 : 1.5}" stroke-dasharray="5 5"/>`;
+    s += `<circle cx="${C[0]}" cy="${C[1]}" r="240" fill="none" stroke="${eAC ? "var(--p2)" : "var(--line)"}" stroke-width="${eAC ? 2.2 : 1.5}" stroke-dasharray="5 5"/>`;
+    s += `<circle cx="${EQ[0]}" cy="${EQ[1].toFixed(1)}" r="6" fill="none" stroke="var(--an)" stroke-width="2"/>`;
+    s += seg(B, C, { col: LEG, sw: 4 }) + seg(A, B, { col: eAB ? LEG : "var(--ink)", sw: 4 }) + seg(A, C, { col: eAC ? LEG : "var(--ink)", sw: 4 });
+    s += ticks(B, C, 1, LEG, 14) + (eAB ? ticks(A, B, 1, LEG, 14) : "") + (eAC ? ticks(A, C, 1, LEG, 14) : "");
+    s += arcs(B, C, A, 1, eq ? BA : "var(--ink)", 24, { right: false }) + arcs(C, A, B, 1, eq ? BA : "var(--ink)", 24, { right: false }) + arcs(A, B, C, 1, eq ? BA : VA, 22, { right: false });
+    s += angLbl(B, C, A, `${Math.round(aB)}°`, { fs: 16, d: 48, cls: "halo" }) + angLbl(C, A, B, `${Math.round(aC)}°`, { fs: 16, d: 48, cls: "halo" }) + angLbl(A, B, C, `${Math.round(aA)}°`, { fs: 15, d: 44, cls: "halo" });
+    s += txt([B[0] - 16, B[1] + 18], "B", { cls: "nm", fs: 20 }) + txt([C[0] + 16, C[1] + 18], "C", { cls: "nm", fs: 20 });
+    s += knob(A, 13) + txt([A[0] + 24, A[1] - 14], "A", { cls: "nm", fs: 22 });
+    svg.innerHTML = s;
+    $("#eqRo").innerHTML = `<span class="ro ok">${M("<i>BC</i>")} <b>6.0</b></span><span class="ro${eAB ? " ok" : ""}">${M("<i>AB</i>")} <b>${sd[0].toFixed(1)}</b></span><span class="ro${eAC ? " ok" : ""}">${M("<i>AC</i>")} <b>${sd[2].toFixed(1)}</b></span><span class="ro${eq ? " ok" : ""}">كل زاوية <b>${eq ? "60°" : "—"}</b></span>`;
+    $("#eqNarr").classList.toggle("ok", eq);
+    $("#eqNarr").innerHTML = eq
+      ? `<b>تقاطع الدائرتين ✓</b> الأضلاع الثلاثة تساوي <span class="m">6</span>، وبنتيجتي 3.3 و3.4 صارت الزوايا الثلاث متطابقة وكل منها <span class="m">180° ÷ 3 = 60°</span>.`
+      : iso ? `ضلعان متطابقان (متطابق الضلعين). اسحبي <span class="m"><i>A</i></span> إلى تقاطع دائرتي الفرجار ليصبحا <span class="m">6.0</span>.`
+      : `القاعدة <span class="m">6</span>. اسحبي الرأس <span class="m"><i>A</i></span> إلى علامة تقاطع الدائرتين.`;
+  }
+  dragOn(svg, P => (dist(P, A) < 40 ? 1 : null), P => {
+    A = [clamp(P[0], 110, 530), clamp(P[1], 36, 240)];
+    if (dist(A, EQ) < 16) A = [...EQ];
+    else { for (const O of [B, C]) { const d = dist(A, O); if (Math.abs(d - 240) < 8) A = [O[0] + (A[0] - O[0]) * 240 / d, O[1] + (A[1] - O[1]) * 240 / d]; } }
+    draw();
+  });
+  $("#eqSnap").addEventListener("click", () => { A = [...EQ]; draw(); });
+  draw();
+
+  // Example 2
+  const X = [70, 30], Y = [300, 70], Zp = (() => { const r = dist(X, Y), t = Math.atan2(Y[1] - X[1], Y[0] - X[0]) + 60 * RAD; return [X[0] + r * Math.cos(t), X[1] + r * Math.sin(t)]; })();
+  const Z = [X[0] + (Zp[0] - X[0]) * 0.74, X[1] + (Zp[1] - X[1]) * 0.74], Y2 = [X[0] + (Y[0] - X[0]) * 0.74, X[1] + (Y[1] - X[1]) * 0.74];
+  const F2 = { pts: { X, Y: Y2, Z }, segs: ["XY", "YZ", "ZX"], tris: ["XYZ"], fs: 19, r: 22 };
+  $("#ex2F").innerHTML = figure(F2, [["t", "XY", 1], ["t", "XZ", 1], ["g", "YXZ", 1]]) + angLbl(X, Y2, Z, "60°", { fs: 14, d: 40 }) + sideLbl(X, Y2, Z, "8 cm", { fs: 14, d: 14 }) + sideLbl(X, Z, Y2, "8 cm", { fs: 14, d: 14 });
+  const qs = [
+    { q: `(a) أوجدي ${M("<i>m</i>∠<i>Y</i>")}.`, o: [[M("60°"), 1, `${CONG("XY", "XZ")} ← ${ACONG("Y", "Z")}، إذن ${M("60° + 2<i>m</i>∠<i>Y</i> = 180°")} ← ${M("<i>m</i>∠<i>Y</i> = 60°")}.`], [M("120°"), 0, "هذا مجموع زاويتي القاعدة معًا."], [M("30°"), 0, "نصف 120° هو 60°."], [M("90°"), 0, "لا توجد زاوية قائمة."]] },
+    { q: `(b) أوجدي ${M("<i>YZ</i>")}.`, o: [[M("8 cm"), 1, "كل الزوايا 60° ← المثلث متطابق الزوايا ← متطابق الأضلاع."], [M("16 cm"), 0, "الأضلاع متساوية وليست مجموع الساقين."], [M("4 cm"), 0, "ليست نصف الساق."], [M("لا يمكن معرفته"), 0, "النتيجة 3.3 تؤكد تطابق الأضلاع الثلاثة."]] },
+  ];
+  let qi = 0;
+  const ask = () => { $("#ex2Q").innerHTML = qs[qi].q; chipQ($("#ex2C"), $("#ex2Fb"), qs[qi].o, () => { if (qi < qs.length - 1) setTimeout(() => { qi++; ask(); $("#ex2Fb").textContent = ""; }, 1700); else $("#ex2").classList.add("ok"); }); };
+  ask();
+}
+
+/* ---------- 4. Algebra ---------- */
+{
+  const A = [80, 100], B = [80 + 150 * Math.cos(30 * RAD), 25], C = [80 + 150 * Math.cos(30 * RAD), 175];
+  const F3 = { pts: { A, B, C }, segs: ["AB", "BC", "CA"], tris: ["ABC"], fs: 19, r: 20 };
+  $("#ex3F").innerHTML = figure(F3, [["t", "AB", 1], ["t", "AC", 1], ["g", "BAC", 1], ["g", "ABC", 1]]) + sideLbl(A, B, C, "3 in.", { fs: 14, d: 12 })
+    + sideLbl(B, C, A, "(4y − 5) in.", { fs: 14, d: 14 }) + angLbl(A, B, C, "(2x)°", { fs: 13, d: 42 }) + angLbl(B, C, A, "(2x)°", { fs: 13, d: 42 });
+  const W = [
+    [`${M("<i>m</i>∠<i>A</i> = <i>m</i>∠<i>B</i>")} ← ${CONG("AC", "BC")}`, "عكس نظرية 3.11"],
+    [`${CONG("AB", "AC")} ← ${ACONG("B", "C")}`, "من العلامات ونظرية 3.10"],
+    ["المثلث متطابق الزوايا ← متطابق الأضلاع", "نتيجة 3.3"],
+    [M("2<i>x</i> = 60 ← <i>x</i> = 30"), "كل زاوية 60° (نتيجة 3.4)"],
+    [M("<i>AB</i> = <i>BC</i> ← 3 = 4<i>y</i> − 5"), "الأضلاع متساوية"],
+    [M("8 = 4<i>y</i> ← <i>y</i> = 2"), "بحل المعادلة"],
+  ];
+  let n = 0;
+  const show = () => { $("#ex3W").innerHTML = W.slice(0, n).map((w, i) => `<li class="${i === n - 1 ? "pop" : ""}"><span>${w[0]}</span><span class="rs">${w[1]}</span></li>`).join(""); $("#ex3N").disabled = n >= W.length; };
+  $("#ex3N").addEventListener("click", () => { n = Math.min(W.length, n + 1); show(); });
+  $("#ex3R").addEventListener("click", () => { n = 0; show(); });
+  show();
+
+  let P = { p: 80, legs: [[4, -2], [2, 2]], ang: [6, 8], x: 7, y: 2, book: true };
+  const lin = (a, b, v) => `${a === 1 ? "" : a}${v} ${b < 0 ? "−" : "+"} ${Math.abs(b)}`;
+  function make() {
+    const p = [20, 40, 50, 60, 70, 80, 90, 100][ri(0, 7)], q = (180 - p) / 2, y = ri(2, 9);
+    let m, x, k; do { m = ri(2, 7); x = ri(2, 12); k = q - m * x; } while (k === 0 || Math.abs(k) > 30);
+    let a, c, b, d; do { a = ri(2, 8); c = ri(1, 7); b = ri(-12, 12); d = (a - c) * y + b; } while (a === c || b === 0 || d === 0 || a * y + b <= 0);
+    return { p, legs: [[a, b], [c, d]], ang: [m, k], x, y };
+  }
+  function draw() {
+    const [Ap, Bp, Cp] = isoTri(180, 178, P.p, 120, 150);
+    let s = markTri([Ap, Bp, Cp], [1, 0, 1], [0, 0, 0], { tc: LEG });
+    s += arcs(Ap, Bp, Cp, 1, VA, 20, { right: false }) + angLbl(Ap, Bp, Cp, `${P.p}°`, { fs: 14, d: 40, col: VA });
+    s += arcs(Cp, Ap, Bp, 1, BA, 20, { right: false }) + angLbl(Cp, Ap, Bp, `(${lin(...P.ang, "x")})°`, { fs: 13, d: 48, col: BA });
+    s += sideLbl(Ap, Bp, Cp, lin(...P.legs[0], "y"), { fs: 14, d: 14, col: LEG }) + sideLbl(Cp, Ap, Bp, lin(...P.legs[1], "y"), { fs: 14, d: 14, col: LEG });
+    $("#myF").innerHTML = s;
+    $("#myH").textContent = P.book ? "تحقق 3: دورك" : "مسألة مولّدة: دورك";
+    ["#myX", "#myY"].forEach(id => { $(id).value = ""; $(id).className = ""; });
+    $("#myFb").textContent = ""; $("#myTurn").classList.remove("ok");
+  }
+  $("#myGo").addEventListener("click", () => {
+    const vx = parseFloat(toLatin($("#myX").value)), vy = parseFloat(toLatin($("#myY").value));
+    const okx = vx === P.x, oky = vy === P.y, q = (180 - P.p) / 2;
+    $("#myX").className = Number.isNaN(vx) ? "" : okx ? "right" : "wrong";
+    $("#myY").className = Number.isNaN(vy) ? "" : oky ? "right" : "wrong";
+    const hx = `زاوية القاعدة: ${M(`(180° − ${P.p}°) ÷ 2 = ${q}°`)} ← ${M(`${lin(...P.ang, "<i>x</i>")} = ${q}`)}.`;
+    const hy = `الساقان متطابقان: ${M(`${lin(...P.legs[0], "<i>y</i>")} = ${lin(...P.legs[1], "<i>y</i>")}`)}.`;
+    if (okx && oky) { $("#myFb").className = "fb good"; $("#myFb").innerHTML = `صحيح ✓ ${M(`<i>x</i> = ${P.x} ، <i>y</i> = ${P.y}`)}.`; $("#myTurn").classList.add("ok"); }
+    else { $("#myFb").className = "fb bad"; $("#myFb").innerHTML = !okx ? `راجعي ${M("<i>x</i>")}: ${hx}` : `راجعي ${M("<i>y</i>")}: ${hy}`; }
+  });
+  $("#myNew").addEventListener("click", () => { P = make(); draw(); });
+  draw();
+}
+
+/* ---------- 5. Fractal Glass Window ---------- */
+{
+  const svg = $("#dome"), T = [[320, 26], [164, 296], [476, 296]];
+  let lvl = 0; const asked = new Set();
+  function panes(n) {
+    const k = 2 ** n, P = (i, j) => [T[1][0] + (T[2][0] - T[1][0]) * (i + j / 2) / k, T[1][1] + (T[0][1] - T[1][1]) * j / k], out = [];
+    for (let j = 0; j < k; j++) for (let i = 0; i < k - j; i++) {
+      out.push({ V: [P(i, j + 1), P(i, j), P(i + 1, j)], up: true });
+      if (i < k - j - 1) out.push({ V: [P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)], up: false });
+    }
+    return out;
+  }
+  const Q = {
+    1: { q: `وصلنا المنتصفات ${M("<i>F</i>، <i>B</i>، <i>D</i>")}. كم قياس كل زاوية في اللوح الأوسط ${TRI("FBD")}؟`, o: [[M("60°"), 1, "اللوح الأوسط متطابق الأضلاع (مثال 4)، فكل زاوية 60°."], [M("30°"), 0, "طول الضلع يتنصّف، أما الزاوية فتبقى 60°."], [M("120°"), 0, "مجموع زوايا المثلث 180°."], [M("90°"), 0, "لا توجد زاوية قائمة."]] },
+    2: { q: "بعد التقسيم الثاني صار لدينا 16 لوحًا. عند التقسيم الثالث، كم لوحًا يصير؟", o: [[M("64"), 1, "كل لوح ينقسم إلى 4 ألواح: ‏16 × 4 = 64."], [M("32"), 0, "العدد يتضاعف ×4 لا ×2."], [M("20"), 0, "نضرب في 4 لا نجمع 4."], [M("48"), 0, "‏16 × 4 = 64."]] },
+    3: { q: "ضلع اللوح الأكبر 16 m. كم طول ضلع كل لوح صغير بعد التقسيم الثالث؟", o: [[M("2 m"), 1, "في كل مرحلة يتنصّف الضلع: 16 ← 8 ← 4 ← 2."], [M("4 m"), 0, "هذا بعد التقسيم الثاني."], [M("0.25 m"), 0, "اقسمي 16 على 2 ثلاث مرات."], [M("5.3 m"), 0, "لا نقسم على 3."]] },
+  };
+  const cols = ["var(--p1)", "var(--an)", "var(--p2)", "var(--p3)"];
+  function draw() {
+    const all = panes(lvl);
+    let s = `<rect width="640" height="330" rx="10" fill="var(--glass)"/>`;
+    s += all.map((t, i) => `<polygon points="${t.V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="color-mix(in srgb, ${t.up ? cols[i % 2] : cols[2 + (i % 2)]} ${t.up ? 20 : 28}%, var(--panel))" stroke="var(--ink)" stroke-width="${lvl > 2 ? 1.1 : 2}" stroke-linejoin="round"/>`).join("");
+    s += poly(T, { sw: 3.4 });
+    if (lvl === 1) {
+      const F = mid(T[0], T[1]), Bm = mid(T[0], T[2]), D = mid(T[1], T[2]);
+      s += ticks(T[0], F, 1, LEG, 13) + ticks(F, T[1], 1, LEG, 13) + ticks(T[1], D, 1, LEG, 13) + ticks(D, T[2], 1, LEG, 13) + ticks(T[2], Bm, 1, LEG, 13) + ticks(Bm, T[0], 1, LEG, 13);
+      s += ticks(F, Bm, 2, "var(--main)", 13) + ticks(Bm, D, 2, "var(--main)", 13) + ticks(D, F, 2, "var(--main)", 13);
+      s += txt([F[0] - 18, F[1]], "F", { cls: "nm", fs: 19 }) + txt([Bm[0] + 18, Bm[1]], "B", { cls: "nm", fs: 19 }) + txt([D[0], D[1] + 18], "D", { cls: "nm", fs: 19 });
+      s += txt([T[0][0], T[0][1] - 12], "A", { cls: "nm", fs: 19 }) + txt([T[1][0] - 16, T[1][1]], "E", { cls: "nm", fs: 19 }) + txt([T[2][0] + 16, T[2][1]], "C", { cls: "nm", fs: 19 });
+    }
+    svg.innerHTML = s;
+    $("#domeN").textContent = 4 ** lvl; $("#domeS").textContent = `${16 / 2 ** lvl} m`;
+    $("#domeSplit").disabled = lvl >= 4; $("#domeBack").disabled = lvl === 0;
+    $("#domeNarr").innerHTML = lvl === 0 ? "لوح واحد متطابق الأضلاع طول ضلعه 16 m. اضغطي «قسّمي بالمنتصفات»."
+      : lvl === 1 ? `انقسم إلى 4 ألواح متطابقة الأضلاع: المثلثات الثلاثة عند الرؤوس متطابقة بـ <b>SAS</b>، لذا أضلاع اللوح الأوسط متطابقة أيضًا.`
+      : `${4 ** lvl} لوحًا متطابق الأضلاع، طول ضلع كل لوح ${16 / 2 ** lvl} m.`;
+    const qd = Q[lvl]; $("#domeQ").hidden = !qd;
+    if (qd && !asked.has(lvl)) { asked.add(lvl); $("#domeQq").innerHTML = qd.q; $("#domeFb").textContent = ""; $("#domeQ").classList.remove("ok"); chipQ($("#domeC"), $("#domeFb"), qd.o, () => $("#domeQ").classList.add("ok")); }
+    else if (qd) $("#domeQ").hidden = true;
+  }
+  $("#domeSplit").addEventListener("click", () => { lvl = Math.min(4, lvl + 1); draw(); });
+  $("#domeBack").addEventListener("click", () => { lvl = Math.max(0, lvl - 1); draw(); });
+  draw();
+}
+
+/* ---------- 6. Mosaic Mandala Game ---------- */
+{
+  const ROUNDS = 8, CX = 100, CY = 100, R = 86;
+  const WEDGE_COLS = ["var(--p1)", "var(--an)", "var(--p2)", "var(--p3)", "var(--main)", "var(--an2)", "var(--p1)", "var(--p2)"];
+  let round = 0, score = 0, cur = null, plan = [];
+  function drawMandala() {
+    let s = `<circle cx="${CX}" cy="${CY}" r="${R + 6}" fill="var(--sheet)" stroke="var(--ink)" stroke-width="3"/>`;
+    for (let i = 0; i < ROUNDS; i++) {
+      const a0 = i * 45 - 90, a1 = (i + 1) * 45 - 90;
+      const P1 = pol([CX, CY], a0, R), P2 = pol([CX, CY], a1, R);
+      s += `<polygon class="wedge empty" data-i="${i}" points="${CX},${CY} ${P1[0].toFixed(1)},${P1[1].toFixed(1)} ${P2[0].toFixed(1)},${P2[1].toFixed(1)}" fill="${WEDGE_COLS[i]}" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>`;
+    }
+    s += `<circle cx="${CX}" cy="${CY}" r="18" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`;
+    $("#mandala").innerHTML = s;
+  }
+  const opts4 = (ans, wrongs, unit = "") => shuffle([ans, ...shuffle([...new Set(wrongs.filter(w => w !== ans && w > 0))]).slice(0, 3)]).map(v => ({ t: `${v}${unit}`, ok: v === ans }));
+  function make(kind) {
+    if (kind === "base") { const p = 2 * ri(10, 60), q = (180 - p) / 2;
+      return { kind, p, show: { apex: `${p}°`, base: "?" }, q: `مثلث متطابق الضلعين زاوية رأسه ${M(`${p}°`)}. كم قياس زاوية القاعدة؟`, o: opts4(q, [180 - p, p, q + 10, 180 - 2 * p, q - 5], "°"), why: `${M(`(180° − ${p}°) ÷ 2 = ${q}°`)}` }; }
+    if (kind === "apex") { const q = ri(20, 80), p = 180 - 2 * q;
+      return { kind, p, show: { apex: "?", base: `${q}°` }, q: `زاوية القاعدة في مثلث متطابق الضلعين ${M(`${q}°`)}. كم قياس زاوية الرأس؟`, o: opts4(p, [180 - q, q, p + 10, 90 - q / 2 | 0], "°"), why: `زاويتا القاعدة متطابقتان: ${M(`180° − 2(${q}°) = ${p}°`)}` }; }
+    if (kind === "eq") { const s = ri(3, 15);
+      return { kind, p: 60, eq: true, show: { side: `${s}`, apex: "60°" }, q: `مثلث متطابق الضلعين زاوية رأسه ${M("60°")} وطول ساقه ${M(s)}. كم طول القاعدة؟`, o: opts4(s, [2 * s, s + 2, s * 3, s - 1]), why: `الزوايا الثلاث ${M("60°")} فالمثلث متطابق الأضلاع، والقاعدة ${M(s)}.` }; }
+    if (kind === "conv") { const q = ri(35, 75), L = ri(4, 14);
+      return { kind, p: 180 - 2 * q, conv: true, show: { base: `${q}°`, side: `${L}` }, q: `زاويتا القاعدة متطابقتان (${M(`${q}°`)}) وطول أحد الساقين ${M(L)}. كم طول الضلع المقابل للزاوية الأخرى؟`, o: opts4(L, [2 * L, L + 3, q, L * 2 - 1]), why: "عكس 3.11: الزاويتان المتطابقتان تقابلهما ضلعان متطابقان." }; }
+    if (kind === "alg") { const x = ri(2, 9), a = ri(2, 5), c = a + ri(1, 4), b = ri(1, 15), d = (c - a) * x - b;
+      if (d <= 0) return make("alg");
+      return { kind, p: 2 * ri(18, 50), alg: [a, b, c, d], q: `الساقان ${M(`${a}<i>x</i> + ${b}`)} و${M(`${c}<i>x</i> − ${d}`)}. أوجدي ${M("<i>x</i>")}.`, o: opts4(x, [x + 1, x + 2, x - 1, 2 * x, b + d]), why: `${M(`${a}<i>x</i> + ${b} = ${c}<i>x</i> − ${d}`)} ← ${M(`<i>x</i> = ${x}`)}` }; }
+    const q = ri(30, 75), e = 180 - q, p = 180 - 2 * q;
+    return { kind: "ext", p, show: { ext: `${e}°`, apex: "?" }, q: `في مثلث متطابق الضلعين، الزاوية الخارجية عند القاعدة ${M(`${e}°`)}. كم قياس زاوية الرأس؟`, o: opts4(p, [q, e, 180 - e / 2 | 0, p + 20]), why: `زاوية القاعدة ${M(`180° − ${e}° = ${q}°`)}، والرأس ${M(`180° − 2(${q}°) = ${p}°`)}` };
+  }
+  function draw() {
+    const c = cur, [A, B, C] = isoTri(320, 216, c.p, 170, 186);
+    let s = poly([A, B, C], { fill: "color-mix(in srgb, var(--main-soft) 55%, transparent)", stroke: "var(--ink)", sw: 2.8 });
+    if (!c.conv) s += ticks(A, B, 1, LEG, 14) + ticks(A, C, 1, LEG, 14);
+    if (c.show?.apex) s += arcs(A, B, C, 1, VA, 22, { right: false }) + angLbl(A, B, C, c.show.apex, { col: VA, fs: 17, d: 46, cls: "halo" });
+    if (c.show?.base) s += arcs(C, A, B, 1, BA, 24, { right: false }) + angLbl(C, A, B, c.show.base, { col: BA, fs: 17, d: 50, cls: "halo" }) + (c.conv ? arcs(B, C, A, 1, BA, 24, { right: false }) + angLbl(B, C, A, c.show.base, { col: BA, fs: 17, d: 50, cls: "halo" }) : "");
+    if (c.show?.side) s += sideLbl(A, B, C, c.show.side, { col: LEG, fs: 17, d: 16, cls: "halo" }) + (c.conv ? sideLbl(A, C, B, "؟", { col: LEG, fs: 19, d: 16, cls: "halo" }) : "") + (c.eq ? sideLbl(B, C, A, "؟", { col: BASE, fs: 19, d: 16, cls: "halo" }) : "");
+    if (c.alg) s += sideLbl(A, B, C, `${c.alg[0]}x + ${c.alg[1]}`, { col: LEG, fs: 16, d: 16, cls: "halo" }) + sideLbl(A, C, B, `${c.alg[2]}x − ${c.alg[3]}`, { col: LEG, fs: 16, d: 16, cls: "halo" });
+    if (c.show?.ext) { const E = [C[0] + 90, C[1]]; s += seg(C, E, { col: "var(--muted)", sw: 2.4, dash: "6 5" }) + arcs(C, E, A, 1, "var(--an2)", 22, { right: false }) + angLbl(C, E, A, c.show.ext, { col: "var(--an2)", fs: 17, d: 44, cls: "halo" }); }
+    $("#gFig").innerHTML = s;
+  }
+  function next() {
+    if (round === 0) plan = shuffle(["base", "apex", "eq", "conv", "alg", "ext", ["base", "apex"][ri(0, 1)], ["alg", "ext"][ri(0, 1)]]);
+    cur = make(plan[round]); draw();
+    $("#gRound").textContent = round + 1;
+    $("#gQ").innerHTML = cur.q;
+    $("#gOpts").innerHTML = cur.o.map((o, i) => `<button type="button" data-g="${i}">${M(o.t)}</button>`).join("");
+    $("#gFb").textContent = ""; $("#gFb").className = "fb"; $("#gNext").hidden = true; $("#gOpts").dataset.lock = "";
+  }
+  $("#gOpts").addEventListener("click", e => {
+    const b = e.target.closest("button[data-g]"); if (!b || $("#gOpts").dataset.lock === "1") return;
+    $("#gOpts").dataset.lock = "1";
+    const ok = cur.o[+b.dataset.g].ok, w = $(`#mandala .wedge[data-i="${round}"]`);
+    $$("#gOpts button").forEach(x => { if (cur.o[+x.dataset.g].ok) x.classList.add("right"); });
+    w.classList.remove("empty");
+    if (!ok) { b.classList.add("wrong"); w.classList.add("miss"); } else { score++; }
+    $("#gScore").textContent = score;
+    $("#gFb").className = `fb ${ok ? "good" : "bad"}`;
+    $("#gFb").innerHTML = `${ok ? "ترصّعت قطعة الفسيفساء ✓" : "انكسرت القطعة."} ${cur.why}`;
+    round++;
+    if (round >= ROUNDS) { $("#gFb").innerHTML += `<br><b>${score === ROUNDS ? "اكتملت لوحة الفسيفساء بالكامل!" : `رصّعتي ${score} قطع من ${ROUNDS}`}</b>`; $("#gNext").textContent = "لوحة جديدة"; }
+    else $("#gNext").textContent = "القطعة التالية";
+    $("#gNext").hidden = false;
+  });
+  $("#gNext").addEventListener("click", () => { if (round >= ROUNDS) { round = score = 0; $("#gScore").textContent = 0; drawMandala(); } next(); });
+  drawMandala(); next();
+}
+
+/* ---------- 7. Quiz (Curriculum exercises + LessonQuiz integration) ---------- */
+const QF = {
+  e13: { pts: { P: [180, 22], T: [100, 160], R: [260, 160] }, segs: ["PT", "TR", "RP"], tris: ["PTR"] },
+  e14: { pts: { U: [60, 26], V: [290, 26], W: [110, 166] }, segs: ["UV", "VW", "WU"], tris: ["UVW"], nm: { U: [-30, -30], V: [-30, -30], W: [-30, -30] } },
+  e15: { pts: { E: [60, 40], H: [170, 150], G: [280, 40] }, segs: ["EH", "HG", "GE"], tris: ["EHG"] },
+  e18: (() => { const D = [50, 150], A = [D[0] + 110 * Math.cos(92 * RAD), D[1] - 110 * Math.sin(92 * RAD)], C = [160, 150], B = [C[0] + dist(A, C), 150];
+    return { pts: { A, D, C, B }, segs: ["AD", "DB", "AC", "AB"], tris: ["ADC", "ACB"], nm: { C: [160, 170] } }; })(),
+};
+const QUIZ = [
+  { q: `في ${TRI("PTR")}: ${M("<i>PT</i> = <i>PR</i> = 4")} و${M("<i>m</i>∠<i>P</i> = 60°")}. أوجدي ${M("<i>TR</i>")}. (تمرين 13)`,
+    fig: figure(QF.e13, [["t", "PT", 1], ["t", "PR", 1], ["g", "TPR", 1]]) + angLbl(QF.e13.pts.P, QF.e13.pts.T, QF.e13.pts.R, "60°", { fs: 14, d: 38 }) + sideLbl(QF.e13.pts.P, QF.e13.pts.T, QF.e13.pts.R, "4", { fs: 15 }) + sideLbl(QF.e13.pts.R, QF.e13.pts.P, QF.e13.pts.T, "4", { fs: 15 }),
+    opts: [M("4"), M("8"), M("2"), M("6")], ok: 0,
+    why: `زاويتا القاعدة ${M("(180° − 60°) ÷ 2 = 60°")}، فالمثلث متطابق الزوايا ← متطابق الأضلاع، و${M("<i>TR</i> = 4")}.` },
+  { q: `في الشكل زاويتان متطابقتان، والضلعان المقابلان لهما ${M("2<i>x</i> + 11")} و${M("6<i>x</i> − 9")}. أوجدي ${M("<i>x</i>")}. (تمرين 14)`,
+    fig: figure(QF.e14, [["g", "VUW", 1], ["g", "UWV", 1]]) + sideLbl(QF.e14.pts.U, QF.e14.pts.V, QF.e14.pts.W, "2x + 11", { fs: 15 }) + sideLbl(QF.e14.pts.V, QF.e14.pts.W, QF.e14.pts.U, "6x − 9", { fs: 15 }),
+    opts: [M("5"), M("2.5"), M("20"), M("0.5")], ok: 0,
+    why: `نظرية 3.11: ${M("2<i>x</i> + 11 = 6<i>x</i> − 9")} ← ${M("20 = 4<i>x</i>")} ← ${M("<i>x</i> = 5")}.` },
+  { q: `${TRI("EHG")} قائم الزاوية في ${M("<i>H</i>")} و${CONG("HE", "HG")}، و${M("<i>m</i>∠<i>G</i> = (3<i>x</i> + 6)°")}. أوجدي ${M("<i>x</i>")}. (تمرين 15)`,
+    fig: figure(QF.e15, [["t", "EH", 1], ["t", "HG", 1], ["r", "EHG"]]) + angLbl(QF.e15.pts.G, QF.e15.pts.E, QF.e15.pts.H, "(3x+6)°", { fs: 13, d: 52 }),
+    opts: [M("13"), M("28"), M("15"), M("11")], ok: 0,
+    why: `زاويتا القاعدة متطابقتان ومجموعهما ${M("90°")}، فكل وحدة ${M("45°")}: ${M("3<i>x</i> + 6 = 45")} ← ${M("<i>x</i> = 13")}.` },
+  { q: `في الشكل: ${CONG("DA", "DC")} و${M("<i>m</i>∠<i>D</i> = 92°")}. أوجدي ${M("<i>m</i>∠<i>CAD</i>")}. (تمرين 18)`,
+    fig: figure(QF.e18, [["t", "DA", 2], ["t", "DC", 2], ["t", "CA", 1], ["t", "CB", 1]]) + angLbl(QF.e18.pts.D, QF.e18.pts.C, QF.e18.pts.A, "92°", { fs: 14, d: 26 }),
+    opts: [M("44°"), M("88°"), M("46°"), M("92°")], ok: 0,
+    why: `${TRI("DAC")} متطابق الضلعين: ${M("(180° − 92°) ÷ 2 = 44°")}.` },
+  { q: `في الشكل نفسه: ${CONG("CA", "CB")}. أوجدي ${M("<i>m</i>∠<i>ABC</i>")}. (تمرين 21)`,
+    fig: figure(QF.e18, [["t", "DA", 2], ["t", "DC", 2], ["t", "CA", 1], ["t", "CB", 1]]) + angLbl(QF.e18.pts.D, QF.e18.pts.C, QF.e18.pts.A, "92°", { fs: 14, d: 26 }),
+    opts: [M("22°"), M("44°"), M("136°"), M("68°")], ok: 0,
+    why: `${M("<i>m</i>∠<i>ACD</i> = 44°")} فـ ${M("<i>m</i>∠<i>ACB</i> = 180° − 44° = 136°")}. و${TRI("ACB")} متطابق الضلعين: ${M("(180° − 136°) ÷ 2 = 22°")}.` },
+  { q: "«تبرير» (تمرين 33): إذا كان قياس زاوية الرأس في مثلث متطابق الضلعين عددًا صحيحًا، فإن قياس كل من زاويتي القاعدة عدد صحيح. هذه العبارة صحيحة:",
+    opts: ["أحيانًا", "دائمًا", "أبدًا", "فقط إذا كان المثلث قائمًا"], ok: 0,
+    why: `تصح فقط عندما تكون زاوية الرأس زوجية (مثل ${M("40°")} ← ${M("70°")})، وتفشل إذا كانت فردية (مثل ${M("41°")} ← ${M("69.5°")}).` },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.fig ? `<svg viewBox="0 0 360 180" aria-hidden="true">${it.fig}</svg>` : ""}
+    <div class="opts">${shuffle([...it.opts.keys()]).map((j, n) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[n]}</b><span>${it.opts[j]}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, $(".qq", card), b, [...card.querySelectorAll(".opt")].find(o => +o.dataset.j === it.ok));
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="c2">صحيح ✓</b>` : `<b class="cb">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "✨ فنانة الزجاج المعشّق!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("isosceles-mosaic", $("#quiz"), restartQuiz);
+
+/* ---------- Summary drawings ---------- */
+{
+  const [A, B, C] = isoTri(150, 96, 50, 60, 84);
+  $("#sum1").innerHTML = seg(A, B, { col: LEG, sw: 3 }) + seg(A, C, { col: LEG, sw: 3 }) + seg(B, C, { col: BASE, sw: 3 }) + ticks(A, B, 1, LEG, 11) + ticks(A, C, 1, LEG, 11)
+    + arcs(A, B, C, 1, VA, 14, { right: false }) + arcs(B, C, A, 1, BA, 15, { right: false }) + arcs(C, A, B, 1, BA, 15, { right: false })
+    + txt([B[0] - 36, 60], "ساق", { col: LEG, fs: 14, cls: "lbl" }) + txt([C[0] + 36, 60], "ساق", { col: LEG, fs: 14, cls: "lbl" }) + txt([150, 104], "القاعدة", { col: BASE, fs: 12, cls: "lbl" });
+  const [A2, B2, C2] = isoTri(150, 96, 70, 70, 84);
+  $("#sum2").innerHTML = markTri([A2, B2, C2], [1, 0, 1], [0, 1, 1], { tc: LEG, ac: [0, BA, BA] });
+  const [A3, B3, C3] = isoTri(150, 98, 60, 60, 90);
+  $("#sum3").innerHTML = markTri([A3, B3, C3], [1, 1, 1], [1, 1, 1], { tc: LEG, ac: [BA, BA, BA] }) + angLbl(A3, B3, C3, "60°", { fs: 11, d: 28 }) + angLbl(B3, C3, A3, "60°", { fs: 11, d: 30 }) + angLbl(C3, A3, B3, "60°", { fs: 11, d: 30 });
+  $("#sum4").innerHTML = `<polygon points="150,14 96,98 204,98" fill="url(#glassSun)" stroke="var(--ink)" stroke-width="2.4"/><polygon points="150,98 123,56 177,56" fill="color-mix(in srgb, var(--p1) 25%, transparent)" stroke="var(--ink)" stroke-width="2"/>`;
+}
+</script>
+</body>
+</html>

@@ -98,6 +98,8 @@ main { max-width: 1080px; margin: -46px auto 0; padding: 0 16px 40px; position: 
 .t-river .cover { background: linear-gradient(180deg, #c9dca6 0 34%, #cfe8fb 34% 72%, #ead9a8 72%); }
 .t-tent .cover { background: linear-gradient(180deg, #f39a63 0, #f7c58a 70%, #e8c98e 70%); }
 .t-gps .cover { background: linear-gradient(160deg, #20242c, #2b3140); }
+.t-mosaic .cover { background: linear-gradient(145deg, #2a183b, #4c265c 58%, #d97706); }
+.t-radar .cover { background: linear-gradient(160deg, #07131e, #0d2638 65%, #0f3a4a); }
 
 .foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
 .empty { color: var(--muted); padding: 20px; text-align: center; }
@@ -205,6 +207,21 @@ const COVERS = {
     <polygon points="90,40 110,112 200,122" fill="rgba(91,60,196,.18)" stroke="#5b3cc4" stroke-width="3" stroke-linejoin="round"/>
     <g fill="#e03131"><path d="M90 40c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/><path d="M110 112c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/><path d="M200 122c-3-6-8-9-8-15a8 8 0 0 1 16 0c0 6-5 9-8 15z"/></g>
     <text x="230" y="60" text-anchor="middle" fill="#5b3cc4" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15">(x, y)</text></svg>`,
+  mosaic: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+    <linearGradient id="mg2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+    <rect width="300" height="150" fill="#1e102b"/>
+    <polygon points="150,16 68,132 150,132" fill="url(#mg1)" fill-opacity=".86" stroke="#fde68a" stroke-width="2.5"/>
+    <polygon points="150,16 150,132 232,132" fill="url(#mg2)" fill-opacity=".84" stroke="#fde68a" stroke-width="2.5"/>
+    <line x1="150" y1="16" x2="150" y2="132" stroke="#fef3c7" stroke-width="2" stroke-dasharray="5 4"/>
+    <line x1="104" y1="74" x2="114" y2="82" stroke="#fef3c7" stroke-width="3"/><line x1="196" y1="74" x2="186" y2="82" stroke="#fef3c7" stroke-width="3"/>
+    <path d="M90 132 A 22 22 0 0 0 82 114" fill="none" stroke="#fde047" stroke-width="3"/><path d="M210 132 A 22 22 0 0 1 218 114" fill="none" stroke="#fde047" stroke-width="3"/></svg>`,
+  radar: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="300" height="150" fill="#071521"/>
+    <g stroke="#22d3ee" stroke-opacity=".18" fill="none"><circle cx="150" cy="75" r="24"/><circle cx="150" cy="75" r="48"/><circle cx="150" cy="75" r="72"/><line x1="40" y1="75" x2="260" y2="75"/><line x1="150" y1="5" x2="150" y2="145"/></g>
+    <polygon points="150,75 215,75 150,30" fill="rgba(34,211,238,.2)" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
+    <g fill="#22d3ee"><circle cx="150" cy="75" r="4.5"/><circle cx="215" cy="75" r="4.5"/><circle cx="150" cy="30" r="4.5"/></g>
+    <text x="234" y="40" text-anchor="middle" fill="#67e8f9" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="13">(2a, 2b)</text></svg>`,
   river: `<svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path d="M0 58 Q 75 50 150 58 T 300 56 M0 82 Q 75 74 150 82 T 300 80" fill="none" stroke="#4dabf7" stroke-width="2" opacity=".7"/>
     <polygon points="70,122 230,122 150,30" fill="rgba(11,114,133,.16)" stroke="#0b7285" stroke-width="3" stroke-linejoin="round"/>

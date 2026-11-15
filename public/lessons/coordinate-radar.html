@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<script>try{document.querySelector('meta[name="color-scheme"]').content=localStorage.getItem("color-scheme")??"light dark";}catch{}</script>
+<title>برج الرادار الإحداثي | المثلثات والبرهان الإحداثي</title>
+<meta name="description" content="درس تفاعلي إبداعي: المثلثات والبرهان الإحداثي، رياضيات 1-2، الدرس 3-7.">
+<meta name="theme-color" content="#0f766e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg-l: #e8f1f3; --bg-d: #071115;
+  --sheet-l: #ffffff; --sheet-d: #0e1b21;
+  --panel-l: #f1f7f8; --panel-d: #091419;
+  --ink-l: #0f2429; --ink-d: #e5f3f5;
+  --muted-l: #536a70; --muted-d: #8faab0;
+  --line-l: #cfe0e4; --line-d: #1f3640;
+  --grid-l: #dfecef; --grid-d: #152831;
+  --main-l: #0f766e; --main-d: #2dd4bf;
+  --mains-l: #ccfbf1; --mains-d: #0c3532;
+  --p1-l: #0284c7; --p1-d: #38bdf8;
+  --p1s-l: #e0f2fe; --p1s-d: #0e2d44;
+  --p2-l: #059669; --p2-d: #34d399;
+  --p2s-l: #d1fae5; --p2s-d: #0c3326;
+  --p3-l: #7c3aed; --p3-d: #a78bfa;
+  --p3s-l: #ede9fe; --p3s-d: #251a48;
+  --an-l: #d97706; --an-d: #fbbf24;
+  --ans-l: #fef3c7; --ans-d: #3b280b;
+  --pin-l: #e11d48; --pin-d: #fb7185;
+  --bad-l: #dc2626; --bad-d: #f87171;
+  --bads-l: #fee2e2; --bads-d: #3b1414;
+  --radbg-l: #e6f4f1; --radbg-d: #06181c;
+  --radsky-l: #d4ecf4; --radsky-d: #0a2330;
+
+  --bg: var(--bg-l); --sheet: var(--sheet-l); --panel: var(--panel-l);
+  --ink: var(--ink-l); --muted: var(--muted-l); --line: var(--line-l); --grid: var(--grid-l);
+  --main: var(--main-l); --main-soft: var(--mains-l);
+  --p1: var(--p1-l); --p1s: var(--p1s-l); --p2: var(--p2-l); --p2s: var(--p2s-l);
+  --p3: var(--p3-l); --p3s: var(--p3s-l); --an: var(--an-l); --ans: var(--ans-l);
+  --pin: var(--pin-l); --bad: var(--bad-l); --bads: var(--bads-l);
+  --radbg: var(--radbg-l); --radsky: var(--radsky-l);
+  --shadow: 0 2px 4px rgba(15, 36, 41, .06), 0 18px 40px -22px rgba(15, 36, 41, .35);
+  --font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
+:root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) {
+    --bg: var(--bg-d); --sheet: var(--sheet-d); --panel: var(--panel-d);
+    --ink: var(--ink-d); --muted: var(--muted-d); --line: var(--line-d); --grid: var(--grid-d);
+    --main: var(--main-d); --main-soft: var(--mains-d);
+    --p1: var(--p1-d); --p1s: var(--p1s-d); --p2: var(--p2-d); --p2s: var(--p2s-d);
+    --p3: var(--p3-d); --p3s: var(--p3s-d); --an: var(--an-d); --ans: var(--ans-d);
+    --pin: var(--pin-d); --bad: var(--bad-d); --bads: var(--bads-d);
+    --radbg: var(--radbg-d); --radsky: var(--radsky-d);
+    --shadow: 0 2px 6px rgba(0, 0, 0, .35), 0 20px 42px -20px rgba(0, 0, 0, .85);
+  }
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  --bg: var(--bg-d); --sheet: var(--sheet-d); --panel: var(--panel-d);
+  --ink: var(--ink-d); --muted: var(--muted-d); --line: var(--line-d); --grid: var(--grid-d);
+  --main: var(--main-d); --main-soft: var(--mains-d);
+  --p1: var(--p1-d); --p1s: var(--p1s-d); --p2: var(--p2-d); --p2s: var(--p2s-d);
+  --p3: var(--p3-d); --p3s: var(--p3s-d); --an: var(--an-d); --ans: var(--ans-d);
+  --pin: var(--pin-d); --bad: var(--bad-d); --bads: var(--bads-d);
+  --radbg: var(--radbg-d); --radsky: var(--radsky-d);
+  --shadow: 0 2px 6px rgba(0, 0, 0, .35), 0 20px 42px -20px rgba(0, 0, 0, .85);
+}
+@supports (color: light-dark(white, black)) {
+  :root {
+    --bg: light-dark(var(--bg-l), var(--bg-d));
+    --sheet: light-dark(var(--sheet-l), var(--sheet-d));
+    --panel: light-dark(var(--panel-l), var(--panel-d));
+    --ink: light-dark(var(--ink-l), var(--ink-d));
+    --muted: light-dark(var(--muted-l), var(--muted-d));
+    --line: light-dark(var(--line-l), var(--line-d));
+    --grid: light-dark(var(--grid-l), var(--grid-d));
+    --main: light-dark(var(--main-l), var(--main-d));
+    --main-soft: light-dark(var(--mains-l), var(--mains-d));
+    --p1: light-dark(var(--p1-l), var(--p1-d));
+    --p1s: light-dark(var(--p1s-l), var(--p1s-d));
+    --p2: light-dark(var(--p2-l), var(--p2-d));
+    --p2s: light-dark(var(--p2s-l), var(--p2s-d));
+    --p3: light-dark(var(--p3-l), var(--p3-d));
+    --p3s: light-dark(var(--p3s-l), var(--p3s-d));
+    --an: light-dark(var(--an-l), var(--an-d));
+    --ans: light-dark(var(--ans-l), var(--ans-d));
+    --pin: light-dark(var(--pin-l), var(--pin-d));
+    --bad: light-dark(var(--bad-l), var(--bad-d));
+    --bads: light-dark(var(--bads-l), var(--bads-d));
+    --radbg: light-dark(var(--radbg-l), var(--radbg-d));
+    --radsky: light-dark(var(--radsky-l), var(--radsky-d));
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; accent-color: var(--main); }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--font); font-size: 16.5px; line-height: 1.8;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--main) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--main) 7%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px; background-attachment: fixed;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--main); outline-offset: 2px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important; clip-path: inset(50%) !important; overflow: hidden !important;
+  width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; border: 0 !important; white-space: nowrap !important;
+}
+.skip-link:focus { position: fixed; top: 10px; inset-inline-start: 10px; z-index: 60; background: var(--main); color: #fff; padding: 8px 16px; border-radius: 999px; text-decoration: none; font-weight: 700; }
+
+/* Math */
+.m { direction: ltr; unicode-bidi: isolate; display: inline-block; font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-size: 1.1em; white-space: nowrap; line-height: 1.5; }
+.m i { font-style: italic; }
+.ov { text-decoration: overline; text-decoration-thickness: 1.5px; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .86em; line-height: 1.15; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.2px solid currentColor; padding: 0 3px; }
+.sq { border-top: 1.2px solid currentColor; padding: 0 2px; margin-inline-start: 1px; }
+.c1 { color: var(--p1); } .c2 { color: var(--p2); } .ca { color: var(--an); } .cm { color: var(--main); } .cb { color: var(--bad); } .cp { color: var(--pin); }
+
+/* Header */
+.ribbon {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  background: color-mix(in srgb, var(--sheet) 90%, transparent); backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--main);
+}
+.ribbon .brand { font-weight: 700; font-size: 15px; white-space: nowrap; color: var(--main); display: flex; align-items: center; gap: 7px; }
+.ribbon .brand svg { width: 22px; height: 22px; flex: none; }
+.ribbon nav { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.ribbon nav::-webkit-scrollbar { display: none; }
+.ribbon nav a { flex: none; font-size: 12.5px; text-decoration: none; color: var(--muted); padding: 3px 12px; border: 1.5px solid var(--line); border-radius: 999px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
+.ribbon nav a.done { color: var(--main); border-color: var(--main); }
+.ribbon nav a.on { color: #fff; background: var(--main); border-color: var(--main); }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .ribbon nav a.on { color: #052623; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .ribbon nav a.on { color: #052623; } }
+
+.theme { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; }
+.theme svg { width: 18px; height: 18px; }
+.theme .ico-dark { display: none; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme .ico-light { display: none; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme .ico-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme .ico-light { display: none; }
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme .ico-dark { display: block; }
+}
+
+/* Sheets: Radar Telemetry Console */
+main { max-width: 1000px; margin: 0 auto; padding: 0 14px 60px; }
+.sheet {
+  position: relative; margin: 32px 0 0; padding: 44px 28px 42px; scroll-margin-top: 66px;
+  background: var(--sheet); border-radius: 18px; box-shadow: var(--shadow); border: 1.5px solid var(--line); overflow: hidden;
+}
+.sheet::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 10px;
+  background: linear-gradient(90deg, var(--p1) 0 34%, var(--main) 34% 68%, var(--pin) 68%); opacity: .9;
+}
+.pno { position: absolute; left: 24px; bottom: 12px; font: 600 11px var(--mono); color: var(--muted); direction: ltr; display: flex; gap: 6px; align-items: center; }
+.pno svg { width: 14px; height: 14px; color: var(--main); }
+.kicker { display: flex; align-items: center; gap: 10px; color: var(--main); font-weight: 700; font-size: 13.5px; }
+.kicker .no { font: 600 13px var(--mono); color: #fff; background: var(--main); padding: 1px 10px; border-radius: 999px; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .kicker .no { color: #052623; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .kicker .no { color: #052623; } }
+h1 { margin: 8px 0 8px; font-size: clamp(27px, 4.4vw, 39px); line-height: 1.3; }
+h2 { margin: 4px 0 6px; font-size: 26px; line-height: 1.4; }
+h3 { line-height: 1.5; margin: 0 0 6px; font-size: 18px; }
+.lead { color: var(--muted); max-width: 820px; }
+
+.note { margin-top: 14px; padding: 12px 16px; border-radius: 12px; border: 1.5px dashed var(--an); background: color-mix(in srgb, var(--ans) 65%, transparent); }
+.note.thm { border: 1.5px solid var(--main); background: color-mix(in srgb, var(--main-soft) 55%, transparent); }
+.note .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--an); padding: 0 8px; border-radius: 4px; margin-inline-end: 6px; }
+.note.thm .tag { background: var(--main); }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .note .tag { color: #052623; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .note .tag { color: #052623; } }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn { border: 0; background: var(--main); color: #fff; font-weight: 700; padding: 8px 18px; border-radius: 999px; cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--main) 55%, #000); transition: transform .12s, box-shadow .12s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--main) 55%, #000); }
+.btn.soft { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); box-shadow: 0 3px 0 var(--line); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn svg { width: 18px; height: 18px; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .btn:not(.soft) { color: #052623; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .btn:not(.soft) { color: #052623; } }
+
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); gap: 2px; }
+.seg button { border: 0; background: none; padding: 4px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--muted); font-size: 14.5px; }
+.seg button.on { background: var(--main); color: #fff; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .seg button.on { color: #052623; }
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .seg button.on { color: #052623; } }
+
+.stage { margin-top: 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); padding: 14px; }
+.stage svg { width: 100%; display: block; touch-action: none; user-select: none; border-radius: 10px; }
+.stage svg text { font-family: var(--font); font-weight: 700; }
+.stage svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.stage svg .halo { paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; margin-top: 10px; }
+.readouts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ro { font-size: 13.5px; padding: 3px 11px; border-radius: 8px; background: var(--sheet); border: 1.5px solid var(--line); display: inline-flex; align-items: center; gap: 6px; }
+.ro b { font: 600 14px var(--mono); direction: ltr; }
+.ro.ok { border-color: var(--p2); background: var(--p2s); }
+.ro.warn { border-color: var(--an); background: var(--ans); }
+
+.narr { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); border-inline-start: 4px solid var(--main); font-size: 15.5px; }
+.narr.ok { border-inline-start-color: var(--p2); background: color-mix(in srgb, var(--p2s) 55%, var(--sheet)); }
+.fb { margin-top: 10px; font-weight: 600; min-height: 1.6em; }
+.fb.good { color: var(--p2); } .fb.bad { color: var(--bad); }
+
+/* Hero Radar */
+.hero { background: radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--main) 14%, transparent), transparent 44%), radial-gradient(circle at 86% 85%, color-mix(in srgb, var(--p1) 12%, transparent), transparent 45%), var(--sheet); }
+.hero .badge { display: inline-block; font-size: 13px; font-weight: 700; color: var(--main); background: var(--main-soft); padding: 2px 12px; border-radius: 999px; }
+
+/* Calc lines */
+.calc { display: grid; gap: 6px; margin-top: 12px; }
+.calc .ln { padding: 8px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; font-size: 15px; }
+.calc .ln.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 50%, var(--sheet)); }
+
+.ex { margin-top: 14px; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; background: var(--sheet); }
+.ex.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 36%, var(--sheet)); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chips button { border: 1.5px solid var(--line); background: var(--panel); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.chips button:hover:not(:disabled) { border-color: var(--main); }
+.chips button.right { background: var(--p2s); border-color: var(--p2); }
+.chips button.wrong { background: var(--bads); border-color: var(--bad); }
+
+/* Placement Checklist */
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; margin-top: 12px; }
+.chk { padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--sheet); display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--muted); transition: border-color .2s, background .2s, color .2s; }
+.chk i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-size: 13px; flex: none; }
+.chk.ok { border-color: var(--p2); background: var(--p2s); color: var(--ink); }
+.chk.ok i { border-color: var(--p2); background: var(--p2); color: #fff; }
+
+/* Sliders & Missing Coordinates */
+.sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+.sl { padding: 10px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); }
+.sl label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; }
+.sl output { font: 600 14px var(--mono); direction: ltr; color: var(--main); }
+.sl input[type=range] { width: 100%; margin-top: 6px; }
+
+.puzzles { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; }
+.pz { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel); }
+.pz.ok { border-color: var(--p2); background: color-mix(in srgb, var(--p2s) 36%, var(--panel)); }
+.pz svg { width: 100%; display: block; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; margin: 8px 0; }
+.pz svg text { font-family: var(--font); font-weight: 700; }
+.pz svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+
+/* Proof */
+.proof-wrap { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.proof-fig { border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); padding: 12px; position: sticky; top: 72px; }
+.proof-fig svg { width: 100%; display: block; touch-action: none; user-select: none; }
+.proof-fig svg text { font-family: var(--font); font-weight: 700; }
+.proof-fig svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.steps li { padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1.5px solid var(--line); font-size: 15.5px; }
+.steps li.now { border-color: var(--main); background: color-mix(in srgb, var(--main-soft) 50%, var(--panel)); }
+.steps li.later { opacity: .5; }
+.steps li .why { display: block; margin-top: 4px; font-size: 14px; color: var(--muted); }
+.steps li .blank { display: inline-block; min-width: 72px; padding: 0 10px; border-radius: 8px; border: 1.5px dashed var(--main); text-align: center; color: var(--main); font-weight: 700; }
+
+/* Distance Analyzer */
+.dist-wrap { margin-top: 16px; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; align-items: start; }
+.dist-wrap svg { width: 100%; display: block; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; }
+.dist-wrap svg text { font-family: var(--font); font-weight: 700; }
+.dist-wrap svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+
+/* Drone Game */
+.game-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 12px; }
+.route { width: 100%; height: 112px; margin-top: 10px; display: block; }
+.route .wp { transition: opacity .3s, transform .3s; opacity: .35; }
+.route .wp.on { opacity: 1; }
+.route .wp.miss { opacity: .25; }
+.gcard { margin-top: 14px; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; background: var(--panel); }
+.gcard svg { width: 100%; max-height: 270px; display: block; margin: 10px auto; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.gcard svg text { font-family: var(--font); font-weight: 700; }
+.gcard svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.gopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-top: 12px; }
+.gopts button { border: 1.5px solid var(--line); background: var(--sheet); padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 16px; }
+.gopts button:hover:not(:disabled) { border-color: var(--main); }
+.gopts button.right { background: var(--p2s); border-color: var(--p2); }
+.gopts button.wrong { background: var(--bads); border-color: var(--bad); }
+
+/* Quiz */
+.qcard { margin-top: 16px; padding: 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); }
+.qcard .qq { font-weight: 700; font-size: 17px; }
+.qcard svg { width: 100%; max-width: 300px; display: block; margin: 10px auto; background: var(--sheet); border: 1.5px solid var(--line); border-radius: 10px; }
+.qcard svg text { font-family: var(--font); font-weight: 700; }
+.qcard svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 8px; margin-top: 10px; }
+.opt { display: flex; align-items: center; gap: 10px; text-align: start; border: 1.5px solid var(--line); background: var(--sheet); padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.opt b { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--panel); border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.opt.right { background: var(--p2s); border-color: var(--p2); }
+.opt.right b { background: var(--p2); border-color: var(--p2); color: #fff; }
+.opt.wrong { background: var(--bads); border-color: var(--bad); }
+.opt.wrong b { background: var(--bad); border-color: var(--bad); color: #fff; }
+.why { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--sheet); border: 1.5px solid var(--line); font-size: 15px; }
+
+/* Summary */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+.card { border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel); }
+.card svg { width: 100%; display: block; margin-bottom: 8px; background: var(--sheet); border-radius: 8px; border: 1px solid var(--line); }
+.card svg text { font-family: var(--font); font-weight: 700; }
+.card svg text.nm { font-family: "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.card ul { margin: 6px 0 0; padding-inline-start: 18px; color: var(--muted); font-size: 14.5px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 32px; }
+
+@keyframes pulse { 0% { r: 7; opacity: .85; } 100% { r: 22; opacity: 0; } }
+.pulse { animation: pulse 1.3s ease-out infinite; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.shake { animation: shake .28s; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+.pop { animation: pop .22s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 820px) {
+  .proof-wrap, .dist-wrap { grid-template-columns: 1fr; }
+  .proof-fig { position: static; }
+  .sheet { padding: 38px 18px 36px; }
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link visually-hidden">انتقلي إلى المحتوى الرئيسي</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="radarI" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/>
+      <line x1="12" y1="12" x2="18.5" y2="5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="ribbon">
+  <div class="brand"><svg aria-hidden="true"><use href="#radarI"/></svg>برج الرادار الإحداثي</div>
+  <nav aria-label="محطات الدرس" id="stations"></nav>
+  <button class="theme" id="theme" type="button" aria-label="تبديل المظهر الفاتح والداكن">
+    <svg class="ico-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
+    <svg class="ico-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
+<main id="main-content" tabindex="-1">
+  <!-- 0: Radar Airspace -->
+  <section class="sheet hero" id="s0" data-name="الرادار">
+    <span class="badge">الدرس 3-7 · رياضيات 1-2 · صفحات 62–66</span>
+    <h1>المثلثات والبرهان الإحداثي</h1>
+    <p class="lead">على شاشة الرادار الجوي في برج المراقبة، تظهر المحطات بأزواج مرتبة. اضغطي أي محطتين لإرسال نبضة قياس بالمسافة وتحديد نوع المثلث الجوي بين المدن (مثال 4 من الكتاب).</p>
+
+    <div class="row" style="margin-top:12px">
+      <div class="seg" role="tablist" aria-label="اختيار المسار الجوي">
+        <button type="button" class="on" data-set="0" role="tab" aria-selected="true">مسار 1: الرياض – ينبع – تبوك</button>
+        <button type="button" data-set="1" role="tab" aria-selected="false">مسار 2: تبوك – عرعر – حائل</button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <svg id="radar" viewBox="0 0 640 350" role="img" aria-label="شاشة رادار تفاعلية لقياس المسافات بين المدن"></svg>
+      <div class="calc" id="radCalc" aria-live="polite"></div>
+      <div class="ex" id="radQ" hidden style="margin-top:12px">
+        <p id="radQq" style="font-weight:700"></p>
+        <div class="chips" id="radC"></div>
+        <p class="fb" id="radFb" aria-live="polite"></p>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>01/08</span>
+  </section>
+
+  <!-- 1: Place Triangle in Optimal Position -->
+  <section class="sheet" id="s1" data-name="تثبيت الدرون">
+    <div class="kicker"><span class="no">01</span> مفهوم أساسي · مثال 1</div>
+    <h2>منصة تثبيت الدرون: ضعي المثلث في أسهل مكان</h2>
+    <p class="lead">البرهان الإحداثي يُعطي حرية وضع المثلث في أي مكان على الشبكة! اسحبي المثلث أو دوّريه حتى تحققي القواعد الأربع وتحصلي على أكبر عدد من الأصفار.</p>
+
+    <div class="stage">
+      <svg id="place" viewBox="0 0 640 390" role="img" aria-label="مستوى إحداثي تفاعلي لتحريك وتدوير مثلث قائم"></svg>
+      <div class="bar">
+        <div class="readouts" id="placeRo"></div>
+        <div class="row">
+          <span class="ro ok" id="zeroMeter">الأصفار: <b>0 / 6</b></span>
+          <button class="btn" id="rot" type="button">دوّري 90°</button>
+          <button class="btn soft" id="flip" type="button">اعكسي أفقيًّا</button>
+          <button class="btn soft" id="placeReset" type="button">إعادة</button>
+        </div>
+      </div>
+      <div class="checks">
+        <div class="chk" data-c="0"><i>✓</i>رأس عند نقطة الأصل <span class="m">O(0, 0)</span></div>
+        <div class="chk" data-c="1"><i>✓</i>ضلع على أحد المحورين</div>
+        <div class="chk" data-c="2"><i>✓</i>المثلث في الربع الأول</div>
+        <div class="chk" data-c="3"><i>✓</i>إحداثيات بأبسط صورة</div>
+      </div>
+      <p class="narr" id="placeNarr" aria-live="polite"></p>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>02/08</span>
+  </section>
+
+  <!-- 2: Symbolic Coordinates & 2a -->
+  <section class="sheet" id="s2" data-name="الرموز 2a">
+    <div class="kicker"><span class="no">02</span> مثال 2 و«تحقق 2»</div>
+    <h2>كاشف الكسور: لماذا نكتب القاعدة <span class="m">2<i>a</i></span> بدل <span class="m"><i>a</i></span>؟</h2>
+    <p class="lead">في المثلث المتطابق الضلعين <span class="m">△<i>XYZ</i></span> يقع الرأس فوق منتصف القاعدة تمامًا. اختبري القاعدة <span class="m"><i>a</i></span> والقاعدة <span class="m">2<i>a</i></span> وراقبي كاشف الكسور.</p>
+
+    <div class="stage">
+      <div class="bar" style="margin-top:0;margin-bottom:10px">
+        <div class="seg" role="tablist" aria-label="طول القاعدة">
+          <button type="button" class="on" data-iso="a" role="tab" aria-selected="true">القاعدة = <span class="m"><i>a</i></span></button>
+          <button type="button" data-iso="2a" role="tab" aria-selected="false">القاعدة = <span class="m">2<i>a</i></span></button>
+        </div>
+        <span class="ro" id="fracBadge">حالة الكسور: <b>—</b></span>
+      </div>
+      <svg id="iso" viewBox="0 0 640 300" role="img" aria-label="تمثيل إحداثيات المثلث المتطابق الضلعين"></svg>
+      <div class="sliders">
+        <div class="sl"><label for="ia">قيمة <span class="m"><i>a</i></span> <output id="iaO">5</output></label><input id="ia" type="range" min="2" max="8" value="5"></div>
+        <div class="sl"><label for="ib">الارتفاع <span class="m"><i>b</i></span> <output id="ibO">4</output></label><input id="ib" type="range" min="2" max="6" value="4"></div>
+      </div>
+      <p class="narr" id="isoNarr" aria-live="polite"></p>
+    </div>
+
+    <div class="puzzles" id="pzs"></div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>03/08</span>
+  </section>
+
+  <!-- 3: Live Coordinate Proof -->
+  <section class="sheet" id="s3" data-name="البرهان الحي">
+    <div class="kicker"><span class="no">03</span> مثال 3 و«تحقق 3»</div>
+    <h2>مُجمّع البرهان الإحداثي الحي</h2>
+    <p class="lead">اسحبي الرؤوس الملوّنة على شاشة الرادار لتتأكدي أن البرهان يصحّ لأي أبعاد، وأكملي خطوات البرهان الجبري في الجهة المقابلة.</p>
+
+    <div class="row" style="margin-top:12px">
+      <div class="seg" role="tablist" aria-label="اختيار البرهان">
+        <button type="button" class="on" data-pr="0" role="tab" aria-selected="true">مثال 3: القطعة المنصّفة <span class="m"><span class="ov"><i>ST</i></span> ∥ <span class="ov"><i>AB</i></span></span></button>
+        <button type="button" data-pr="1" role="tab" aria-selected="false">تحقق 3: تطابق <span class="m">△<i>ABX</i> ≅ △<i>CDX</i></span></button>
+      </div>
+    </div>
+
+    <div class="proof-wrap">
+      <div class="proof-fig">
+        <svg id="mid" viewBox="0 0 520 430" role="img" aria-label="شبكة إحداثية تفاعلية للبرهان"></svg>
+        <div class="readouts" id="midRo" style="margin-top:10px"></div>
+      </div>
+      <div>
+        <div class="note thm" id="prGiven" style="margin-top:0"></div>
+        <ol class="steps" id="prSteps"></ol>
+        <p class="fb" id="prFb" aria-live="polite"></p>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>04/08</span>
+  </section>
+
+  <!-- 4: Distance & Pythagoras Telemetry -->
+  <section class="sheet" id="s4" data-name="محلل المسافات">
+    <div class="kicker"><span class="no">04</span> قانون المسافة وعكس فيثاغورس · تمارين 15–17</div>
+    <h2>جهاز تحليل المثلث بالمسافات</h2>
+    <p class="lead">أطلقي قياس الأضلاع الثلاثة بقانون المسافة، وجرّبي تغيير قيمة <span class="m"><i>h</i></span> في المسائل الجبرية لترَي أن التصنيف يظل ثابتًا.</p>
+
+    <div class="row" style="margin-top:12px">
+      <div class="seg" id="dSeg" role="tablist" aria-label="اختيار المسألة"></div>
+    </div>
+
+    <div class="dist-wrap">
+      <svg id="dist" viewBox="0 0 400 350" role="img" aria-label="مثلث على الشبكة لقياس أطواله"></svg>
+      <div>
+        <p id="dStory" style="font-weight:600"></p>
+        <div class="sl" id="dhBox" hidden style="margin-top:10px">
+          <label for="dh">قيمة المتغير <span class="m"><i>h</i></span> <output id="dhO">2</output></label>
+          <input id="dh" type="range" min="1" max="4" step="1" value="2">
+        </div>
+        <div class="calc" id="dCalc"></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="dGo" type="button">اقرئي طول الضلع التالي</button></div>
+        <div class="ex" id="dQ" hidden style="margin-top:12px">
+          <p id="dQq" style="font-weight:700"></p>
+          <div class="chips" id="dC"></div>
+          <p class="fb" id="dFb" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>05/08</span>
+  </section>
+
+  <!-- 5: Drone Flight Path Game -->
+  <section class="sheet" id="s5" data-name="مهمة الدرون">
+    <div class="kicker"><span class="no">05</span> لعبة التحدي</div>
+    <h2>مهمة توجيه الدرون عبر 8 محطات</h2>
+    <p class="lead">حدّدي الإحداثي المجهول في كل محطة لتتقدّم طائرة الدرون على مسار الرادار من المحطة 1 إلى 8.</p>
+
+    <div class="game-head">
+      <div class="readouts">
+        <span class="ro">المحطة <b id="gRound">1</b> / 8</span>
+        <span class="ro ok">المؤمّنة <b id="gScore">0</b></span>
+      </div>
+    </div>
+    <svg id="route" class="route" viewBox="0 0 640 112" aria-hidden="true"></svg>
+
+    <div class="gcard">
+      <p id="gQ" style="font-weight:700;font-size:17.5px"></p>
+      <svg id="gFig" viewBox="0 0 640 280" aria-hidden="true"></svg>
+      <div class="gopts" id="gOpts"></div>
+    </div>
+    <p class="fb" id="gFb" aria-live="polite"></p>
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="gNext" type="button" hidden>المحطة التالية</button></div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>06/08</span>
+  </section>
+
+  <!-- 6: Quiz -->
+  <section class="sheet" id="s6" data-name="الاختبار">
+    <div class="kicker"><span class="no">06</span> من «تأكد» و«تدرب وحل المسائل»</div>
+    <h2>اختبري نفسك</h2>
+    <div id="quiz"></div>
+    <p id="score" style="margin-top:14px;font-weight:700" aria-live="polite"></p>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>07/08</span>
+  </section>
+
+  <!-- 7: Summary -->
+  <section class="sheet" id="s7" data-name="الخلاصة">
+    <div class="kicker"><span class="no">07</span> خريطة الطيّار</div>
+    <h2>ملخص البرهان الإحداثي</h2>
+    <div class="cards">
+      <div class="card"><svg id="sum1" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>وضع المثلث في المستوى</h3><ul><li>رأس عند نقطة الأصل <span class="m">(0, 0)</span>.</li><li>ضلع على المحور <span class="m"><i>x</i></span> أو <span class="m"><i>y</i></span>.</li><li>المثلث في الربع الأول متى أمكن.</li></ul></div>
+      <div class="card"><svg id="sum2" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>تجنّب الكسور بـ <span class="m">2<i>a</i></span></h3><ul><li>عند استخدام المنتصف، اختاري إحداثيات زوجية مثل <span class="m">2<i>a</i>, 2<i>b</i></span>.</li><li>في المتطابق الضلعين: الرأس فوق منتصف القاعدة.</li></ul></div>
+      <div class="card"><svg id="sum3" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>قوانين البرهان الثلاثة</h3><ul><li><b>المنتصف</b>: لإثبات التنصيف.</li><li><b>الميل</b>: للتوازي (متساويان) والتعامد (حاصل ضربهما −1).</li><li><b>المسافة</b>: لإثبات تطابق الأضلاع.</li></ul></div>
+      <div class="card"><svg id="sum4" viewBox="0 0 300 120" aria-hidden="true"></svg><h3>تصنيف المثلث</h3><ul><li>احسبي الأضلاع الثلاثة بقانون المسافة.</li><li>تحققي من <span class="m"><i>a</i>² + <i>b</i>² = <i>c</i>²</span> لاختبار التعامد.</li></ul></div>
+    </div>
+    <span class="pno"><svg aria-hidden="true"><use href="#radarI"/></svg>08/08</span>
+  </section>
+
+  <footer>ثانوية 158 · رياضيات 1-2 · الفصل 3 · صفحات 62–66 · برج الرادار الإحداثي</footer>
+</main>
+
+<script src="/lessons/quiz.js"></script>
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RAD = Math.PI / 180;
+const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const M = h => `<span class="m">${h}</span>`;
+const I = s => s.split("").map(c => `<i>${c}</i>`).join("");
+const OV = s => `<span class="ov">${I(s)}</span>`;
+const SG = s => M(OV(s));
+const FR = (a, b) => `<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const SQ = s => `√<span class="sq">${s}</span>`;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (P, Q) => Math.hypot(P[0] - Q[0], P[1] - Q[1]);
+const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+const n2 = v => (Math.round(v * 100) / 100).toString();
+const neg = v => (v < 0 ? `(−${n2(-v)})` : n2(v));
+const NS = ' vector-effect="non-scaling-stroke"';
+
+/* ---------- Theme toggle (modern color-scheme meta sync) ---------- */
+(() => {
+  const meta = $('meta[name="color-scheme"]');
+  const mm = matchMedia("(prefers-color-scheme: dark)");
+  $("#theme").addEventListener("click", () => {
+    const sys = mm.matches ? "dark" : "light";
+    const cur = meta.content === "dark" || meta.content === "light" ? meta.content : sys;
+    const next = cur === "dark" ? "light" : "dark";
+    try {
+      if (next === sys) localStorage.removeItem("color-scheme");
+      else localStorage.setItem("color-scheme", next);
+    } catch {}
+    meta.content = next === sys ? "light dark" : next;
+  });
+  window.addEventListener("storage", e => {
+    if (e.key === "color-scheme") meta.content = e.newValue ?? "light dark";
+  });
+})();
+
+/* ---------- Navigation ribbon ---------- */
+const sheets = $$("main > .sheet");
+$("#stations").innerHTML = sheets.map(s => `<a href="#${s.id}">${s.dataset.name}</a>`).join("");
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = sheets.indexOf(e.target);
+  $$("#stations a").forEach((a, k) => { a.classList.toggle("on", k === i); if (k < i) a.classList.add("done"); });
+  $$("#stations a")[i].scrollIntoView({ block: "nearest", inline: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}), { rootMargin: "-45% 0px -50% 0px" });
+sheets.forEach(s => io.observe(s));
+
+/* ---------- Geometry helpers ---------- */
+function span(P, Q, R) {
+  const t1 = Math.atan2(Q[1] - P[1], Q[0] - P[0]) / RAD, t2 = Math.atan2(R[1] - P[1], R[0] - P[0]) / RAD;
+  const d = ((t2 - t1) % 360 + 360) % 360;
+  return d <= 180 ? { a0: t1, a1: t1 + d, m: d } : { a0: t2, a1: t2 + 360 - d, m: 360 - d };
+}
+function arcs(P, Q, R, n, col, r = 16) {
+  const u = unit(Q[0] - P[0], Q[1] - P[1]), v = unit(R[0] - P[0], R[1] - P[1]), q = r * .7;
+  return `<path d="M${P[0] + u[0] * q} ${P[1] + u[1] * q} L${P[0] + (u[0] + v[0]) * q} ${P[1] + (u[1] + v[1]) * q} L${P[0] + v[0] * q} ${P[1] + v[1] * q}" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="2.2"${NS}/>`;
+}
+function ticks(P, Q, n, col = "var(--main)", len = 12, gap = 5) {
+  const m = mid(P, Q), u = unit(Q[0] - P[0], Q[1] - P[1]), v = [-u[1], u[0]];
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const t = (i - (n - 1) / 2) * gap, c = [m[0] + u[0] * t, m[1] + u[1] * t];
+    s += `<line x1="${(c[0] - v[0] * len / 2).toFixed(1)}" y1="${(c[1] - v[1] * len / 2).toFixed(1)}" x2="${(c[0] + v[0] * len / 2).toFixed(1)}" y2="${(c[1] + v[1] * len / 2).toFixed(1)}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"${NS}/>`;
+  }
+  return s;
+}
+const txt = (P, t, o = {}) => `<text x="${P[0].toFixed(1)}" y="${P[1].toFixed(1)}" font-size="${o.fs || 16}" fill="${o.col || "var(--ink)"}" text-anchor="middle" dominant-baseline="central"${o.cls ? ` class="${o.cls}"` : ""}>${t}</text>`;
+const seg = (P, Q, o = {}) => `<line x1="${P[0].toFixed(1)}" y1="${P[1].toFixed(1)}" x2="${Q[0].toFixed(1)}" y2="${Q[1].toFixed(1)}" stroke="${o.col || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}${NS}/>`;
+const cent = V => [V.reduce((s, p) => s + p[0], 0) / V.length, V.reduce((s, p) => s + p[1], 0) / V.length];
+const polyP = (V, o = {}) => `<polygon points="${V.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="${o.fill || "none"}" stroke="${o.stroke || "var(--ink)"}" stroke-width="${o.sw || 2.6}" stroke-linejoin="round"${NS}/>`;
+const dot = (P, col = "var(--ink)", r = 5) => `<circle cx="${P[0].toFixed(1)}" cy="${P[1].toFixed(1)}" r="${r}" fill="${col}" stroke="var(--panel)" stroke-width="2"/>`;
+const svgPt = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
+function inTri(p, V) {
+  const s = (a, b, c) => (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1]);
+  const d1 = s(p, V[0], V[1]), d2 = s(p, V[1], V[2]), d3 = s(p, V[2], V[0]);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+}
+function dragOn(svg, start, move, end) {
+  svg.addEventListener("pointerdown", e => {
+    const h = start(svgPt(svg, e), e); if (h == null) return;
+    e.preventDefault(); svg.setPointerCapture?.(e.pointerId);
+    const mv = ev => move(svgPt(svg, ev), h);
+    const up = () => { svg.removeEventListener("pointermove", mv); svg.removeEventListener("pointerup", up); svg.removeEventListener("pointercancel", up); end?.(h); };
+    svg.addEventListener("pointermove", mv); svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  });
+}
+const ar = t => (t && !t.includes("<") ? t.replace(/[A-Za-z0-9][A-Za-z0-9()+\-−=²√≈÷.,/ ]*[A-Za-z0-9)²]|[A-Za-z]/g, m => M(m.replace(/([A-Za-z])/g, "<i>$1</i>"))) : t);
+function chipQ(box, fbEl, opts, onDone) {
+  opts = opts.map(o => [ar(o[0]), o[1], ar(o[2])]);
+  box.innerHTML = shuffle(opts.map((o, i) => [o, i])).map(([o, i]) => `<button type="button" data-i="${i}">${o[0]}</button>`).join("");
+  box.dataset.lock = "";
+  box.onclick = e => {
+    const b = e.target.closest("button[data-i]"); if (!b || box.dataset.lock === "1") return;
+    const o = opts[+b.dataset.i];
+    if (o[1]) { box.dataset.lock = "1"; b.classList.add("right"); $$("button", box).forEach(x => x.disabled = true); fbEl.className = "fb good"; fbEl.innerHTML = `صحيح ✓ ${o[2] || ""}`; onDone?.(); }
+    else { b.classList.add("wrong"); fbEl.className = "fb bad"; fbEl.innerHTML = o[2] || "راجعيها."; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }
+  };
+}
+function plane(x0, x1, y0, y1, box) {
+  const s = Math.min(box[2] / (x1 - x0), box[3] / (y1 - y0)), ox = box[0] + (box[2] - s * (x1 - x0)) / 2 - x0 * s, oy = box[1] + (box[3] - s * (y1 - y0)) / 2 + y1 * s;
+  const P = (x, y) => [ox + x * s, oy - y * s];
+  const grid = (o = {}) => {
+    let g = "";
+    const st = o.step || 1;
+    for (let x = Math.ceil(x0 / st) * st; x <= x1; x += st) g += `<line x1="${P(x, y0)[0]}" y1="${P(x, y0)[1]}" x2="${P(x, y1)[0]}" y2="${P(x, y1)[1]}" stroke="var(--grid)" stroke-width="1.2"/>`;
+    for (let y = Math.ceil(y0 / st) * st; y <= y1; y += st) g += `<line x1="${P(x0, y)[0]}" y1="${P(x0, y)[1]}" x2="${P(x1, y)[0]}" y2="${P(x1, y)[1]}" stroke="var(--grid)" stroke-width="1.2"/>`;
+    if (o.quad) g += `<rect x="${P(0, y1)[0]}" y="${P(0, y1)[1]}" width="${P(x1, 0)[0] - P(0, 0)[0]}" height="${P(0, 0)[1] - P(0, y1)[1]}" fill="color-mix(in srgb, var(--p2) 8%, transparent)"/>`;
+    g += `<line x1="${P(x0, 0)[0]}" y1="${P(0, 0)[1]}" x2="${P(x1, 0)[0]}" y2="${P(0, 0)[1]}" stroke="var(--p1)" stroke-width="2"/>`;
+    g += `<line x1="${P(0, 0)[0]}" y1="${P(0, y0)[1]}" x2="${P(0, 0)[0]}" y2="${P(0, y1)[1]}" stroke="var(--p2)" stroke-width="2"/>`;
+    g += `<path d="M${P(x1, 0)[0] - 1} ${P(0, 0)[1]} l-9 -5 v10z" fill="var(--p1)"/><path d="M${P(0, 0)[0]} ${P(0, y1)[1] + 1} l-5 9 h10z" fill="var(--p2)"/>`;
+    g += txt([P(x1, 0)[0] - 8, P(0, 0)[1] + 16], "x", { cls: "nm", fs: 18, col: "var(--p1)" }) + txt([P(0, 0)[0] + 14, P(0, y1)[1] + 10], "y", { cls: "nm", fs: 18, col: "var(--p2)" });
+    if (o.nums) {
+      for (let x = Math.ceil(x0 / o.nums) * o.nums; x <= x1 - .5; x += o.nums) if (x) g += txt([P(x, 0)[0], P(0, 0)[1] + 14], String(x).replace("-", "−"), { fs: 11, col: "var(--muted)" });
+      for (let y = Math.ceil(y0 / o.nums) * o.nums; y <= y1 - .5; y += o.nums) if (y) g += txt([P(0, 0)[0] - 14, P(0, y)[1]], String(y).replace("-", "−"), { fs: 11, col: "var(--muted)" });
+    }
+    if (o.O !== false) g += txt([P(0, 0)[0] - 10, P(0, 0)[1] + 13], "O", { cls: "nm", fs: 15 });
+    return g;
+  };
+  return { P, s, grid, x0, x1, y0, y1 };
+}
+function plab(P, G, name, coord, o = {}) {
+  const u = o.below ? [0, 1] : unit(P[0] - G[0] || .001, P[1] - G[1] || .001), d = o.d || 24;
+  const Q = [P[0] + u[0] * d + (o.dx || 0), P[1] + u[1] * d + (o.dy || 0)], fs = o.fs || 16;
+  const anchor = o.anchor || (Math.abs(u[0]) < .3 ? "middle" : u[0] > 0 ? "start" : "end");
+  return `<text class="halo" x="${Q[0].toFixed(1)}" y="${Q[1].toFixed(1)}" font-size="${fs}" text-anchor="${anchor}" dominant-baseline="central" fill="${o.col || "var(--ink)"}"><tspan class="nm" font-size="${fs + 2}">${name}</tspan><tspan font-family="Times New Roman, serif" font-style="italic">${coord ? `(${coord})` : ""}</tspan></text>`;
+}
+const beacon = (P, col = "var(--pin)", sc = 1) => `<g transform="translate(${P[0].toFixed(1)} ${P[1].toFixed(1)}) scale(${sc})"><circle r="11" fill="none" stroke="${col}" stroke-width="2"/><circle r="5" fill="${col}"/></g>`;
+
+/* ---------- 0. Airspace Radar Screen (Example 4) ---------- */
+{
+  const SETS = [
+    { cities: [["الرياض", "R", 24.15, 46.72], ["ينبع", "Y", 24.63, 38.07], ["تبوك", "T", 28.37, 36.6]], ans: 0 },
+    { cities: [["تبوك", "T", 28.37, 36.6], ["عرعر", "A", 30.9, 41.13], ["حائل", "H", 27.43, 41.68]], ans: 1 },
+  ];
+  const pl = { P: (x, y) => [70 + (x - 23) * 540 / 8.5, 326 - (y - 35) * 290 / 13] };
+  let set = 0, sel = [], done = new Map();
+  const svg = $("#radar");
+  function draw() {
+    const S = SETS[set], C = S.cities.map(c => pl.P(c[2], c[3]));
+    let s = `<rect width="640" height="350" rx="10" fill="var(--radbg)"/>`;
+    // Radar concentric rings
+    s += `<circle cx="320" cy="175" r="70" fill="none" stroke="var(--main)" stroke-opacity=".16" stroke-dasharray="4 4"/>`;
+    s += `<circle cx="320" cy="175" r="145" fill="none" stroke="var(--main)" stroke-opacity=".14" stroke-dasharray="4 4"/>`;
+    s += `<circle cx="320" cy="175" r="230" fill="none" stroke="var(--main)" stroke-opacity=".12"/>`;
+    for (let x = 23; x <= 32; x++) s += `<line x1="${pl.P(x, 34)[0]}" y1="0" x2="${pl.P(x, 34)[0]}" y2="350" stroke="var(--main)" stroke-opacity=".09"/>` + (x % 2 ? "" : txt([pl.P(x, 34)[0], 340], `${x}°N`, { fs: 11, col: "var(--muted)" }));
+    for (let y = 35; y <= 49; y++) s += `<line x1="0" y1="${pl.P(22, y)[1]}" x2="640" y2="${pl.P(22, y)[1]}" stroke="var(--main)" stroke-opacity=".09"/>` + (y % 2 ? "" : txt([26, pl.P(22, y)[1]], `${y}°E`, { fs: 11, col: "var(--muted)" }));
+    if (done.size === 3) s += polyP(C, { fill: "color-mix(in srgb, var(--main) 14%, transparent)", stroke: "none" });
+    [[0, 1], [1, 2], [0, 2]].forEach(([i, j]) => { const k = `${i}${j}`; if (done.has(k)) s += seg(C[i], C[j], { col: "var(--main)", sw: 3.6 }) + txt(mid(C[i], C[j]), `≈ ${n2(done.get(k))}`, { fs: 15, col: "var(--main)", cls: "halo" }); });
+    C.forEach((P, i) => {
+      const on = sel.includes(i);
+      if (on) s += `<circle class="pulse" cx="${P[0]}" cy="${P[1]}" r="8" fill="var(--pin)"/>`;
+      s += `<g data-city="${i}" style="cursor:pointer">${beacon(P, on ? "var(--main)" : "var(--pin)", on ? 1.3 : 1)}<circle cx="${P[0]}" cy="${P[1]}" r="26" fill="transparent"/></g>`;
+      const c = S.cities[i], right = P[0] < 470;
+      s += `<text class="halo" x="${P[0] + (right ? 18 : -18)}" y="${P[1] - 10}" font-size="16" text-anchor="${right ? "start" : "end"}" fill="var(--ink)">${c[0]}</text>`;
+      s += `<text class="halo" x="${P[0] + (right ? 18 : -18)}" y="${P[1] + 10}" font-size="13" text-anchor="${right ? "start" : "end"}" fill="var(--muted)">${c[1]}(${c[2]}, ${c[3]})</text>`;
+    });
+    svg.innerHTML = s;
+  }
+  function calcLine(i, j) {
+    const S = SETS[set], a = S.cities[i], b = S.cities[j], dx = a[2] - b[2], dy = a[3] - b[3], d = Math.hypot(dx, dy);
+    return { d, html: `<div class="ln ok pop"><b>${a[0]} ↔ ${b[0]}</b>${M(`<i>${a[1]}${b[1]}</i> = ${SQ(`(${n2(a[2])} − ${n2(b[2])})² + (${n2(a[3])} − ${n2(b[3])})²`)} = ${SQ(`${neg(dx)}² + ${neg(dy)}²`)} ≈ ${n2(d)}`)}</div>` };
+  }
+  function calc() {
+    const S = SETS[set];
+    $("#radCalc").innerHTML = [...done.keys()].map(k => calcLine(+k[0], +k[1]).html).join("") || `<div class="ln">${M(`<i>d</i> = ${SQ("(<i>x</i>₂ − <i>x</i>₁)² + (<i>y</i>₂ − <i>y</i>₁)²")}`)} <span class="muted">قانون المسافة: اضغطي محطتين على الرادار.</span></div>`;
+    const qbox = $("#radQ");
+    if (done.size === 3 && qbox.hidden) {
+      qbox.hidden = false;
+      $("#radQq").innerHTML = set === 0 ? "الأطوال الثلاثة مختلفة. إذن المثلث بين الرياض وينبع وتبوك:" : "قارني المسافات الثلاث. المثلث بين تبوك وعرعر وحائل تقريبًا:";
+      const T = ["مختلف الأضلاع", "متطابق الضلعين", "متطابق الأضلاع"];
+      const why = set === 0 ? "الأطوال 8.66 و10.96 و4.02 مختلفة كلها." : "المسافة من تبوك إلى عرعر ≈ 5.19 ومن تبوك إلى حائل ≈ 5.17 (متساويتان تقريبًا)، والضلع الثالث ≈ 3.51.";
+      chipQ($("#radC"), $("#radFb"), T.map((t, k) => [t, k === S.ans, k === S.ans ? why : "قارني الأطوال الثلاثة بالأسفل."]), () => qbox.classList.add("ok"));
+    }
+  }
+  svg.addEventListener("click", e => {
+    const g = e.target.closest("[data-city]"); if (!g) return;
+    const i = +g.dataset.city;
+    if (sel.includes(i)) sel = sel.filter(x => x !== i); else sel.push(i);
+    if (sel.length === 2) { const [a, b] = [...sel].sort(), k = `${a}${b}`; done.set(k, calcLine(a, b).d); sel = []; }
+    draw(); calc();
+  });
+  $$("[data-set]").forEach(b => b.addEventListener("click", () => {
+    $$("[data-set]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    set = +b.dataset.set; sel = []; done = new Map();
+    $("#radQ").hidden = true; $("#radQ").classList.remove("ok"); $("#radFb").textContent = ""; draw(); calc();
+  }));
+  draw(); calc();
+}
+
+/* ---------- 1. Place the Triangle (Drone Pad) ---------- */
+{
+  const svg = $("#place"), pl = plane(-9, 12, -6, 8, [16, 14, 608, 362]);
+  const LOC = [[0, 0], [0, 5], [7, 0]], NAMES = ["N", "M", "P"];
+  let rot = 2, flipped = false, T = [6, 5];
+  const verts = () => LOC.map(([x, y]) => {
+    let p = [flipped ? -x : x, y];
+    for (let k = 0; k < rot; k++) p = [-p[1], p[0]];
+    return [p[0] + T[0], p[1] + T[1]];
+  });
+  const fits = V => V.every(([x, y]) => x >= pl.x0 && x <= pl.x1 && y >= pl.y0 && y <= pl.y1);
+  function state(V) {
+    const origin = V.some(([x, y]) => x === 0 && y === 0);
+    const sides = [[0, 1], [1, 2], [2, 0]];
+    const onAxis = sides.some(([i, j]) => (V[i][1] === 0 && V[j][1] === 0) || (V[i][0] === 0 && V[j][0] === 0));
+    const quad = V.every(([x, y]) => x >= 0 && y >= 0);
+    const best = V[0][0] === 0 && V[0][1] === 0 && quad;
+    const zeros = V.reduce((acc, [x, y]) => acc + (x === 0 ? 1 : 0) + (y === 0 ? 1 : 0), 0);
+    return [origin, onAxis, quad, origin && onAxis && quad, best, zeros];
+  }
+  function draw() {
+    const V = verts(), st = state(V), S = V.map(([x, y]) => pl.P(x, y));
+    let s = pl.grid({ quad: true, nums: 2 });
+    s += polyP(S, { fill: "color-mix(in srgb, var(--main) 18%, transparent)", stroke: "var(--main)", sw: 3 });
+    s += arcs(S[0], S[1], S[2], 1, "var(--ink)", 14);
+    const G = cent(S);
+    S.forEach((P, i) => {
+      s += dot(P, "var(--main)", 6) + plab(P, G, NAMES[i], st[3] ? (st[4] ? ["0, 0", "0, a", "b, 0"][i] : `${V[i][0]}, ${V[i][1]}`) : `${V[i][0]}, ${V[i][1]}`.replace(/-/g, "−"), { fs: 15 });
+    });
+    svg.innerHTML = s;
+    st.slice(0, 4).forEach((ok, i) => $(`.chk[data-c="${i}"]`).classList.toggle("ok", ok));
+    $("#zeroMeter b").textContent = `${st[5]} / 6`;
+    $("#zeroMeter").className = `ro ${st[5] >= 4 ? "ok" : st[5] >= 2 ? "warn" : ""}`;
+    $("#placeRo").innerHTML = V.map((v, i) => `<span class="ro${st[3] ? " ok" : ""}">${M(`<i>${NAMES[i]}</i>`)} <b>(${v[0]}, ${v[1]})</b></span>`.replace(/\(-/g, "(−").replace(/, -/g, ", −")).join("");
+    const n = $("#placeNarr"); n.classList.toggle("ok", st[3]);
+    n.innerHTML = st[4] ? `<b>أفضل وضع ✓ (4 أصفار من 6!)</b> الزاوية القائمة عند الأصل والساقان على المحورين: ${M("<i>N</i>(0, 0)")}, ${M("<i>M</i>(0, <i>a</i>)")}, ${M("<i>P</i>(<i>b</i>, 0)")} (مثال 1).`
+      : st[3] ? "الخطوات الأربع تحققت ✓. جرّبي وضع الزاوية القائمة عند الأصل لتصلي إلى 4 أصفار!"
+      : st[0] ? "ممتاز، رأس عند الأصل! الآن ضعي ضلعًا على أحد المحورين داخل الربع الأول."
+      : "اسحبي المثلث نحو نقطة الأصل O ودوّريه أو اعكسيه حتى تتجمّع الساقان على المحورين الموجبين.";
+  }
+  let grab = null;
+  dragOn(svg, P => { const S = verts().map(([x, y]) => pl.P(x, y)); if (!inTri(P, S) && !S.some(q => dist(q, P) < 24)) return null; grab = { P0: P, T0: [...T] }; return 1; },
+    P => { const dx = Math.round((P[0] - grab.P0[0]) / pl.s), dy = Math.round(-(P[1] - grab.P0[1]) / pl.s), old = T; T = [grab.T0[0] + dx, grab.T0[1] + dy]; if (!fits(verts())) T = old; draw(); });
+  const keepInside = () => {
+    const V = verts();
+    const xs = V.map(v => v[0]), ys = V.map(v => v[1]);
+    T = [T[0] - Math.min(0, Math.min(...xs) - pl.x0) - Math.max(0, Math.max(...xs) - pl.x1), T[1] - Math.min(0, Math.min(...ys) - pl.y0) - Math.max(0, Math.max(...ys) - pl.y1)];
+  };
+  $("#rot").addEventListener("click", () => { const old = rot; rot = (rot + 1) % 4; if (!fits(verts())) { keepInside(); if (!fits(verts())) rot = old; } draw(); });
+  $("#flip").addEventListener("click", () => { const old = flipped; flipped = !flipped; if (!fits(verts())) { keepInside(); if (!fits(verts())) flipped = old; } draw(); });
+  $("#placeReset").addEventListener("click", () => { rot = 2; flipped = false; T = [6, 5]; draw(); });
+  draw();
+}
+
+/* ---------- 2. Symbolic Coordinates & Fraction Detector ---------- */
+{
+  const svg = $("#iso");
+  let two = false;
+  function draw() {
+    const a = +$("#ia").value, b = +$("#ib").value, base = two ? 2 * a : a;
+    $("#iaO").textContent = a; $("#ibO").textContent = b;
+    const pl = plane(-2.2, Math.max(17, base + 1), -1.4, 7.5, [20, 14, 600, 276]);
+    const X = pl.P(0, 0), Z = pl.P(base, 0), Y = pl.P(base / 2, b), Mb = pl.P(base / 2, 0);
+    let s = pl.grid({ O: false });
+    s += polyP([X, Y, Z], { fill: "color-mix(in srgb, var(--main) 14%, transparent)", stroke: "var(--ink)", sw: 3 });
+    s += seg(Y, Mb, { col: "var(--an)", sw: 2, dash: "6 5" }) + dot(Mb, "var(--an)", 5);
+    s += ticks(X, Y, 1, "var(--main)", 14) + ticks(Z, Y, 1, "var(--main)", 14);
+    const yx = two ? "a" : "a/2";
+    s += plab(X, Y, "X", "0, 0", { fs: 16, d: 14, dy: 14, anchor: "end" }) + plab(Z, Y, "Z", two ? "2a, 0" : "a, 0", { fs: 16, d: 14, dy: 14, anchor: "start" });
+    s += plab(Y, Mb, "Y", `${yx}, b`, { fs: 16, d: 20 });
+    svg.innerHTML = s;
+    const hasFrac = !two && (a % 2 !== 0);
+    $("#fracBadge").className = `ro ${hasFrac ? "warn" : "ok"}`;
+    $("#fracBadge b").textContent = hasFrac ? `كسر! (${n2(a / 2)})` : "بلا كسور ✓";
+    $("#isoNarr").className = `narr ${hasFrac ? "" : "ok"}`;
+    $("#isoNarr").innerHTML = two
+      ? `بالقاعدة <span class="m">2<i>a</i></span>: إحداثيات الرأس ${M(`<i>Y</i>(<i>a</i>, <i>b</i>)`)} وبالتعويض ${M(`<i>Y</i>(${a}, ${b})`)}. <b>إحداثيات صحيحة دائمًا بلا كسور!</b>`
+      : `الرأس ${M("<i>Y</i>")} يقع فوق منتصف القاعدة، فيكون إحداثيه السيني ${M(FR("<i>a</i>", "2"))}. عند ${M(`<i>a</i> = ${a}`)} نحصل على ${M(`<i>Y</i>(${n2(a / 2)}, ${b})`)}${hasFrac ? " ← ظهر كسر! اضغطي على «القاعدة = 2a»." : "."}`;
+  }
+  ["ia", "ib"].forEach(id => $("#" + id).addEventListener("input", draw));
+  $$("[data-iso]").forEach(b => b.addEventListener("click", () => {
+    $$("[data-iso]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    two = b.dataset.iso === "2a"; draw();
+  }));
+  draw();
+
+  const PZ = [
+    { h: "تحقق 2: المثلث القائم المتطابق الضلعين", pts: [["A", 0, 5, "?, ?"], ["B", 0, 0, "?, ?"], ["C", 5, 0, "a, ?"]], right: 1, ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>A</i>(0, <i>a</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 1, "الساقان متطابقان، فـ A على المحور y على بُعد a من الأصل."], [M("<i>A</i>(<i>a</i>, <i>a</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 0, "A على المحور y، فإحداثيه x صفر."], [M("<i>A</i>(0, <i>b</i>) ، <i>B</i>(0, 0) ، <i>C</i>(<i>a</i>, 0)"), 0, "الساقان متطابقان، فطولهما a كلاهما."]] },
+    { h: "تمرين 3: أوجدي إحداثيات T", pts: [["R", -4, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 4, 0, "?, ?"]], ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>T</i>(2<i>a</i>, 0)"), 1, "المثلث متماثل حول المحور y: T انعكاس R."], [M("<i>T</i>(−2<i>a</i>, 0)"), 0, "هذه إحداثيات R."], [M("<i>T</i>(<i>a</i>, 0)"), 0, "R تبعد 2a عن الأصل، فـ T كذلك."], [M("<i>T</i>(2<i>a</i>, <i>b</i>)"), 0, "T تقع على المحور x."]] },
+    { h: "تمرين 4: أوجدي إحداثيات W وZ", pts: [["W", 0, 0, "?, ?"], ["Z", 3, 4, "?, b"], ["Y", 6, 0, "2a, 0"]], ticks: [[0, 1], [1, 2]],
+      o: [[M("<i>W</i>(0, 0) ، <i>Z</i>(<i>a</i>, <i>b</i>)"), 1, "W عند الأصل، وZ فوق منتصف القاعدة (2a ÷ 2 = a)."], [M("<i>W</i>(0, 0) ، <i>Z</i>(2<i>a</i>, <i>b</i>)"), 0, "Z فوق المنتصف لا فوق Y."], [M("<i>W</i>(0, 0) ، <i>Z</i>(<i>a</i>/2, <i>b</i>)"), 0, "نصف 2a يساوي a."]] },
+  ];
+  $("#pzs").innerHTML = PZ.map((p, k) => `<div class="pz" data-p="${k}"><h3>${p.h}</h3><svg viewBox="0 0 300 220" aria-hidden="true"></svg><div class="chips"></div><p class="fb" aria-live="polite"></p></div>`).join("");
+  PZ.forEach((p, k) => {
+    const card = $(`.pz[data-p="${k}"]`), xs = p.pts.map(q => q[1]), pl = plane(Math.min(-1, ...xs) - .8, Math.max(...xs) + 1.4, -1.6, 6.4, [40, 6, 220, 208]);
+    const S = p.pts.map(q => pl.P(q[1], q[2])), G = cent(S);
+    let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 2.6 });
+    if (p.right != null) s += arcs(S[p.right], S[(p.right + 1) % 3], S[(p.right + 2) % 3], 1, "var(--ink)", 12);
+    p.ticks.forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 12); });
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 4) + plab(P, G, p.pts[i][0], p.pts[i][3], { fs: 14, d: 16, below: p.pts[i][2] === 0 && p.pts[i][1] !== 0 }); });
+    $("svg", card).innerHTML = s;
+    chipQ($(".chips", card), $(".fb", card), p.o, () => card.classList.add("ok"));
+  });
+}
+
+/* ---------- 3. Live Coordinate Proof ---------- */
+{
+  const svg = $("#mid");
+  let pr = 0, at = 0, a = 3, b = 1, c = 3;
+  const PROOFS = [
+    { given: `<b>المعطيات:</b> ${M("△<i>ABC</i>")}، ${M("<i>S</i>")} منتصف ${SG("AC")}، ${M("<i>T</i>")} منتصف ${SG("BC")}.<br><b>المطلوب:</b> إثبات أن ${M(`${OV("ST")} ∥ ${OV("AB")}`)}.<br><span class="muted">الرؤوس: ${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(2<i>a</i>, 0)")}، ${M("<i>C</i>(2<i>b</i>, 2<i>c</i>)")}.</span>`,
+      steps: [
+        { s: `قانون المنتصف: إحداثيات ${M("<i>S</i>")} = ${M(`(${FR("2<i>b</i> + 0", "2")}, ${FR("2<i>c</i> + 0", "2")})`)} =`, o: [M("(<i>b</i>, <i>c</i>)"), M("(2<i>b</i>, 2<i>c</i>)"), M("(<i>b</i>/2, <i>c</i>/2)")], ok: 0, why: "نقسم كل مجموع على 2." },
+        { s: `إحداثيات ${M("<i>T</i>")} = ${M(`(${FR("2<i>a</i> + 2<i>b</i>", "2")}, ${FR("0 + 2<i>c</i>", "2")})`)} =`, o: [M("(<i>a</i> + <i>b</i>, <i>c</i>)"), M("(<i>a</i> + 2<i>b</i>, <i>c</i>)"), M("(2<i>a</i> + 2<i>b</i>, 2<i>c</i>)")], ok: 0, why: "كل حد في البسط ينقسم على 2." },
+        { s: `ميل ${SG("ST")} = ${M(FR("<i>c</i> − <i>c</i>", "<i>a</i> + <i>b</i> − <i>b</i>"))} =`, o: [M("0"), M("<i>c</i>/<i>a</i>"), M("غير معرّف")], ok: 0, why: "البسط صفر والمقام a ≠ 0." },
+        { s: `ميل ${SG("AB")} = ${M(FR("0 − 0", "2<i>a</i> − 0"))} =`, o: [M("0"), M("2<i>a</i>"), M("غير معرّف")], ok: 0, why: "القطعة تنطبق على المحور x." },
+        { s: `ميلا ${SG("ST")} و${SG("AB")} متساويان، إذن:`, o: [M(`${OV("ST")} ∥ ${OV("AB")}`), M(`${OV("ST")} ⊥ ${OV("AB")}`), M(`${OV("ST")} ≅ ${OV("AB")}`)], ok: 0, why: "المستقيمان غير الرأسيين المتساويا الميل متوازيان." },
+      ] },
+    { given: `<b>المعطيات:</b> ${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(<i>x</i>, <i>b</i>)")}، ${M("<i>C</i>(<i>a</i> + <i>x</i>, <i>b</i>)")}، ${M("<i>D</i>(<i>a</i>, 0)")}، و${SG("AC")} و${SG("BD")} يتقاطعان في ${M("<i>X</i>")}.<br><b>المطلوب:</b> إثبات أن ${M("△<i>ABX</i> ≅ △<i>CDX</i>")}.`,
+      steps: [
+        { s: `${M("<i>AB</i> = " + SQ("<i>x</i>² + <i>b</i>²"))} و${M("<i>CD</i> = " + SQ("(<i>a</i> + <i>x</i> − <i>a</i>)² + (<i>b</i> − 0)²"))} =`, o: [M(SQ("<i>x</i>² + <i>b</i>²")), M(SQ("<i>a</i>² + <i>b</i>²")), M("<i>x</i> + <i>b</i>")], ok: 0, why: "قانون المسافة: تنحذف a." },
+        { s: `منتصف ${SG("AC")} = ${M(`(${FR("<i>a</i> + <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`)}، ومنتصف ${SG("BD")} =`, o: [M(`(${FR("<i>a</i> + <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`), M(`(${FR("<i>a</i> − <i>x</i>", "2")}, ${FR("<i>b</i>", "2")})`), M(`(<i>a</i> + <i>x</i>, <i>b</i>)`)], ok: 0, why: "للقطرين نفس نقطة المنتصف X." },
+        { s: `إذن ${M("<i>X</i>")} منتصف ${SG("AC")} ومنتصف ${SG("BD")}، فـ`, o: [M(`${OV("AX")} ≅ ${OV("CX")} ، ${OV("BX")} ≅ ${OV("DX")}`), M(`${OV("AX")} ≅ ${OV("BX")}`), M(`${OV("AC")} ≅ ${OV("BD")}`)], ok: 0, why: "المنتصف يقسم كل قطر إلى قطعتين متطابقتين." },
+        { s: `بثلاثة أضلاع متناظرة متطابقة، ${M("△<i>ABX</i> ≅ △<i>CDX</i>")} بـ`, o: [M("SSS"), M("SAS"), M("ASA")], ok: 0, why: "تطابقت الأضلاع الثلاثة المتناظرة." },
+      ] },
+  ];
+  const pl = plane(-2.4, 12, -1, 9.5, [10, 10, 500, 410]);
+  function figure() {
+    let s = pl.grid({ nums: 2 });
+    if (pr === 0) {
+      const A = pl.P(0, 0), B = pl.P(2 * a, 0), C = pl.P(2 * b, 2 * c), S = mid(A, C), T = mid(B, C), G = cent([A, B, C]);
+      s += polyP([A, B, C], { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 3 });
+      s += seg(S, T, { col: "var(--an)", sw: 4 }) + seg(A, B, { col: "var(--p1)", sw: 4 });
+      s += ticks(A, S, 1, "var(--an)", 12) + ticks(S, C, 1, "var(--an)", 12) + ticks(B, T, 2, "var(--an)", 12) + ticks(T, C, 2, "var(--an)", 12);
+      s += plab(A, G, "A", "0, 0", { fs: 17, d: 20 }) + plab(B, G, "B", `${2 * a}, 0`, { fs: 17, d: 20 }) + plab(C, G, "C", `${2 * b}, ${2 * c}`, { fs: 17, d: 20 });
+      s += plab(S, mid(B, T), "S", `${b}, ${c}`, { fs: 16, d: 18, col: "var(--an)" }) + plab(T, mid(A, S), "T", `${a + b}, ${c}`, { fs: 16, d: 18, col: "var(--an)" });
+      s += dot(S, "var(--an)") + dot(T, "var(--an)") + `<circle cx="${C[0]}" cy="${C[1]}" r="12" fill="var(--main)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>` + `<circle cx="${B[0]}" cy="${B[1]}" r="11" fill="var(--p1)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>`;
+      $("#midRo").innerHTML = `<span class="ro ok">ميل ${M(OV("ST"))} <b>0</b></span><span class="ro ok">ميل ${M(OV("AB"))} <b>0</b></span><span class="ro">${M("<i>ST</i>")} <b>${a}</b></span><span class="ro">${M("<i>AB</i>")} <b>${2 * a}</b></span>`;
+    } else {
+      const xa = 2 * a, xx = 2 * b, yb = 2 * c, A = pl.P(0, 0), B = pl.P(xx, yb), C = pl.P(xa + xx, yb), D = pl.P(xa, 0), X = mid(A, C), G = cent([A, B, C, D]);
+      s += polyP([A, B, X], { fill: "color-mix(in srgb, var(--p1) 16%, transparent)", stroke: "none" }) + polyP([C, D, X], { fill: "color-mix(in srgb, var(--p3) 16%, transparent)", stroke: "none" });
+      s += seg(A, B, { sw: 3 }) + seg(B, C, { sw: 2, col: "var(--muted)" }) + seg(C, D, { sw: 3 }) + seg(D, A, { sw: 2, col: "var(--muted)" }) + seg(A, C, { sw: 2.6, col: "var(--an)" }) + seg(B, D, { sw: 2.6, col: "var(--an)" });
+      s += ticks(A, B, 1, "var(--p1)", 12) + ticks(C, D, 1, "var(--p1)", 12) + ticks(A, X, 2, "var(--an)", 12) + ticks(X, C, 2, "var(--an)", 12) + ticks(B, X, 3, "var(--an)", 12) + ticks(X, D, 3, "var(--an)", 12);
+      s += plab(A, G, "A", "0, 0", { fs: 17, d: 20 }) + plab(B, G, "B", "x, b", { fs: 17, d: 20 }) + plab(C, G, "C", "a+x, b", { fs: 17, d: 20 }) + plab(D, G, "D", "a, 0", { fs: 17, d: 20 }) + dot(X, "var(--an)") + plab(X, [X[0], X[1] - 10], "X", "", { fs: 17, d: 20 });
+      s += `<circle cx="${B[0]}" cy="${B[1]}" r="12" fill="var(--main)" stroke="var(--panel)" stroke-width="3" style="cursor:grab"/>`;
+      const ab = Math.hypot(xx, yb);
+      $("#midRo").innerHTML = `<span class="ro ok">${M("<i>AB</i>")} <b>${n2(ab)}</b></span><span class="ro ok">${M("<i>CD</i>")} <b>${n2(ab)}</b></span><span class="ro">${M("<i>AX</i> = <i>CX</i>")} <b>${n2(Math.hypot(xa + xx, yb) / 2)}</b></span><span class="ro">${M("<i>BX</i> = <i>DX</i>")} <b>${n2(Math.hypot(xa - xx, yb) / 2)}</b></span>`;
+    }
+    svg.innerHTML = s;
+  }
+  function steps() {
+    const P = PROOFS[pr];
+    $("#prGiven").innerHTML = P.given;
+    $("#prSteps").innerHTML = P.steps.map((st, i) => `<li class="${i < at ? "done" : i === at ? "now" : "later"}"><span>${i + 1}) ${st.s} ${i < at ? `<b class="c2">${st.o[st.ok]}</b> <span class="why">${st.why}</span>` : `<span class="blank">؟</span>`}</span>${i === at ? `<div class="chips" id="prC"></div>` : ""}</li>`).join("");
+    if (at < P.steps.length) {
+      const st = P.steps[at];
+      chipQ($("#prC"), $("#prFb"), st.o.map((o, k) => [o, k === st.ok, k === st.ok ? "" : st.why]), () => setTimeout(() => { at++; $("#prFb").textContent = ""; steps(); }, 650));
+    } else {
+      $("#prFb").className = "fb good";
+      $("#prFb").innerHTML = `اكتمل البرهان ✓ ${pr === 0 ? `ونلاحظ أن ${M("<i>ST</i> = ½ <i>AB</i>")} دائمًا (تمرين 13). <button class="btn soft" type="button" id="prNext" style="padding:2px 12px">البرهان التالي</button>` : "أتممتي البرهانين الإحداثيين بنجاح!"}`;
+      $("#prNext")?.addEventListener("click", () => $$("[data-pr]")[1].click());
+    }
+  }
+  let drag = null;
+  dragOn(svg, P => {
+    const Cp = pl.P(2 * b, 2 * c), Bp = pl.P(2 * a, 0);
+    if (dist(P, Cp) < 30) return (drag = "C");
+    if (pr === 0 && dist(P, Bp) < 30) return (drag = "B");
+    return null;
+  }, P => {
+    const x = Math.round((P[0] - pl.P(0, 0)[0]) / pl.s / 2), y = Math.round(-(P[1] - pl.P(0, 0)[1]) / pl.s / 2);
+    if (drag === "C") { b = clamp(x, 0, pr === 0 ? 5 : 2); c = clamp(y, 1, 4); }
+    else a = clamp(x, 1, 5);
+    if (pr === 1) a = Math.max(a, 2);
+    figure();
+  });
+  $$("[data-pr]").forEach(bt => bt.addEventListener("click", () => {
+    $$("[data-pr]").forEach(x => { const on = x === bt; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    pr = +bt.dataset.pr; at = 0; $("#prFb").textContent = "";
+    if (pr === 1) { a = 3; b = 1; c = 2; } else { a = 3; b = 1; c = 3; }
+    figure(); steps();
+  }));
+  figure(); steps();
+}
+
+/* ---------- 4. Distance & Pythagoras Telemetry ---------- */
+{
+  const PB = [
+    { tab: "تمرين 17: المخيّم", hasH: false, story: "خيمتان في متنزه عند <span class=\"m\">(12, 9)</span> و<span class=\"m\">(0, 25)</span>، ومكتب الإدارة عند الأصل <span class=\"m\">(0, 0)</span>. هل المثلث قائم الزاوية؟",
+      pts: () => [["O", 0, 0], ["F", 12, 9], ["G", 0, 25]], range: [-2, 16, -2, 27],
+      q1: [["مختلف الأضلاع", 1, "الأطوال 15 و20 و25 مختلفة كلها."], ["متطابق الضلعين", 0, "قارني الأطوال الثلاثة."], ["متطابق الأضلاع", 0, "الأطوال غير متساوية."]],
+      q2: [["قائم الزاوية: 15² + 20² = 25²", 1, "225 + 400 = 625. الزاوية القائمة عند الخيمة F."], ["غير قائم", 0, "اختبري 15² + 20² مقابل 25²."], ["قائم عند الأصل", 0, "الضلع الأطول OG يقابل الزاوية F."]] },
+    { tab: "تمرين 15 (متغير h)", hasH: true, story: "في <span class=\"m\">△<i>XYZ</i></span>: <span class=\"m\"><i>X</i>(0, 0)</span>، <span class=\"m\"><i>Y</i>(2<i>h</i>, 2<i>h</i>)</span>، <span class=\"m\"><i>Z</i>(4<i>h</i>, 0)</span>. حرّكي قيمة <span class=\"m\"><i>h</i></span> لملاحظة ثبات النوع.",
+      pts: h => [["X", 0, 0], ["Y", 2 * h, 2 * h], ["Z", 4 * h, 0]], range: [-1, 17, -1, 10],
+      q1: [["متطابق الضلعين", 1, "دائمًا XY = YZ = 2h√2 وXZ = 4h."], ["مختلف الأضلاع", 0, "لاحظي تساوي XY وYZ لكل قيمة لـ h."], ["متطابق الأضلاع", 0, "XZ لا يساوي XY."]],
+      q2: [["قائم الزاوية عند Y", 1, "(2h√2)² + (2h√2)² = 8h² + 8h² = 16h² = (4h)²."], ["غير قائم", 0, "مربع الوتر XZ يساوي مجموع مربعي الساقين."], ["قائم عند X", 0, "أطول ضلع XZ يقابل الزاوية Y."]] },
+    { tab: "تمرين 16 (متغير h)", hasH: true, story: "في <span class=\"m\">△<i>XYZ</i></span>: <span class=\"m\"><i>X</i>(0, 0)</span>، <span class=\"m\"><i>Y</i>(1, <i>h</i>)</span>، <span class=\"m\"><i>Z</i>(2<i>h</i>, 0)</span>. اختبري أي قيمة لـ <span class=\"m\"><i>h</i></span>.",
+      pts: h => [["X", 0, 0], ["Y", 1, h], ["Z", 2 * h, 0]], range: [-1, 10, -1, 6],
+      q1: [["مختلف الأضلاع", 1, "الأطوال الثلاثة مختلفة (مثلاً عند h=3: √10, √34, 6)."], ["متطابق الضلعين", 0, "قارني أطوال الأضلاع الثلاثة."], ["متطابق الأضلاع", 0, "الأطوال غير متساوية."]],
+      q2: [["غير قائم الزاوية", 1, "مجموع مربعي الضلعين لا يساوي مربع الضلع الثالث (عند h=3: 10+34 ≠ 36)."], ["قائم الزاوية عند Y", 0, "تحققي من فيثاغورس للأطوال الثلاثة."], ["قائم الزاوية عند X", 0, "Y لا تقع على المحور y."]] },
+  ];
+  let k = 0, n = 0, h = 2;
+  $("#dSeg").innerHTML = PB.map((p, i) => `<button type="button" data-d="${i}"${i ? "" : ' class="on"'}>${p.tab}</button>`).join("");
+  const pairs = [[0, 1], [1, 2], [0, 2]];
+  function draw() {
+    const p = PB[k], pts = p.pts(h), pl = plane(p.range[0], p.range[1], p.range[2], p.range[3], [10, 10, 380, 330]);
+    const S = pts.map(q => pl.P(q[1], q[2])), G = cent(S);
+    let s = pl.grid({ nums: p.range[3] > 10 ? 5 : 2, step: p.range[3] > 10 ? 5 : 1 });
+    s += polyP(S, { fill: "color-mix(in srgb, var(--main) 14%, transparent)", stroke: "var(--ink)", sw: 2.4 });
+    pairs.slice(0, n).forEach(([i, j]) => { s += seg(S[i], S[j], { col: "var(--main)", sw: 4 }); });
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 5) + plab(P, G, pts[i][0], `${pts[i][1]}, ${pts[i][2]}`, { fs: 14, d: 16 }); });
+    $("#dist").innerHTML = s;
+    $("#dStory").innerHTML = p.story;
+    $("#dhBox").hidden = !p.hasH;
+    $("#dhO").textContent = h;
+    $("#dCalc").innerHTML = pairs.slice(0, n).map(([i, j]) => {
+      const A = pts[i], B = pts[j], d = Math.hypot(A[1] - B[1], A[2] - B[2]), sq = (A[1] - B[1]) ** 2 + (A[2] - B[2]) ** 2;
+      return `<div class="ln ok pop">${M(`<i>${A[0]}${B[0]}</i> = ${SQ(`(${B[1]} − ${A[1]})² + (${B[2]} − ${A[2]})²`.replace(/− -/g, "+ "))} = ${SQ(sq)}${Number.isInteger(d) ? ` = ${d}` : ` ≈ ${n2(d)}`}`)}</div>`;
+    }).join("");
+    $("#dGo").hidden = n >= 3;
+    const q = $("#dQ");
+    if (n >= 3 && q.hidden) {
+      q.hidden = false; $("#dQq").textContent = "تصنيف المثلث حسب الأضلاع:";
+      chipQ($("#dC"), $("#dFb"), p.q1, () => setTimeout(() => { $("#dQq").textContent = "وهل المثلث قائم الزاوية؟ (عكس فيثاغورس)"; $("#dFb").textContent = ""; chipQ($("#dC"), $("#dFb"), p.q2, () => q.classList.add("ok")); }, 1500));
+    }
+  }
+  $("#dh").addEventListener("input", () => { h = +$("#dh").value; draw(); });
+  $("#dGo").addEventListener("click", () => { n = Math.min(3, n + 1); draw(); });
+  $$("[data-d]").forEach(b => b.addEventListener("click", () => {
+    $$("[data-d]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", String(on)); });
+    k = +b.dataset.d; n = 0; $("#dQ").hidden = true; $("#dQ").classList.remove("ok"); $("#dFb").textContent = ""; draw();
+  }));
+  draw();
+}
+
+/* ---------- 5. Drone Flight Path Game ---------- */
+{
+  const ROUNDS = 8;
+  let round = 0, score = 0, cur = null, plan = [];
+  const RX = i => 48 + i * 77, RY = i => 70 + (i % 2 ? -18 : 14);
+  function drawRoute() {
+    let s = `<rect width="640" height="112" rx="12" fill="var(--radbg)"/>`;
+    s += `<path d="M${RX(0)} ${RY(0)} ${Array.from({ length: ROUNDS - 1 }, (_, i) => `L${RX(i + 1)} ${RY(i + 1)}`).join(" ")}" fill="none" stroke="var(--main)" stroke-opacity=".35" stroke-width="3" stroke-dasharray="4 6"/>`;
+    for (let i = 0; i < ROUNDS; i++) {
+      s += `<g class="wp" data-i="${i}"><circle cx="${RX(i)}" cy="${RY(i)}" r="15" fill="var(--sheet)" stroke="var(--main)" stroke-width="2.5"/><text x="${RX(i)}" y="${RY(i)}" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="700" fill="var(--ink)">${i + 1}</text></g>`;
+    }
+    $("#route").innerHTML = s;
+  }
+  const T = {
+    isoO: () => ({ pts: [["X", 0, 0, "0, 0"], ["Y", 3, 4, "?, ?"], ["Z", 6, 0, "2a, 0"]], ticks: [[0, 1], [1, 2]], ask: 1, ans: "a, b", wrong: ["2a, b", "a/2, b", "b, a"], note: "الرأس فوق منتصف القاعدة 2a." }),
+    isoY: () => ({ pts: [["K", -3, 0, "−a, 0"], ["B", 0, 4, "?, b"], ["P", 3, 0, "?, ?"]], ticks: [[0, 1], [1, 2]], ask: 2, ans: "a, 0", wrong: ["−a, 0", "0, a", "2a, 0"], note: "المثلث متماثل حول المحور y، فـ P انعكاس K." }),
+    right: () => ({ pts: [["M", 0, 4, "0, ?"], ["N", 0, 0, "0, 0"], ["P", 6, 0, "b, 0"]], right: 1, ask: 0, ans: "0, a", wrong: ["a, 0", "a, b", "b, a"], note: `${M("<i>M</i>")} على المحور y على بُعد ${M("<i>a</i> = <i>MN</i>")}.`, given: `${M("<i>MN</i> = <i>a</i>")} ، ${M("<i>NP</i> = <i>b</i>")}` }),
+    rightIso: () => ({ pts: [["Z", 0, 0, "0, 0"], ["Y", 5, 0, "a, ?"], ["C", 5, 5, "?, ?"]], right: 1, ticks: [[0, 1], [1, 2]], ask: 2, ans: "a, a", wrong: ["0, a", "a, 0", "2a, a"], note: "ZY = YC = a، وC فوق Y مباشرة (تمرين 9)." }),
+    iso4b: () => ({ pts: [["N", 0, 0, "0, 0"], ["H", 4, 4, "?, c"], ["D", 8, 0, "4b, ?"]], ticks: [[0, 1], [1, 2]], ask: 1, ans: "2b, c", wrong: ["4b, c", "b, c", "2b, 2c"], note: "منتصف القاعدة 4b هو 2b (تمرين 11)." }),
+    sym2a: () => ({ pts: [["R", -5, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 5, 0, "?, ?"]], ticks: [[0, 1], [1, 2]], ask: 2, ans: "2a, 0", wrong: ["−2a, 0", "a, 0", "2a, b"], note: "T انعكاس R حول المحور y (تمرين 3)." }),
+    midS: () => ({ pts: [["A", 0, 0, "0, 0"], ["B", 6, 0, "2a, 0"], ["C", 2, 4, "2b, 2c"]], ask: -1, mid: [0, 2, "S"], ans: "b, c", wrong: ["2b, 2c", "b/2, c/2", "a + b, c"], note: "منتصف AC: (2b+0)/2 و(2c+0)/2." }),
+    midT: () => ({ pts: [["A", 0, 0, "0, 0"], ["B", 6, 0, "2a, 0"], ["C", 2, 4, "2b, 2c"]], ask: -1, mid: [1, 2, "T"], ans: "a + b, c", wrong: ["b, c", "2a + 2b, 2c", "a, c"], note: "منتصف BC: (2a+2b)/2 و(0+2c)/2." }),
+  };
+  const it = s => s.replace(/([a-z])/g, "<i>$1</i>").replace(/-/g, "−");
+  function draw() {
+    const c = cur, xs = c.pts.map(p => p[1]), pl = plane(Math.min(-1, ...xs) - 1.5, Math.max(...xs) + 2.5, -1.2, 5.6, [10, 8, 620, 264]);
+    const S = c.pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+    let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 3 });
+    if (c.right != null) s += arcs(S[c.right], S[(c.right + 1) % 3], S[(c.right + 2) % 3], 1, "var(--ink)", 14);
+    (c.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 14); });
+    S.forEach((P, i) => { s += (i === c.ask ? beacon(P, "var(--pin)", 1.15) : dot(P, "var(--main)", 6)) + plab(P, G, c.pts[i][0], c.pts[i][3], { fs: 17, d: 22, below: c.pts[i][2] === 0 && c.pts[i][1] !== 0, col: i === c.ask ? "var(--pin)" : "var(--ink)" }); });
+    if (c.mid) { const Q = mid(S[c.mid[0]], S[c.mid[1]]); s += ticks(S[c.mid[0]], Q, 1, "var(--an)", 13) + ticks(Q, S[c.mid[1]], 1, "var(--an)", 13) + beacon(Q, "var(--pin)", 1.15) + plab(Q, G, c.mid[2], "?, ?", { fs: 17, d: 22, col: "var(--pin)" }); }
+    $("#gFig").innerHTML = s;
+  }
+  function next() {
+    if (round === 0) plan = shuffle(Object.keys(T)).slice(0, ROUNDS);
+    cur = T[plan[round]]();
+    const name = cur.ask >= 0 ? cur.pts[cur.ask][0] : cur.mid[2];
+    cur.q = cur.ask >= 0 ? `أوجدي إحداثيات ${M(`<i>${name}</i>`)}${cur.given ? ` (${cur.given})` : ""}.` : `${M(`<i>${name}</i>`)} منتصف ${SG(cur.pts[cur.mid[0]][0] + cur.pts[cur.mid[1]][0])}. أوجدي إحداثياتها.`;
+    cur.o = shuffle([cur.ans, ...cur.wrong]).map(t => ({ t, ok: t === cur.ans }));
+    draw();
+    $("#gRound").textContent = round + 1; $("#gQ").innerHTML = cur.q;
+    $("#gOpts").innerHTML = cur.o.map((o, i) => `<button type="button" data-g="${i}">${M(`<i>${name}</i>(${it(o.t)})`)}</button>`).join("");
+    $("#gFb").textContent = ""; $("#gFb").className = "fb"; $("#gNext").hidden = true; $("#gOpts").dataset.lock = "";
+  }
+  $("#gOpts").addEventListener("click", e => {
+    const b = e.target.closest("button[data-g]"); if (!b || $("#gOpts").dataset.lock === "1") return;
+    $("#gOpts").dataset.lock = "1";
+    const ok = cur.o[+b.dataset.g].ok, wp = $(`#route .wp[data-i="${round}"]`);
+    $$("#gOpts button").forEach(x => { if (cur.o[+x.dataset.g].ok) x.classList.add("right"); });
+    if (!ok) { b.classList.add("wrong"); wp.classList.add("miss"); }
+    else { score++; wp.classList.add("on"); $("circle", wp).setAttribute("fill", "var(--p2s)"); $("circle", wp).setAttribute("stroke", "var(--p2)"); }
+    $("#gScore").textContent = score;
+    $("#gFb").className = `fb ${ok ? "good" : "bad"}`;
+    $("#gFb").innerHTML = `${ok ? "تقدّم الدرون إلى المحطة ✓" : "فُقد الإرسال."} ${ar(cur.note)}`;
+    round++;
+    if (round >= ROUNDS) { $("#gFb").innerHTML += `<br><b>${score === ROUNDS ? "وصل الدرون للهدف بسلام!" : `أكملتي ${score} محطات من ${ROUNDS}`}</b>`; $("#gNext").textContent = "مهمة جديدة"; }
+    else $("#gNext").textContent = "المحطة التالية";
+    $("#gNext").hidden = false;
+  });
+  $("#gNext").addEventListener("click", () => { if (round >= ROUNDS) { round = score = 0; $("#gScore").textContent = 0; drawRoute(); } next(); });
+  drawRoute(); next();
+}
+
+/* ---------- 6. Quiz (Curriculum exercises + LessonQuiz integration) ---------- */
+function qfig(pts, o = {}) {
+  const xs = pts.map(p => p[1]), pl = plane(Math.min(-1, ...xs) - 1.2, Math.max(...xs) + 2.2, -1.2, 5.8, [6, 6, 288, 168]);
+  const S = pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+  let s = pl.grid({}) + polyP(S, { fill: "color-mix(in srgb, var(--main) 10%, transparent)", sw: 2.4 });
+  (o.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 11); });
+  if (o.right != null) s += arcs(S[o.right], S[(o.right + 1) % 3], S[(o.right + 2) % 3], 1, "var(--ink)", 11);
+  S.forEach((P, i) => { s += dot(P, "var(--main)", 4) + plab(P, G, pts[i][0], pts[i][3], { fs: 13, d: 15, below: pts[i][2] === 0 && pts[i][1] !== 0 }); });
+  return s;
+}
+const QUIZ = [
+  { q: `أوجدي الإحداثيات المجهولة للرأس ${M("<i>T</i>")} في المثلث المتطابق الضلعين. (تمرين 3)`,
+    fig: qfig([["R", -4, 0, "−2a, 0"], ["S", 0, 4, "0, b"], ["T", 4, 0, "?, ?"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>T</i>(2<i>a</i>, 0)"), M("<i>T</i>(−2<i>a</i>, 0)"), M("<i>T</i>(<i>b</i>, 0)"), M("<i>T</i>(2<i>a</i>, <i>b</i>)")], ok: 0,
+    why: `${M("<i>S</i>")} على المحور y و${M("<i>SR</i> = <i>ST</i>")}، فـ ${M("<i>T</i>")} انعكاس ${M("<i>R</i>")} حول المحور y.` },
+  { q: `في الشكل، أوجدي إحداثيات ${M("<i>B</i>")} و${M("<i>P</i>")}. (تمرين 10)`,
+    fig: qfig([["K", -3, 0, "−a, 0"], ["B", 0, 4, "?, b"], ["P", 3, 0, "?, 0"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>B</i>(0, <i>b</i>) ، <i>P</i>(<i>a</i>, 0)"), M("<i>B</i>(<i>a</i>, <i>b</i>) ، <i>P</i>(<i>a</i>, 0)"), M("<i>B</i>(0, <i>b</i>) ، <i>P</i>(2<i>a</i>, 0)"), M("<i>B</i>(<i>b</i>, 0) ، <i>P</i>(<i>a</i>, 0)")], ok: 0,
+    why: `${M("<i>B</i>")} على المحور y، و${M("<i>P</i>")} انعكاس ${M("<i>K</i>(−<i>a</i>, 0)")}.` },
+  { q: `أوجدي إحداثيات ${M("<i>H</i>")}. (تمرين 11)`,
+    fig: qfig([["N", 0, 0, "0, 0"], ["H", 4, 4, "?, c"], ["D", 8, 0, "4b, ?"]], { ticks: [[0, 1], [1, 2]] }),
+    opts: [M("<i>H</i>(2<i>b</i>, <i>c</i>)"), M("<i>H</i>(4<i>b</i>, <i>c</i>)"), M("<i>H</i>(<i>b</i>, <i>c</i>)"), M("<i>H</i>(2<i>b</i>, 2<i>c</i>)")], ok: 0,
+    why: `الرأس فوق منتصف القاعدة: ${M("4<i>b</i> ÷ 2 = 2<i>b</i>")}، وارتفاعه ${M("<i>c</i>")}.` },
+  { q: `${M("<i>A</i>(0, 0)")}، ${M("<i>B</i>(2<i>a</i>, 0)")}، ${M("<i>C</i>(2<i>b</i>, 2<i>c</i>)")}. ${M("<i>S</i>")} و${M("<i>T</i>")} منتصفا ${SG("AC")} و${SG("BC")}. ما العلاقة بين ${M("<i>ST</i>")} و${M("<i>AB</i>")}؟ (تمرين 13)`,
+    opts: [M("<i>ST</i> = ½ <i>AB</i>"), M("<i>ST</i> = <i>AB</i>"), M("<i>ST</i> = 2 <i>AB</i>"), "ما فيه علاقة ثابتة"], ok: 0,
+    why: `${M("<i>S</i>(<i>b</i>, <i>c</i>)")} و${M("<i>T</i>(<i>a</i> + <i>b</i>, <i>c</i>)")} فـ ${M("<i>ST</i> = <i>a</i>")}، و${M("<i>AB</i> = 2<i>a</i>")}.` },
+  { q: `في ${M("△<i>XYZ</i>")}: ${M("<i>X</i>(0, 0)")}، ${M("<i>Y</i>(2<i>h</i>, 2<i>h</i>)")}، ${M("<i>Z</i>(4<i>h</i>, 0)")}. صنّفي المثلث. (تمرين 15)`,
+    opts: ["قائم الزاوية ومتطابق الضلعين", "مختلف الأضلاع وغير قائم", "متطابق الأضلاع", "متطابق الضلعين وغير قائم"], ok: 0,
+    why: `${M("<i>XY</i> = <i>YZ</i> = 2<i>h</i>√2")} و${M("<i>XZ</i> = 4<i>h</i>")}، و${M("8<i>h</i>² + 8<i>h</i>² = 16<i>h</i>²")}.` },
+  { q: `مكتب إدارة متنزه عند ${M("(0, 0)")} وخيمتان عند ${M("(12, 9)")} و${M("(0, 25)")}. ما أطوال أضلاع المثلث؟ (تمرين 17)`,
+    opts: [M("15 ، 20 ، 25"), M("21 ، 16 ، 25"), M("15 ، 15 ، 25"), M("12 ، 9 ، 25")], ok: 0,
+    why: `${M(`${SQ("12² + 9²")} = 15`)}، ${M(`${SQ("12² + 16²")} = 20`)}، ${M("25")}. و${M("15² + 20² = 25²")}، فهو قائم.` },
+];
+let answered = 0, right = 0;
+function buildQuiz() {
+  $("#quiz").innerHTML = QUIZ.map((it, k) => `<div class="qcard" data-k="${k}"><p class="qq">${k + 1}. ${it.q}</p>${it.fig ? `<svg viewBox="0 0 300 180" aria-hidden="true">${it.fig}</svg>` : ""}
+    <div class="opts">${shuffle([...it.opts.keys()]).map((j, n) => `<button type="button" class="opt" data-j="${j}"><b>${"أبجد"[n]}</b><span>${it.opts[j]}</span></button>`).join("")}</div><p class="why" hidden></p></div>`).join("");
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const card = b.closest(".qcard"); if (card.dataset.done) return; card.dataset.done = 1;
+  const it = QUIZ[+card.dataset.k], ok = +b.dataset.j === it.ok;
+  answered++; if (ok) right++;
+  LessonQuiz.answer(+card.dataset.k, ok, $(".qq", card), b, [...card.querySelectorAll(".opt")].find(o => +o.dataset.j === it.ok));
+  $$(".opt", card).forEach(o => { if (+o.dataset.j === it.ok) o.classList.add("right"); });
+  if (!ok) b.classList.add("wrong");
+  const why = $(".why", card); why.hidden = false;
+  why.innerHTML = `${ok ? `<b class="c2">صحيح ✓</b>` : `<b class="cb">راجعيها:</b>`} ${it.why}`;
+  $("#score").innerHTML = answered === QUIZ.length
+    ? `نتيجتك ${right} من ${QUIZ.length} ${right === QUIZ.length ? "📡 قائدة رادار متميزة!" : ""} <button class="btn soft" id="again" type="button">أعيدي الاختبار</button>`
+    : `${right} من ${answered}`;
+  $("#again")?.addEventListener("click", restartQuiz);
+  if (answered === QUIZ.length) LessonQuiz.done(right);
+});
+function restartQuiz() { answered = right = 0; $("#score").textContent = ""; buildQuiz(); }
+buildQuiz();
+LessonQuiz.gate("coordinate-radar", $("#quiz"), restartQuiz);
+
+/* ---------- Summary drawings ---------- */
+{
+  const small = (sel, pts, o = {}) => {
+    const pl = plane(-1, 8, -0.8, 4.6, [10, 6, 280, 108]), S = pts.map(p => pl.P(p[1], p[2])), G = cent(S);
+    let s = pl.grid({ O: false }) + polyP(S, { fill: "color-mix(in srgb, var(--main) 12%, transparent)", sw: 2.4 });
+    if (o.right != null) s += arcs(S[o.right], S[(o.right + 1) % 3], S[(o.right + 2) % 3], 1, "var(--ink)", 10);
+    (o.ticks || []).forEach(([i, j]) => { s += ticks(S[i], S[j], 1, "var(--main)", 10); });
+    if (o.mid) { const A = mid(S[0], S[2]), B = mid(S[1], S[2]); s += seg(A, B, { col: "var(--an)", sw: 3 }) + dot(A, "var(--an)", 3.5) + dot(B, "var(--an)", 3.5); }
+    S.forEach((P, i) => { s += dot(P, "var(--main)", 3.5) + (pts[i][3] ? plab(P, G, "", pts[i][3], { fs: 11, d: 12 }) : ""); });
+    $(sel).innerHTML = s;
+  };
+  small("#sum1", [["", 0, 0, "0, 0"], ["", 6, 0, "b, 0"], ["", 0, 3.6, "0, a"]], { right: 0 });
+  small("#sum2", [["", 0, 0, "0, 0"], ["", 7, 0, "2a, 0"], ["", 3.5, 3.6, "a, b"]], { ticks: [[0, 2], [1, 2]] });
+  small("#sum3", [["", 0, 0, ""], ["", 7, 0, ""], ["", 2.5, 3.8, ""]], { mid: true });
+  const pl = plane(-1, 8, -0.8, 4.6, [10, 6, 280, 108]);
+  $("#sum4").innerHTML = `<rect width="300" height="120" fill="var(--radbg)" rx="8"/>` + seg(pl.P(1, 0.5), pl.P(6.5, 1), { col: "var(--main)", sw: 3 }) + seg(pl.P(6.5, 1), pl.P(3, 4), { col: "var(--main)", sw: 3 }) + seg(pl.P(3, 4), pl.P(1, 0.5), { col: "var(--main)", sw: 3 }) + beacon(pl.P(1, 0.5)) + beacon(pl.P(6.5, 1)) + beacon(pl.P(3, 4));
+}
+</script>
+</body>
+</html>
