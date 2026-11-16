@@ -115,7 +115,7 @@ const currentYear = () => situation()?.year ?? null;
 // Each teacher archives on her own, so the semester her grades belong to is hers.
 const now = async (pool, tid) => {
   const [closed, graded] = await Promise.all([closedSemesters(pool, tid),
-    pool.query("SELECT 1 FROM students WHERE teacher_id = $1 AND coalesce(test1, test2, test_avg, participation, projects) IS NOT NULL LIMIT 1", [tid])]);
+    pool.query("SELECT 1 FROM students WHERE teacher_id = $1 AND coalesce(test1, test2, test3, test4, test_avg, participation, projects) IS NOT NULL LIMIT 1", [tid])]);
   return situation(closed, today(), { empty: !graded.rowCount });
 };
 

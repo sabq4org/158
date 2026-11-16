@@ -47,6 +47,9 @@ ALTER TABLE students ADD COLUMN IF NOT EXISTS learning_difficulty BOOLEAN NOT NU
 ALTER TABLE students ADD COLUMN IF NOT EXISTS homework NUMERIC;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS final_exam NUMERIC;
 ALTER TABLE students ADD COLUMN IF NOT EXISTS notes TEXT;
+-- The third and fourth tests join the first two in the exam average once graded.
+ALTER TABLE students ADD COLUMN IF NOT EXISTS test3 NUMERIC;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS test4 NUMERIC;
 CREATE TABLE IF NOT EXISTS lookups (
   id          SERIAL PRIMARY KEY,
   national_id TEXT NOT NULL,
@@ -120,6 +123,8 @@ app.post("/api/lookup", async (req, res) => {
         track: s.track || "",
         test1: num(s.test1),
         test2: num(s.test2),
+        test3: num(s.test3),
+        test4: num(s.test4),
         testAvg: num(s.test_avg),
         participation: num(s.participation),
         projects: num(s.projects),

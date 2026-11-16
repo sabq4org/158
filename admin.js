@@ -9,6 +9,7 @@ const { AsyncLocalStorage } = require("async_hooks");
 const ExcelJS = require("exceljs");
 const { DEFAULTS, getSettings, saveSettings, saveSchool, getSchool, maxOf, getTeacher, listTeachers, reloadTeachers } = require("./settings");
 const grades = require("./grades");
+const { Report } = grades;
 const school = require("./school");
 const feedback = require("./feedback");
 const staff = require("./staff");
@@ -62,6 +63,8 @@ const FIELDS = [
   ["class", "الصف والشعبة"],
   ["test1", "الاختبار الأول"],
   ["test2", "الاختبار الثاني"],
+  ["test3", "الاختبار الثالث"],
+  ["test4", "الاختبار الرابع"],
   ["test_avg", "المتوسط"],
   ["participation", "المشاركة"],
   ["projects", "المشاريع والمهام"],
@@ -74,14 +77,14 @@ const FIELDS = [
   ["learning_difficulty", "صعوبات التعلم"],
 ];
 const LABEL = Object.fromEntries(FIELDS);
-const GRADE_COLS = ["test1", "test2", "test_avg", "participation", "projects", "homework", "final_exam"];
+const GRADE_COLS = ["test1", "test2", "test3", "test4", "test_avg", "participation", "projects", "homework", "final_exam"];
 // What a period clears and an archive keeps: the grades and the lateness.
 const PERIOD_COLS = [...GRADE_COLS, "lateness"];
 const NUMERIC = new Set(PERIOD_COLS);
 const TERM_COLS = ["national_id", "name", "class", ...PERIOD_COLS, "learning_style", "learning_difficulty"];
 const TERM_TYPES = { national_id: "TEXT", name: "TEXT", class: "TEXT", learning_style: "TEXT", learning_difficulty: "BOOLEAN" };
 // Homework and the final exam have no maximum until the teacher sets one; 100 keeps a typo out meanwhile.
-const limitsFor = max => ({ test1: max.test, test2: max.test, test_avg: max.test, participation: max.participation, projects: max.projects,
+const limitsFor = max => ({ test1: max.test, test2: max.test, test3: max.test, test4: max.test, test_avg: max.test, participation: max.participation, projects: max.projects,
   homework: max.homework || 100, final_exam: max.final || 100, lateness: 365 });
 const STYLES = ["بصري", "سمعي", "حركي", "كتابي"];
 const NOTES_MAX = 1000;
@@ -95,6 +98,8 @@ const HEADER_MAP = {
   "الصف": "grade", "الشعبة": "section", "شعبة": "section", "رقم الشعبة": "section",
   "درجة خ 1": "test1", "الاختبار الأول": "test1", "الاختبار 1": "test1", "اختبار 1": "test1",
   "درجة خ 2": "test2", "الاختبار الثاني": "test2", "الاختبار 2": "test2", "اختبار 2": "test2",
+  "درجة خ 3": "test3", "الاختبار الثالث": "test3", "الاختبار 3": "test3", "اختبار 3": "test3",
+  "درجة خ 4": "test4", "الاختبار الرابع": "test4", "الاختبار 4": "test4", "اختبار 4": "test4",
   "المتوسط": "test_avg", "معدل الاختبار": "test_avg",
   "المشاركة": "participation",
   "المهام الأدائية والمشاريع": "projects", "المشاريع والمهام": "projects", "المشاريع": "projects", "المهام والمشاريع": "projects",
@@ -162,7 +167,7 @@ function cleanStudent(raw, max) {
     if (!Number.isFinite(n) || n < 0 || n > LIMITS[f]) { errors.push(`${LABEL[f]}: القيمة ${t} خارج المدى 0 إلى ${LIMITS[f]}`); s[f] = null; }
     else s[f] = Math.round(n * 100) / 100;
   }
-  if (s.test1 != null && s.test2 != null) s.test_avg = Math.round(((s.test1 + s.test2) / 2) * 100) / 100;
+  if (s.test1 != null && s.test2 != null) s.test_avg = Report.testAvg(s);
   s.learning_style = norm(raw.learning_style) || null;
   if (s.learning_style && !STYLES.includes(s.learning_style)) errors.push(`نمط التعلم "${s.learning_style}" غير معروف`);
   s.learning_difficulty = flagOf(raw.learning_difficulty);
@@ -548,7 +553,7 @@ module.exports = function mountAdmin(app, pool) {
     if (errors.length) return res.status(400).json({ error: "invalid", errors });
 
     // A lower maximum must not leave saved scores above it.
-    const checks = [["test1", next.max_test], ["test2", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects],
+    const checks = [["test1", next.max_test], ["test2", next.max_test], ["test3", next.max_test], ["test4", next.max_test], ["participation", next.max_participation], ["projects", next.max_projects],
       ["homework", next.max_homework], ["final_exam", next.max_final]].filter(([, m]) => m != null);
     for (const [f, m] of checks) {
       const { rows } = await pool.query(`SELECT name FROM students WHERE teacher_id = $1 AND ${f} > $2 ORDER BY name LIMIT 3`, [T, m]);
@@ -671,7 +676,7 @@ module.exports = function mountAdmin(app, pool) {
         }
         const next = { ...now };
         for (const c of revert) next[c.field] = c.from;
-        next.test_avg = next.test1 != null && next.test2 != null ? Math.round(((Number(next.test1) + Number(next.test2)) / 2) * 100) / 100 : next.test_avg;
+        next.test_avg = Report.testAvg(next) ?? next.test_avg;
         await updateStudent(client, T, e.national_id, next);
       } else if (e.action === "add") {
         if (cur) await client.query("DELETE FROM students WHERE teacher_id = $1 AND national_id = $2", [T, e.national_id]);
@@ -1037,8 +1042,8 @@ module.exports = function mountAdmin(app, pool) {
       // An empty cell in the file never erases a value already saved (e.g. a style set from the panel), and a column
       // left out of the pick never changes one.
       for (const [f] of FIELDS) if ((student[f] == null && before[f] != null) || !reads(f)) student[f] = before[f];
-      if ((picked.has("test1") || picked.has("test2")) && student.test1 != null && student.test2 != null)
-        student.test_avg = Math.round(((student.test1 + student.test2) / 2) * 100) / 100;
+      if (Report.TESTS.some(t => picked.has(t)) && student.test1 != null && student.test2 != null)
+        student.test_avg = Report.testAvg(student);
       const changes = FIELDS.map(f => f[0]).filter(c => !same(before[c], student[c])).map(c => ({ field: c, label: LABEL[c], from: before[c], to: student[c] }));
       if (changes.length) changed.push({ student, changes, byName: !!l.byName }); else unchanged.push(student.national_id);
     }
@@ -1299,7 +1304,7 @@ module.exports = function mountAdmin(app, pool) {
     const row = (await q.query("SELECT * FROM students WHERE teacher_id = $1 AND national_id = $2 FOR UPDATE", [tid, id])).rows[0];
     if (!row) return;
     const before = fromRow(row), next = { ...before, [field]: value };
-    if (next.test1 != null && next.test2 != null) next.test_avg = Math.round(((next.test1 + next.test2) / 2) * 100) / 100;
+    if (next.test1 != null && next.test2 != null) next.test_avg = Report.testAvg(next);
     await updateStudent(q, tid, id, next);
     const changes = COLS.filter(c => !same(before[c], next[c])).map(c => ({ field: c, from: before[c], to: next[c] }));
     if (changes.length) await log(q, tid, "edit", id, changes);
@@ -1312,7 +1317,7 @@ module.exports = function mountAdmin(app, pool) {
         (SELECT count(*)::int FROM classes c WHERE c.teacher_id = t.id) AS classes,
         (SELECT count(*)::int FROM lookups l WHERE l.teacher_id = t.id AND l.kind = 'view') AS lookups
       FROM teachers t LEFT JOIN teachers o ON o.id = t.owner_id ORDER BY coalesce(t.owner_id, t.id), t.id`)).rows;
-    const rows = (await pool.query("SELECT teacher_id, test1, test2, test_avg, participation, projects, homework, final_exam, learning_difficulty FROM students")).rows;
+    const rows = (await pool.query("SELECT teacher_id, test1, test2, test3, test4, test_avg, participation, projects, homework, final_exam, learning_difficulty FROM students")).rows;
     // Fewer graded students than a class average needs would give away a grade: no average then.
     for (const t of teachers) {
       const mine = rows.filter(r => r.teacher_id === t.id), max = maxOf(getSettings(t.id));

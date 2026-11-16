@@ -206,16 +206,16 @@ h1 {
 .tests-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
 .tests-title { font-weight: 700; font-size: 16px; }
 .tests-grid {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(var(--tcols, 4), minmax(0, 1fr));
   border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface-2);
 }
 .t-cell { padding: 14px 10px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .t-cell + .t-cell { border-inline-start: 1px solid var(--line); }
 .t-label { font-size: 13px; color: var(--muted); }
-.t-val { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.t-val { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; white-space: nowrap; }
 .t-val small { font-size: 13px; color: var(--muted); font-weight: 500; }
-.t-cell.key { background: var(--accent-soft); }
-.t-cell.key .t-val { color: var(--accent); }
+.t-cell.t-key { background: var(--accent-soft); }
+.t-cell.t-key .t-val { color: var(--accent); }
 .section { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; gap: 16px; align-items: center; }
 .section > div { min-width: 0; }
 .style-icon {
@@ -259,7 +259,8 @@ h1 {
   .metrics { padding-inline: 18px; grid-template-columns: minmax(0, 1fr); }
   .tests { padding-inline: 18px; }
   .tests-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .t-cell:nth-child(3) { border-inline-start: 0; }
+  .t-cell:nth-child(2n+1) { border-inline-start: 0; }
+  .tests-grid.odd .t-cell:last-child { grid-column: 1 / -1; }
   .t-cell:nth-child(n+3) { border-top: 1px solid var(--line); }
   .section, .sign { padding-inline: 18px; }
   .r-head { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
@@ -680,14 +681,17 @@ function render(r) {
   // Homework and the final exam show once the teacher counts them. Four tiles sit two by two.
   const tiles = [metric("المشاركة", sc.part, MAX.participation), metric("المشاريع والمهام", sc.proj, MAX.projects),
     ...Report.extrasOf(MAX).map(k => metric(Report.EXTRAS[k], sc[k], MAX[k]))];
+  // The third and fourth tests show once she has them; the total adds the tests taken, once the first two are in.
+  const ts = Report.testsShown([sc]);
+  const taken = ts.map(t => sc[t]).filter(v => v != null);
+  const sum = sc.t1 != null && sc.t2 != null ? taken.reduce((a, b) => a + b, 0) : null;
   const results = sc.any ? `
     <div class="tests">
       <div class="tests-head"><span class="tests-title">الاختبارات</span>${sc.test == null ? "" : (() => { const [c, t] = level(sc.test / MAX.test); return `<span class="pill ${c}">${t}</span>`; })()}</div>
-      <div class="tests-grid">
-        <div class="t-cell"><span class="t-label">الاختبار الأول</span><span class="t-val">${fmt(sc.t1)} <small>/ ${MAX.test}</small></span></div>
-        <div class="t-cell"><span class="t-label">الاختبار الثاني</span><span class="t-val">${fmt(sc.t2)} <small>/ ${MAX.test}</small></span></div>
-        <div class="t-cell"><span class="t-label">المجموع</span><span class="t-val">${fmt(sc.t1 != null && sc.t2 != null ? sc.t1 + sc.t2 : null)} <small>/ ${MAX.test * 2}</small></span></div>
-        <div class="t-cell key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(sc.test)} <small>/ ${MAX.test}</small></span></div>
+      <div class="tests-grid${(ts.length + 2) % 2 ? " odd" : ""}" style="--tcols:${ts.length + 2}">
+        ${ts.map(t => `<div class="t-cell"><span class="t-label">${Report.TEST_NAMES[t]}</span><span class="t-val">${fmt(sc[t])} <small>/ ${MAX.test}</small></span></div>`).join("")}
+        <div class="t-cell"><span class="t-label">المجموع</span><span class="t-val">${fmt(sum)} <small>/ ${MAX.test * Math.max(2, taken.length)}</small></span></div>
+        <div class="t-cell t-key"><span class="t-label">المتوسط</span><span class="t-val">${fmt(sc.test)} <small>/ ${MAX.test}</small></span></div>
       </div>
     </div>
     <div class="metrics" style="--cols:${tiles.length === 3 ? 3 : 2}">${tiles.join("")}</div>` : `<p class="no-grades">لم تُرصد درجات هذه الفترة بعد.</p>`;

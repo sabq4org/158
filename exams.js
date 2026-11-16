@@ -590,7 +590,7 @@ function mountPanel(router, pool, { applyGrade }) {
     for (const ex of list) {
       await closeExpired(pool, ex);
       const { rows } = await pool.query(
-        `SELECT s.national_id, s.name, s.class, s.test1, s.test2, s.learning_difficulty, a.started_at, a.deadline, a.answers, a.submitted_at, a.auto_submitted,
+        `SELECT s.national_id, s.name, s.class, s.test1, s.test2, s.test3, s.test4, s.learning_difficulty, a.started_at, a.deadline, a.answers, a.submitted_at, a.auto_submitted,
            a.approved_at, a.approved_field, a.approved_value
          FROM students s LEFT JOIN exam_attempts a ON a.exam = $2 AND a.national_id = s.national_id
          WHERE s.teacher_id = $1 ORDER BY s.class NULLS LAST, s.name`, [req.tid, ex.key]);
@@ -598,7 +598,7 @@ function mountPanel(router, pool, { applyGrade }) {
       // Each model lists the students it is for: صعوبات التعلم in the two-choice model, the others in the main one.
       const students = rows.filter(r => r.started_at || (!!r.learning_difficulty === !!ex.ld
         && (!Report.classParts(r.class) || Report.classParts(r.class).grade === ex.grade))).map(r => {
-        const base = { id: r.national_id, name: r.name, class: r.class, test1: r.test1 == null ? null : Number(r.test1), test2: r.test2 == null ? null : Number(r.test2) };
+        const base = { id: r.national_id, name: r.name, class: r.class, ...Object.fromEntries(Report.TESTS.map(t => [t, r[t] == null ? null : Number(r[t])])) };
         if (!r.started_at) return { ...base, status: "none" };
         const g = grade(ex, r.answers);
         return { ...base, status: r.submitted_at ? "submitted" : "in_progress", startedAt: r.started_at, deadline: r.deadline, submittedAt: r.submitted_at,
@@ -641,12 +641,12 @@ function mountPanel(router, pool, { applyGrade }) {
     res.json({ ok: true });
   });
 
-  // Puts the marks of handed-in attempts into الاختبار الأول or الثاني, scaled to the teacher's maximum.
+  // Puts the marks of handed-in attempts into one of the four tests (الأول to الرابع), scaled to the teacher's maximum.
   router.post("/exams/:exam/approve", async (req, res) => {
     const ex = pick(req, res);
     if (!ex) return;
     const field = req.body?.field;
-    if (!["test1", "test2"].includes(field)) return res.status(400).json({ error: "invalid", errors: ["اختاري الاختبار الأول أو الثاني"] });
+    if (!Report.TESTS.includes(field)) return res.status(400).json({ error: "invalid", errors: ["اختاري الاختبار الأول أو الثاني أو الثالث أو الرابع"] });
     const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(idOf).filter(Boolean).slice(0, 500) : [];
     if (!ids.length) return res.status(400).json({ error: "invalid", errors: ["ما فيه طالبات للاعتماد"] });
     await closeExpired(pool, ex);
