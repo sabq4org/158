@@ -606,10 +606,10 @@ body.is-admin [data-teacher] { display: none !important; }
       <div class="table-wrap">
         <table class="ends">
           <thead><tr>
-            <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th><th>الصف</th><th class="num">الشعبة</th>
+            <th>اسم الطالبة</th><th>الصف</th><th class="num">الشعبة</th>
             <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">الاختبار الثالث</th><th class="num">الاختبار الرابع</th><th class="num">المتوسط</th>
             <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
-            <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
+            <th>ملاحظات</th><th>رقم الهوية</th><th>الإيميل</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
           </tr></thead>
           <tbody id="rows"></tbody>
         </table>
@@ -653,10 +653,10 @@ body.is-admin [data-teacher] { display: none !important; }
           <div class="table-wrap">
             <table class="ends">
               <thead><tr>
-                <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th>
+                <th>اسم الطالبة</th>
                 <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">الاختبار الثالث</th><th class="num">الاختبار الرابع</th><th class="num">المتوسط</th>
                 <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
-                <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
+                <th>ملاحظات</th><th>رقم الهوية</th><th>الإيميل</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
               </tr></thead>
               <tbody id="cvRows"></tbody>
             </table>
@@ -1360,12 +1360,12 @@ const LEVEL_FILTERS = {
 const gradeAndSection = name => { const p = Report.classParts(name); return p ? [Report.GRADES[p.grade - 1], p.section] : [name ? classLabel(name) : "—", "—"]; };
 // One student's row, in the students tab and on a class's page (which leaves out the grade and section).
 const studentRow = (s, withClass) => `<tr>
-    <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
-    <td class="ltr mail">${s.email ? esc(s.email) : "—"}</td>
+    <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td>
     ${withClass ? gradeAndSection(s.class).map((v, i) => `<td${i ? ' class="num"' : ""}>${esc(v)}</td>`).join("") : ""}
     <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num">${fmt(s.test3)}</td><td class="num">${fmt(s.test4)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
     <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${fmt(s.homework)}</td><td class="num">${fmt(s.final_exam)}</td><td class="num">${fmt(s.lateness)}</td>
     <td class="notes"${s.notes ? ` title="${esc(s.notes)}"` : ""}>${s.notes ? esc(s.notes) : "—"}</td>
+    <td class="ltr">${esc(s.national_id)}</td><td class="ltr mail">${s.email ? esc(s.email) : "—"}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
     <td>${s.last_lookup ? `<span class="seen" title="${esc(fullTime(s.last_lookup))} · ${s.lookup_count} مرة">✓ ${esc(ago(s.last_lookup))}</span>` : '<span class="note">لم تستعلم</span>'}</td>
     <td><button class="btn sm quiet" type="button" data-edit="${esc(s.national_id)}">${role === "viewer" ? "عرض" : "تعديل"}</button></td>
