@@ -2,7 +2,7 @@
 // A4 report to print. Runs inside admin.html and uses its helpers ($, esc, api, toast, role, switchTeacher).
 const SchoolReports = (() => {
   const LEVELS = [["excellent", "ممتاز", "90 فأكثر"], ["vgood", "جيد جدًا", "75 إلى 89"], ["good", "جيد", "60 إلى 74"], ["support", "يحتاج دعم", "أقل من 60"]];
-  const STEPS = [["t1", "الاختبار الأول"], ["t2", "الاختبار الثاني"], ["participation", "المشاركة"], ["projects", "المشاريع"], ["homework", "الواجبات"], ["final", "النهائي"]];
+  const STEPS = [["t1", "الاختبار الأول"], ["t2", "الاختبار الثاني"], ["t3", "الاختبار الثالث"], ["t4", "الاختبار الرابع"], ["participation", "المشاركة"], ["projects", "المشاريع"], ["homework", "الواجبات"], ["final", "النهائي"]];
   // A class keeps its colour whatever the filters leave on screen: the slot follows its grade and section.
   const slotOf = name => { const p = Report.classParts(name); return p ? ((p.grade - 1) * 3 + p.section - 1) % 8 + 1 : 8; };
   const pct = v => (v == null ? "—" : v + "٪");

@@ -1,5 +1,5 @@
 // The panel's «الاختبارات» tab: the teacher opens and closes an interactive exam, follows who is taking it, reads the
-// marks and the hardest items, prints a student's answer sheet, and approves marks into الاختبار الأول or الثاني.
+// marks and the hardest items, prints a student's answer sheet, and approves marks into one of the four tests.
 // Runs inside admin.html and uses its helpers ($, esc, api, toast, confirmBox, levelPill, Report, students).
 const ExamResults = (() => {
   let data = null, cls = "", field = "test1", view = "students", timer = null, pick = "";
@@ -7,7 +7,7 @@ const ExamResults = (() => {
   const fmt = n => (n == null ? "—" : String(Math.round(Number(n) * 100) / 100));
   const when = at => new Date(at).toLocaleString("ar-SA-u-nu-latn", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
   const mins = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 60000));
-  const FIELD = { test1: "الاختبار الأول", test2: "الاختبار الثاني" };
+  const FIELD = { test1: "الاختبار الأول", test2: "الاختبار الثاني", test3: "الاختبار الثالث", test4: "الاختبار الرابع" };
   const LETTERS = ["أ", "ب", "ج", "د"];
   // The exam's maths marks, as the student's page shows them.
   const rich = s => esc(s)

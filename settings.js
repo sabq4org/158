@@ -15,8 +15,8 @@ const DEFAULTS = {
   max_final: null,
   // How a student's card compares her with the class average: "bars", "pie" or "table" (CHARTS in public/report.js).
   compare_chart: "bars",
-  // Early alerts (alerts.js): a percentage under alert_below, a drop of alert_test_drop marks from the first test to the
-  // second or of alert_term_drop points from the last archived period, alert_class_gap points under her class,
+  // Early alerts (alerts.js): a percentage under alert_below, a drop of alert_test_drop marks between her last two
+  // graded tests or of alert_term_drop points from the last archived period, alert_class_gap points under her class,
   // participation under alert_participation, lateness from alert_lateness times. Two reasons, or a percentage under
   // alert_urgent, make it urgent. Empty (null) turns one off.
   alert_below: 60,

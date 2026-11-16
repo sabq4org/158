@@ -33,8 +33,9 @@ const POINTS = ["نقطة", "نقطتين", "نقاط", "نقطة"];
 const TIMES = ["مرة", "مرتين", "مرات", "مرة"];
 
 // The parts a class is graded in. Homework and the final exam only once their maximum is set.
-const PARTS = [["test1", "الاختبار الأول"], ["test2", "الاختبار الثاني"], ["participation", "المشاركة"], ["projects", "المشاريع والمهام"],
+const PARTS = [["test1", "الاختبار الأول"], ["test2", "الاختبار الثاني"], ["test3", "الاختبار الثالث"], ["test4", "الاختبار الرابع"], ["participation", "المشاركة"], ["projects", "المشاريع والمهام"],
   ["homework", "الواجبات", "homework"], ["final_exam", "الاختبار النهائي", "final"]];
+const ORDINALS = ["الأول", "الثاني", "الثالث", "الرابع"];
 // A part counts as missing for a student when most of her class (and at least this many) has it.
 const MISSING_SHARE = 0.6, MISSING_MIN = 3;
 
@@ -65,9 +66,12 @@ function compute(students, history, max, settings) {
     const add = (key, sev, text) => signals.push({ key, sev, text });
 
     if (th.below != null && pct != null && pct < th.below) add("below", "low", `النسبة ${pct}% (أقل من ${th.below}%)`);
-    if (th.test_drop != null && sc.t1 != null && sc.t2 != null) {
-      const d = Math.round((sc.t1 - sc.t2) * 100) / 100;
-      if (d > 0 && d >= th.test_drop) add("test_drop", d >= th.test_drop * 2 ? "low" : "warn", `نزلت ${count(d, DEGREES)} من الاختبار الأول للثاني`);
+    // The drop between her last two graded tests (the first to the second, then on to the third and fourth).
+    const tests = [sc.t1, sc.t2, sc.t3, sc.t4].map((v, i) => [v, i]).filter(([v]) => v != null);
+    if (th.test_drop != null && tests.length >= 2) {
+      const [[a, i], [b, j]] = tests.slice(-2);
+      const d = Math.round((a - b) * 100) / 100;
+      if (d > 0 && d >= th.test_drop) add("test_drop", d >= th.test_drop * 2 ? "low" : "warn", `نزلت ${count(d, DEGREES)} من الاختبار ${ORDINALS[i]} لل${ORDINALS[j].slice(2)}`);
     }
     if (th.term_drop != null && pct != null && prev != null && prev - pct > 0 && prev - pct >= th.term_drop) {
       add("term_drop", "low", `نزلت عن الفترة السابقة ${count(prev - pct, POINTS)}`);
@@ -89,7 +93,7 @@ function compute(students, history, max, settings) {
     out.push({
       national_id: s.national_id, name: s.name, class: s.class, learning_difficulty: !!s.learning_difficulty,
       signals, urgent: signals.length >= 2 || (signals.length > 0 && th.urgent != null && pct != null && pct < th.urgent),
-      facts: { t1: sc.t1, t2: sc.t2, pct, prev, classPct: cls, lateness: late, part: sc.part },
+      facts: { t1: sc.t1, t2: sc.t2, last: tests.slice(-2).map(([v, i]) => ({ n: i + 1, v })), pct, prev, classPct: cls, lateness: late, part: sc.part },
     });
   }
   return out;

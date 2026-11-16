@@ -574,7 +574,7 @@ body.is-admin [data-teacher] { display: none !important; }
         <form id="alForm" novalidate>
           <div class="al-grid">
             <label class="f">نسبتها أقل من<span class="al-in"><input class="in ltr" name="alert_below" inputmode="decimal"><i>%</i></span></label>
-            <label class="f">نزلت من الاختبار الأول للثاني<span class="al-in"><input class="in ltr" name="alert_test_drop" inputmode="decimal"><i>درجات أو أكثر</i></span></label>
+            <label class="f">نزلت من اختبار للي بعده<span class="al-in"><input class="in ltr" name="alert_test_drop" inputmode="decimal"><i>درجات أو أكثر</i></span></label>
             <label class="f">نزلت عن الفترة السابقة<span class="al-in"><input class="in ltr" name="alert_term_drop" inputmode="decimal"><i>نقاط أو أكثر</i></span></label>
             <label class="f">أقل من متوسط فصلها بـ<span class="al-in"><input class="in ltr" name="alert_class_gap" inputmode="decimal"><i>نقطة أو أكثر</i></span></label>
             <label class="f">المشاركة أقل من<span class="al-in"><input class="in ltr" name="alert_participation" inputmode="decimal"><i>من <span data-max="participation">10</span></i></span></label>
@@ -607,7 +607,7 @@ body.is-admin [data-teacher] { display: none !important; }
         <table class="ends">
           <thead><tr>
             <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th><th>الصف</th><th class="num">الشعبة</th>
-            <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
+            <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">الاختبار الثالث</th><th class="num">الاختبار الرابع</th><th class="num">المتوسط</th>
             <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
             <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
           </tr></thead>
@@ -654,7 +654,7 @@ body.is-admin [data-teacher] { display: none !important; }
             <table class="ends">
               <thead><tr>
                 <th>اسم الطالبة</th><th>رقم الهوية</th><th>الإيميل</th>
-                <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">المتوسط</th>
+                <th class="num">الاختبار الأول</th><th class="num">الاختبار الثاني</th><th class="num">الاختبار الثالث</th><th class="num">الاختبار الرابع</th><th class="num">المتوسط</th>
                 <th class="num">المشاركة</th><th class="num">المشاريع</th><th class="num">الواجبات</th><th class="num">الاختبار النهائي</th><th class="num">التأخير</th>
                 <th>ملاحظات</th><th class="num">النسبة</th><th>الاستعلام</th><th></th>
               </tr></thead>
@@ -704,7 +704,7 @@ body.is-admin [data-teacher] { display: none !important; }
             <li>الطالبات يتطابقن برقم الهوية، وإذا كان فاضي فباسم الطالبة داخل فصلها.</li>
             <li>في المعاينة تختارين الأعمدة اللي تتحدث، مثلاً "الاختبار الثاني" بس.</li>
             <li>ملف فيه ورقة لكل فصل ينقرا كله: سمّي كل ورقة باسم فصلها، مثل "الثاني - 1".</li>
-            <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، المشاركة، المشاريع، الواجبات، الاختبار النهائي، التأخير، ملاحظات.</li>
+            <li>عناوين الأعمدة مثل جدول الطالبات: الاسم، رقم الهوية، الإيميل، الصف، الشعبة، الاختبار الأول، الاختبار الثاني، الاختبار الثالث، الاختبار الرابع، المشاركة، المشاريع، الواجبات، الاختبار النهائي، التأخير، ملاحظات.</li>
             <li>لملف فصل واحد اختاري الفصل فوق، أو ارفعيه من صفحة الفصل في تبويب "الفصول".</li>
             <li>الخانة الفاضية في الملف ما تمسح قيمة محفوظة.</li>
             <li>الطالبة اللي مو موجودة في الملف ما تنحذف، تظهر لك في المعاينة فقط.</li>
@@ -922,6 +922,8 @@ body.is-admin [data-teacher] { display: none !important; }
       <label class="f" for="e_style">نمط التعلم<select class="in" id="e_style" name="learning_style"><option value="">لم يُحدَّد</option><option>بصري</option><option>سمعي</option><option>حركي</option><option>كتابي</option></select></label>
       <label class="f" for="e_t1"><span>الاختبار الأول (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t1" name="test1" inputmode="decimal"></label>
       <label class="f" for="e_t2"><span>الاختبار الثاني (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t2" name="test2" inputmode="decimal"></label>
+      <label class="f" for="e_t3"><span>الاختبار الثالث (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t3" name="test3" inputmode="decimal"></label>
+      <label class="f" for="e_t4"><span>الاختبار الرابع (من <span data-max="test">20</span>)</span><input class="in ltr" id="e_t4" name="test4" inputmode="decimal"></label>
       <label class="f" for="e_part"><span>المشاركة (من <span data-max="participation">10</span>)</span><input class="in ltr" id="e_part" name="participation" inputmode="decimal"></label>
       <label class="f" for="e_proj"><span>المشاريع والمهام (من <span data-max="projects">10</span>)</span><input class="in ltr" id="e_proj" name="projects" inputmode="decimal"></label>
       <label class="f" for="e_hw"><span>الواجبات <span data-part="homework"></span></span><input class="in ltr" id="e_hw" name="homework" inputmode="decimal"></label>
@@ -1361,7 +1363,7 @@ const studentRow = (s, withClass) => `<tr>
     <td class="name">${esc(s.name)}${s.learning_difficulty ? '<span class="pill ld">صعوبات تعلم</span>' : ""}</td><td class="ltr">${esc(s.national_id)}</td>
     <td class="ltr mail">${s.email ? esc(s.email) : "—"}</td>
     ${withClass ? gradeAndSection(s.class).map((v, i) => `<td${i ? ' class="num"' : ""}>${esc(v)}</td>`).join("") : ""}
-    <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
+    <td class="num">${fmt(s.test1)}</td><td class="num">${fmt(s.test2)}</td><td class="num">${fmt(s.test3)}</td><td class="num">${fmt(s.test4)}</td><td class="num"><b>${fmt(s.test_avg)}</b></td>
     <td class="num">${fmt(s.participation)}</td><td class="num">${fmt(s.projects)}</td><td class="num">${fmt(s.homework)}</td><td class="num">${fmt(s.final_exam)}</td><td class="num">${fmt(s.lateness)}</td>
     <td class="notes"${s.notes ? ` title="${esc(s.notes)}"` : ""}>${s.notes ? esc(s.notes) : "—"}</td>
     <td class="num">${levelPill(pctOf(s))}</td>
@@ -1426,11 +1428,15 @@ async function showHistory(s) {
   el.hidden = false;
 }
 
+// Same rule as the server (Report.testAvg): once the first two tests are in, the mean of every test entered.
+const TEST_INPUTS = ["#e_t1", "#e_t2", "#e_t3", "#e_t4"];
 function updateAvg() {
-  const t1 = parseFloat($("#e_t1").value), t2 = parseFloat($("#e_t2").value);
-  $("#avgNote").textContent = Number.isFinite(t1) && Number.isFinite(t2) ? `المتوسط يُحسب تلقائياً: ${fmt((t1 + t2) / 2)} من ${MAX.test}` : "المتوسط يُحسب تلقائياً من الاختبارين.";
+  const v = Object.fromEntries(TEST_INPUTS.map((sel, i) => [`test${i + 1}`, $(sel).value.trim() === "" ? null : $(sel).value.trim()]));
+  const ok = Object.values(v).every(x => x == null || Number.isFinite(Number(x)));
+  const avg = ok ? Report.testAvg(v) : null;
+  $("#avgNote").textContent = avg != null ? `المتوسط يُحسب تلقائياً: ${fmt(avg)} من ${MAX.test}` : "المتوسط يُحسب تلقائياً من الاختبارات المرصودة (بعد رصد الأول والثاني).";
 }
-["#e_t1", "#e_t2"].forEach(s => $(s).addEventListener("input", updateAvg));
+TEST_INPUTS.forEach(s => $(s).addEventListener("input", updateAvg));
 document.querySelectorAll("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
 
 $("#editForm").addEventListener("submit", async e => {
@@ -1526,7 +1532,7 @@ const semTitle = (year, n) => `${semName(n)} ${year}هـ`;
 // A title the teacher typed wins; otherwise the period is named after the open semester.
 const termTitle = () => settings?.term_title || cal?.now?.current.title || "";
 const weeksText = n => (n === 1 ? "أسبوع واحد" : n === 2 ? "أسبوعان" : n <= 10 ? `${n} أسابيع` : `${n} أسبوعاً`);
-const hasGrades = s => [s.test1, s.test2, s.test_avg, s.participation, s.projects, s.homework, s.final_exam].some(v => v != null);
+const hasGrades = s => [s.test1, s.test2, s.test3, s.test4, s.test_avg, s.participation, s.projects, s.homework, s.final_exam].some(v => v != null);
 
 function renderWho() {
   if (role === "admin") { $("#whoLine").textContent = ["إدارة المنصة", schoolInfo.stage].join(" · "); return; }
@@ -1819,7 +1825,10 @@ async function loadAlerts() {
 }
 const alFacts = a => {
   const f = a.facts, out = [];
-  if (f.t1 != null && f.t2 != null) out.push(`الاختبار الأول <b>${fmt(f.t1)}</b> ← الثاني <b>${fmt(f.t2)}</b>${f.t2 < f.t1 ? ` <span class="down">▼ ${fmt(f.t1 - f.t2)}</span>` : ""}`);
+  // Her last two graded tests (an older list without them: the first and second).
+  const ORD = ["", "الأول", "الثاني", "الثالث", "الرابع"];
+  const last = f.last || (f.t1 != null && f.t2 != null ? [{ n: 1, v: f.t1 }, { n: 2, v: f.t2 }] : []);
+  if (last.length === 2) { const [a, b] = last; out.push(`الاختبار ${ORD[a.n]} <b>${fmt(a.v)}</b> ← ${ORD[b.n]} <b>${fmt(b.v)}</b>${b.v < a.v ? ` <span class="down">▼ ${fmt(a.v - b.v)}</span>` : ""}`); }
   if (f.pct != null) out.push(`النسبة <b>${f.pct}%</b>`);
   if (f.prev != null) out.push(`الفترة السابقة <b>${f.prev}%</b>${f.pct != null && f.pct < f.prev ? ` <span class="down">▼ ${f.prev - f.pct}</span>` : ""}`);
   if (f.classPct != null) out.push(`متوسط فصلها <b>${f.classPct}%</b>`);
@@ -1935,19 +1944,19 @@ const ACTIONS = { edit: "تعديل", add: "إضافة", delete: "حذف", impor
   school_settings: "إعدادات المنصة", school_class_add: "إضافة فصل للمدرسة", school_class_delete: "حذف فصل من المدرسة", school_class_track: "مسار فصل",
   subject_add: "إضافة مادة", subject_delete: "حذف مادة" };
 const UNDOABLE = ["edit", "add", "delete", "term_delete", "term_archive"];
-const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع",
+const FIELD_LABEL = { name: "الاسم", national_id: "رقم الهوية", class: "الفصل", test1: "الاختبار الأول", test2: "الاختبار الثاني", test3: "الاختبار الثالث", test4: "الاختبار الرابع", test_avg: "المتوسط", participation: "المشاركة", projects: "المشاريع",
   homework: "الواجبات", final_exam: "الاختبار النهائي", notes: "الملاحظات", lateness: "التأخير", learning_style: "نمط التعلم", learning_difficulty: "صعوبات التعلم", email: "الإيميل",
   grade_label: "الصف", subject: "المادة", term_title: "عنوان الفترة", teacher_name: "اسم المعلمة", principal_name: "اسم المديرة", max_test: "عظمى الاختبار", max_participation: "عظمى المشاركة", max_projects: "عظمى المشاريع",
   max_homework: "عظمى الواجبات", max_final: "عظمى الاختبار النهائي", compare_chart: "شكل المقارنة", lookup_open: "صفحة الاستعلام", closed_message: "رسالة القفل",
   site_open: "صفحة الاستعلام للمدرسة", site_closed_message: "رسالة القفل العامة",
-  alert_below: "تنبيه: النسبة أقل من", alert_urgent: "تنبيه عاجل: النسبة أقل من", alert_test_drop: "تنبيه: نزول الاختبار الثاني", alert_term_drop: "تنبيه: نزول عن الفترة السابقة",
+  alert_below: "تنبيه: النسبة أقل من", alert_urgent: "تنبيه عاجل: النسبة أقل من", alert_test_drop: "تنبيه: نزول من اختبار للي بعده", alert_term_drop: "تنبيه: نزول عن الفترة السابقة",
   alert_class_gap: "تنبيه: أقل من متوسط الفصل", alert_participation: "تنبيه: المشاركة أقل من", alert_lateness: "تنبيه: التأخير من" };
 const showVal = (v, field) => field === "learning_difficulty" ? (v ? "نعم" : "لا") : field === "class" && v ? esc(classLabel(v))
   : field === "compare_chart" && Report.isChart(v) ? Report.CHARTS[v]
   : v === true ? "مفتوحة" : v === false ? "مقفلة" : v == null || v === "" ? "فاضي" : esc(typeof v === "number" ? fmt(v) : v);
 // A grade worth a second look: cleared, moved by more than a quarter of its maximum, or changed after an archive that
 // kept the grades (the archived copy no longer matches).
-const FIELD_MAX = { test1: "test", test2: "test", test_avg: "test", participation: "participation", projects: "projects", homework: "homework", final_exam: "final" };
+const FIELD_MAX = { test1: "test", test2: "test", test3: "test", test4: "test", test_avg: "test", participation: "participation", projects: "projects", homework: "homework", final_exam: "final" };
 let auditArchive = null;
 function flagOf(c, at) {
   if (!(c.field in FIELD_MAX)) return null;
@@ -2024,7 +2033,7 @@ async function loadAudit(older) {
     sel.innerHTML = '<option value="">كل الفصول</option>' + classOptions(false);
     sel.value = classByName.has(cur) ? cur : "";
     const fs = $("#auditField");
-    if (fs.options.length < 2) fs.innerHTML += ["test1", "test2", "participation", "projects", "homework", "final_exam", "learning_style", "class", "name", "email", "notes", "learning_difficulty"]
+    if (fs.options.length < 2) fs.innerHTML += ["test1", "test2", "test3", "test4", "participation", "projects", "homework", "final_exam", "learning_style", "class", "name", "email", "notes", "learning_difficulty"]
       .map(f => `<option value="${f}">${FIELD_LABEL[f]}</option>`).join("");
   }
   const ep = auditParams();
@@ -2883,7 +2892,7 @@ $("#credPrint").addEventListener("click", () => {
 const siteForReport = () => ({ gradeLabel: settings.grade_label, termTitle: termTitle(), teacherName: settings.teacher_name, principalName: settings.principal_name });
 const asCard = (s, classStats, history) => ({
   id: s.national_id, name: s.name, class: s.class, classLabel: classLabel(s.class), track: classByName.get(s.class)?.track || "",
-  learningDifficulty: !!s.learning_difficulty, test1: s.test1, test2: s.test2, testAvg: s.test_avg,
+  learningDifficulty: !!s.learning_difficulty, test1: s.test1, test2: s.test2, test3: s.test3, test4: s.test4, testAvg: s.test_avg,
   participation: s.participation, projects: s.projects, homework: s.homework, finalExam: s.final_exam, learningStyle: s.learning_style || "", email: s.email || "",
   classStats, history: history[s.national_id] || [],
 });

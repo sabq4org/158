@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS report_weeks (
 
 const MIN = Report.MIN_CLASS;
 const HOUR = 3600 * 1000;
-const GRADE_COLS = "national_id, name, class, test1, test2, test_avg, participation, projects, homework, final_exam, learning_difficulty";
+const GRADE_COLS = "national_id, name, class, test1, test2, test3, test4, test_avg, participation, projects, homework, final_exam, learning_difficulty";
 const mean = v => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : null);
 // A percentage of a group, or null when the group is too small to show one.
 const avgOf = v => (v.length >= MIN ? Math.round(mean(v) * 100) : null);
@@ -65,7 +65,7 @@ async function recordsOf(pool, period) {
     return rows.map(r => ({ ...r, max: maxOf(getSettings(r.teacher_id)) }));
   }
   // A teacher who archived the same semester more than once is read from her latest archive.
-  const { rows } = await pool.query(`SELECT DISTINCT ON (t.teacher_id, r.national_id) t.teacher_id, t.max, r.national_id, r.name, r.class, r.test1, r.test2,
+  const { rows } = await pool.query(`SELECT DISTINCT ON (t.teacher_id, r.national_id) t.teacher_id, t.max, r.national_id, r.name, r.class, r.test1, r.test2, r.test3, r.test4,
       r.test_avg, r.participation, r.projects, r.homework, r.final_exam, coalesce(r.learning_difficulty, false) AS learning_difficulty
     FROM term_results r JOIN terms t ON t.id = r.term_id WHERE t.year = $1 AND t.semester = $2
     ORDER BY t.teacher_id, r.national_id, t.created_at DESC, t.id DESC`, [Number(m[1]), Number(m[2])]);
@@ -113,7 +113,7 @@ function build(records, teachers, f) {
 
   const steps = classNames.map(name => {
     const rows = counted.filter(r => r.class === name);
-    return { name, t1: part(rows, s => s.t1, "test"), t2: part(rows, s => s.t2, "test"), participation: part(rows, s => s.part, "participation"),
+    return { name, t1: part(rows, s => s.t1, "test"), t2: part(rows, s => s.t2, "test"), t3: part(rows, s => s.t3, "test"), t4: part(rows, s => s.t4, "test"), participation: part(rows, s => s.part, "participation"),
       projects: part(rows, s => s.proj, "projects"), homework: part(rows, s => s.homework, "homework"), final: part(rows, s => s.final, "final"), change: change(rows) };
   });
 

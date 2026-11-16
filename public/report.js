@@ -16,19 +16,33 @@ const Report = (() => {
   const EXTRAS = { homework: "الواجبات", final: "الاختبار النهائي" };
   const extrasOf = max => Object.keys(EXTRAS).filter(k => max[k] > 0);
 
+  // The exam average: once the first two tests are in, the mean of every test entered (the third and fourth join it when graded).
+  // Null until then, so a single test never stands for the average. Rounded to two places, as stored.
+  const TESTS = ["test1", "test2", "test3", "test4"];
+  function testAvg(r) {
+    const t = TESTS.map(k => num(r[k]));
+    if (t[0] == null || t[1] == null) return null;
+    const v = t.filter(x => x != null);
+    return Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 100) / 100;
+  }
+
+  // The tests a card or sheet shows: the first two always, the third and fourth once one of the scores in view has them.
+  const TEST_NAMES = { t1: "الاختبار الأول", t2: "الاختبار الثاني", t3: "الاختبار الثالث", t4: "الاختبار الرابع" };
+  const testsShown = list => (list.some(sc => sc.t4 != null) ? ["t1", "t2", "t3", "t4"] : list.some(sc => sc.t3 != null) ? ["t1", "t2", "t3"] : ["t1", "t2"]);
+
   // One student's numbers (API or panel row). A missing participation or projects score counts as zero, as in the panel.
   function scores(r, max) {
-    const t1 = num(r.test1), t2 = num(r.test2);
+    const t1 = num(r.test1), t2 = num(r.test2), t3 = num(r.test3), t4 = num(r.test4);
     let test = num(r.testAvg !== undefined ? r.testAvg : r.test_avg);
-    if (test == null && t1 != null && t2 != null) test = (t1 + t2) / 2;
+    if (test == null) test = testAvg(r);
     const part = num(r.participation), proj = num(r.projects);
     const extra = { homework: num(r.homework), final: num(r.finalExam !== undefined ? r.finalExam : r.final_exam) };
     const shown = extrasOf(max), counted = shown.filter(k => extra[k] != null);
     const maxTotal = counted.reduce((a, k) => a + max[k], max.test + max.participation + max.projects);
     const total = test == null ? null : counted.reduce((a, k) => a + extra[k], test + (part || 0) + (proj || 0));
     const pct = total == null ? null : Math.round((total / maxTotal) * 100);
-    const any = [t1, t2, test, part, proj, ...shown.map(k => extra[k])].some(v => v != null);
-    return { t1, t2, test, part, proj, ...extra, total, maxTotal, pct, has: pct != null, any };
+    const any = [t1, t2, t3, t4, test, part, proj, ...shown.map(k => extra[k])].some(v => v != null);
+    return { t1, t2, t3, t4, test, part, proj, ...extra, total, maxTotal, pct, has: pct != null, any };
   }
 
   function classStats(list, max) {
@@ -240,11 +254,12 @@ const Report = (() => {
     const showProgress = (r.history || []).length > 0 && pg.rows.length > 0;
     const pr = sc.has ? praiseFor(sc.pct, String(r.name).split(" ")[0]) : null;
     const ex = extrasOf(max), hw = ex.includes("homework"), fin = ex.includes("final");
+    const ts = testsShown([sc]);
     const results = sc.any ? `
     <table class="rp-grades">
-      <tr><th colspan="3">الاختبارات</th><th colspan="${hw ? 3 : 2}">التقييم المستمر</th>${fin ? '<th rowspan="2">الاختبار النهائي</th>' : ""}</tr>
-      <tr class="rp-sub"><th>الاختبار الأول</th><th>الاختبار الثاني</th><th>متوسط الاختبارين</th><th>المشاركة</th><th>المشاريع والمهام</th>${hw ? "<th>الواجبات</th>" : ""}</tr>
-      <tr><td>${score(sc.t1, max.test)}</td><td>${score(sc.t2, max.test)}</td>${scoreCell(sc.test, max.test, "rp-key")}
+      <tr><th colspan="${ts.length + 1}">الاختبارات</th><th colspan="${hw ? 3 : 2}">التقييم المستمر</th>${fin ? '<th rowspan="2">الاختبار النهائي</th>' : ""}</tr>
+      <tr class="rp-sub">${ts.map(t => `<th>${TEST_NAMES[t]}</th>`).join("")}<th>${ts.length > 2 ? "متوسط الاختبارات" : "متوسط الاختبارين"}</th><th>المشاركة</th><th>المشاريع والمهام</th>${hw ? "<th>الواجبات</th>" : ""}</tr>
+      <tr>${ts.map(t => `<td>${score(sc[t], max.test)}</td>`).join("")}${scoreCell(sc.test, max.test, "rp-key")}
       ${scoreCell(sc.part, max.participation)}${scoreCell(sc.proj, max.projects)}${hw ? scoreCell(sc.homework, max.homework) : ""}${fin ? scoreCell(sc.final, max.final) : ""}</tr>
     </table>` : `<div class="rp-empty">لم تُرصد درجات هذه الفترة بعد.</div>`;
     // Beside the progress box the comparison has half the width, so its rings wrap to three a row.
@@ -305,7 +320,8 @@ const Report = (() => {
     const top = outOf.length ? outOf.reduce((a, b) => (outOf.filter(v => v === b).length > outOf.filter(v => v === a).length ? b : a))
       : ex.reduce((a, k) => a + max[k], max.test + max.participation + max.projects);
     // With homework and the final the score columns narrow a little (all but "المشاريع", the widest heading), to leave the names room.
-    const w = ex.length ? 11 : 12, widths = [6, 0, w, w, w, w, 12, ...ex.map(() => w), 13, 12, ex.length ? 18 : 20];
+    const ts = testsShown(rows.map(x => x.sc)), more = ts.length - 2 + ex.length;
+    const w = more >= 3 ? 10 : more ? 11 : 12, widths = [6, 0, ...ts.map(() => w), w, w, 12, ...ex.map(() => w), 13, 12, more ? 18 : 20];
     const avg = counted.length ? Math.round(counted.reduce((a, x) => a + x.sc.pct, 0) / counted.length) : null;
     const count = test => graded.filter(x => test(x.sc.pct)).length;
     const per = Math.max(1, Math.ceil(rows.length / sheetPages(rows.length)));
@@ -328,8 +344,8 @@ const Report = (() => {
     </div>`}
     <table class="rp-list">
       <colgroup>${widths.map(w => (w ? `<col style="width:${w}mm">` : "<col>")).join("")}</colgroup>
-      <tr><th>م</th><th class="rp-nm">اسم الطالبة</th><th>الاختبار الأول<small>/ ${max.test}</small></th><th>الاختبار الثاني<small>/ ${max.test}</small></th><th>المتوسط<small>/ ${max.test}</small></th><th>المشاركة<small>/ ${max.participation}</small></th><th>المشاريع<small>/ ${max.projects}</small></th>${ex.map(k => `<th>${k === "final" ? "النهائي" : EXTRAS[k]}<small>/ ${max[k]}</small></th>`).join("")}<th>المجموع<small>/ ${top}</small></th><th>النسبة</th><th>المستوى</th></tr>
-      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}${x.r.learningDifficulty ? " *" : ""}</td><td>${fmt(x.sc.t1)}</td><td>${fmt(x.sc.t2)}</td><td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td>${ex.map(k => `<td>${fmt(x.sc[k])}</td>`).join("")}<td>${fmt(x.sc.total)}${x.sc.has && x.sc.maxTotal !== top ? `<small>/${x.sc.maxTotal}</small>` : ""}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
+      <tr><th>م</th><th class="rp-nm">اسم الطالبة</th>${ts.map(t => `<th>${TEST_NAMES[t]}<small>/ ${max.test}</small></th>`).join("")}<th>المتوسط<small>/ ${max.test}</small></th><th>المشاركة<small>/ ${max.participation}</small></th><th>المشاريع<small>/ ${max.projects}</small></th>${ex.map(k => `<th>${k === "final" ? "النهائي" : EXTRAS[k]}<small>/ ${max[k]}</small></th>`).join("")}<th>المجموع<small>/ ${top}</small></th><th>النسبة</th><th>المستوى</th></tr>
+      ${chunk.map((x, i) => `<tr><td>${p * per + i + 1}</td><td class="rp-nm">${esc(x.r.name)}${x.r.learningDifficulty ? " *" : ""}</td>${ts.map(t => `<td>${fmt(x.sc[t])}</td>`).join("")}<td>${fmt(x.sc.test)}</td><td>${fmt(x.sc.part)}</td><td>${fmt(x.sc.proj)}</td>${ex.map(k => `<td>${fmt(x.sc[k])}</td>`).join("")}<td>${fmt(x.sc.total)}${x.sc.has && x.sc.maxTotal !== top ? `<small>/${x.sc.maxTotal}</small>` : ""}</td><td><b>${x.sc.has ? x.sc.pct + "%" : "—"}</b></td><td>${x.sc.has ? lvTag(x.sc.pct / 100) : "—"}</td></tr>`).join("")}
     </table>
   </div>
   ${p === pages.length - 1 ? signs(site) : ""}
@@ -418,7 +434,7 @@ const Report = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   }
 
-  return { MIN_CLASS, STAR, SPROUT, fmt, esc, sheetHead: head, sheetSigns: signs, sheetFoot: foot, EXTRAS, extrasOf, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, CHARTS, isChart, chartOf, compareItems, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
+  return { MIN_CLASS, STAR, SPROUT, fmt, esc, sheetHead: head, sheetSigns: signs, sheetFoot: foot, EXTRAS, extrasOf, TESTS, TEST_NAMES, testsShown, testAvg, scores, classStats, level, GRADES, className, classParts, classLabel, shortClass, praiseFor, styleOf, STYLES, nextSteps, CHARTS, isChart, chartOf, compareItems, versusClass, progress, gradeLine, cardSheet, classSheets, sheetPages, show, toPdf, save };
 })();
 
 if (typeof module === "object" && module.exports) module.exports = Report;
