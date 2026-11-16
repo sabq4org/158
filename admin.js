@@ -58,8 +58,6 @@ ALTER TABLE classes ADD COLUMN IF NOT EXISTS aliases TEXT[] NOT NULL DEFAULT '{}
 // Field order shared by the API, the students table, Excel export and the import diff.
 const FIELDS = [
   ["name", "اسم الطالبة"],
-  ["national_id", "رقم الهوية"],
-  ["email", "الإيميل الوزاري"],
   ["class", "الصف والشعبة"],
   ["test1", "الاختبار الأول"],
   ["test2", "الاختبار الثاني"],
@@ -73,6 +71,9 @@ const FIELDS = [
   // Times late: the teacher's alone, like the notes. It feeds the early alerts and never reaches the student's card.
   ["lateness", "التأخير"],
   ["notes", "ملاحظات"],
+  // The ID and email sit after the notes (the user's order, 2026-11-16).
+  ["national_id", "رقم الهوية"],
+  ["email", "الإيميل الوزاري"],
   ["learning_style", "نمط التعلم"],
   ["learning_difficulty", "صعوبات التعلم"],
 ];
