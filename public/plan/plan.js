@@ -54,7 +54,7 @@
     strategic_goals: { title: "الأهداف الاستراتيجية", desc: "لكل مجال هدفه التفصيلي ومؤشر قياسه والمستهدف والموارد.", noun: "هدف", fields: [
       { k: "domain", l: "المجال", list: STRAT, req: true }, { k: "goal", l: "الهدف من المجال", req: true }, { k: "title", l: "الهدف التفصيلي" },
       { k: "indicator", l: "مؤشر القياس" }, { k: "target", l: "المستهدف", half: true }, { k: "resources", l: "الموارد المطلوبة", half: true }] },
-    programs: { title: "البرامج والمبادرات", desc: "البرامج الرئيسية والفرعية بأهدافها واستراتيجياتها وفترتها والمنفذات والمشاركات، مع صور الشواهد.", noun: "برنامج", view: "programs", photos: true, fields: [
+    programs: { title: "البرامج والمبادرات", desc: "البرامج الرئيسية والفرعية بأسمائها. لعرض تفاصيل البرنامج أو تعديلها اضغط زر التعديل، وشواهد التنفيذ في تبويب «تقارير البرامج».", noun: "برنامج", view: "programs", photos: true, fields: [
       { k: "kind", l: "النوع", opts: ["برنامج", "مبادرة"], half: true }, { k: "semester", l: "الفصل الدراسي", opts: SEMS, half: true },
       { k: "main", l: "البرنامج الرئيسي", req: true, list: () => uniq(items("programs").map(i => i.data.main)) },
       { k: "sub", l: "البرنامج الفرعي / المبادرة", req: true },
@@ -392,13 +392,12 @@
     return new Set(Array.from({ length: Math.max(0, Math.min(b, 17) - a + 1) }, (_, i) => a + i));
   }
 
+  // A program card is just its name with a few tags; the details open with the edit button, and the evidence lives in the reports tab.
   function progCard(p) {
     const d = p.data;
-    const rows = [["الفترة", d.period], ["المنفذة", d.executor], ["المشاركة", d.participants], ["المستهدفة", d.target], ["الأهداف", d.goals], ["الاستراتيجيات", d.strategies]].filter(x => x[1]);
     const reps = items("reports").filter(r => r.data.program === String(p.id)).length;
-    return `<article class="prog"><div class="h"><b>${esc(d.sub)}</b>${rowActs(p.id)}</div>
-      <div class="meta"><span class="pill blue">${esc(d.kind || "برنامج")}</span>${d.semester ? `<span class="pill">الفصل ${esc(d.semester)}</span>` : ""}${reps ? `<span class="pill ok">${reps} تقرير</span>` : ""}</div>
-      <dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd><div class="clip">${esc(b)}</div></dd>`).join("")}</dl>${evidence(d.link, "مجلد الشواهد")}${photoStrip(p.id)}</article>`;
+    return `<article class="prog slim"><div class="h"><b>${esc(d.sub)}</b>${rowActs(p.id)}</div>
+      <div class="meta"><span class="pill blue">${esc(d.kind || "برنامج")}</span>${d.semester ? `<span class="pill">الفصل ${esc(d.semester)}</span>` : ""}${reps ? `<span class="pill ok">${reps} تقرير</span>` : ""}</div></article>`;
   }
   const photoStrip = id => `<div class="photos">${filesOf(id).map(f => `<span class="photo"><img src="${fileUrl(f.id)}" alt="صورة شاهد" loading="lazy" data-view="${f.id}"><button type="button" data-act="rmphoto" data-file="${f.id}" aria-label="حذف الصورة">×</button></span>`).join("")}
     ${filesOf(id).length < 6 ? `<button type="button" class="addphoto" data-act="photo" data-id="${id}">+ شاهد</button>` : ""}</div>`;
