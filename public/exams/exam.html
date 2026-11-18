@@ -137,14 +137,17 @@ bdi.eq, bdi.pt { white-space: nowrap; }
 /* Each exam can have its own look (exam.theme): the colours, the header's drawing, the progress marks, the celebration. */
 :root[data-look="curve"] { --bg: #e9e7f5; --sheet: #fcfbff; --ink: #1b1530; --muted: #625c80; --line: #d9d4ee; --teal: #5a3fc0; --teal-soft: #e8e2fb; --chip: #f0edf9; }
 :root[data-look] { --ok: #1f8a5b; }
+:root[data-look="argand"] { --bg: #e6eef8; --sheet: #fbfdff; --ink: #0d1b33; --muted: #536683; --line: #d3dff0; --teal: #0f6fd6; --teal-soft: #dcebfd; --chip: #edf3fb; }
 :root[data-look="sadu"] { --bg: #f1e8de; --sheet: #fffaf4; --ink: #2a1712; --muted: #7a6152; --line: #e6d6c3; --teal: #a8322b; --teal-soft: #f7dfd9; --chip: #f4ebe1; }
 @media (prefers-color-scheme: dark) {
   :root[data-look]:not([data-theme="light"]) { --ok: #5fd39a; }
   :root[data-look="curve"]:not([data-theme="light"]) { --bg: #0e0b1c; --sheet: #161229; --panel: #120f22; --ink: #ebe7ff; --muted: #a59fc6; --line: #2e2750; --teal: #b49cff; --teal-ink: #1a1036; --teal-soft: #2a2050; --chip: #221c40; }
+  :root[data-look="argand"]:not([data-theme="light"]) { --bg: #060b18; --sheet: #0d1528; --panel: #0a1122; --ink: #e6f0ff; --muted: #93a6c6; --line: #1f2d4b; --teal: #5cc8ff; --teal-ink: #04203a; --teal-soft: #10294a; --chip: #14203a; }
   :root[data-look="sadu"]:not([data-theme="light"]) { --bg: #160e0b; --sheet: #21150f; --panel: #1a110c; --ink: #f6e9df; --muted: #c2a593; --line: #3d2a20; --teal: #ff8d7c; --teal-ink: #2a0d08; --teal-soft: #3e1d17; --chip: #2d1d16; }
 }
 :root[data-look][data-theme="dark"] { --ok: #5fd39a; }
 :root[data-look="curve"][data-theme="dark"] { --bg: #0e0b1c; --sheet: #161229; --panel: #120f22; --ink: #ebe7ff; --muted: #a59fc6; --line: #2e2750; --teal: #b49cff; --teal-ink: #1a1036; --teal-soft: #2a2050; --chip: #221c40; }
+:root[data-look="argand"][data-theme="dark"] { --bg: #060b18; --sheet: #0d1528; --panel: #0a1122; --ink: #e6f0ff; --muted: #93a6c6; --line: #1f2d4b; --teal: #5cc8ff; --teal-ink: #04203a; --teal-soft: #10294a; --chip: #14203a; }
 :root[data-look="sadu"][data-theme="dark"] { --bg: #160e0b; --sheet: #21150f; --panel: #1a110c; --ink: #f6e9df; --muted: #c2a593; --line: #3d2a20; --teal: #ff8d7c; --teal-ink: #2a0d08; --teal-soft: #3e1d17; --chip: #2d1d16; }
 .head { position: relative; overflow: hidden; }
 .head > img, .head > div:not(.art) { position: relative; z-index: 1; }
@@ -171,6 +174,31 @@ bdi.eq, bdi.pt { white-space: nowrap; }
 :root[data-look="sadu"] .art .tick { stroke: #f3c96b; stroke-width: 2; }
 :root[data-look="sadu"] .art .eqs { fill: #f3c96b; font: 700 15px var(--font); }
 @keyframes slide { from { transform: translateX(-14px); } to { transform: translateX(0); } }
+/* argand: the complex plane. i turns a quarter at a time round the unit circle, and z^n spirals out from the origin. */
+:root[data-look="argand"] .head { color: #fff; background:
+  radial-gradient(120% 140% at 85% 10%, rgba(255, 79, 163, .55), transparent 55%),
+  radial-gradient(90% 120% at 10% 100%, rgba(0, 214, 255, .45), transparent 60%),
+  linear-gradient(125deg, #071433, #16206b 55%, #3a1470); }
+:root[data-look="argand"] .head::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+  background: radial-gradient(1px 1px at 12% 30%, #fff, transparent), radial-gradient(1px 1px at 38% 70%, #fff, transparent), radial-gradient(1.4px 1.4px at 62% 22%, #fff, transparent),
+    radial-gradient(1px 1px at 78% 80%, #fff, transparent), radial-gradient(1.2px 1.2px at 25% 85%, #fff, transparent), radial-gradient(1px 1px at 52% 48%, #fff, transparent);
+  animation: twinkle 4s ease-in-out infinite alternate; }
+@keyframes twinkle { to { opacity: .15; } }
+:root[data-look="argand"] .art svg { width: min(56%, 330px); }
+:root[data-look="argand"] .art .grid { stroke: rgba(150, 200, 255, .12); stroke-width: 1; }
+:root[data-look="argand"] .art .axis { stroke: rgba(200, 230, 255, .5); stroke-width: 1.2; }
+:root[data-look="argand"] .art .ring { fill: none; stroke: rgba(92, 200, 255, .55); stroke-width: 1.4; stroke-dasharray: 3 5; animation: spin 26s linear infinite; transform-origin: 150px 60px; }
+:root[data-look="argand"] .art .spiral { fill: none; stroke: url(#argGlow); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 3.2s .2s ease-out forwards; filter: drop-shadow(0 0 4px rgba(255, 120, 200, .8)); }
+:root[data-look="argand"] .art .zn { fill: #ffe27a; opacity: 0; animation: pop .4s ease-out forwards; }
+:root[data-look="argand"] .art .vec { transform-origin: 150px 60px; animation: quarter 6s cubic-bezier(.7, 0, .3, 1) infinite; }
+:root[data-look="argand"] .art .vec line { stroke: #5cf2ff; stroke-width: 2.6; stroke-linecap: round; filter: drop-shadow(0 0 5px #5cf2ff); }
+:root[data-look="argand"] .art .vec circle { fill: #fff; filter: drop-shadow(0 0 6px #5cf2ff); }
+:root[data-look="argand"] .art .lbl { fill: rgba(225, 240, 255, .85); font: 700 12px var(--font); direction: ltr; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes quarter { 0%, 18% { transform: rotate(0); } 25%, 43% { transform: rotate(-90deg); } 50%, 68% { transform: rotate(-180deg); } 75%, 93% { transform: rotate(-270deg); } 100% { transform: rotate(-360deg); } }
+:root[data-look="argand"] .dots button { border-radius: 6px 50% 6px 50%; }
+:root[data-look="argand"] .dots button.cur { box-shadow: 0 0 0 3px var(--teal-soft), 0 0 12px var(--teal); }
+@media (prefers-reduced-motion: reduce) { :root[data-look="argand"] .art *, :root[data-look="argand"] .head::before { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1; } }
 :root[data-look="curve"] .dots button { border-radius: 50%; }
 :root[data-look="sadu"] .dots button { border-radius: 2px; transform: rotate(45deg) scale(.74); }
 :root[data-look="sadu"] .dots button.cur { transform: rotate(45deg) scale(.95); }
@@ -253,6 +281,21 @@ bdi.eq, bdi.pt { white-space: nowrap; }
       const roots = [-2.6, .4, 2.8].map((r, i) => `<circle class="root" cx="${X(r)}" cy="${Y(0)}" r="4.5" style="animation-delay:${1 + i * .45}s, ${3 + i * .3}s"/>`).join("");
       return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice">${grid}<line class="axis" x1="0" y1="${Y(0)}" x2="${W}" y2="${Y(0)}"/>
         <line class="axis" x1="${X(0)}" y1="0" x2="${X(0)}" y2="${H}"/><polyline class="graph" points="${pts.join(" ")}"/>${roots}</svg>`;
+    },
+    // The complex plane: z = 1.18(cos 30° + i sin 30°) raised to n spirals out, while i turns the vector a quarter at a time.
+    argand() {
+      const W = 300, H = 120, O = [150, 60], U = 34;
+      let grid = ""; for (let gx = 0; gx <= W; gx += 17) grid += `<line class="grid" x1="${gx}" y1="0" x2="${gx}" y2="${H}"/>`;
+      for (let gy = 9; gy <= H; gy += 17) grid += `<line class="grid" x1="0" y1="${gy}" x2="${W}" y2="${gy}"/>`;
+      const pts = [], dots = [];
+      for (let t = 0; t <= 12.2; t += .05) { const r = 6 * Math.pow(1.18, t), a = t * Math.PI / 6; pts.push(`${(O[0] + r * Math.cos(a)).toFixed(1)},${(O[1] - r * Math.sin(a)).toFixed(1)}`); }
+      for (let n = 1; n <= 12; n++) { const r = 6 * Math.pow(1.18, n), a = n * Math.PI / 6; dots.push(`<circle class="zn" cx="${(O[0] + r * Math.cos(a)).toFixed(1)}" cy="${(O[1] - r * Math.sin(a)).toFixed(1)}" r="2.6" style="animation-delay:${(.3 + n * .24).toFixed(2)}s"/>`); }
+      const L = (x, y, s) => `<text class="lbl" x="${x}" y="${y}" text-anchor="middle">${s}</text>`;
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice"><defs><linearGradient id="argGlow" x1="0" x2="1"><stop offset="0" stop-color="#5cf2ff"/><stop offset=".5" stop-color="#b48bff"/><stop offset="1" stop-color="#ff5fae"/></linearGradient></defs>
+        ${grid}<line class="axis" x1="0" y1="${O[1]}" x2="${W}" y2="${O[1]}"/><line class="axis" x1="${O[0]}" y1="0" x2="${O[0]}" y2="${H}"/>
+        <circle class="ring" cx="${O[0]}" cy="${O[1]}" r="${U}"/><polyline class="spiral" points="${pts.join(" ")}"/>${dots.join("")}
+        <g class="vec"><line x1="${O[0]}" y1="${O[1]}" x2="${O[0] + U}" y2="${O[1]}"/><circle cx="${O[0] + U}" cy="${O[1]}" r="4"/></g>
+        ${L(O[0] + U + 9, O[1] - 5, "1")}${L(O[0] + 8, O[1] - U - 3, "i")}${L(O[0] - U - 12, O[1] - 5, "−1")}${L(O[0] + 11, O[1] + U + 11, "−i")}</svg>`;
     },
     // Two congruent triangles, one sliding onto its place, with their matching marks.
     sadu() {
@@ -348,8 +391,8 @@ bdi.eq, bdi.pt { white-space: nowrap; }
   function celebrate() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const look = document.documentElement.dataset.look;
-    const shapes = look === "sadu" ? ["▲", "◆", "▼", "△"] : look === "curve" ? ["x²", "i", "●", "∿", "x³"] : ["●", "◆", "★"];
-    const colors = look === "sadu" ? ["#b3261e", "#d9a441", "#1d1411", "#e9d3b0"] : look === "curve" ? ["#5a3fc0", "#ffb648", "#8d6cf0", "#2fb5a6"] : ["#0a7c78", "#ffb648", "#2257b5"];
+    const shapes = look === "argand" ? ["i", "z", "√", "±", "✦", "i²"] : look === "sadu" ? ["▲", "◆", "▼", "△"] : look === "curve" ? ["x²", "i", "●", "∿", "x³"] : ["●", "◆", "★"];
+    const colors = look === "argand" ? ["#0f6fd6", "#5cc8ff", "#ff5fae", "#b48bff", "#ffd24a"] : look === "sadu" ? ["#b3261e", "#d9a441", "#1d1411", "#e9d3b0"] : look === "curve" ? ["#5a3fc0", "#ffb648", "#8d6cf0", "#2fb5a6"] : ["#0a7c78", "#ffb648", "#2257b5"];
     const box = document.createElement("div"); box.className = "party"; box.setAttribute("aria-hidden", "true");
     for (let i = 0; i < 46; i++) {
       const el = document.createElement("i");
