@@ -416,9 +416,8 @@ module.exports = function mountAdmin(app, pool) {
     // The admin reads the school's own log, never a teacher's (nor undoes anything in it).
     const schoolLog = req.path === "/audit" && req.method === "GET";
     if (req.role === "admin" && !schoolLog && !ADMIN_ROUTES.test(req.path)) return res.status(403).json({ error: "school_only", errors: ["حساب الإدارة ما يعرض بيانات المعلمات"] });
-    // The principal's account sees everything and changes nothing.
-    // The operational plan is the exception: the principal writes it with her planning committee.
-    if (req.role === "viewer" && req.method !== "GET" && !/^\/plan(\/|$)/.test(req.path)) return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
+    // The principal's account sees everything and changes nothing, the operational plan included.
+    if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
     // Whoever is signed in signs every log entry the request writes.
     const actor = s.role === "admin" ? "إدارة المنصة" : s.role === "viewer" ? "المديرة" : getTeacher(s.tid)?.name || null;
     who.run({ actor, role: s.role, device: deviceOf(req) }, next);

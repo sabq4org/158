@@ -276,3 +276,9 @@ dialog.viewer img { max-width: 92vw; max-height: 88vh; border-radius: 12px; disp
 /* The section's group, coloured like its block in the sidebar. */
 .sec-head .crumb[style] { display: inline-flex; align-items: center; gap: 6px; background: var(--cs); color: var(--c); font-weight: 700; font-size: 13.5px; padding: 3px 12px 3px 10px; border-radius: 99px; margin-bottom: 6px; }
 .sec-head .crumb[style] svg { width: 15px; height: 15px; }
+
+/* Read-only (the principal's account): no add, edit, move, delete or upload controls. */
+fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
+body.ro [data-act="add"], body.ro [data-act="edit"], body.ro [data-act="del"], body.ro [data-act="up"], body.ro [data-act="down"],
+body.ro [data-act="meta-edit"], body.ro [data-act="photo"], body.ro [data-act="rmphoto"], body.ro .row-acts { display: none !important; }
+body.ro fieldset[disabled] input, body.ro fieldset[disabled] select, body.ro fieldset[disabled] textarea { background: var(--surface-2); color: var(--ink); opacity: 1; cursor: default; }
