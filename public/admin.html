@@ -466,6 +466,7 @@ body.is-admin [data-teacher] { display: none !important; }
     <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
     <div class="brand"><b id="brandTitle">الدخول للوحة</b><span id="whoLine">الثانوية الثامنة والخمسون بعد المائة</span></div>
     <a class="link" href="/lessons/polynomials/dashboard" target="_blank" rel="noopener" id="lessonsLink" hidden><span class="hide-sm">الدرس </span>التطبيقي</a>
+    <a class="link" href="/plan" target="_blank" rel="noopener" id="planLink" hidden><span class="hide-sm">الخطة </span>التشغيلية</a>
     <a class="link" href="/" target="_blank" rel="noopener"><span class="hide-sm">صفحة </span>الاستعلام</a>
     <button class="link" type="button" id="logoutBtn" hidden>خروج</button>
   </div>
@@ -1151,7 +1152,7 @@ function confirmBox(title, text, yes) {
 
 // ---------- Session ----------
 function showLogin() {
-  $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#loginForm").hidden = false;
+  $("#app").hidden = true; $("#logoutBtn").hidden = true; $("#planLink").hidden = true; $("#loginForm").hidden = false;
   // Signed out, the bar names the school, not whoever was signed in last.
   $("#brandTitle").textContent = "الدخول للوحة"; $("#whoLine").textContent = "الثانوية الثامنة والخمسون بعد المائة"; $("#lessonsLink").hidden = true;
   setTimeout(() => (loginAs === "teacher" && !$("#user").value ? $("#user") : $("#pw")).focus(), 50);
@@ -1167,6 +1168,7 @@ async function showApp(info) {
   $("#brandTitle").textContent = role === "viewer" ? "لوحة المتابعة" : role === "admin" ? "لوحة إدارة المنصة" : "لوحة تحكم المعلمة";
   // The model lessons are the first teacher's; the platform admin's panel doesn't link them.
   $("#lessonsLink").hidden = role === "admin" || (role === "teacher" && me.login !== 1);
+  $("#planLink").hidden = !me.plan;
   $("#loginForm").hidden = true; $("#app").hidden = false; $("#logoutBtn").hidden = false;
   if (role === "teacher") $("#myUser").textContent = me.user || "";
   renderTeacherBar();
