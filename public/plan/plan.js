@@ -190,9 +190,25 @@
     if (key === "evaluation" || !s.fields) return "";
     return items(key).length;
   }
+  // Each group of tabs is its own coloured block with an icon, so the six parts of the plan read apart at a glance.
+  const GROUP_LOOK = [
+    ["#0d6e6a", "#e1f2ef", '<svg viewBox="0 0 24 24"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/></svg>'],
+    ["#2563a8", "#e5eef9", '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.6c2.4.2 4 1.9 4.5 4.9"/></svg>'],
+    ["#7a4bb8", "#f0e9fa", '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4M8.5 11h5M11 8.5v5"/></svg>'],
+    ["#b7791f", "#fdf2dc", '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>'],
+    ["#c2414b", "#fbe6e8", '<svg viewBox="0 0 24 24"><path d="M12 3c1.5 3.5 5 5 5 9.5a5 5 0 0 1-10 0c0-2 1-3.4 2-4.5.5 1.6 1.4 2.5 2.5 2.8C11 8.5 11 5.5 12 3z"/></svg>'],
+    ["#0d8a5f", "#dff3ea", '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'],
+  ];
+  const groupIx = key => Math.max(0, GROUPS.findIndex(g => g[1].includes(key)));
+  const crumbStyle = key => { const [c, soft] = GROUP_LOOK[groupIx(key)]; return `--c:${c};--cs:${soft}`; };
+  const groupIcon = key => GROUP_LOOK[groupIx(key)][2];
   function renderSide() {
-    $("#side").innerHTML = GROUPS.map(([g, keys]) => `<h3>${esc(g)}</h3>` + keys.map(k =>
-      `<button type="button" data-sec="${k}" ${k === current ? 'aria-current="page"' : ""}>${esc(SECTIONS[k].title)}<span class="n">${countOf(k)}</span></button>`).join("")).join("");
+    $("#side").innerHTML = GROUPS.map(([g, keys], i) => {
+      const [c, soft, icon] = GROUP_LOOK[i % GROUP_LOOK.length];
+      const open = keys.includes(current);
+      return `<section class="sg${open ? " open" : ""}" style="--c:${c};--cs:${soft}"><h3><span class="gi">${icon}</span><span class="gt">${esc(g)}</span></h3>` +
+        keys.map(k => `<button type="button" data-sec="${k}" ${k === current ? 'aria-current="page"' : ""}><span class="dot"></span><span class="lbl">${esc(SECTIONS[k].title)}</span>${countOf(k) !== "" ? `<span class="n">${countOf(k)}</span>` : ""}</button>`).join("") + `</section>`;
+    }).join("");
   }
   $("#side").addEventListener("click", e => {
     const b = e.target.closest("button[data-sec]");
@@ -223,7 +239,7 @@
   };
 
   function head(s, { add = true } = {}) {
-    return `<div class="sec-head"><div class="t"><div class="crumb">${esc(groupOf(s.key))}</div><h1>${esc(s.title)}</h1><p>${esc(s.desc)}</p></div>
+    return `<div class="sec-head"><div class="t"><div class="crumb" style="${crumbStyle(s.key)}">${groupIcon(s.key)}${esc(groupOf(s.key))}</div><h1>${esc(s.title)}</h1><p>${esc(s.desc)}</p></div>
       <div class="acts">${add && s.fields ? `<button class="btn primary" data-act="add">${ICON.plus}إضافة ${esc(s.noun)}</button>` : ""}
       <button class="btn" data-act="print-sec">${ICON.print}طباعة القسم</button></div></div>`;
   }

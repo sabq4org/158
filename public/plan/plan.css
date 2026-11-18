@@ -60,14 +60,21 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .top .brand b { font-size: 17px; }
 .top .brand span { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; max-width: 1360px; margin: 0 auto; padding: 20px; }
-.side { position: sticky; top: 84px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; display: flex; flex-direction: column; gap: 4px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
-.side h3 { margin: 10px 8px 2px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
-.side h3:first-child { margin-top: 0; }
-.side button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: right; border: 0; background: transparent; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: 14.5px; }
-.side button:hover { background: var(--surface-2); }
-.side button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.side button .n { margin-inline-start: auto; font-size: 12px; color: var(--muted); background: var(--surface-2); border-radius: 99px; padding: 0 8px; min-width: 24px; text-align: center; }
-.side button[aria-current="page"] .n { background: #fff; color: var(--accent); }
+.side { position: sticky; top: 84px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.side .sg { border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); border-inline-start: 4px solid var(--c); padding: 6px 6px 8px; }
+.side .sg.open { background: var(--cs); border-color: color-mix(in srgb, var(--c) 30%, transparent); border-inline-start-color: var(--c); }
+.side h3 { display: flex; align-items: center; gap: 9px; margin: 2px 4px 6px; font-size: 15.5px; font-weight: 700; color: var(--c); }
+.side h3 .gi { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--c); color: #fff; flex: none; }
+.side h3 .gi svg { width: 17px; height: 17px; }
+.side h3 .gt { flex: 1; }
+.side button { display: flex; align-items: center; gap: 9px; width: 100%; text-align: right; border: 0; background: transparent; padding: 7px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; color: var(--ink); }
+.side button .dot { width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--c) 45%, #fff); flex: none; }
+.side button .lbl { flex: 1; }
+.side button:hover { background: #fff; }
+.side button[aria-current="page"] { background: var(--c); color: #fff; font-weight: 700; box-shadow: 0 2px 6px color-mix(in srgb, var(--c) 35%, transparent); }
+.side button[aria-current="page"] .dot { background: #fff; }
+.side button .n { font-size: 12px; color: var(--c); background: #fff; border-radius: 99px; padding: 0 8px; min-width: 24px; text-align: center; font-weight: 600; }
+.side button[aria-current="page"] .n { background: rgba(255,255,255,.22); color: #fff; }
 main { min-width: 0; display: flex; flex-direction: column; gap: 16px; outline: none; }
 
 .sec-head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
@@ -193,8 +200,9 @@ dialog.viewer img { max-width: 92vw; max-height: 88vh; border-radius: 12px; disp
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; padding: 12px 16px; gap: 14px; }
   .side { position: static; max-height: none; flex-direction: row; overflow-x: auto; padding: 8px; gap: 6px; scrollbar-width: none; }
-  .side h3 { display: none; }
-  .side button { width: auto; white-space: nowrap; flex: none; padding: 7px 12px; background: var(--surface-2); }
+  .side h3, .side .dot { display: none; }
+  .side .sg { display: contents; }
+  .side button { width: auto; white-space: nowrap; flex: none; padding: 7px 12px; background: var(--cs); border-bottom: 3px solid var(--c); }
   .top { padding: 8px 16px; gap: 8px; }
   .top .logos img { height: 30px; }
   .top .logos img + img { display: none; }
@@ -262,3 +270,7 @@ dialog.viewer img { max-width: 92vw; max-height: 88vh; border-radius: 12px; disp
   .p-stats b { display: block; font-size: 16pt; color: #0d6e6a; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* The section's group, coloured like its block in the sidebar. */
+.sec-head .crumb[style] { display: inline-flex; align-items: center; gap: 6px; background: var(--cs); color: var(--c); font-weight: 700; font-size: 13.5px; padding: 3px 12px 3px 10px; border-radius: 99px; margin-bottom: 6px; }
+.sec-head .crumb[style] svg { width: 15px; height: 15px; }
