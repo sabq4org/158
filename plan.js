@@ -34,6 +34,8 @@ const SECTION = /^[a-z_]{2,40}$/;
 const MAX_FILES = 6;
 const MAX_FILE = 1.5 * 1024 * 1024;
 const MIMES = ["image/jpeg", "image/png", "image/webp"];
+// A row id from the URL, or 0 (no such row) for anything that is not a plain positive integer.
+const idOf = v => (/^\d{1,9}$/.test(String(v)) ? Number(v) : 0);
 
 // A record is a flat object of short texts and numbers; anything else is dropped.
 function clean(data) {
@@ -46,6 +48,21 @@ function clean(data) {
     else if (typeof v === "boolean") out[k] = v;
   }
   return JSON.stringify(out).length > 40000 ? null : out;
+}
+
+async function tx(pool, fn) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const out = await fn(client);
+    await client.query("COMMIT");
+    return out;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function seed(pool) {
@@ -117,37 +134,43 @@ function mount(router, pool, { canSee }) {
   router.put("/plan/items/:id", only, async (req, res) => {
     const data = clean(req.body?.data);
     if (!data) return res.status(400).json({ error: "invalid" });
-    const { rows } = await pool.query("UPDATE plan_items SET data = $2, updated_at = now() WHERE id = $1 RETURNING id, section, data, sort", [Number(req.params.id) || 0, JSON.stringify(data)]);
+    const { rows } = await pool.query("UPDATE plan_items SET data = $2, updated_at = now() WHERE id = $1 RETURNING id, section, data, sort", [idOf(req.params.id), JSON.stringify(data)]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
     res.json(rows[0]);
   });
 
   // Deleting a program also deletes the follow-up, accountability and report rows that point at it.
   router.delete("/plan/items/:id", only, async (req, res) => {
-    const id = Number(req.params.id) || 0;
-    const { rows } = await pool.query("DELETE FROM plan_items WHERE id = $1 RETURNING section", [id]);
-    if (!rows.length) return res.status(404).json({ error: "not_found" });
-    let linked = [];
-    if (rows[0].section === "programs")
-      linked = (await pool.query("DELETE FROM plan_items WHERE data->>'program' = $1 RETURNING id", [String(id)])).rows.map(r => r.id);
-    res.json({ ok: true, linked });
+    const id = idOf(req.params.id);
+    const out = await tx(pool, async q => {
+      const { rows } = await q.query("DELETE FROM plan_items WHERE id = $1 RETURNING section", [id]);
+      if (!rows.length) return null;
+      if (rows[0].section !== "programs") return [];
+      return (await q.query("DELETE FROM plan_items WHERE data->>'program' = $1 RETURNING id", [String(id)])).rows.map(r => r.id);
+    });
+    if (!out) return res.status(404).json({ error: "not_found" });
+    res.json({ ok: true, linked: out });
   });
 
   // Moves an item one place up or down within its tab.
   router.post("/plan/items/:id/move", only, async (req, res) => {
-    const id = Number(req.params.id) || 0, dir = req.body?.dir === "up" ? -1 : 1;
-    const me = (await pool.query("SELECT section FROM plan_items WHERE id = $1", [id])).rows[0];
-    if (!me) return res.status(404).json({ error: "not_found" });
-    const { rows } = await pool.query("SELECT id FROM plan_items WHERE section = $1 ORDER BY sort, id", [me.section]);
-    const ids = rows.map(r => r.id), i = ids.indexOf(id), j = i + dir;
-    if (j < 0 || j >= ids.length) return res.json({ ok: true });
-    [ids[i], ids[j]] = [ids[j], ids[i]];
-    for (let k = 0; k < ids.length; k++) await pool.query("UPDATE plan_items SET sort = $2 WHERE id = $1", [ids[k], k]);
-    res.json({ ok: true, order: ids });
+    const id = idOf(req.params.id), dir = req.body?.dir === "up" ? -1 : 1;
+    const order = await tx(pool, async q => {
+      const me = (await q.query("SELECT section FROM plan_items WHERE id = $1", [id])).rows[0];
+      if (!me) return null;
+      const { rows } = await q.query("SELECT id FROM plan_items WHERE section = $1 ORDER BY sort, id FOR UPDATE", [me.section]);
+      const ids = rows.map(r => r.id), i = ids.indexOf(id), j = i + dir;
+      if (j < 0 || j >= ids.length) return [];
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+      await q.query("UPDATE plan_items p SET sort = o.k FROM unnest($1::int[]) WITH ORDINALITY AS o(id, k) WHERE p.id = o.id", [ids]);
+      return ids;
+    });
+    if (!order) return res.status(404).json({ error: "not_found" });
+    res.json({ ok: true, order });
   });
 
   router.post("/plan/items/:id/files", only, express.raw({ type: MIMES, limit: MAX_FILE }), async (req, res) => {
-    const id = Number(req.params.id) || 0, mime = req.get("content-type");
+    const id = idOf(req.params.id), mime = req.get("content-type");
     if (!MIMES.includes(mime) || !Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "invalid" });
     const { rows } = await pool.query("SELECT count(f.id)::int AS n, i.id FROM plan_items i LEFT JOIN plan_files f ON f.item_id = i.id WHERE i.id = $1 GROUP BY i.id", [id]);
     if (!rows.length) return res.status(404).json({ error: "not_found" });
@@ -157,13 +180,13 @@ function mount(router, pool, { canSee }) {
   });
 
   router.get("/plan/files/:id", only, async (req, res) => {
-    const { rows } = await pool.query("SELECT mime, data FROM plan_files WHERE id = $1", [Number(req.params.id) || 0]);
+    const { rows } = await pool.query("SELECT mime, data FROM plan_files WHERE id = $1", [idOf(req.params.id)]);
     if (!rows.length) return res.status(404).end();
-    res.set({ "Content-Type": rows[0].mime, "Cache-Control": "private, max-age=86400" }).send(rows[0].data);
+    res.set({ "Content-Type": rows[0].mime, "Cache-Control": "private, max-age=600" }).send(rows[0].data);
   });
 
   router.delete("/plan/files/:id", only, async (req, res) => {
-    const { rowCount } = await pool.query("DELETE FROM plan_files WHERE id = $1", [Number(req.params.id) || 0]);
+    const { rowCount } = await pool.query("DELETE FROM plan_files WHERE id = $1", [idOf(req.params.id)]);
     res.json({ ok: rowCount > 0 });
   });
 }

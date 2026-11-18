@@ -1580,6 +1580,7 @@ module.exports = function mountAdmin(app, pool) {
 
   router.use((err, req, res, next) => {
     if (err.status && err.errors) return res.status(err.status).json({ error: "refused", errors: err.errors });
+    if (err.type === "entity.too.large") return res.status(413).json({ error: "too_large", errors: ["الملف أكبر من المسموح"] });
     if (err instanceof multer.MulterError) return res.status(400).json({ error: err.code === "LIMIT_FILE_SIZE" ? "too_large" : "upload_failed" });
     // Two teachers can't share an ID or a mobile; a race past the check above lands here.
     if (err.code === "23505" && /teachers_/.test(err.constraint || "")) return res.status(409).json({ error: "exists", errors: ["رقم الهوية أو الجوال مسجّل لمعلمة ثانية"] });
