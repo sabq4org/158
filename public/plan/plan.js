@@ -60,7 +60,8 @@
       { k: "sub", l: "البرنامج الفرعي / المبادرة", req: true },
       { k: "period", l: "الفترة الزمنية", ph: "مثال: الأسبوع 9 – 17", half: true }, { k: "target", l: "الفئة المستهدفة", half: true, opt: true },
       { k: "executor", l: "المسؤولة المنفذة", t: "textarea" }, { k: "participants", l: "الفئة المشاركة", opt: true },
-      { k: "goals", l: "أهداف البرنامج", t: "textarea", opt: true }, { k: "strategies", l: "الاستراتيجيات وآليات التنفيذ", t: "textarea", opt: true }] },
+      { k: "goals", l: "أهداف البرنامج", t: "textarea", opt: true }, { k: "strategies", l: "الاستراتيجيات وآليات التنفيذ", t: "textarea", opt: true },
+      { k: "link", l: "رابط الشواهد (يظهر له رمز QR)", ph: "https://drive.google.com/…", opt: true, dir: "ltr" }] },
     values: { title: "جدول القيم", desc: "قيم برنامج «قيمنا حياة» وفترتها والمسؤولات عنها.", noun: "قيمة", fields: [
       { k: "value", l: "القيمة", req: true }, { k: "period", l: "الفترة الزمنية" }, { k: "executor", l: "المسؤولة المنفذة", t: "textarea" }] },
     timeline: { title: "الجدول الزمني", desc: "أسابيع تنفيذ البرامج في الفصلين، محسوبة من تبويب البرامج والمبادرات.", view: "timeline" },
@@ -76,8 +77,13 @@
     reports: { title: "تقارير البرامج", desc: "تقرير تنفيذ لكل برنامج أو مبادرة مع صور الشواهد.", noun: "تقرير", view: "reports", photos: true, fields: [
       { k: "program", l: "البرنامج", t: "program", req: true }, { k: "executor", l: "المنفذة / الجهة المنفذة" },
       { k: "place", l: "مكان التنفيذ", half: true }, { k: "date", l: "تاريخ التنفيذ", half: true, ph: "مثال: 12 / 4 / 1448هـ" },
-      { k: "target", l: "الفئة المستهدفة", half: true }, { k: "count", l: "عدد المستفيدات", t: "number", half: true },
-      { k: "outcomes", l: "أهداف البرنامج ومخرجاته", t: "textarea" }] },
+      { k: "title", l: "اسم البرنامج في التقرير", opt: true },
+      { k: "target", l: "الفئة المستهدفة", half: true }, { k: "count", l: "عدد المستفيدات", half: true },
+      { k: "duration", l: "مدة التنفيذ", half: true, opt: true },
+      { k: "description", l: "وصف البرنامج", t: "textarea", opt: true },
+      { k: "outcomes", l: "أهداف البرنامج", t: "textarea" },
+      { k: "impact", l: "قياس الأثر ونتائجه", t: "textarea", opt: true },
+      { k: "link", l: "رابط التقرير والشواهد (يظهر له رمز QR)", ph: "https://drive.google.com/…", opt: true, dir: "ltr" }] },
     evaluation: { title: "التقويم والمتابعة", desc: "مؤشرات إنجاز الخطة محسوبة من التبويبات، والتوصيات.", view: "evaluation", meta: [{ k: "notes", l: "التوصيات والملاحظات", t: "textarea" }] },
   };
   for (const [k, s] of Object.entries(SECTIONS)) s.key = k;
@@ -103,6 +109,14 @@
   const progName = id => { const p = prog(id); return p ? `${p.data.sub}${p.data.period ? " · " + p.data.period : ""}` : "برنامج محذوف"; };
   const progMain = id => prog(id)?.data.main || "";
   const fileUrl = id => `${API}/plan/files/${id}`;
+  // An evidence link shows as a QR code (made by the server) and, for a Drive file, as a preview of its first page.
+  const qrUrl = u => `${API}/plan/qr?u=${encodeURIComponent(u)}`;
+  const isLink = u => /^https:\/\/\S+$/.test(String(u || "").trim());
+  const driveFile = u => (String(u || "").match(/drive\.google\.com\/file\/d\/([\w-]{10,})/) || [])[1];
+  const thumbUrl = id => `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+  const evidence = (u, label) => (isLink(u) ? `<a class="evid" href="${esc(u.trim())}" target="_blank" rel="noopener">
+      ${driveFile(u) ? `<img class="thumb" src="${thumbUrl(driveFile(u))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}
+      <img class="qr" src="${qrUrl(u.trim())}" alt="رمز QR"><span>${label}</span></a>` : "");
 
   async function api(path, opts = {}) {
     const r = await fetch(API + path, { credentials: "same-origin", ...opts, headers: { ...(opts.body && typeof opts.body === "string" ? { "Content-Type": "application/json" } : {}), ...(opts.headers || {}) } });
@@ -247,7 +261,7 @@
       el = `<select id="${id}" name="${f.k}" required><option value="">اختاري البرنامج…</option>${uniq(ps.map(p => p.data.main)).map(main =>
         `<optgroup label="${esc(main)}">${ps.filter(p => p.data.main === main).map(p => `<option value="${p.id}" ${String(p.id) === String(val) ? "selected" : ""}>${esc(progName(p.id))}</option>`).join("")}</optgroup>`).join("")}</select>`;
     } else if (f.opts) el = `<select id="${id}" name="${f.k}"><option value="">—</option>${f.opts.map(o => `<option ${o === val ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
-    else el = `<input id="${id}" name="${f.k}" type="${f.t === "number" ? "number" : "text"}" ${f.t === "number" ? 'inputmode="numeric" min="0"' : ""} value="${esc(val)}" ${f.ph ? `placeholder="${esc(f.ph)}"` : ""} ${opts ? `list="${id}_l"` : ""} ${f.req ? "required" : ""}>`
+    else el = `<input id="${id}" name="${f.k}" type="${f.t === "number" ? "number" : "text"}" ${f.t === "number" ? 'inputmode="numeric" min="0"' : ""} value="${esc(val)}" ${f.ph ? `placeholder="${esc(f.ph)}"` : ""} ${f.dir ? `dir="${f.dir}"` : ""} ${opts ? `list="${id}_l"` : ""} ${f.req ? "required" : ""}>`
       + (opts ? `<datalist id="${id}_l">${opts.map(o => `<option value="${esc(o)}">`).join("")}</datalist>` : "");
     return `<label class="f ${cls} ${f.half ? "half" : ""}" for="${id}">${esc(f.l)}${f.req ? " *" : ""}${el}</label>`;
   }
@@ -291,10 +305,10 @@
       if (!list.length) return '<div class="card empty">ما فيه تقارير بعد. أضيفي تقرير لكل برنامج بعد تنفيذه.</div>';
       return `<div class="prog-list" style="padding:0">${list.map(r => {
         const d = r.data;
-        return `<article class="prog card"><div class="h"><b>${esc(progName(d.program))}</b>${rowActs(r.id)}</div>
-          <div class="meta"><span class="pill blue">${esc(progMain(d.program))}</span>${d.date ? `<span class="pill">${esc(d.date)}</span>` : ""}</div>
-          <dl>${[["المنفذة", d.executor], ["المكان", d.place], ["المستهدفة", d.target], ["المستفيدات", d.count], ["المخرجات", d.outcomes]].filter(x => x[1] !== "" && x[1] != null)
-            .map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${photoStrip(r.id)}</article>`;
+        return `<article class="prog card"><div class="h"><b>${esc(d.title || progName(d.program))}</b>${rowActs(r.id)}</div>
+          <div class="meta"><span class="pill blue">${esc(progMain(d.program))}</span>${d.title ? `<span class="pill">${esc(progName(d.program))}</span>` : ""}${d.date ? `<span class="pill">${esc(d.date)}</span>` : ""}</div>
+          <dl>${[["المنفذة", d.executor], ["المكان", d.place], ["المستهدفة", d.target], ["المستفيدات", d.count], ["المدة", d.duration], ["الوصف", d.description], ["الأهداف", d.outcomes], ["قياس الأثر", d.impact]].filter(x => x[1] !== "" && x[1] != null)
+            .map(([a, b]) => `<dt>${a}</dt><dd><div class="clip">${esc(b)}</div></dd>`).join("")}</dl>${evidence(d.link, "التقرير والشواهد")}${photoStrip(r.id)}</article>`;
       }).join("")}</div>`;
     },
     timeline() {
@@ -307,7 +321,7 @@
       const table = sem => `<section class="card box"><h2>الفصل الدراسي ${sem === 1 ? "الأول" : "الثاني"}</h2><div class="tl"><table>
         <thead><tr><th class="name">البرنامج</th>${weeks.map(w => `<th>${w}</th>`).join("")}</tr></thead><tbody>
         ${rows.filter(r => r.sem === sem).map(({ p, w }) => `<tr><td class="name"><b>${esc(p.data.sub)}</b><br><small class="muted">${esc(p.data.main)} · ${esc(p.data.period || "")}</small></td>
-          ${weeks.map(n => `<td class="w ${w.has(n) ? `on ${sem === 2 ? "s2" : ""} ${!w.has(n - 1) ? "first" : ""} ${!w.has(n + 1) ? "last" : ""}` : ""}"></td>`).join("")}</tr>`).join("") || `<tr><td class="name muted" colspan="18">لا برامج في هذا الفصل.</td></tr>`}
+          ${weeks.map(n => `<td class="w ${w.has(n) ? `on ${sem === 2 ? "s2" : ""}` : ""}" title="الأسبوع ${n}"></td>`).join("")}</tr>`).join("") || `<tr><td class="name muted" colspan="18">لا برامج في هذا الفصل.</td></tr>`}
         </tbody></table></div></section>`;
       return `<p class="legend"><span><i style="background:var(--accent-2)"></i>الفصل الأول</span><span><i style="background:var(--navy)"></i>الفصل الثاني</span><span>تتغير الأسابيع من حقل «الفترة الزمنية» في البرامج والمبادرات.</span></p>` + table(1) + table(2);
     },
@@ -365,9 +379,10 @@
   function progCard(p) {
     const d = p.data;
     const rows = [["الفترة", d.period], ["المنفذة", d.executor], ["المشاركة", d.participants], ["المستهدفة", d.target], ["الأهداف", d.goals], ["الاستراتيجيات", d.strategies]].filter(x => x[1]);
+    const reps = items("reports").filter(r => r.data.program === String(p.id)).length;
     return `<article class="prog"><div class="h"><b>${esc(d.sub)}</b>${rowActs(p.id)}</div>
-      <div class="meta"><span class="pill blue">${esc(d.kind || "برنامج")}</span>${d.semester ? `<span class="pill">الفصل ${esc(d.semester)}</span>` : ""}</div>
-      <dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${photoStrip(p.id)}</article>`;
+      <div class="meta"><span class="pill blue">${esc(d.kind || "برنامج")}</span>${d.semester ? `<span class="pill">الفصل ${esc(d.semester)}</span>` : ""}${reps ? `<span class="pill ok">${reps} تقرير</span>` : ""}</div>
+      <dl>${rows.map(([a, b]) => `<dt>${a}</dt><dd><div class="clip">${esc(b)}</div></dd>`).join("")}</dl>${evidence(d.link, "مجلد الشواهد")}${photoStrip(p.id)}</article>`;
   }
   const photoStrip = id => `<div class="photos">${filesOf(id).map(f => `<span class="photo"><img src="${fileUrl(f.id)}" alt="صورة شاهد" loading="lazy" data-view="${f.id}"><button type="button" data-act="rmphoto" data-file="${f.id}" aria-label="حذف الصورة">×</button></span>`).join("")}
     ${filesOf(id).length < 6 ? `<button type="button" class="addphoto" data-act="photo" data-id="${id}">+ شاهد</button>` : ""}</div>`;
@@ -600,6 +615,7 @@
       `<tr><td class="c">${i + 1}</td>${r.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("") || `<tr><td class="c" colspan="${cols.length + 1}">—</td></tr>`}</tbody></table>`;
     const signs = `<div class="p-signs"><div>رئيسة لجنة التخطيط<br><b>${esc(m.planHead || "")}</b></div><div>مديرة المدرسة<br><b>${esc(m.principal || "")}</b></div></div>`;
     const pics = id => (photos && filesOf(id).length ? `<div class="p-photos">${filesOf(id).map(f => `<img src="${fileUrl(f.id)}" alt="">`).join("")}</div>` : "");
+    const pqr = (u, label) => (isLink(u) ? `<div class="p-qr"><img src="${qrUrl(u.trim())}" alt=""><span>${label}<br><small>امسحي الرمز لفتحها</small></span></div>` : "");
 
     const PRINT = {
       info: () => `<div class="pp">${pageHead("المقدمة والرؤية والرسالة")}
@@ -610,10 +626,10 @@
           .map(([a, b]) => `<tr><td style="width:45mm;font-weight:700;background:#f0f6f8">${a}</td><td>${esc(b ?? "")}</td></tr>`).join("")}</tbody></table>`}</div>`,
       programs: () => `<div class="pp">${pageHead("برامج الخطة التشغيلية")}${tbl(["البرنامج الرئيسي", "البرنامج الفرعي", "الفترة الزمنية", "الفصل", "المسؤولة المنفذة"],
           items("programs").map(p => [p.data.main, p.data.sub, p.data.period, p.data.semester, p.data.executor]))}</div>`
-        + (items("programs").some(p => p.data.goals || p.data.strategies || p.data.participants || filesOf(p.id).length)
-          ? `<div class="pp">${pageHead("تفاصيل البرامج والمبادرات")}${items("programs").filter(p => p.data.goals || p.data.strategies || p.data.participants || filesOf(p.id).length).map(p => `<div class="p-report"><h3>${esc(p.data.main)} · ${esc(p.data.sub)}</h3><dl>
+        + (items("programs").some(p => p.data.goals || p.data.strategies || p.data.participants || p.data.link || filesOf(p.id).length)
+          ? `<div class="pp">${pageHead("تفاصيل البرامج والمبادرات")}${items("programs").filter(p => p.data.goals || p.data.strategies || p.data.participants || p.data.link || filesOf(p.id).length).map(p => `<div class="p-report"><h3>${esc(p.data.main)} · ${esc(p.data.sub)}</h3><dl>
             ${[["الفترة", p.data.period], ["المسؤولة المنفذة", p.data.executor], ["الفئة المشاركة", p.data.participants], ["الفئة المستهدفة", p.data.target], ["الأهداف", p.data.goals], ["الاستراتيجيات", p.data.strategies]]
-              .filter(x => x[1]).map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${pics(p.id)}</div>`).join("")}</div>` : ""),
+              .filter(x => x[1]).map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${pqr(p.data.link, "شواهد البرنامج")}${pics(p.id)}</div>`).join("")}</div>` : ""),
       swot: () => `<div class="pp">${pageHead("التحليل الرباعي (SWOT)")}<div class="p-swot">${SWOT.map(([type, title, , c]) =>
         `<div style="--c:${c}"><h3>${title}</h3><ol>${items("swot").filter(i => i.data.type === type).map(i => `<li>${esc(i.data.text)}</li>`).join("")}</ol></div>`).join("")}</div></div>`,
       edu_goals: () => `<div class="pp">${pageHead("أهداف التعليم")}${SECTIONS.edu_goals.fields[0].opts.map(k => {
@@ -622,7 +638,7 @@
       }).join("")}</div>`,
       timeline: () => {
         const progs = items("programs");
-        const bar = (p, sem) => { const w = weeksOf(p.data.period, sem, p.data.semester); return Array.from({ length: 17 }, (_, i) => `<td style="padding:0;${w.has(i + 1) ? `background:${sem === 1 ? "#12a39a" : "#1f3a5f"}` : ""}"></td>`).join(""); };
+        const bar = (p, sem) => { const w = weeksOf(p.data.period, sem, p.data.semester); return Array.from({ length: 17 }, (_, i) => `<td style="padding:0;${w.has(i + 1) ? `background:${sem === 1 ? "#bfe6e2" : "#cdd8e8"}` : ""}">${w.has(i + 1) ? `<i style="display:block;margin:1.2mm;height:3.2mm;border-radius:0.8mm;background:${sem === 1 ? "#12a39a" : "#1f3a5f"};opacity:.55"></i>` : ""}</td>`).join(""); };
         const t = sem => `<h2 class="p-h2">الفصل الدراسي ${sem === 1 ? "الأول" : "الثاني"}</h2><table class="p-t" style="font-size:8.5pt"><thead><tr><th>البرنامج</th>${Array.from({ length: 17 }, (_, i) => `<th style="padding:1mm;width:6mm">${i + 1}</th>`).join("")}</tr></thead><tbody>
           ${progs.filter(p => p.data.semester === "الفصلان" || (sem === 1 ? p.data.semester !== "الثاني" : p.data.semester === "الثاني")).map(p => `<tr><td>${esc(p.data.sub)}<br><small>${esc(p.data.period || "")}</small></td>${bar(p, sem)}</tr>`).join("")}</tbody></table>`;
         return `<div class="pp">${pageHead("الجدول الزمني لتنفيذ البرامج")}${t(1)}</div><div class="pp">${pageHead("الجدول الزمني لتنفيذ البرامج")}${t(2)}</div>`;
@@ -631,9 +647,10 @@
         <table class="p-t"><thead><tr><th style="width:8mm">م</th><th>البرنامج الرئيسي</th><th>البرنامج الفرعي</th><th>مسؤولة التنفيذ</th><th style="width:12mm">نُفّذ</th><th style="width:14mm">لم يُنفّذ</th><th>الملاحظات</th></tr></thead><tbody>
         ${items("followup").filter(i => i.data.semester === sem).map((i, n) => `<tr><td class="c">${n + 1}</td><td>${esc(progMain(i.data.program))}</td><td>${esc(prog(i.data.program)?.data.sub || "")}</td><td>${esc(prog(i.data.program)?.data.executor || "")}</td>
           <td class="c">${i.data.status === "نُفّذ" ? "✓" : ""}</td><td class="c">${i.data.status === "لم يُنفّذ" ? "✓" : i.data.status === "جارٍ التنفيذ" ? "جارٍ" : ""}</td><td>${esc(i.data.notes || "")}</td></tr>`).join("")}</tbody></table></div>`).join(""),
-      reports: () => `<div class="pp">${pageHead("تقارير البرامج والمبادرات")}${items("reports").map(r => `<div class="p-report"><h3>${esc(progMain(r.data.program))} · ${esc(progName(r.data.program))}</h3><dl>
-        ${[["المنفذة", r.data.executor], ["مكان التنفيذ", r.data.place], ["تاريخ التنفيذ", r.data.date], ["الفئة المستهدفة", r.data.target], ["عدد المستفيدات", r.data.count], ["الأهداف والمخرجات", r.data.outcomes]]
-          .filter(x => x[1] !== "" && x[1] != null).map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${pics(r.id)}</div>`).join("") || "<p>لا توجد تقارير بعد.</p>"}</div>`,
+      reports: () => `<div class="pp">${pageHead("تقارير البرامج والمبادرات")}${items("reports").map(r => `<div class="p-report"><h3>${esc(progMain(r.data.program))} · ${esc(r.data.title || progName(r.data.program))}</h3><dl>
+        ${[["البرنامج الفرعي", r.data.title ? progName(r.data.program) : ""], ["المنفذة", r.data.executor], ["مكان التنفيذ", r.data.place], ["تاريخ التنفيذ", r.data.date], ["مدة التنفيذ", r.data.duration], ["الفئة المستهدفة", r.data.target], ["عدد المستفيدات", r.data.count],
+          ["وصف البرنامج", r.data.description], ["الأهداف", r.data.outcomes], ["قياس الأثر", r.data.impact]]
+          .filter(x => x[1] !== "" && x[1] != null).map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>${pqr(r.data.link, "التقرير والشواهد")}${pics(r.id)}</div>`).join("") || "<p>لا توجد تقارير بعد.</p>"}</div>`,
       evaluation: () => {
         const f = items("followup"), done = f.filter(i => i.data.status === "نُفّذ").length;
         return `<div class="pp">${pageHead("التقويم والمتابعة")}<div class="p-stats"><div><b>${f.length ? Math.round(done / f.length * 100) : 0}%</b>نسبة تنفيذ البرامج</div>

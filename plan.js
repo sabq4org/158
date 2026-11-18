@@ -2,6 +2,7 @@
 // edits and deletes from, plus a few one-off fields (the school card, a committee's tasks, the recommendations).
 // Signed-in principal, the platform admin and the head of the planning committee edit it; no other teacher sees it.
 const express = require("express");
+const QRCode = require("qrcode");
 // The first draft (staff names and the school's entries) is private and kept out of the public repo: it is loaded once
 // from plan-seed.js when that file is present; otherwise the plan starts as it is in the database.
 let SEED = null;
@@ -181,6 +182,14 @@ function mount(router, pool, { canSee }) {
     if (rows[0].n >= MAX_FILES) return res.status(400).json({ error: "too_many", errors: [`الحد ${MAX_FILES} صور لكل عنصر`] });
     const r = await pool.query("INSERT INTO plan_files (item_id, mime, data) VALUES ($1, $2, $3) RETURNING id, item_id", [id, mime, req.body]);
     res.json(r.rows[0]);
+  });
+
+  // A QR code (SVG) for an evidence link, so a printed page leads to the program's evidence folder or report.
+  router.get("/plan/qr", only, async (req, res) => {
+    const u = String(req.query.u || "");
+    if (!/^https:\/\/[^\s<>"]{4,1000}$/.test(u)) return res.status(400).end();
+    const svg = await QRCode.toString(u, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#0d3f3d", light: "#ffffff" } });
+    res.set({ "Content-Type": "image/svg+xml", "Cache-Control": "private, max-age=86400" }).send(svg);
   });
 
   router.get("/plan/files/:id", only, async (req, res) => {
