@@ -100,6 +100,7 @@
 
   // ---------- State ----------
   const S = { meta: {}, items: [], files: [], role: null };
+  const RO = () => S.role === "viewer";
   let current = "info";
   const uniq = a => [...new Set(a.filter(Boolean))];
   const items = sec => S.items.filter(i => i.section === sec).sort((a, b) => a.sort - b.sort || a.id - b.id);
@@ -170,6 +171,8 @@
     if (r.status === 403) return showLogin("الخطة التشغيلية لإدارة المدرسة ورئيسة لجنة التخطيط");
     if (!r.ok) return showLogin("تعذّر فتح الخطة، حاولي بعد قليل");
     Object.assign(S, await r.json());
+    // The principal only reads the plan: every add, edit, move and delete control is hidden for her.
+    document.body.classList.toggle("ro", RO());
     $("#login").hidden = true; $("#app").hidden = false;
     const want = location.hash.slice(1);
     if (SECTIONS[want]) current = want;
@@ -262,8 +265,8 @@
         <button class="btn small" data-act="meta-edit">${ICON.edit}تعديل المهام</button></div>
         ${tasks.length ? `<ol>${tasks.map(t => `<li>${esc(t)}</li>`).join("")}</ol>` : '<p class="muted">لا توجد مهام بعد.</p>'}</section>`;
     }
-    return `<form class="card box" data-meta="${s.key}"><div class="form">${s.meta.map(f => input(f, m[f.k], f.t === "textarea" ? "full" : "")).join("")}</div>
-      <div class="form-foot"><button class="btn primary">حفظ</button><span class="saved" aria-live="polite"></span></div></form>`;
+    return `<form class="card box" data-meta="${s.key}"><fieldset class="plain" ${RO() ? "disabled" : ""}><div class="form">${s.meta.map(f => input(f, m[f.k], f.t === "textarea" ? "full" : "")).join("")}</div>
+      ${RO() ? "" : `<div class="form-foot"><button class="btn primary">حفظ</button><span class="saved" aria-live="polite"></span></div>`}</fieldset></form>`;
   }
 
   function input(f, v, cls = "") {
@@ -352,7 +355,7 @@
         const rows = sem(name);
         return `<section class="card"><div class="box" style="padding-bottom:4px"><h2 style="margin:0">الفصل الدراسي ${name}</h2></div><div class="tbl-wrap"><table class="grid"><thead><tr><th>م</th><th>البرنامج الرئيسي</th><th>البرنامج الفرعي</th><th>المسؤولة</th><th>حالة التنفيذ</th><th>الملاحظات</th><th></th></tr></thead><tbody>
           ${rows.map((it, i) => `<tr><td class="num">${i + 1}</td><td>${esc(progMain(it.data.program))}</td><td>${esc(progName(it.data.program))}</td><td class="long"><div class="clip">${esc(prog(it.data.program)?.data.executor)}</div></td>
-            <td><select class="status" data-status="${it.id}" aria-label="حالة التنفيذ"><option value="">لم تُرصد</option>${Object.keys(DONE).map(k => `<option ${it.data.status === k ? "selected" : ""}>${k}</option>`).join("")}</select></td>
+            <td><select class="status" data-status="${it.id}" ${RO() ? "disabled" : ""} aria-label="حالة التنفيذ"><option value="">لم تُرصد</option>${Object.keys(DONE).map(k => `<option ${it.data.status === k ? "selected" : ""}>${k}</option>`).join("")}</select></td>
             <td class="long"><div class="clip">${esc(it.data.notes)}</div></td><td class="acts">${rowActs(it.id, false)}</td></tr>`).join("") || '<tr><td colspan="7" class="muted">لا يوجد.</td></tr>'}
         </tbody></table></div></section>`;
       };
