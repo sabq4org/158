@@ -594,7 +594,8 @@
   function printPlan(keys, single, photos = true) {
     const m = meta("info");
     const year = m.year || "1448";
-    const pageHead = title => `<div class="p-head"><img src="/img/moe.webp" alt=""><div><b>${esc(title)}</b><span>${esc(m.school || "")} · الخطة التشغيلية لعام ${esc(year)}هـ</span></div><img src="/img/school.webp" alt=""></div>`;
+    let group = "";
+    const pageHead = title => `<div class="p-head"><img src="/img/moe.webp" alt=""><div>${group && !single ? `<i class="p-grp">${esc(group)}</i>` : ""}<b>${esc(title)}</b><span>${esc(m.school || "")} · الخطة التشغيلية لعام ${esc(year)}هـ</span></div><img src="/img/school.webp" alt=""></div>`;
     const tbl = (cols, rows) => `<table class="p-t"><thead><tr><th style="width:8mm">م</th>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r, i) =>
       `<tr><td class="c">${i + 1}</td>${r.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("") || `<tr><td class="c" colspan="${cols.length + 1}">—</td></tr>`}</tbody></table>`;
     const signs = `<div class="p-signs"><div>رئيسة لجنة التخطيط<br><b>${esc(m.planHead || "")}</b></div><div>مديرة المدرسة<br><b>${esc(m.principal || "")}</b></div></div>`;
@@ -659,7 +660,7 @@
     for (const g of GROUPS) {
       const mine = g[1].filter(k => chosen.includes(k));
       if (!mine.length) continue;
-      if (!single) body += `<div class="pp p-divider"><div class="drop"><span>${esc(g[0])}</span></div><small>${mine.map(k => esc(SECTIONS[k].title)).join(" · ")}</small></div>`;
+      group = g[0];
       body += mine.map(k => (PRINT[k] || generic)(k)).join("");
     }
     $("#print").innerHTML = cover + toc + body;
