@@ -2,7 +2,10 @@
 // edits and deletes from, plus a few one-off fields (the school card, a committee's tasks, the recommendations).
 // Signed-in principal, the platform admin and the head of the planning committee edit it; no other teacher sees it.
 const express = require("express");
-const SEED = require("./plan-seed");
+// The first draft (staff names and the school's entries) is private and kept out of the public repo: it is loaded once
+// from plan-seed.js when that file is present; otherwise the plan starts as it is in the database.
+let SEED = null;
+try { SEED = require("./plan-seed"); } catch { SEED = null; }
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS plan_items (
@@ -66,6 +69,7 @@ async function tx(pool, fn) {
 }
 
 async function seed(pool) {
+  if (!SEED) return;
   const { rowCount } = await pool.query("SELECT 1 FROM plan_meta WHERE section = '_seeded'");
   if (rowCount) return;
   const client = await pool.connect();
