@@ -357,7 +357,6 @@
   function weeksOf(period, sem, semester) {
     const n = String(period || "").replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).match(/\d+/g)?.map(Number) || [];
     const all = new Set(Array.from({ length: 17 }, (_, i) => i + 1));
-    if (semester === "الفصلان" && sem === 2) return all;
     if (!n.length) return all;
     const [a, b = a] = n.length > 1 ? [Math.min(n[0], n[1]), Math.max(n[0], n[1])] : [n[0]];
     return new Set(Array.from({ length: Math.max(0, Math.min(b, 17) - a + 1) }, (_, i) => a + i));
@@ -469,19 +468,30 @@
       if (item) {
         const r = await api(`/plan/items/${item.id}`, json("PUT", { data: next }));
         Object.assign(item, r);
+        if (s.key === "programs") await syncFollowup(item);
         toast("انحفظ التعديل");
       } else {
         const r = await api("/plan/items", json("POST", { section: s.key, data: next }));
         S.items.push(r);
-        // A new program gets its follow-up rows for the semesters it runs in.
-        if (s.key === "programs") {
-          const sems = next.semester === "الفصلان" ? ["الأول", "الثاني"] : [next.semester || "الأول"];
-          for (const semester of sems) S.items.push(await api("/plan/items", json("POST", { section: "followup", data: { program: String(r.id), semester, status: "" } })));
-        }
+        if (s.key === "programs") await syncFollowup(r);
         toast("انضاف ✓");
       }
       renderSide(); render();
     });
+  }
+
+  // A program has one follow-up row per semester it runs in: added when it gains a semester, and an unrecorded row
+  // removed when it loses one (a row with a status or notes is kept).
+  async function syncFollowup(p) {
+    const want = p.data.semester === "الفصلان" ? ["الأول", "الثاني"] : [p.data.semester || "الأول"];
+    const rows = S.items.filter(i => i.section === "followup" && i.data.program === String(p.id));
+    for (const semester of want)
+      if (!rows.some(i => i.data.semester === semester))
+        S.items.push(await api("/plan/items", json("POST", { section: "followup", data: { program: String(p.id), semester, status: "" } })));
+    for (const i of rows.filter(i => !want.includes(i.data.semester) && !i.data.status && !i.data.notes)) {
+      await api(`/plan/items/${i.id}`, { method: "DELETE" });
+      S.items = S.items.filter(x => x.id !== i.id);
+    }
   }
 
   function openMeta(s) {
