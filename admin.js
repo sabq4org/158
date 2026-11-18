@@ -17,6 +17,7 @@ const alerts = require("./alerts");
 const reports = require("./reports");
 const lessons = require("./lessons");
 const exams = require("./exams");
+const plan = require("./plan");
 
 const scrypt = util.promisify(crypto.scrypt);
 const deviceOf = req => (/iphone|ipad|android|mobile/i.test(req.get("user-agent") || "") ? "جوال" : "كمبيوتر");
@@ -275,9 +276,11 @@ const CLASS_ORDER = "c.grade NULLS LAST, c.section, s.class NULLS LAST";
 const CLASS_JOIN = "LEFT JOIN classes c ON c.teacher_id = s.teacher_id AND c.name = s.class";
 // The lessons and their feedback belong to the first teacher, who gave them.
 const LESSONS_OWNER = 1;
+// The head of the planning committee (the same teacher) edits the operational plan with the principal.
+const PLAN_HEAD = LESSONS_OWNER;
 // The platform admin runs the school, not a class: these are the only routes that account reaches. No teacher's
 // students, classes, archives or log are among them.
-const ADMIN_ROUTES = /^\/(me|logout|calendar|viewer|staff|school|catalog|feedback|attendance)(\/|$)/;
+const ADMIN_ROUTES = /^\/(me|logout|calendar|viewer|staff|school|catalog|feedback|attendance|plan)(\/|$)/;
 
 module.exports = function mountAdmin(app, pool) {
   const PASSWORD = process.env.ADMIN_PASSWORD || "";
@@ -414,7 +417,8 @@ module.exports = function mountAdmin(app, pool) {
     const schoolLog = req.path === "/audit" && req.method === "GET";
     if (req.role === "admin" && !schoolLog && !ADMIN_ROUTES.test(req.path)) return res.status(403).json({ error: "school_only", errors: ["حساب الإدارة ما يعرض بيانات المعلمات"] });
     // The principal's account sees everything and changes nothing.
-    if (req.role === "viewer" && req.method !== "GET") return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
+    // The operational plan is the exception: the principal writes it with her planning committee.
+    if (req.role === "viewer" && req.method !== "GET" && !/^\/plan(\/|$)/.test(req.path)) return res.status(403).json({ error: "read_only", errors: ["هذا الحساب للعرض فقط"] });
     // Whoever is signed in signs every log entry the request writes.
     const actor = s.role === "admin" ? "إدارة المنصة" : s.role === "viewer" ? "المديرة" : getTeacher(s.tid)?.name || null;
     who.run({ actor, role: s.role, device: deviceOf(req) }, next);
@@ -434,11 +438,11 @@ module.exports = function mountAdmin(app, pool) {
 
   router.get("/me", async (req, res) => {
     if (req.role === "admin") {
-      return res.json({ ok: true, role: "admin", schoolSettings: getSchool(), calendar: await calendarInfo(null, "admin"),
+      return res.json({ ok: true, role: "admin", plan: true, schoolSettings: getSchool(), calendar: await calendarInfo(null, "admin"),
         school: { stage: school.STAGE, tracks: school.TRACKS } });
     }
     const t = getTeacher(req.tid), mine = req.role === "teacher" ? panelsOf(req.login) : [];
-    res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null,
+    res.json({ ok: true, role: req.role, teacher: t ? teacherInfo(t) : null, plan: req.role !== "teacher" || req.login === PLAN_HEAD,
       // The principal switches between teachers; a teacher between her subjects, when she has several.
       teachers: req.role === "viewer" ? listTeachers().map(teacherInfo) : mine.length > 1 ? mine.map(teacherInfo) : undefined,
       user: req.role === "teacher" ? getTeacher(req.login).email : undefined, login: req.login,
@@ -1299,6 +1303,8 @@ module.exports = function mountAdmin(app, pool) {
   // The admin's home, and the principal's too (she reads it and opens any teacher's panel from it).
   // Classes and subjects compared across the school, for the principal.
   reports.mount(router, pool);
+  // The operational plan: the principal, the platform admin and the head of the planning committee.
+  plan.mount(router, pool, { canSee: req => req.role !== "teacher" || req.login === PLAN_HEAD });
   lessons.mountPanel(router, pool);
   // An approved exam mark is the panel's own edit of that test: logged, and undone from the log like any edit.
   exams.mountPanel(router, pool, { applyGrade: async (q, tid, id, field, value) => {

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الخطة التشغيلية 1448</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d6e6a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/plan/plan.css">
+</head>
+<body>
+
+<form class="login card" id="login" hidden novalidate>
+  <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+  <h1>الخطة التشغيلية</h1>
+  <p class="muted">بنفس دخول لوحة التحكم</p>
+  <div class="seg" role="radiogroup" aria-label="نوع الحساب">
+    <button type="button" data-as="teacher" aria-checked="true" role="radio">معلمة</button>
+    <button type="button" data-as="viewer" aria-checked="false" role="radio">المديرة</button>
+    <button type="button" data-as="admin" aria-checked="false" role="radio">إدارة المنصة</button>
+  </div>
+  <input id="user" type="email" inputmode="email" autocomplete="username" aria-label="الإيميل" placeholder="الإيميل" dir="ltr">
+  <input id="pw" type="password" autocomplete="current-password" aria-label="كلمة المرور" placeholder="كلمة المرور">
+  <button class="btn primary wide">دخول</button>
+  <p class="err" id="loginErr" role="alert"></p>
+</form>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="logos"><img src="/img/moe.webp" alt="وزارة التعليم"><img src="/img/school.webp" alt="الثانوية الثامنة والخمسون بعد المائة"></div>
+    <div class="brand"><b>الخطة التشغيلية <span id="yearTag">1448هـ</span></b><span id="schoolLine">الثانوية الثامنة والخمسون بعد المائة</span></div>
+    <button class="btn primary" type="button" id="pdfBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg><span>ملف PDF</span></button>
+    <button class="btn ghost" type="button" id="logoutBtn">خروج</button>
+  </header>
+
+  <div class="layout">
+    <nav class="side" id="side" aria-label="أقسام الخطة"></nav>
+    <main id="main" tabindex="-1"></main>
+  </div>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form method="dialog" id="dlgForm" novalidate>
+    <header><h2 id="dlgTitle"></h2><button type="button" class="x" data-close aria-label="إغلاق">×</button></header>
+    <div class="dlg-body" id="dlgBody"></div>
+    <p class="err" id="dlgErr" role="alert"></p>
+    <footer><button class="btn primary" id="dlgSave">حفظ</button><button type="button" class="btn ghost" data-close>إلغاء</button></footer>
+  </form>
+</dialog>
+
+<dialog id="pdfDlg" aria-labelledby="pdfTitle">
+  <form method="dialog" id="pdfForm">
+    <header><h2 id="pdfTitle">ملف PDF للخطة</h2><button type="button" class="x" data-close aria-label="إغلاق">×</button></header>
+    <div class="dlg-body">
+      <p class="muted">اختاري الأقسام، وبعدها اختاري «حفظ كـ PDF» من نافذة الطباعة.</p>
+      <div class="checks" id="pdfChecks"></div>
+      <label class="check"><input type="checkbox" id="pdfPhotos" checked> صور الشواهد</label>
+    </div>
+    <footer><button class="btn primary">إنشاء الملف</button><button type="button" class="btn ghost" id="pdfAll">تحديد الكل</button></footer>
+  </form>
+</dialog>
+
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="print" aria-hidden="true"></div>
+
+<script src="/plan/plan.js"></script>
+</body>
+</html>
